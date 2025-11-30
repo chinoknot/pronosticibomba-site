@@ -155,137 +155,119 @@
   </div>
 
   <script>
-    const SHEETDB_URL = "https://sheetdb.io/api/v1/ou6vl5uzwgsda?sheet=PICKS";
+const SHEETDB_URL = "https://sheetdb.io/api/v1/ou6vl5uzwgsda";
 
-    function formatDateLabel(d) {
-      return d.toLocaleDateString("it-IT", {
-        weekday: "long",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit"
-      });
+function formatDateIT(dateStr) {
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("it-IT", {
+    weekday: "long",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  });
+}
+
+function parseMatchDateTime(row) {
+  // row.match_date = "2025-11-30", row.match_time = "15:00"
+  if (!row.match_date || !row.match_time) return null;
+  return new Date(row.match_date + "T" + row.match_time + ":00");
+}
+
+async function loadTodayPicks() {
+  const container = document.getElementById("picks-container");
+  const titleSpan = document.getElementById("picks-title");
+  container.innerHTML = "Caricamento…";
+
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);   // es. "2025-11-30"
+
+  // titolo
+  titleSpan.textContent = formatDateIT(todayStr);
+
+  try {
+    // ATTENZIONE: qui usiamo run_date, non date
+    const url = `${SHEETDB_URL}/search?sheet=PICKS&run_date=${todayStr}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    const rows = await res.json();
+
+    // filtra solo le partite di oggi
+    let picks = rows.filter(r => r.match_date === todayStr);
+
+    // opzionale: tieni solo quelle non ancora iniziate (o -10 min)
+    const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000);
+    picks = picks.filter(r => {
+      const dt = parseMatchDateTime(r);
+      if (!dt) return true; // se manca l'orario, la teniamo
+      return dt >= tenMinAgo;
+    });
+
+    // ordina per ora
+    picks.sort((a, b) => {
+      const da = parseMatchDateTime(a);
+      const db = parseMatchDateTime(b);
+      if (!da || !db) return 0;
+      return da - db;
+    });
+
+    if (!picks.length) {
+      container.innerHTML = "Nessun pick generato per oggi (ancora).";
+      return;
     }
 
-    async function loadPicks() {
-      const statusEl = document.getElementById("status");
-      const catContainer = document.getElementById("categories");
-      const badge = document.getElementById("badge-date");
+    // raggruppa per categoria
+    const byCategory = {};
+    for (const p of picks) {
+      const cat = p.category || "ALTRO";
+      if (!byCategory[cat]) byCategory[cat] = [];
+      byCategory[cat].push(p);
+    }
 
-      const today = new Date();
-      const todayStr = today.toISOString().slice(0, 10);
-      badge.textContent = "Picks per " + formatDateLabel(today);
+    // costruisci HTML
+    let html = "";
+    for (const [cat, list] of Object.entries(byCategory)) {
+      html += `<h2 class="cat-title">${cat}</h2>`;
+      html += `<div class="cat-block">`;
+      for (const p of list) {
+        const dt = parseMatchDateTime(p);
+        const timeStr = dt
+          ? dt.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+          : (p.match_time || "-");
 
-      try {
-        const res = await fetch(SHEETDB_URL, { cache: "no-store" });
-        if (!res.ok) {
-          throw new Error("HTTP " + res.status);
-        }
-        const data = await res.json();
-
-        // Filtra per la data di oggi
-        const todays = data.filter(r => r.date === todayStr);
-
-        if (!todays.length) {
-          statusEl.textContent = "Nessun pick generato per oggi (ancora).";
-          return;
-        }
-
-        // Raggruppa per category
-        const groups = {};
-        for (const row of todays) {
-          const cat = row.category || "OTHER";
-          if (!groups[cat]) groups[cat] = [];
-          groups[cat].push(row);
-        }
-
-        // Ordine categorie
-        const order = [
-          "SINGLE_GAME",
-          "SAFE_PICKS",
-          "BEST_TIPS_OF_DAY",
-          "OVER_UNDER_TIPS",
-          "DAILY_2PLUS",
-          "DAILY_10PLUS"
-        ];
-
-        const titles = {
-          SINGLE_GAME: "Single Game",
-          SAFE_PICKS: "Safe Picks",
-          BEST_TIPS_OF_DAY: "Best Tips of the Day",
-          OVER_UNDER_TIPS: "Over / Under & BTTS",
-          DAILY_2PLUS: "Daily 2+ Odds",
-          DAILY_10PLUS: "Daily 10+ Odds",
-          OTHER: "Altri Picks"
-        };
-
-        const subtitles = {
-          SINGLE_GAME: "La giocata singola più forte secondo il modello.",
-          SAFE_PICKS: "Quote basse ma probabilità molto alta.",
-          BEST_TIPS_OF_DAY: "Mix di value e sicurezza.",
-          OVER_UNDER_TIPS: "Gol, Over/Under, BTTS.",
-          DAILY_2PLUS: "Multipla intorno alla quota 2.",
-          DAILY_10PLUS: "Multipla più aggressiva (circa quota 10).",
-          OTHER: "Picks non classificati."
-        };
-
-        catContainer.innerHTML = "";
-
-        for (const cat of order) {
-          const list = groups[cat];
-          if (!list || !list.length) continue;
-
-          const section = document.createElement("section");
-          section.className = "category";
-
-          section.innerHTML = `
-            <div class="category-header">
-              <div class="category-title">${titles[cat] || cat}</div>
-              <div class="category-sub">${subtitles[cat] || ""}</div>
+        html += `
+          <div class="pick-card">
+            <div class="pick-header">
+              <span class="league">${p.league} (${p.country})</span>
+              <span class="time">${timeStr}</span>
             </div>
-            <div class="picks-grid"></div>
-          `;
-
-          const grid = section.querySelector(".picks-grid");
-
-          list.forEach(p => {
-            const card = document.createElement("article");
-            card.className = "pick-card";
-
-            const league = p.league || "";
-            const match = (p.home || "") + " - " + (p.away || "");
-            const pick = p.pick || "";
-            const odd = p.odd || "";
-            const score = p.score || "";
-            const model = p.model || "";
-
-            card.innerHTML = `
-              <div class="pick-league">${league}</div>
-              <div class="pick-match">${match}</div>
-              <div class="pick-type">${pick}
-                ${model ? `<span class="pill pill-model">${model}</span>` : ""}
-              </div>
-              <div class="pick-bottom">
-                <span class="pick-odd">${odd}</span>
-                <span class="pick-score">conf. modello: ${score}</span>
-              </div>
-            `;
-            grid.appendChild(card);
-          });
-
-          catContainer.appendChild(section);
-        }
-
-        statusEl.style.display = "none";
-        catContainer.style.display = "flex";
-
-      } catch (err) {
-        console.error(err);
-        statusEl.className = "error";
-        statusEl.textContent = "Errore nel caricare i picks. Riprova più tardi.";
+            <div class="teams">${p.home} – ${p.away}</div>
+            <div class="pick-main">
+              <span class="pick-label">${p.pick}</span>
+              <span class="odd">@ ${Number(p.odd).toFixed(2)}</span>
+            </div>
+            <div class="meta">
+              <span class="model">${p.model}</span>
+              <span class="score">score: ${Number(p.score).toFixed(3)}</span>
+            </div>
+          </div>
+        `;
       }
+      html += `</div>`;
     }
 
-    loadPicks();
-  </script>
+    container.innerHTML = html;
+
+  } catch (err) {
+    console.error("Errore nel caricamento picks:", err);
+    container.innerHTML = "Errore nel caricamento dei picks.";
+  }
+}
+
+// avvia al load
+document.addEventListener("DOMContentLoaded", loadTodayPicks);
+</script>
+
 </body>
 </html>
