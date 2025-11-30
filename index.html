@@ -151,13 +151,7 @@
         // solo partite di oggi
         let picks = rows.filter(r => r.match_date === todayStr);
 
-        // opzionale: solo partite non ancora iniziate (10 minuti di margine)
-        const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000);
-        picks = picks.filter(r => {
-          const dt = parseMatchDateTime(r);
-          if (!dt) return true;
-          return dt >= tenMinAgo;
-        });
+        // NON filtriamo più per orario: vogliamo vedere anche quelle già giocate
 
         // ordina per orario
         picks.sort((a, b) => {
@@ -216,7 +210,7 @@
         container.innerHTML = html;
 
       } catch (err) {
-        console.error("Errore nel caricamento picks:", err);
+        console.error("Errore nel caricamento dei picks:", err);
         container.innerHTML = "Errore nel caricamento dei picks.";
       }
     }
