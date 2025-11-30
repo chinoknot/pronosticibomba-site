@@ -1,273 +1,227 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <title>Pronostici Bomba – Picks di oggi</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <title>Pronostici Bomba</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    :root {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0c1020;
-      color: #f5f5f5;
-    }
     body {
       margin: 0;
-      padding: 0;
-      background: radial-gradient(circle at top, #202b4d 0, #050816 55%);
-      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e2a3b, #050816);
+      color: #f5f5f5;
     }
-    .container {
+    main {
       max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px 16px 40px;
+      margin: 40px auto;
+      padding: 0 24px 40px;
     }
     h1 {
-      font-size: 1.8rem;
-      margin: 0 0 4px;
+      font-size: 2.4rem;
+      margin-bottom: 4px;
     }
-    .subtitle {
-      opacity: .8;
-      font-size: .9rem;
+    p.subtitle {
+      margin-top: 0;
+      margin-bottom: 24px;
+      color: #c7d0df;
+      font-size: 0.95rem;
+    }
+    #reload-btn {
+      border: 1px solid #3b82f6;
+      background: #111827;
+      color: #e5e7eb;
+      padding: 8px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.9rem;
       margin-bottom: 20px;
     }
-    .badge-date {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: .8rem;
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(0,0,0,.3);
+    #reload-btn:hover {
+      background: #1f2937;
     }
-    .categories {
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      margin-top: 20px;
+    #picks-container {
+      margin-top: 12px;
+      font-size: 0.95rem;
     }
-    .category {
-      border-radius: 16px;
-      padding: 16px 18px 10px;
-      background: rgba(5, 10, 30, 0.88);
-      border: 1px solid rgba(255,255,255,.05);
-      box-shadow: 0 12px 35px rgba(0,0,0,.55);
-    }
-    .category-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
+    .cat-title {
+      margin-top: 24px;
       margin-bottom: 8px;
-    }
-    .category-title {
       font-size: 1.1rem;
       font-weight: 600;
-      letter-spacing: .02em;
+      border-left: 3px solid #3b82f6;
+      padding-left: 8px;
     }
-    .category-sub {
-      font-size: .8rem;
-      opacity: .65;
-    }
-    .picks-grid {
+    .cat-block {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 10px;
-      margin-top: 10px;
+      gap: 12px;
     }
     .pick-card {
-      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 10px;
       padding: 10px 12px;
-      background: rgba(16, 22, 55, 0.95);
-      border: 1px solid rgba(255,255,255,.07);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+    .pick-header {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-bottom: 4px;
     }
-    .pick-league {
-      font-size: .75rem;
-      opacity: .75;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-    }
-    .pick-match {
+    .teams {
       font-weight: 600;
-      font-size: .95rem;
+      margin-bottom: 4px;
     }
-    .pick-type {
-      font-size: .85rem;
-      opacity: .9;
-    }
-    .pick-bottom {
+    .pick-main {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      margin-top: 4px;
+      margin-bottom: 4px;
     }
-    .pick-odd {
-      font-weight: 700;
-      font-size: .9rem;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #22c55e;
-      color: #04110a;
+    .pick-label {
+      font-size: 0.9rem;
     }
-    .pick-score {
-      font-size: .75rem;
-      opacity: .7;
+    .odd {
+      font-weight: 600;
+      color: #facc15;
     }
-    .pill {
-      font-size: .7rem;
-      padding: 1px 7px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.15);
-      opacity: .8;
-    }
-    .pill-model {
-      margin-left: 6px;
-    }
-    .loading, .error {
-      margin-top: 24px;
-      font-size: .9rem;
-      opacity: .8;
-    }
-    .error { color: #f97373; }
-
-    @media (max-width: 600px) {
-      .category {
-        padding: 14px 12px 8px;
-      }
-      .picks-grid {
-        grid-template-columns: 1fr;
-      }
+    .meta {
+      font-size: 0.7rem;
+      color: #6b7280;
+      display: flex;
+      justify-content: space-between;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <main>
     <h1>Pronostici Bomba</h1>
-    <div class="subtitle">
+    <p class="subtitle">
       Picks generati automaticamente dal modello (solo calcio maschile, top campionati).
-    </div>
-    <div class="badge-date" id="badge-date"></div>
+    </p>
 
-    <div id="status" class="loading">Carico i picks di oggi…</div>
-    <div id="categories" class="categories" style="display:none;"></div>
-  </div>
+    <button id="reload-btn" onclick="loadTodayPicks()">
+      Picks per <span id="picks-title"></span>
+    </button>
+
+    <div id="picks-container">Carico i picks di oggi...</div>
+  </main>
 
   <script>
-const SHEETDB_URL = "https://sheetdb.io/api/v1/ou6vl5uzwgsda";
+    const SHEETDB_URL = "https://sheetdb.io/api/v1/ou6vl5uzwgsda";
 
-function formatDateIT(dateStr) {
-  const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString("it-IT", {
-    weekday: "long",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  });
-}
-
-function parseMatchDateTime(row) {
-  // row.match_date = "2025-11-30", row.match_time = "15:00"
-  if (!row.match_date || !row.match_time) return null;
-  return new Date(row.match_date + "T" + row.match_time + ":00");
-}
-
-async function loadTodayPicks() {
-  const container = document.getElementById("picks-container");
-  const titleSpan = document.getElementById("picks-title");
-  container.innerHTML = "Caricamento…";
-
-  const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10);   // es. "2025-11-30"
-
-  // titolo
-  titleSpan.textContent = formatDateIT(todayStr);
-
-  try {
-    // ATTENZIONE: qui usiamo run_date, non date
-    const url = `${SHEETDB_URL}/search?sheet=PICKS&run_date=${todayStr}`;
-    const res = await fetch(url);
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
-    const rows = await res.json();
-
-    // filtra solo le partite di oggi
-    let picks = rows.filter(r => r.match_date === todayStr);
-
-    // opzionale: tieni solo quelle non ancora iniziate (o -10 min)
-    const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000);
-    picks = picks.filter(r => {
-      const dt = parseMatchDateTime(r);
-      if (!dt) return true; // se manca l'orario, la teniamo
-      return dt >= tenMinAgo;
-    });
-
-    // ordina per ora
-    picks.sort((a, b) => {
-      const da = parseMatchDateTime(a);
-      const db = parseMatchDateTime(b);
-      if (!da || !db) return 0;
-      return da - db;
-    });
-
-    if (!picks.length) {
-      container.innerHTML = "Nessun pick generato per oggi (ancora).";
-      return;
+    function formatDateIT(dateStr) {
+      const d = new Date(dateStr + "T00:00:00");
+      return d.toLocaleDateString("it-IT", {
+        weekday: "long",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      });
     }
 
-    // raggruppa per categoria
-    const byCategory = {};
-    for (const p of picks) {
-      const cat = p.category || "ALTRO";
-      if (!byCategory[cat]) byCategory[cat] = [];
-      byCategory[cat].push(p);
+    function parseMatchDateTime(row) {
+      if (!row.match_date || !row.match_time) return null;
+      return new Date(row.match_date + "T" + row.match_time + ":00");
     }
 
-    // costruisci HTML
-    let html = "";
-    for (const [cat, list] of Object.entries(byCategory)) {
-      html += `<h2 class="cat-title">${cat}</h2>`;
-      html += `<div class="cat-block">`;
-      for (const p of list) {
-        const dt = parseMatchDateTime(p);
-        const timeStr = dt
-          ? dt.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
-          : (p.match_time || "-");
+    async function loadTodayPicks() {
+      const container = document.getElementById("picks-container");
+      const titleSpan = document.getElementById("picks-title");
 
-        html += `
-          <div class="pick-card">
-            <div class="pick-header">
-              <span class="league">${p.league} (${p.country})</span>
-              <span class="time">${timeStr}</span>
-            </div>
-            <div class="teams">${p.home} – ${p.away}</div>
-            <div class="pick-main">
-              <span class="pick-label">${p.pick}</span>
-              <span class="odd">@ ${Number(p.odd).toFixed(2)}</span>
-            </div>
-            <div class="meta">
-              <span class="model">${p.model}</span>
-              <span class="score">score: ${Number(p.score).toFixed(3)}</span>
-            </div>
-          </div>
-        `;
+      if (!container || !titleSpan) {
+        console.error("Manca picks-container o picks-title nell’HTML");
+        return;
       }
-      html += `</div>`;
+
+      container.innerHTML = "Carico i picks di oggi...";
+
+      const now = new Date();
+      const todayStr = now.toISOString().slice(0, 10); // es. "2025-11-30"
+      titleSpan.textContent = formatDateIT(todayStr);
+
+      try {
+        // usa run_date corretto
+        const url = `${SHEETDB_URL}/search?sheet=PICKS&run_date=${todayStr}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+
+        // solo partite di oggi
+        let picks = rows.filter(r => r.match_date === todayStr);
+
+        // opzionale: solo partite non ancora iniziate (10 minuti di margine)
+        const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000);
+        picks = picks.filter(r => {
+          const dt = parseMatchDateTime(r);
+          if (!dt) return true;
+          return dt >= tenMinAgo;
+        });
+
+        // ordina per orario
+        picks.sort((a, b) => {
+          const da = parseMatchDateTime(a);
+          const db = parseMatchDateTime(b);
+          if (!da || !db) return 0;
+          return da - db;
+        });
+
+        if (!picks.length) {
+          container.innerHTML = "Nessun pick generato per oggi (ancora).";
+          return;
+        }
+
+        // raggruppa per categoria
+        const byCategory = {};
+        for (const p of picks) {
+          const cat = p.category || "ALTRO";
+          if (!byCategory[cat]) byCategory[cat] = [];
+          byCategory[cat].push(p);
+        }
+
+        let html = "";
+        for (const [cat, list] of Object.entries(byCategory)) {
+          html += `<h2 class="cat-title">${cat}</h2>`;
+          html += `<div class="cat-block">`;
+          for (const p of list) {
+            const dt = parseMatchDateTime(p);
+            const timeStr = dt
+              ? dt.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+              : (p.match_time || "-");
+
+            const oddNum = Number(p.odd || 0);
+
+            html += `
+              <div class="pick-card">
+                <div class="pick-header">
+                  <span class="league">${p.league} (${p.country})</span>
+                  <span class="time">${timeStr}</span>
+                </div>
+                <div class="teams">${p.home} – ${p.away}</div>
+                <div class="pick-main">
+                  <span class="pick-label">${p.pick}</span>
+                  <span class="odd">@ ${oddNum ? oddNum.toFixed(2) : "-"}</span>
+                </div>
+                <div class="meta">
+                  <span class="model">${p.model}</span>
+                  <span class="score">score: ${Number(p.score || 0).toFixed(3)}</span>
+                </div>
+              </div>
+            `;
+          }
+          html += `</div>`;
+        }
+
+        container.innerHTML = html;
+
+      } catch (err) {
+        console.error("Errore nel caricamento picks:", err);
+        container.innerHTML = "Errore nel caricamento dei picks.";
+      }
     }
 
-    container.innerHTML = html;
-
-  } catch (err) {
-    console.error("Errore nel caricamento picks:", err);
-    container.innerHTML = "Errore nel caricamento dei picks.";
-  }
-}
-
-// avvia al load
-document.addEventListener("DOMContentLoaded", loadTodayPicks);
-</script>
-
+    document.addEventListener("DOMContentLoaded", loadTodayPicks);
+  </script>
 </body>
 </html>
