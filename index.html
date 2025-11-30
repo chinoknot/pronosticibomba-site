@@ -353,8 +353,26 @@
   </main>
 
   <script>
-    const SHEETDB_URL = "https://sheetdb.io/api/v1/ou6vl5uzwgsda";
+    // ====== CONFIG SUPABASE ======
+    const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A"; // <-- incolla qui la tua anon key
 
+    async function sbFetch(table, query) {
+      const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        },
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Supabase error ${res.status}: ${text}`);
+      }
+      return await res.json();
+    }
+
+    // ====== UTIL ======
     function pad2(n) {
       return n < 10 ? "0" + n : "" + n;
     }
@@ -382,7 +400,6 @@
       const d = row.match_date;
       const t = row.match_time;
       if (!d || !t) return null;
-      // t presumibilmente "HH:MM"
       const [h, m] = t.split(":").map(x => parseInt(x, 10));
       const [yy, mm, dd] = d.split("-").map(x => parseInt(x, 10));
       if (!yy || !mm || !dd || isNaN(h) || isNaN(m)) return null;
@@ -430,6 +447,7 @@
       return "";
     }
 
+    // ====== MAIN LOAD ======
     async function loadTodayPicks() {
       const container = document.getElementById("content");
       const todayStr = getTodayStr();
@@ -437,17 +455,13 @@
       dayBadge.textContent = formatDateIT(todayStr);
 
       try {
-        const url = `${SHEETDB_URL}/search?sheet=PICKS&run_date=${todayStr}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const rows = await res.json();
+        // PICKS di oggi da Supabase
+        const picks = await sbFetch(
+          "picks",
+          `?run_date=eq.${todayStr}&match_date=eq.${todayStr}&select=*`
+        );
 
-        // solo partite di oggi
-        let picks = Array.isArray(rows)
-          ? rows.filter(r => r.match_date === todayStr)
-          : [];
-
-        if (!picks.length) {
+        if (!Array.isArray(picks) || !picks.length) {
           container.innerHTML = `
             <div class="empty-state">
               Nessun pick disponibile per oggi.<br />
@@ -457,7 +471,21 @@
           return;
         }
 
-        // ordina per ora all'interno di ogni categoria
+        // RESULTS di oggi da Supabase (esiti)
+        const results = await sbFetch(
+          "results",
+          `?picks_date=eq.${todayStr}&select=*`
+        );
+
+        const resultMap = new Map();
+        if (Array.isArray(results)) {
+          for (const r of results) {
+            if (r.fixture_id) {
+              resultMap.set(String(r.fixture_id), r);
+            }
+          }
+        }
+
         const byCategory = groupByCategory(picks);
         const categories = sortCategoriesOrder(Array.from(byCategory.keys()));
 
@@ -466,6 +494,7 @@
         for (const cat of categories) {
           const list = byCategory.get(cat) || [];
 
+          // Ordina per ora
           list.sort((a, b) => {
             const da = parseMatchDateTime(a);
             const db = parseMatchDateTime(b);
@@ -476,8 +505,15 @@
           });
 
           const total = list.length;
-          const wins = list.filter(p => (p.result || "").toUpperCase() === "WIN").length;
-          const loses = list.filter(p => (p.result || "").toUpperCase() === "LOSE").length;
+          let wins = 0;
+          let loses = 0;
+
+          for (const p of list) {
+            const res = resultMap.get(String(p.fixture_id));
+            const rLabel = (res && res.result) ? res.result.toUpperCase() : "";
+            if (rLabel === "WIN") wins++;
+            if (rLabel === "LOSE") loses++;
+          }
 
           html += `
             <article class="category-block">
@@ -499,11 +535,15 @@
             const oddNum = Number(p.odd || 0);
             const oddStr = oddNum ? oddNum.toFixed(2) : "-";
 
-            const resultClass = classifyResult(p.result);
+            const res = resultMap.get(String(p.fixture_id));
+            const resResult = res ? res.result : "";
+            const resScore = res ? res.final_score : "";
+
+            const resultClass = classifyResult(resResult);
             const cardExtraClass = resultClass ? ` ${resultClass}` : "";
 
-            const resultLabel = (p.result || "").toUpperCase();
-            const finalScore = p.final_score || "";
+            const resultLabel = (resResult || "").toUpperCase();
+            const finalScore = resScore || "";
             let badgeText = "";
             if (resultLabel) {
               badgeText = finalScore
