@@ -317,15 +317,21 @@
         return;
       }
 
-      // 2) DEDUP: una sola riga per fixture_id+pick (come in index.html)
-      const latestByKey = new Map();
-      for (const r of rawResults) {
-        if (!r.fixture_id || !r.pick) continue;
-        const key = String(r.fixture_id) + "__" + String(r.pick).trim();
-        // se lo lanci più volte e scrivi più righe uguali, qui teniamo SOLO l'ultima
-        latestByKey.set(key, r);
-      }
-      const resultsRows = Array.from(latestByKey.values());
+    // 2) DEDUP: una sola riga per fixture_id + category + pick
+// (ogni combinazione è una carta diversa sul sito)
+const latestByKey = new Map();
+for (const r of rawResults) {
+  if (!r.fixture_id || !r.pick) continue;
+  const key =
+    String(r.fixture_id) +
+    "__" +
+    String(r.category || "").trim() +
+    "__" +
+    String(r.pick).trim();
+  latestByKey.set(key, r);
+}
+const resultsRows = Array.from(latestByKey.values());
+
 
       if (!resultsRows.length) {
         tableContainer.innerHTML = `
@@ -342,12 +348,18 @@
         `?run_date=gte.${fromDate}&run_date=lte.${toDate}&select=*`
       );
 
-      const pickMap = new Map();
+    const pickMap = new Map();
       for (const p of picksRows) {
-        if (!p.fixture_id || !p.pick) continue;
-        const key = String(p.fixture_id) + "__" + String(p.pick).trim();
-        pickMap.set(key, p);
-      }
+      if (!p.fixture_id || !p.pick) continue;
+      const key =
+      String(p.fixture_id) +
+      "__" +
+      String(p.category || "").trim() +
+      "__" +
+      String(p.pick).trim();
+    pickMap.set(key, p);
+  }
+
 
       // 4) aggregazione per giorno (usando SOLO risultati deduplicati)
       const byDay = new Map();
@@ -363,8 +375,14 @@
         const result = (r.result || "").toUpperCase();
         if (result !== "WIN" && result !== "LOSE") continue;
 
-        const key = String(r.fixture_id) + "__" + String(r.pick || "").trim();
+        const key =
+        String(r.fixture_id) +
+          "__" +
+        String(r.category || "").trim() +
+        "__" +
+        String(r.pick || "").trim();
         const pick = pickMap.get(key);
+
         const odd = pick ? safeOdd(pick.odd) : 1.0;
 
         let wins = 0, loses = 0, stake = 0, profit = 0;
