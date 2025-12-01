@@ -344,7 +344,7 @@
           <span class="legend-dot lose"></span> Persa
         </div>
         <div class="legend-item">
-          <span class="legend-dot.pending"></span> In corso / non ancora iniziata
+          <span class="legend-dot pending"></span> In corso / non ancora iniziata
         </div>
         <div class="legend-item">
           <span class="legend-dot unknown"></span> Esito non disponibile
@@ -362,8 +362,7 @@
   <script>
     // ====== CONFIG SUPABASE ======
     const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
-    const SUPABASE_ANON_KEY =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheXN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";  // <-- incolla qui
 
     async function sbFetch(table, query) {
       const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
@@ -465,7 +464,7 @@
       return "Valore negativo";
     }
 
-    // Replica in JS della logica di evaluate_pick del results_checker
+    // valutazione frontend del pick
     function evaluatePickFrontend(pickRow, matchInfo) {
       if (!matchInfo) {
         return {
@@ -511,7 +510,7 @@
         res = (gh === 0 || ga === 0) ? "WIN" : "LOSE";
       }
 
-      // Esiti 1X / X2 / Home
+      // Esiti 1X / X2 / Home (semplificati)
       else if (pick_text.trim() === "home wins" || model === "HOME_WIN_STRONG" || model === "HOME_WIN_STRONG_STATS") {
         res = gh > ga ? "WIN" : "LOSE";
       } else if (pick_text.trim() === "1x" || model === "DC1X_SAFE" || model === "DC1X_O1_5_COMBO") {
@@ -554,7 +553,6 @@
           return;
         }
 
-        // RESULTS: usiamo solo i gol e lo status, poi ricalcoliamo tutto qui
         const resultsRows = await sbFetch(
           "results",
           `?picks_date=eq.${todayStr}&select=*`
