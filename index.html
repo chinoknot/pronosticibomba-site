@@ -90,6 +90,22 @@
       gap: 6px;
     }
 
+    .history-link {
+  color: var(--text-main);
+  text-decoration: none;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: rgba(15, 23, 42, 0.9);
+  font-size: 0.78rem;
+}
+
+.history-link:hover {
+  border-color: var(--accent);
+  color: #fed7aa;
+}
+
+
     .legend-dot {
       width: 10px;
       height: 10px;
@@ -348,7 +364,11 @@
         <div class="legend-item">
           <span class="legend-dot unknown"></span> Esito non disponibile
         </div>
+       <div class="legend-item">
+      <a href="/storico.html" class="history-link">Storico risultati</a>
       </div>
+        </div>
+
     </header>
 
     <section id="content"></section>
