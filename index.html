@@ -71,8 +71,7 @@
       margin: 0;
       font-size: 0.92rem;
       color: var(--text-muted);
-      max-width: 750px;
-      line-height: 1.5;
+      max-width: 650px;
     }
 
     .legend {
@@ -331,7 +330,7 @@
         <span id="day-badge" class="badge-day"></span>
       </div>
       <p class="subtitle">
-        I pronostici non sono copiati da nessuna parte: li genero ogni giorno con un sistema che analizza quote,
+         I pronostici non sono copiati da nessuna parte: li genero ogni giorno con un sistema che analizza quote,
         statistiche avanzate e dati storici tramite API-Football. Pubblico solo le partite che superano certi filtri
         di qualità e le organizzo per categoria, rischio e valore. Lo score misura quanto il pick è solido rispetto alle
         quote del mercato.
@@ -349,10 +348,6 @@
         <div class="legend-item">
           <span class="legend-dot unknown"></span> Esito non disponibile
         </div>
-        <div class="legend-item">
-          <strong>Score:</strong>
-          <span>più è alto, più il pronostico è solido rispetto alle quote.</span>
-        </div>
       </div>
     </header>
 
@@ -362,7 +357,7 @@
   <script>
     // ====== CONFIG SUPABASE ======
     const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A"; // <-- qui la tua anon key
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
 
     async function sbFetch(table, query) {
       const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
@@ -454,83 +449,6 @@
       return "";
     }
 
-    const FINAL_STATUS = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
-
-    function humanScoreLabel(score) {
-      if (isNaN(score)) return "";
-      if (score > 0.2) return "Solidità alta";
-      if (score >= 0.1) return "Solidità buona";
-      if (score >= 0) return "Solidità borderline";
-      return "Valore negativo";
-    }
-
-    // ===== FIX QUI: evaluatePickFrontend con trim() sullo status =====
-    function evaluatePickFrontend(pickRow, matchInfo) {
-      if (!matchInfo) {
-        return {
-          result: "PENDING",
-          finalScore: "",
-          status_short: "",
-        };
-      }
-
-      // trim + upper, così "FT " diventa "FT"
-      const status_short = (matchInfo.status_short || "").trim().toUpperCase();
-      const gh = Number(matchInfo.goals_home || 0);
-      const ga = Number(matchInfo.goals_away || 0);
-      const finalScore = `${gh}-${ga}`;
-
-      if (!FINAL_STATUS.has(status_short)) {
-        return {
-          result: "PENDING",
-          finalScore,
-          status_short,
-        };
-      }
-
-      const pick_text = (pickRow.pick || "").toLowerCase();
-      const model = (pickRow.model || "").toUpperCase();
-
-      let res = null;
-
-      // Over/Under
-      if (pick_text.includes("over 1.5")) {
-        res = (gh + ga) >= 2 ? "WIN" : "LOSE";
-      } else if (pick_text.includes("over 2.5")) {
-        res = (gh + ga) >= 3 ? "WIN" : "LOSE";
-      } else if (pick_text.includes("over 3.5")) {
-        res = (gh + ga) >= 4 ? "WIN" : "LOSE";
-      } else if (pick_text.includes("under 2.5")) {
-        res = (gh + ga) <= 2 ? "WIN" : "LOSE";
-      }
-
-      // BTTS
-      else if (pick_text.includes("both teams to score yes") || pick_text.includes("btts yes")) {
-        res = (gh >= 1 && ga >= 1) ? "WIN" : "LOSE";
-      } else if (pick_text.includes("both teams to score no") || pick_text.includes("btts no")) {
-        res = (gh === 0 || ga === 0) ? "WIN" : "LOSE";
-      }
-
-      // Esiti 1X / X2 / Home
-      else if (pick_text.trim() === "home wins" || model === "HOME_WIN_STRONG" || model === "HOME_WIN_STRONG_STATS") {
-        res = gh > ga ? "WIN" : "LOSE";
-      } else if (pick_text.trim() === "1x" || model === "DC1X_SAFE" || model === "DC1X_O1_5_COMBO") {
-        res = gh >= ga ? "WIN" : "LOSE";
-      } else if (pick_text.trim() === "x2" || model === "DCX2_SAFE" || model === "DCX2_O1_5_COMBO") {
-        res = ga >= gh ? "WIN" : "LOSE";
-      }
-
-      if (res === null) {
-        res = "UNKNOWN";
-      }
-
-      return {
-        result: res,
-        finalScore,
-        status_short,
-      };
-    }
-
     // ====== MAIN LOAD ======
     async function loadTodayPicks() {
       const container = document.getElementById("content");
@@ -539,6 +457,7 @@
       dayBadge.textContent = formatDateIT(todayStr);
 
       try {
+        // PICKS di oggi da Supabase
         const picks = await sbFetch(
           "picks",
           `?run_date=eq.${todayStr}&match_date=eq.${todayStr}&select=*`
@@ -548,28 +467,25 @@
           container.innerHTML = `
             <div class="empty-state">
               Nessun pick disponibile per oggi.<br />
-              Torna più tardi quando lo scraper avrà generato i pronostici.
+              Torna più tardi quando i modelli avranno generato nuovi pronostici.
             </div>
           `;
           return;
         }
 
-        const resultsRows = await sbFetch(
+        // RESULTS di oggi da Supabase (esiti)
+        const results = await sbFetch(
           "results",
           `?picks_date=eq.${todayStr}&select=*`
         );
 
-        const matchMap = new Map();
-        if (Array.isArray(resultsRows)) {
-          for (const r of resultsRows) {
-            if (!r.fixture_id) continue;
-            const key = String(r.fixture_id);
-            if (!matchMap.has(key)) {
-              matchMap.set(key, {
-                goals_home: r.goals_home,
-                goals_away: r.goals_away,
-                status_short: r.status_short,
-              });
+        // chiave: fixture_id + "__" + pick (testo)
+        const resultMap = new Map();
+        if (Array.isArray(results)) {
+          for (const r of results) {
+            if (r.fixture_id && r.pick) {
+              const key = String(r.fixture_id) + "__" + String(r.pick).trim();
+              resultMap.set(key, r);
             }
           }
         }
@@ -582,6 +498,7 @@
         for (const cat of categories) {
           const list = byCategory.get(cat) || [];
 
+          // Ordina per ora
           list.sort((a, b) => {
             const da = parseMatchDateTime(a);
             const db = parseMatchDateTime(b);
@@ -596,12 +513,15 @@
           let loses = 0;
 
           for (const p of list) {
-            const mi = matchMap.get(String(p.fixture_id));
-            const evalRes = evaluatePickFrontend(p, mi);
-            const rLabel = (evalRes.result || "").toUpperCase();
+            const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
+            const res = resultMap.get(key);
+            const rLabel = (res && res.result) ? res.result.toUpperCase() : "";
             if (rLabel === "WIN") wins++;
             if (rLabel === "LOSE") loses++;
           }
+
+          const totalPlayed = wins + loses;
+          const winrate = totalPlayed > 0 ? ((wins / totalPlayed) * 100).toFixed(1) : "-";
 
           html += `
             <article class="category-block">
@@ -623,10 +543,10 @@
             const oddNum = Number(p.odd || 0);
             const oddStr = oddNum ? oddNum.toFixed(2) : "-";
 
-            const mi = matchMap.get(String(p.fixture_id));
-            const evalRes = evaluatePickFrontend(p, mi);
-            const resResult = evalRes.result;
-            const resScore = evalRes.finalScore;
+            const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
+            const res = resultMap.get(key);
+            const resResult = res ? res.result : "";
+            const resScore = res ? res.final_score : "";
 
             const resultClass = classifyResult(resResult);
             const cardExtraClass = resultClass ? ` ${resultClass}` : "";
@@ -642,9 +562,7 @@
 
             const badgeClass = resultClass ? ` ${resultClass}` : "";
 
-            const scoreNum = Number(p.score || 0);
-            const scoreRaw = scoreNum.toFixed(3);
-            const scoreLabel = humanScoreLabel(scoreNum);
+            const confidenza = (Number(p.score || 0) * 100).toFixed(1);
 
             html += `
               <div class="pick-card${cardExtraClass}">
@@ -661,9 +579,7 @@
                 </div>
                 <div class="meta-row">
                   <span class="model-pill">${p.model || ""}</span>
-                  <span class="score-text">
-                    ${scoreLabel ? scoreLabel + " · " : ""}score: ${scoreRaw}
-                  </span>
+                  <span class="score-text">confidenza: ${confidenza}%</span>
                   ${
                     badgeText
                       ? `<span class="result-badge${badgeClass}">${badgeText}</span>`
@@ -675,6 +591,9 @@
           }
 
           html += `
+              </div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
+                Winrate categoria: <strong>${winrate}%</strong> (${wins}W / ${loses}L)
               </div>
             </article>
           `;
