@@ -344,7 +344,7 @@
           <span class="legend-dot lose"></span> Persa
         </div>
         <div class="legend-item">
-          <span class="legend-dot pending"></span> In corso / non ancora iniziata
+          <span class="legend-dot.pending"></span> In corso / non ancora iniziata
         </div>
         <div class="legend-item">
           <span class="legend-dot unknown"></span> Esito non disponibile
@@ -408,8 +408,8 @@
       const d = row.match_date;
       const t = row.match_time;
       if (!d || !t) return null;
-      const [h, m] = t.split(":").map((x) => parseInt(x, 10));
-      const [yy, mm, dd] = d.split("-").map((x) => parseInt(x, 10));
+      const [h, m] = t.split(":").map(x => parseInt(x, 10));
+      const [yy, mm, dd] = d.split("-").map(x => parseInt(x, 10));
       if (!yy || !mm || !dd || isNaN(h) || isNaN(m)) return null;
       return new Date(yy, mm - 1, dd, h, m);
     }
@@ -455,6 +455,8 @@
       return "";
     }
 
+    const FINAL_STATUS = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
+
     function humanScoreLabel(score) {
       if (isNaN(score)) return "";
       if (score > 0.2) return "Solidità alta";
@@ -463,15 +465,70 @@
       return "Valore negativo";
     }
 
-    // chiave unica per matchare pick <-> result anche su partite doppie
-    function buildResultKey(row) {
-      if (!row) return null;
-      const fid = (row.fixture_id ?? row.fixture_id ?? "").toString().trim();
-      if (!fid) return null;
-      const cat = (row.category || "").toString().trim().toUpperCase();
-      const model = (row.model || "").toString().trim().toUpperCase();
-      const pick = (row.pick || "").toString().trim().toLowerCase();
-      return `${fid}__${cat}__${model}__${pick}`;
+    // Replica in JS della logica di evaluate_pick del results_checker
+    function evaluatePickFrontend(pickRow, matchInfo) {
+      if (!matchInfo) {
+        return {
+          result: "PENDING",
+          finalScore: "",
+          status_short: "",
+        };
+      }
+
+      const status_short = (matchInfo.status_short || "").toUpperCase();
+      const gh = Number(matchInfo.goals_home || 0);
+      const ga = Number(matchInfo.goals_away || 0);
+      const finalScore = `${gh}-${ga}`;
+
+      if (!FINAL_STATUS.has(status_short)) {
+        return {
+          result: "PENDING",
+          finalScore,
+          status_short,
+        };
+      }
+
+      const pick_text = (pickRow.pick || "").toLowerCase();
+      const model = (pickRow.model || "").toUpperCase();
+
+      let res = null;
+
+      // Over/Under
+      if (pick_text.includes("over 1.5")) {
+        res = (gh + ga) >= 2 ? "WIN" : "LOSE";
+      } else if (pick_text.includes("over 2.5")) {
+        res = (gh + ga) >= 3 ? "WIN" : "LOSE";
+      } else if (pick_text.includes("over 3.5")) {
+        res = (gh + ga) >= 4 ? "WIN" : "LOSE";
+      } else if (pick_text.includes("under 2.5")) {
+        res = (gh + ga) <= 2 ? "WIN" : "LOSE";
+      }
+
+      // BTTS
+      else if (pick_text.includes("both teams to score yes") || pick_text.includes("btts yes")) {
+        res = (gh >= 1 && ga >= 1) ? "WIN" : "LOSE";
+      } else if (pick_text.includes("both teams to score no") || pick_text.includes("btts no")) {
+        res = (gh === 0 || ga === 0) ? "WIN" : "LOSE";
+      }
+
+      // Esiti 1X / X2 / Home
+      else if (pick_text.trim() === "home wins" || model === "HOME_WIN_STRONG" || model === "HOME_WIN_STRONG_STATS") {
+        res = gh > ga ? "WIN" : "LOSE";
+      } else if (pick_text.trim() === "1x" || model === "DC1X_SAFE" || model === "DC1X_O1_5_COMBO") {
+        res = gh >= ga ? "WIN" : "LOSE";
+      } else if (pick_text.trim() === "x2" || model === "DCX2_SAFE" || model === "DCX2_O1_5_COMBO") {
+        res = ga >= gh ? "WIN" : "LOSE";
+      }
+
+      if (res === null) {
+        res = "UNKNOWN";
+      }
+
+      return {
+        result: res,
+        finalScore,
+        status_short,
+      };
     }
 
     // ====== MAIN LOAD ======
@@ -497,17 +554,23 @@
           return;
         }
 
-        const results = await sbFetch(
+        // RESULTS: usiamo solo i gol e lo status, poi ricalcoliamo tutto qui
+        const resultsRows = await sbFetch(
           "results",
           `?picks_date=eq.${todayStr}&select=*`
         );
 
-        const resultMap = new Map();
-        if (Array.isArray(results)) {
-          for (const r of results) {
-            const key = buildResultKey(r);
-            if (key) {
-              resultMap.set(key, r);
+        const matchMap = new Map();
+        if (Array.isArray(resultsRows)) {
+          for (const r of resultsRows) {
+            if (!r.fixture_id) continue;
+            const key = String(r.fixture_id);
+            if (!matchMap.has(key)) {
+              matchMap.set(key, {
+                goals_home: r.goals_home,
+                goals_away: r.goals_away,
+                status_short: r.status_short,
+              });
             }
           }
         }
@@ -533,11 +596,10 @@
           let wins = 0;
           let loses = 0;
 
-          // conteggio win/lose per categoria sui singoli pick
           for (const p of list) {
-            const key = buildResultKey(p);
-            const res = key ? resultMap.get(key) : null;
-            const rLabel = res && res.result ? res.result.toUpperCase() : "";
+            const mi = matchMap.get(String(p.fixture_id));
+            const evalRes = evaluatePickFrontend(p, mi);
+            const rLabel = (evalRes.result || "").toUpperCase();
             if (rLabel === "WIN") wins++;
             if (rLabel === "LOSE") loses++;
           }
@@ -556,19 +618,16 @@
           for (const p of list) {
             const dt = parseMatchDateTime(p);
             const timeStr = dt
-              ? dt.toLocaleTimeString("it-IT", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : p.match_time || "-";
+              ? dt.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+              : (p.match_time || "-");
 
             const oddNum = Number(p.odd || 0);
             const oddStr = oddNum ? oddNum.toFixed(2) : "-";
 
-            const key = buildResultKey(p);
-            const res = key ? resultMap.get(key) : null;
-            const resResult = res ? res.result : "";
-            const resScore = res ? res.final_score : "";
+            const mi = matchMap.get(String(p.fixture_id));
+            const evalRes = evaluatePickFrontend(p, mi);
+            const resResult = evalRes.result;
+            const resScore = evalRes.finalScore;
 
             const resultClass = classifyResult(resResult);
             const cardExtraClass = resultClass ? ` ${resultClass}` : "";
@@ -577,8 +636,11 @@
             const finalScore = resScore || "";
             let badgeText = "";
             if (resultLabel) {
-              badgeText = finalScore ? `${resultLabel} · ${finalScore}` : resultLabel;
+              badgeText = finalScore
+                ? `${resultLabel} · ${finalScore}`
+                : resultLabel;
             }
+
             const badgeClass = resultClass ? ` ${resultClass}` : "";
 
             const scoreNum = Number(p.score || 0);
@@ -588,9 +650,7 @@
             html += `
               <div class="pick-card${cardExtraClass}">
                 <div class="pick-header">
-                  <span class="league-pill">${
-                    p.league || ""
-                  } (${p.country || ""})</span>
+                  <span class="league-pill">${p.league || ""} (${p.country || ""})</span>
                   <span class="match-time">${timeStr}</span>
                 </div>
                 <div class="teams">
@@ -603,9 +663,7 @@
                 <div class="meta-row">
                   <span class="model-pill">${p.model || ""}</span>
                   <span class="score-text">
-                    ${
-                      scoreLabel ? scoreLabel + " · " : ""
-                    }score: ${scoreRaw}
+                    ${scoreLabel ? scoreLabel + " · " : ""}score: ${scoreRaw}
                   </span>
                   ${
                     badgeText
@@ -625,6 +683,7 @@
 
         html += `</div>`;
         container.innerHTML = html;
+
       } catch (err) {
         console.error("Errore nel caricamento dei picks:", err);
         container.innerHTML = `
