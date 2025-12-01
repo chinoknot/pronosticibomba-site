@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Storico Pronostici – Pronostici Bomba</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-soft: #0f172a;
+      --card: #020617;
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.18);
+      --border: rgba(148, 163, 184, 0.2);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --pill-bg: rgba(148, 163, 184, 0.15);
+      --shadow-soft: 0 20px 45px rgba(15, 23, 42, 0.9);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text-main);
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 32px auto 40px;
+      padding: 0 16px 40px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .back-link {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: 999px;
+      padding: 4px 10px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.8);
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      max-width: 700px;
+    }
+
+    .controls {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    select {
+      background: var(--card);
+      color: var(--text-main);
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      font-size: 0.85rem;
+    }
+
+    .summary-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+      margin-bottom: 16px;
+    }
+
+    .summary-card {
+      background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.88));
+      border-radius: 14px;
+      border: 1px solid rgba(30, 64, 175, 0.45);
+      box-shadow: var(--shadow-soft);
+      padding: 10px 12px;
+      font-size: 0.9rem;
+    }
+
+    .summary-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .summary-value {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .summary-detail {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .table-wrapper {
+      margin-top: 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(30, 64, 175, 0.45);
+      overflow: hidden;
+      background: rgba(15, 23, 42, 0.95);
+      box-shadow: var(--shadow-soft);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    thead {
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: right;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.4);
+    }
+
+    th:first-child, td:first-child {
+      text-align: left;
+    }
+
+    th {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    tbody tr:nth-child(odd) {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .badge-pos {
+      color: #bbf7d0;
+    }
+
+    .badge-neg {
+      color: #fecaca;
+    }
+
+    .badge-neutral {
+      color: var(--text-muted);
+    }
+
+    .empty {
+      padding: 20px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="top-row">
+        <h1>Storico pronostici</h1>
+        <a href="/index.html" class="back-link">← Torna ai pronostici di oggi</a>
+      </div>
+      <p class="subtitle">
+        Panoramica automatica di winrate e ROI per giorno, calcolata dai dati reali di Supabase.
+        I pending e gli esiti non disponibili non vengono considerati in winrate/ROI.
+      </p>
+      <div class="controls">
+        <span>Intervallo:</span>
+        <select id="range-select">
+          <option value="7">Ultimi 7 giorni</option>
+          <option value="14" selected>Ultimi 14 giorni</option>
+          <option value="30">Ultimi 30 giorni</option>
+        </select>
+      </div>
+      <div class="summary-row">
+        <div class="summary-card">
+          <div class="summary-label">Periodo</div>
+          <div class="summary-value" id="summary-period">-</div>
+          <div class="summary-detail" id="summary-days">-</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Winrate totale</div>
+          <div class="summary-value" id="summary-winrate">-</div>
+          <div class="summary-detail" id="summary-wl">-</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">ROI totale</div>
+          <div class="summary-value" id="summary-roi">-</div>
+          <div class="summary-detail" id="summary-profit">-</div>
+        </div>
+      </div>
+    </header>
+
+    <section id="table-container">
+      <div class="table-wrapper">
+        <div class="empty">Caricamento storico...</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ===== CONFIG SUPABASE (stessa di index.html) =====
+    const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A"; // metti la tua anon key
+
+    async function sbFetch(table, query) {
+      const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        },
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Supabase error ${res.status}: ${text}`);
+      }
+      return await res.json();
+    }
+
+    // ===== UTIL =====
+    function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+
+    function formatDateIT(str) {
+      const parts = str.split("-");
+      if (parts.length !== 3) return str;
+      const [y, m, d] = parts.map(Number);
+      const dt = new Date(y, m - 1, d);
+      const weekday = dt.toLocaleDateString("it-IT", { weekday: "short" });
+      const day = pad2(dt.getDate());
+      const month = dt.toLocaleDateString("it-IT", { month: "short" });
+      return `${weekday} ${day} ${month}`;
+    }
+
+    function getDateStrOffset(offsetDays) {
+      const now = new Date();
+      now.setDate(now.getDate() + offsetDays);
+      const y = now.getFullYear();
+      const m = pad2(now.getMonth() + 1);
+      const d = pad2(now.getDate());
+      return `${y}-${m}-${d}`;
+    }
+
+    function safeOdd(o) {
+      const n = Number(o);
+      return Number.isFinite(n) && n > 1 ? n : 1.0;
+    }
+
+    // ===== LOGICA STORICO =====
+    async function loadHistory(daysBack) {
+      const tableContainer = document.getElementById("table-container");
+      tableContainer.innerHTML = `
+        <div class="table-wrapper">
+          <div class="empty">Carico dati degli ultimi ${daysBack} giorni...</div>
+        </div>
+      `;
+
+      const toDate = getDateStrOffset(0);
+      const fromDate = getDateStrOffset(-daysBack + 1);
+
+      try {
+        // prendiamo risultati nel range
+        const resultsRows = await sbFetch(
+          "results",
+          `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}&select=*`
+        );
+
+        if (!Array.isArray(resultsRows) || !resultsRows.length) {
+          tableContainer.innerHTML = `
+            <div class="table-wrapper">
+              <div class="empty">Nessun risultato disponibile per questo periodo.</div>
+            </div>
+          `;
+          document.getElementById("summary-period").textContent = "-";
+          document.getElementById("summary-days").textContent = "-";
+          document.getElementById("summary-winrate").textContent = "-";
+          document.getElementById("summary-wl").textContent = "-";
+          document.getElementById("summary-roi").textContent = "-";
+          document.getElementById("summary-profit").textContent = "-";
+          return;
+        }
+
+        // servono le odd dai picks
+        const picksRows = await sbFetch(
+          "picks",
+          `?run_date=gte.${fromDate}&run_date=lte.${toDate}&select=*`
+        );
+
+        const pickMap = new Map();
+        for (const p of picksRows) {
+          if (!p.fixture_id || !p.pick) continue;
+          const key = String(p.fixture_id) + "__" + String(p.pick).trim();
+          pickMap.set(key, p);
+        }
+
+        // aggregazione per giorno
+        const byDay = new Map();
+        let totalWins = 0;
+        let totalLoses = 0;
+        let totalStake = 0;
+        let totalProfit = 0;
+
+        for (const r of resultsRows) {
+          const date = r.picks_date || r.match_date;
+          if (!date) continue;
+
+          const result = (r.result || "").toUpperCase();
+          if (result !== "WIN" && result !== "LOSE") continue;
+
+          const key = String(r.fixture_id) + "__" + String(r.pick || "").trim();
+          const pick = pickMap.get(key);
+          const odd = pick ? safeOdd(pick.odd) : 1.0;
+
+          let wins = 0, loses = 0, stake = 0, profit = 0;
+
+          if (result === "WIN") {
+            wins = 1;
+            stake = 1;
+            profit = odd - 1;
+          } else if (result === "LOSE") {
+            loses = 1;
+            stake = 1;
+            profit = -1;
+          }
+
+          if (!byDay.has(date)) {
+            byDay.set(date, { wins: 0, loses: 0, stake: 0, profit: 0 });
+          }
+          const agg = byDay.get(date);
+          agg.wins += wins;
+          agg.loses += loses;
+          agg.stake += stake;
+          agg.profit += profit;
+
+          totalWins += wins;
+          totalLoses += loses;
+          totalStake += stake;
+          totalProfit += profit;
+        }
+
+        const sortedDays = Array.from(byDay.keys()).sort().reverse();
+
+        // summary
+        const firstDay = sortedDays[sortedDays.length - 1];
+        const lastDay = sortedDays[0];
+        document.getElementById("summary-period").textContent =
+          `${formatDateIT(firstDay)} → ${formatDateIT(lastDay)}`;
+        document.getElementById("summary-days").textContent =
+          `${sortedDays.length} giorni con picks`;
+
+        const totalPlayed = totalWins + totalLoses;
+        const winrateTotal = totalPlayed > 0 ? ((totalWins / totalPlayed) * 100).toFixed(1) : "-";
+        const roiTotal = totalStake > 0 ? ((totalProfit / totalStake) * 100).toFixed(1) : "-";
+
+        document.getElementById("summary-winrate").textContent =
+          winrateTotal === "-" ? "-" : `${winrateTotal}%`;
+        document.getElementById("summary-wl").textContent =
+          `${totalWins} win / ${totalLoses} lose`;
+
+        document.getElementById("summary-roi").textContent =
+          roiTotal === "-" ? "-" : `${roiTotal}%`;
+        const profitStr = totalProfit.toFixed(2).replace(".", ",");
+        document.getElementById("summary-profit").textContent =
+          `Profitto: ${profitStr} unità (stake = ${totalStake})`;
+
+        // tabella
+        let html = `
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Picks giocati</th>
+                  <th>Win</th>
+                  <th>Lose</th>
+                  <th>Winrate</th>
+                  <th>ROI</th>
+                  <th>Profitto</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        for (const day of sortedDays) {
+          const { wins, loses, stake, profit } = byDay.get(day);
+          const played = wins + loses;
+          const winrate = played > 0 ? ((wins / played) * 100).toFixed(1) : "-";
+          const roi = stake > 0 ? ((profit / stake) * 100).toFixed(1) : "-";
+          const profitStr = profit.toFixed(2);
+
+          const roiClass =
+            roi === "-" ? "badge-neutral" :
+            (parseFloat(roi) >= 0 ? "badge-pos" : "badge-neg");
+          const profitClass =
+            parseFloat(profitStr) > 0 ? "badge-pos" :
+            (parseFloat(profitStr) < 0 ? "badge-neg" : "badge-neutral");
+
+          html += `
+            <tr>
+              <td>${formatDateIT(day)}</td>
+              <td>${played}</td>
+              <td>${wins}</td>
+              <td>${loses}</td>
+              <td>${winrate === "-" ? "-" : winrate + "%"}</td>
+              <td class="${roiClass}">${roi === "-" ? "-" : roi + "%"}</td>
+              <td class="${profitClass}">${profitStr}</td>
+            </tr>
+          `;
+        }
+
+        html += `
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        tableContainer.innerHTML = html;
+
+      } catch (err) {
+        console.error("Errore storico:", err);
+        tableContainer.innerHTML = `
+          <div class="table-wrapper">
+            <div class="empty">Errore nel caricamento dello storico.</div>
+          </div>
+        `;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const select = document.getElementById("range-select");
+      loadHistory(parseInt(select.value, 10));
+
+      select.addEventListener("change", () => {
+        const v = parseInt(select.value, 10);
+        loadHistory(v);
+      });
+    });
+  </script>
+</body>
+</html>
