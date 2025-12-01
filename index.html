@@ -363,7 +363,7 @@
     // ====== CONFIG SUPABASE ======
     const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
     const SUPABASE_ANON_KEY =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheXN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
 
     async function sbFetch(table, query) {
       const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
@@ -463,6 +463,17 @@
       return "Valore negativo";
     }
 
+    // chiave unica per matchare pick <-> result anche su partite doppie
+    function buildResultKey(row) {
+      if (!row) return null;
+      const fid = (row.fixture_id ?? row.fixture_id ?? "").toString().trim();
+      if (!fid) return null;
+      const cat = (row.category || "").toString().trim().toUpperCase();
+      const model = (row.model || "").toString().trim().toUpperCase();
+      const pick = (row.pick || "").toString().trim().toLowerCase();
+      return `${fid}__${cat}__${model}__${pick}`;
+    }
+
     // ====== MAIN LOAD ======
     async function loadTodayPicks() {
       const container = document.getElementById("content");
@@ -494,8 +505,9 @@
         const resultMap = new Map();
         if (Array.isArray(results)) {
           for (const r of results) {
-            if (r.fixture_id) {
-              resultMap.set(String(r.fixture_id), r);
+            const key = buildResultKey(r);
+            if (key) {
+              resultMap.set(key, r);
             }
           }
         }
@@ -521,8 +533,10 @@
           let wins = 0;
           let loses = 0;
 
+          // conteggio win/lose per categoria sui singoli pick
           for (const p of list) {
-            const res = resultMap.get(String(p.fixture_id));
+            const key = buildResultKey(p);
+            const res = key ? resultMap.get(key) : null;
             const rLabel = res && res.result ? res.result.toUpperCase() : "";
             if (rLabel === "WIN") wins++;
             if (rLabel === "LOSE") loses++;
@@ -551,7 +565,8 @@
             const oddNum = Number(p.odd || 0);
             const oddStr = oddNum ? oddNum.toFixed(2) : "-";
 
-            const res = resultMap.get(String(p.fixture_id));
+            const key = buildResultKey(p);
+            const res = key ? resultMap.get(key) : null;
             const resResult = res ? res.result : "";
             const resScore = res ? res.final_score : "";
 
