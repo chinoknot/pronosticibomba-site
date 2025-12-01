@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard – Pronostici Bomba</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-soft: #0f172a;
+      --card: #020617;
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.18);
+      --border: rgba(148, 163, 184, 0.2);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --shadow-soft: 0 20px 45px rgba(15, 23, 42, 0.9);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text-main);
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 24px auto 40px;
+      padding: 0 16px 40px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .tagline {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .grid-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.9));
+      border-radius: 14px;
+      border: 1px solid rgba(30, 64, 175, 0.45);
+      box-shadow: var(--shadow-soft);
+      padding: 10px 12px;
+      font-size: 0.9rem;
+    }
+
+    .card-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .card-value {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .card-detail {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .chart-card {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 16px;
+      border: 1px solid rgba(30, 64, 175, 0.5);
+      box-shadow: var(--shadow-soft);
+      padding: 10px 12px 14px;
+    }
+
+    .chart-title {
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 260px !important;
+    }
+
+    @media (min-width: 900px) {
+      .charts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Admin dashboard</h1>
+        <div class="tagline">Winrate, ROI e numeri globali (solo uso interno).</div>
+      </div>
+      <div class="tagline" id="period-label"></div>
+    </header>
+
+    <section class="grid-summary">
+      <div class="card">
+        <div class="card-label">Periodo analizzato</div>
+        <div class="card-value" id="summary-period">-</div>
+        <div class="card-detail" id="summary-days">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Picks totali</div>
+        <div class="card-value" id="summary-picks">-</div>
+        <div class="card-detail" id="summary-wl">-</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Winrate totale</div>
+        <div class="card-value" id="summary-winrate">-</div>
+        <div class="card-detail">Solo WIN/LOSE (pending esclusi)</div>
+      </div>
+      <div class="card">
+        <div class="card-label">ROI totale</div>
+        <div class="card-value" id="summary-roi">-</div>
+        <div class="card-detail" id="summary-profit">-</div>
+      </div>
+    </section>
+
+    <section class="charts">
+      <div class="chart-card">
+        <div class="chart-title">Winrate giornaliero (%)</div>
+        <canvas id="chartWinrate"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">ROI giornaliero (%)</div>
+        <canvas id="chartROI"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ===== SEMPLICE PROTEZIONE (CAMBIA LA PASSWORD) =====
+    const ADMIN_PASSWORD = "CAMBIA_QUESTA_PASSWORD";
+    const given = prompt("Password admin:");
+    if (given !== ADMIN_PASSWORD) {
+      document.body.innerHTML = "<main><p style='color:#e5e7eb; padding:20px; font-family:system-ui'>Accesso negato.</p></main>";
+      throw new Error("Unauthorized");
+    }
+
+    // ===== CONFIG SUPABASE =====
+    const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
+    const SUPABASE_ANON_KEY = "TUO_ANON_KEY_QUI"; // stessa di index/storico
+
+    async function sbFetch(table, query) {
+      const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        },
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Supabase error ${res.status}: ${text}`);
+      }
+      return await res.json();
+    }
+
+    function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+
+    function getDateStrOffset(offsetDays) {
+      const now = new Date();
+      now.setDate(now.getDate() + offsetDays);
+      const y = now.getFullYear();
+      const m = pad2(now.getMonth() + 1);
+      const d = pad2(now.getDate());
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatDateShort(str) {
+      const parts = str.split("-");
+      if (parts.length !== 3) return str;
+      const [y, m, d] = parts.map(Number);
+      const dt = new Date(y, m - 1, d);
+      const day = pad2(dt.getDate());
+      const month = pad2(dt.getMonth() + 1);
+      return `${day}/${month}`;
+    }
+
+    function formatDateIT(str) {
+      const parts = str.split("-");
+      if (parts.length !== 3) return str;
+      const [y, m, d] = parts.map(Number);
+      const dt = new Date(y, m - 1, d);
+      const weekday = dt.toLocaleDateString("it-IT", { weekday: "short" });
+      const day = pad2(dt.getDate());
+      const month = dt.toLocaleDateString("it-IT", { month: "short" });
+      return `${weekday} ${day} ${month}`;
+    }
+
+    function safeOdd(o) {
+      const n = Number(o);
+      return Number.isFinite(n) && n > 1 ? n : 1.0;
+    }
+
+    let chartWinrate, chartROI;
+
+    async function loadDashboard() {
+      const daysBack = 30; // ultimi 30 giorni
+      const toDate = getDateStrOffset(0);
+      const fromDate = getDateStrOffset(-daysBack + 1);
+
+      document.getElementById("period-label").textContent =
+        `Ultimi ${daysBack} giorni (${fromDate} → ${toDate})`;
+
+      // prendo risultati
+      const resultsRows = await sbFetch(
+        "results",
+        `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}&select=*`
+      );
+
+      // picks per le odd
+      const picksRows = await sbFetch(
+        "picks",
+        `?run_date=gte.${fromDate}&run_date=lte.${toDate}&select=*`
+      );
+
+      const pickMap = new Map();
+      for (const p of picksRows) {
+        if (!p.fixture_id || !p.pick) continue;
+        const key = String(p.fixture_id) + "__" + String(p.pick).trim();
+        pickMap.set(key, p);
+      }
+
+      const byDay = new Map();
+      let totalWins = 0, totalLoses = 0, totalStake = 0, totalProfit = 0;
+
+      for (const r of resultsRows) {
+        const date = r.picks_date || r.match_date;
+        if (!date) continue;
+        const result = (r.result || "").toUpperCase();
+        if (result !== "WIN" && result !== "LOSE") continue;
+
+        const key = String(r.fixture_id) + "__" + String(r.pick || "").trim();
+        const pick = pickMap.get(key);
+        const odd = pick ? safeOdd(pick.odd) : 1.0;
+
+        let wins = 0, loses = 0, stake = 0, profit = 0;
+
+        if (result === "WIN") {
+          wins = 1;
+          stake = 1;
+          profit = odd - 1;
+        } else if (result === "LOSE") {
+          loses = 1;
+          stake = 1;
+          profit = -1;
+        }
+
+        if (!byDay.has(date)) {
+          byDay.set(date, { wins: 0, loses: 0, stake: 0, profit: 0 });
+        }
+        const agg = byDay.get(date);
+        agg.wins += wins;
+        agg.loses += loses;
+        agg.stake += stake;
+        agg.profit += profit;
+
+        totalWins += wins;
+        totalLoses += loses;
+        totalStake += stake;
+        totalProfit += profit;
+      }
+
+      const sortedDays = Array.from(byDay.keys()).sort();
+
+      // summary
+      if (sortedDays.length) {
+        const firstDay = sortedDays[0];
+        const lastDay = sortedDays[sortedDays.length - 1];
+        document.getElementById("summary-period").textContent =
+          `${formatDateIT(firstDay)} → ${formatDateIT(lastDay)}`;
+        document.getElementById("summary-days").textContent =
+          `${sortedDays.length} giorni con picks`;
+      } else {
+        document.getElementById("summary-period").textContent = "-";
+        document.getElementById("summary-days").textContent = "0 giorni con picks";
+      }
+
+      const totalPlayed = totalWins + totalLoses;
+      const winrateTotal = totalPlayed > 0 ? ((totalWins / totalPlayed) * 100).toFixed(1) : "-";
+      const roiTotal = totalStake > 0 ? ((totalProfit / totalStake) * 100).toFixed(1) : "-";
+
+      document.getElementById("summary-picks").textContent = totalPlayed;
+      document.getElementById("summary-wl").textContent =
+        `${totalWins} win / ${totalLoses} lose`;
+
+      document.getElementById("summary-winrate").textContent =
+        winrateTotal === "-" ? "-" : `${winrateTotal}%`;
+
+      document.getElementById("summary-roi").textContent =
+        roiTotal === "-" ? "-" : `${roiTotal}%`;
+
+      const profitStr = totalProfit.toFixed(2).replace(".", ",");
+      document.getElementById("summary-profit").textContent =
+        `Profitto netto: ${profitStr} unità su stake ${totalStake}`;
+
+      // dati per i grafici
+      const labels = [];
+      const dataWinrate = [];
+      const dataROI = [];
+
+      for (const day of sortedDays) {
+        const { wins, loses, stake, profit } = byDay.get(day);
+        const played = wins + loses;
+        const wr = played > 0 ? ((wins / played) * 100) : null;
+        const roi = stake > 0 ? ((profit / stake) * 100) : null;
+
+        labels.push(formatDateShort(day));
+        dataWinrate.push(wr);
+        dataROI.push(roi);
+      }
+
+      // grafico winrate
+      const ctxW = document.getElementById("chartWinrate").getContext("2d");
+      if (chartWinrate) chartWinrate.destroy();
+      chartWinrate = new Chart(ctxW, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "Winrate %",
+            data: dataWinrate,
+            borderWidth: 2,
+            pointRadius: 2,
+            fill: false,
+          }],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              suggestedMax: 100,
+              ticks: {
+                callback: (v) => v + "%",
+              },
+            },
+          },
+        },
+      });
+
+      // grafico ROI
+      const ctxR = document.getElementById("chartROI").getContext("2d");
+      if (chartROI) chartROI.destroy();
+      chartROI = new Chart(ctxR, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "ROI %",
+            data: dataROI,
+            borderWidth: 2,
+            pointRadius: 2,
+            fill: false,
+          }],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              ticks: {
+                callback: (v) => v + "%",
+              },
+            },
+          },
+        },
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadDashboard().catch(err => {
+        console.error("Errore dashboard:", err);
+      });
+    });
+  </script>
+</body>
+</html>
