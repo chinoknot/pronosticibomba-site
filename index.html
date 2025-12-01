@@ -96,21 +96,10 @@
       border-radius: 999px;
     }
 
-    .legend-dot.win {
-      background: #16a34a;
-    }
-
-    .legend-dot.lose {
-      background: #dc2626;
-    }
-
-    .legend-dot.pending {
-      background: #facc15;
-    }
-
-    .legend-dot.unknown {
-      background: #6b7280;
-    }
+    .legend-dot.win { background: #16a34a; }
+    .legend-dot.lose { background: #dc2626; }
+    .legend-dot.pending { background: #facc15; }
+    .legend-dot.unknown { background: #6b7280; }
 
     .categories-container {
       display: flex;
@@ -120,9 +109,9 @@
     }
 
     .category-block {
-      background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.86));
+      background: linear-gradient(to bottom right, rgba(15,23,42,0.97), rgba(15,23,42,0.86));
       border-radius: 18px;
-      border: 1px solid rgba(30, 64, 175, 0.45);
+      border: 1px solid rgba(30,64,175,0.45);
       box-shadow: var(--shadow-soft);
       padding: 16px 16px 10px;
     }
@@ -133,7 +122,7 @@
       justify-content: space-between;
       gap: 8px;
       margin-bottom: 8px;
-      border-bottom: 1px solid rgba(30, 64, 175, 0.5);
+      border-bottom: 1px solid rgba(30,64,175,0.5);
       padding-bottom: 8px;
     }
 
@@ -163,33 +152,14 @@
       display: flex;
       flex-direction: column;
       gap: 5px;
-      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+      transition: 0.12s ease;
       position: relative;
     }
 
-    .pick-card:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 18px 32px rgba(15, 23, 42, 0.85);
-      border-color: rgba(148, 163, 184, 0.6);
-    }
-
-    .pick-card.win {
-      border-color: #16a34a;
-      box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.7);
-    }
-
-    .pick-card.lose {
-      border-color: #dc2626;
-      box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.7);
-    }
-
-    .pick-card.pending {
-      border-color: #facc15;
-    }
-
-    .pick-card.unknown {
-      border-color: #6b7280;
-    }
+    .pick-card.win { border-color: #16a34a; box-shadow: 0 0 0 1px rgba(22,163,74,0.7); }
+    .pick-card.lose { border-color: #dc2626; box-shadow: 0 0 0 1px rgba(220,38,38,0.7); }
+    .pick-card.pending { border-color: #facc15; }
+    .pick-card.unknown { border-color: #6b7280; }
 
     .pick-header {
       display: flex;
@@ -204,7 +174,7 @@
       padding: 1px 7px;
       border-radius: 999px;
       background: var(--pill-bg);
-      border: 1px solid rgba(148, 163, 184, 0.35);
+      border: 1px solid rgba(148,163,184,0.35);
       max-width: 70%;
       white-space: nowrap;
       overflow: hidden;
@@ -219,46 +189,30 @@
     .teams {
       font-size: 0.9rem;
       font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     .pick-main {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
     }
 
     .pick-label {
       padding: 2px 7px;
       border-radius: 999px;
-      border: 1px solid rgba(248, 250, 252, 0.22);
-      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(248,250,252,0.22);
+      background: rgba(15,23,42,0.9);
       font-weight: 500;
     }
 
-    .odd-label {
-      font-weight: 600;
-      font-size: 0.86rem;
-      letter-spacing: 0.04em;
-    }
-
-    .meta-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.78rem;
-    }
+    .odd-label { font-weight: 600; }
+    .meta-row { display: flex; justify-content: space-between; align-items: center; }
 
     .model-pill {
       padding: 1px 6px;
       border-radius: 999px;
-      background: rgba(8, 47, 73, 0.7);
-      border: 1px solid rgba(56, 189, 248, 0.7);
+      background: rgba(8,47,73,0.7);
+      border: 1px solid rgba(56,189,248,0.7);
       font-weight: 500;
       font-size: 0.76rem;
     }
@@ -273,52 +227,23 @@
       font-weight: 600;
       padding: 1px 7px;
       border-radius: 9999px;
-      border: 1px solid rgba(148, 163, 184, 0.9);
-      text-transform: uppercase;
+      border: 1px solid rgba(148,163,184,0.9);
       white-space: nowrap;
     }
 
-    .result-badge.win {
-      border-color: #16a34a;
-      color: #bbf7d0;
-    }
-
-    .result-badge.lose {
-      border-color: #dc2626;
-      color: #fecaca;
-    }
-
-    .result-badge.pending {
-      border-color: #facc15;
-      color: #fef9c3;
-    }
-
-    .result-badge.unknown {
-      border-color: #6b7280;
-      color: #e5e7eb;
-    }
+    .result-badge.win { border-color: #16a34a; color: #bbf7d0; }
+    .result-badge.lose { border-color: #dc2626; color: #fecaca; }
+    .result-badge.pending { border-color: #facc15; color: #fef9c3; }
+    .result-badge.unknown { border-color: #6b7280; color: #e5e7eb; }
 
     .empty-state {
       margin-top: 40px;
       padding: 18px 16px;
       border-radius: 14px;
-      border: 1px dashed rgba(148, 163, 184, 0.4);
-      background: rgba(15, 23, 42, 0.8);
+      border: 1px dashed rgba(148,163,184,0.4);
+      background: rgba(15,23,42,0.8);
       text-align: center;
       font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-
-    @media (max-width: 640px) {
-      main {
-        margin-top: 20px;
-      }
-      h1 {
-        font-size: 1.5rem;
-      }
-      .category-block {
-        padding: 14px 12px 8px;
-      }
     }
   </style>
 </head>
@@ -330,32 +255,16 @@
         <span id="day-badge" class="badge-day"></span>
       </div>
       <p class="subtitle">
-        Picks generati dai modelli automatici su API-Football, filtrati per qualità e
-        categorie. Le partite concluse vengono colorate in base all'esito del pronostico.
+        Picks generati dai modelli automatici su API-Football, filtrati per qualità e categorie.
       </p>
-      <div class="legend">
-        <div class="legend-item">
-          <span class="legend-dot win"></span> Presa
-        </div>
-        <div class="legend-item">
-          <span class="legend-dot lose"></span> Persa
-        </div>
-        <div class="legend-item">
-          <span class="legend-dot pending"></span> In corso / non ancora iniziata
-        </div>
-        <div class="legend-item">
-          <span class="legend-dot unknown"></span> Esito non disponibile
-        </div>
-      </div>
     </header>
 
     <section id="content"></section>
   </main>
 
   <script>
-    // ====== CONFIG SUPABASE ======
     const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A"; // <-- incolla qui la tua anon key
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
 
     async function sbFetch(table, query) {
       const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
@@ -365,247 +274,153 @@
           Authorization: "Bearer " + SUPABASE_ANON_KEY,
         },
       });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Supabase error ${res.status}: ${text}`);
-      }
+      if (!res.ok) throw new Error(await res.text());
       return await res.json();
     }
 
-    // ====== UTIL ======
-    function pad2(n) {
-      return n < 10 ? "0" + n : "" + n;
-    }
-
+    function pad2(n) { return n < 10 ? "0" + n : "" + n; }
     function getTodayStr() {
       const now = new Date();
-      const y = now.getFullYear();
-      const m = pad2(now.getMonth() + 1);
-      const d = pad2(now.getDate());
-      return `${y}-${m}-${d}`;
+      return `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
     }
 
     function formatDateIT(str) {
-      const parts = str.split("-");
-      if (parts.length !== 3) return str;
-      const [y, m, d] = parts.map(Number);
-      const dt = new Date(y, m - 1, d);
-      const weekday = dt.toLocaleDateString("it-IT", { weekday: "long" });
-      const day = pad2(dt.getDate());
-      const month = dt.toLocaleDateString("it-IT", { month: "long" });
-      return `${weekday} ${day} ${month} ${y}`;
+      const d = new Date(str);
+      return d.toLocaleDateString("it-IT", { weekday: "long", day:"2-digit", month:"long", year:"numeric" });
     }
 
     function parseMatchDateTime(row) {
-      const d = row.match_date;
-      const t = row.match_time;
-      if (!d || !t) return null;
-      const [h, m] = t.split(":").map(x => parseInt(x, 10));
-      const [yy, mm, dd] = d.split("-").map(x => parseInt(x, 10));
-      if (!yy || !mm || !dd || isNaN(h) || isNaN(m)) return null;
-      return new Date(yy, mm - 1, dd, h, m);
+      if (!row.match_date || !row.match_time) return null;
+      const [h,m] = row.match_time.split(":").map(Number);
+      const [y,mo,da] = row.match_date.split("-").map(Number);
+      return new Date(y, mo-1, da, h, m);
     }
 
-    function groupByCategory(picks) {
+    function groupByCategory(arr) {
       const map = new Map();
-      for (const p of picks) {
-        const cat = p.category || "OTHER";
-        if (!map.has(cat)) {
-          map.set(cat, []);
-        }
-        map.get(cat).push(p);
+      for (const p of arr) {
+        const c = p.category || "OTHER";
+        if (!map.has(c)) map.set(c, []);
+        map.get(c).push(p);
       }
       return map;
     }
 
-    function sortCategoriesOrder(categories) {
-      const preferred = [
-        "BEST_TIPS_OF_DAY",
-        "SAFE_PICKS",
-        "VALUE_PICKS",
-        "OVER_UNDER_TIPS",
-        "BTTS_TIPS",
-        "DAILY_2PLUS",
-        "DAILY_10PLUS",
+    function sortCategoriesOrder(cats) {
+      const pref = [
+        "BEST_TIPS_OF_DAY", "SAFE_PICKS", "VALUE_PICKS",
+        "OVER_UNDER_TIPS", "BTTS_TIPS", "DAILY_2PLUS", "DAILY_10PLUS",
       ];
-      return categories.sort((a, b) => {
-        const ia = preferred.indexOf(a);
-        const ib = preferred.indexOf(b);
-        if (ia === -1 && ib === -1) return a.localeCompare(b);
-        if (ia === -1) return 1;
-        if (ib === -1) return -1;
-        return ia - ib;
+      return cats.sort((a,b)=>{
+        const ia=pref.indexOf(a), ib=pref.indexOf(b);
+        if (ia===-1&&ib===-1) return a.localeCompare(b);
+        if (ia===-1) return 1;
+        if (ib===-1) return -1;
+        return ia-ib;
       });
     }
 
-    function classifyResult(resultRaw) {
-      const res = (resultRaw || "").toUpperCase();
-      if (res === "WIN") return "win";
-      if (res === "LOSE") return "lose";
-      if (res === "PENDING") return "pending";
-      if (res === "UNKNOWN") return "unknown";
-      return "";
+    function classifyResult(r) {
+      r = (r||"").toUpperCase();
+      return r==="WIN"?"win":r==="LOSE"?"lose":r==="PENDING"?"pending":r==="UNKNOWN"?"unknown":"";
     }
 
-    // ====== MAIN LOAD ======
     async function loadTodayPicks() {
       const container = document.getElementById("content");
       const todayStr = getTodayStr();
-      const dayBadge = document.getElementById("day-badge");
-      dayBadge.textContent = formatDateIT(todayStr);
+      document.getElementById("day-badge").textContent = formatDateIT(todayStr);
 
       try {
-        // PICKS di oggi da Supabase
-        const picks = await sbFetch(
-          "picks",
-          `?run_date=eq.${todayStr}&match_date=eq.${todayStr}&select=*`
-        );
-
-        if (!Array.isArray(picks) || !picks.length) {
-          container.innerHTML = `
-            <div class="empty-state">
-              Nessun pick disponibile per oggi.<br />
-              Torna più tardi quando lo scraper avrà generato i pronostici.
-            </div>
-          `;
+        const picks = await sbFetch("picks", `?run_date=eq.${todayStr}&match_date=eq.${todayStr}&select=*`);
+        if (!picks.length) {
+          container.innerHTML = `<div class="empty-state">Nessun pick per oggi.</div>`;
           return;
         }
 
-        // RESULTS di oggi da Supabase (esiti)
-        const results = await sbFetch(
-        "results",
-  `        ?picks_date=eq.${todayStr}&select=*`
-            );
+        const results = await sbFetch("results", `?picks_date=eq.${todayStr}&select=*`);
 
-        // chiave: fixture_id + "__" + pick (testo)
-      const resultMap = new Map();
-      if (Array.isArray(results)) {
-      for (const r of results) {
-      if (r.fixture_id && r.pick) {
-      const key = String(r.fixture_id) + "__" + String(r.pick).trim();
-      resultMap.set(key, r);
+        const resultMap = new Map();
+        for (const r of results) {
+          if (r.fixture_id && r.pick) {
+            const key = `${r.fixture_id}__${r.pick.trim()}`;
+            resultMap.set(key, r);
           }
         }
-      }
 
-
-        const byCategory = groupByCategory(picks);
-        const categories = sortCategoriesOrder(Array.from(byCategory.keys()));
-
+        const byCat = groupByCategory(picks);
+        const categories = sortCategoriesOrder([...byCat.keys()]);
         let html = `<div class="categories-container">`;
 
         for (const cat of categories) {
-          const list = byCategory.get(cat) || [];
+          const list = byCat.get(cat);
+          list.sort((a,b)=>parseMatchDateTime(a)-parseMatchDateTime(b));
 
-          // Ordina per ora
-          list.sort((a, b) => {
-            const da = parseMatchDateTime(a);
-            const db = parseMatchDateTime(b);
-            if (da && db) return da - db;
-            if (da) return -1;
-            if (db) return 1;
-            return 0;
-          });
-
-          const total = list.length;
-          let wins = 0;
-          let loses = 0;
-
+          let wins=0, loses=0;
           for (const p of list) {
-          const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
-          const res = resultMap.get(key);
-          const rLabel = (res && res.result) ? res.result.toUpperCase() : "";
-          if (rLabel === "WIN") wins++;
-          if (rLabel === "LOSE") loses++;
+            const key = `${p.fixture_id}__${p.pick.trim()}`;
+            const res = resultMap.get(key);
+            const r = res ? res.result.toUpperCase() : "";
+            if (r==="WIN") wins++;
+            if (r==="LOSE") loses++;
           }
 
-
           html += `
-            <article class="category-block">
-              <div class="category-header">
-                <h2 class="category-title">${cat}</h2>
-                <div class="category-meta">
-                  ${total} picks · ${wins} win / ${loses} lose
-                </div>
-              </div>
-              <div class="picks-grid">
+          <article class="category-block">
+            <div class="category-header">
+              <h2 class="category-title">${cat}</h2>
+              <div class="category-meta">${list.length} picks · ${wins} win / ${loses} lose</div>
+            </div>
+            <div class="picks-grid">
           `;
 
           for (const p of list) {
             const dt = parseMatchDateTime(p);
-            const timeStr = dt
-              ? dt.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
-              : (p.match_time || "-");
+            const timeStr = dt ? dt.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}) : p.match_time;
 
-            const oddNum = Number(p.odd || 0);
-            const oddStr = oddNum ? oddNum.toFixed(2) : "-";
+            const odd = Number(p.odd||0).toFixed(2);
 
-            const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
+            const key = `${p.fixture_id}__${p.pick.trim()}`;
             const res = resultMap.get(key);
             const resResult = res ? res.result : "";
             const resScore = res ? res.final_score : "";
 
-
-            const resultClass = classifyResult(resResult);
-            const cardExtraClass = resultClass ? ` ${resultClass}` : "";
-
-            const resultLabel = (resResult || "").toUpperCase();
-            const finalScore = resScore || "";
-            let badgeText = "";
-            if (resultLabel) {
-              badgeText = finalScore
-                ? `${resultLabel} · ${finalScore}`
-                : resultLabel;
-            }
-
-            const badgeClass = resultClass ? ` ${resultClass}` : "";
+            const cls = classifyResult(resResult);
+            const badgeText = resResult ? (resScore ? `${resResult} · ${resScore}` : resResult) : "";
 
             html += `
-              <div class="pick-card${cardExtraClass}">
+              <div class="pick-card ${cls}">
                 <div class="pick-header">
-                  <span class="league-pill">${p.league || ""} (${p.country || ""})</span>
+                  <span class="league-pill">${p.league} (${p.country})</span>
                   <span class="match-time">${timeStr}</span>
                 </div>
-                <div class="teams">
-                  ${p.home || ""} – ${p.away || ""}
-                </div>
+                <div class="teams">${p.home} – ${p.away}</div>
                 <div class="pick-main">
-                  <span class="pick-label">${p.pick || ""}</span>
-                  <span class="odd-label">@ ${oddStr}</span>
+                  <span class="pick-label">${p.pick}</span>
+                  <span class="odd-label">@ ${odd}</span>
                 </div>
                 <div class="meta-row">
-                  <span class="model-pill">${p.model || ""}</span>
-                  <span class="score-text">score: ${Number(p.score || 0).toFixed(3)}</span>
-                  ${
-                    badgeText
-                      ? `<span class="result-badge${badgeClass}">${badgeText}</span>`
-                      : ""
-                  }
+                  <span class="model-pill">${p.model}</span>
+                  <span class="score-text">score: ${Number(p.score||0).toFixed(3)}</span>
+                  ${badgeText ? `<span class="result-badge ${cls}">${badgeText}</span>` : ""}
                 </div>
               </div>
             `;
           }
 
-          html += `
-              </div>
-            </article>
-          `;
+          html += `</div></article>`;
         }
 
         html += `</div>`;
         container.innerHTML = html;
 
       } catch (err) {
-        console.error("Errore nel caricamento dei picks:", err);
-        container.innerHTML = `
-          <div class="empty-state">
-            Errore nel caricamento dei picks. Riprova tra qualche minuto.
-          </div>
-        `;
+        console.error(err);
+        container.innerHTML = `<div class="empty-state">Errore nel caricamento.</div>`;
       }
     }
 
     document.addEventListener("DOMContentLoaded", loadTodayPicks);
   </script>
+
 </body>
 </html>
