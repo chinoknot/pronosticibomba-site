@@ -473,18 +473,21 @@
 
         // RESULTS di oggi da Supabase (esiti)
         const results = await sbFetch(
-          "results",
-          `?picks_date=eq.${todayStr}&select=*`
-        );
+        "results",
+  `        ?picks_date=eq.${todayStr}&select=*`
+            );
 
-        const resultMap = new Map();
-        if (Array.isArray(results)) {
-          for (const r of results) {
-            if (r.fixture_id) {
-              resultMap.set(String(r.fixture_id), r);
-            }
+        // chiave: fixture_id + "__" + pick (testo)
+      const resultMap = new Map();
+      if (Array.isArray(results)) {
+      for (const r of results) {
+      if (r.fixture_id && r.pick) {
+      const key = String(r.fixture_id) + "__" + String(r.pick).trim();
+      resultMap.set(key, r);
           }
         }
+      }
+
 
         const byCategory = groupByCategory(picks);
         const categories = sortCategoriesOrder(Array.from(byCategory.keys()));
@@ -509,11 +512,13 @@
           let loses = 0;
 
           for (const p of list) {
-            const res = resultMap.get(String(p.fixture_id));
-            const rLabel = (res && res.result) ? res.result.toUpperCase() : "";
-            if (rLabel === "WIN") wins++;
-            if (rLabel === "LOSE") loses++;
+          const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
+          const res = resultMap.get(key);
+          const rLabel = (res && res.result) ? res.result.toUpperCase() : "";
+          if (rLabel === "WIN") wins++;
+          if (rLabel === "LOSE") loses++;
           }
+
 
           html += `
             <article class="category-block">
@@ -535,9 +540,11 @@
             const oddNum = Number(p.odd || 0);
             const oddStr = oddNum ? oddNum.toFixed(2) : "-";
 
-            const res = resultMap.get(String(p.fixture_id));
+            const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
+            const res = resultMap.get(key);
             const resResult = res ? res.result : "";
             const resScore = res ? res.final_score : "";
+
 
             const resultClass = classifyResult(resResult);
             const cardExtraClass = resultClass ? ` ${resultClass}` : "";
