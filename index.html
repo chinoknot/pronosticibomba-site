@@ -609,7 +609,8 @@
                 <div class="meta-row">
                   <span class="model-pill">${p.model || ""}</span>
                    <span class="score-text">
-                  confidenza: ${(p.score * 100).toFixed(1)}%
+                   confidenza: ${confidenceLabel(p.score * 100)}
+
                  
                 </span>
                   ${
