@@ -592,12 +592,7 @@
 
             const badgeClass = resultClass ? ` ${resultClass}` : "";
 
-            <span class="score-text">
-            confidenza: ${(p.score * 100).toFixed(1)}% 
-            <span class="conf-label">${confidenceLabel(p.score * 100)}</span>
-            </span>
-
-
+              
             html += `
               <div class="pick-card${cardExtraClass}">
                 <div class="pick-header">
@@ -613,7 +608,10 @@
                 </div>
                 <div class="meta-row">
                   <span class="model-pill">${p.model || ""}</span>
-                  <span class="score-text">confidenza: ${confidenza}%</span>
+                   <span class="score-text">
+                  confidenza: ${(p.score * 100).toFixed(1)}%
+                 <span class="conf-label">${confidenceLabel(p.score * 100)}</span>
+                </span>
                   ${
                     badgeText
                       ? `<span class="result-badge${badgeClass}">${badgeText}</span>`
