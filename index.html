@@ -469,6 +469,16 @@
       return "";
     }
 
+    function confidenceLabel(val) {
+  if (val > 130) return "· Affidabilità estrema";
+  if (val > 110) return "· Molto alta";
+  if (val > 90)  return "· Alta";
+  if (val > 70)  return "· Media";
+  if (val > 50)  return "· Bassa";
+  return "· Rischiosa";
+}
+
+
     // ====== MAIN LOAD ======
     async function loadTodayPicks() {
       const container = document.getElementById("content");
@@ -582,7 +592,11 @@
 
             const badgeClass = resultClass ? ` ${resultClass}` : "";
 
-            const confidenza = (Number(p.score || 0) * 100).toFixed(1);
+            <span class="score-text">
+            confidenza: ${(p.score * 100).toFixed(1)}% 
+            <span class="conf-label">${confidenceLabel(p.score * 100)}</span>
+            </span>
+
 
             html += `
               <div class="pick-card${cardExtraClass}">
