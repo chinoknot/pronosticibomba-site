@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
@@ -117,6 +117,13 @@
     .legend-dot.pending { background: #facc15; }
     .legend-dot.unknown { background: #6b7280; }
 
+    .legend-note {
+      margin: 2px 0 0;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      max-width: 780px;
+    }
+
     /* MINI GUIDA */
     .guide-block {
       margin-top: 14px;
@@ -151,10 +158,11 @@
       margin-bottom: 3px;
     }
 
-    .guide-examples-title {
-      margin-top: 6px;
+    .guide-subtitle {
+      margin-top: 8px;
       font-weight: 600;
       color: var(--text-main);
+      font-size: 0.83rem;
     }
 
     .guide-examples-list {
@@ -299,18 +307,15 @@
       font-size: 0.78rem;
     }
 
-    .model-pill {
-      padding: 1px 6px;
-      border-radius: 999px;
-      background: rgba(8, 47, 73, 0.7);
-      border: 1px solid rgba(56, 189, 248, 0.7);
-      font-weight: 500;
-      font-size: 0.76rem;
-    }
-
     .score-text {
       color: var(--text-muted);
       font-variant-numeric: tabular-nums;
+      font-size: 0.78rem;
+    }
+
+    .score-label-strong {
+      font-weight: 600;
+      color: var(--text-main);
     }
 
     .result-badge {
@@ -401,6 +406,9 @@
           <a href="/storico.html" class="history-link">Storico risultati</a>
         </div>
       </div>
+      <p class="legend-note">
+        “Confidenza modello” indica quanto il sistema gradisce il pick rispetto alla quota del bookmaker, non una vittoria sicura.
+      </p>
 
       <!-- MINI GUIDA UTILIZZO -->
       <section class="guide-block">
@@ -409,20 +417,46 @@
           Ogni blocco raccoglie una famiglia di pronostici con un ruolo diverso nel bankroll:
         </p>
         <ul class="guide-list">
-          <li><strong>Scelte d’Élite</strong>: selezioni su cui i modelli mostrano un equilibrio molto solido fra quota e probabilità.</li>
+          <li><strong>Scelte d’Élite</strong>: selezioni in cui il modello vede un equilibrio solido fra quota e probabilità.</li>
           <li><strong>Selezioni Affidabili</strong>: pronostici più prudenti, pensati per dare stabilità al rendimento.</li>
           <li><strong>Quote di Valore</strong>: partite in cui la quota sembra pagare troppo rispetto al rischio stimato.</li>
-          <li><strong>Tendenze Goal</strong> e <strong>Probabilità Entrambe</strong>: mercati legati ai gol, utili per diversificare.</li>
+          <li><strong>Tendenze Goal</strong> e <strong>Probabilità Entrambe</strong>: mercati legati ai gol, utili per diversificare il tipo di giocata.</li>
           <li><strong>Combo Selettiva</strong> e <strong>Combo High Stakes</strong>: multiple con rischio crescente, da usare solo come extra.</li>
         </ul>
-        <div class="guide-examples-title">Esempi di utilizzo pratico</div>
-        <ul class="guide-examples-list">
-          <li><strong>Approccio prudente</strong>: stake fisso (es. 1 unità) su 3–5 <em>Selezioni Affidabili</em> e 1–2 <em>Scelte d’Élite</em>. Evitare multiple pesanti.</li>
-          <li><strong>Approccio bilanciato</strong>: singole su <em>Scelte d’Élite</em> + una piccola <em>Combo Selettiva</em> con stake ridotto rispetto alle singole.</li>
-          <li><strong>Approccio speculativo</strong>: stessa base prudente di sopra e, in più, una sola <em>Combo High Stakes</em> con stake molto contenuto (ad esempio 0,5 unità o meno).</li>
-        </ul>
+
+        <div class="guide-subtitle">Come usare la “confidenza”</div>
         <p class="guide-text">
-          Lo storico del sito è calcolato con stake fisso 1 unità per pick: se mantieni la stessa logica è più facile confrontare i tuoi risultati con quelli mostrati.
+          La confidenza non significa che il pick è “sicuro”, ma indica quanto il modello vede i numeri dalla nostra parte
+          rispetto alla quota proposta dal bookmaker.
+        </p>
+        <ul class="guide-list">
+          <li><strong>Confidenza molto alta / alta</strong>: buone per le singole, dove vuoi costruire rendimento nel tempo.</li>
+          <li><strong>Confidenza media</strong>: adatte per completare una schedina da 2–3 eventi o per variare un po’ le giocate.</li>
+          <li><strong>Confidenza bassa</strong>: giocate dove il modello vede potenziale, ma il rischio è alto. Da usare solo con importi piccoli.</li>
+          <li><strong>Confidenza molto bassa / rischiosa</strong>: idee ad alto rischio. Se le usi, trattale come extra e non come base del bankroll.</li>
+        </ul>
+
+        <div class="guide-subtitle">Esempi di utilizzo pratico</div>
+        <ul class="guide-examples-list">
+          <li>
+            <strong>Approccio prudente</strong>: stake fisso (es. 1 unità) su 3–5
+            <em>Selezioni Affidabili</em> o <em>Scelte d’Élite</em> con confidenza medio–alta.
+            Evita le confidenze basse e le combo più pesanti.
+          </li>
+          <li>
+            <strong>Approccio bilanciato</strong>: singole su 2–3 <em>Scelte d’Élite</em> con confidenza alta +
+            una <em>Combo Selettiva</em> con stake ridotto rispetto alle singole.
+          </li>
+          <li>
+            <strong>Approccio speculativo controllato</strong>: stessa base prudente (singole con confidenza alta)
+            e, in più, una sola giocata con confidenza bassa (o una <em>Combo High Stakes</em>)
+            con stake molto più piccolo rispetto alle giocate principali.
+          </li>
+        </ul>
+
+        <p class="guide-text">
+          Lo storico del sito è calcolato con stake fisso di 1 unità per pick: se mantieni una logica simile è più semplice
+          confrontare i tuoi risultati con quelli mostrati nella pagina storico.
         </p>
       </section>
     </header>
@@ -528,15 +562,15 @@
     }
 
     function confidenceLabel(val) {
-      if (val > 130) return "Affidabilità estrema";
-      if (val > 110) return "Molto alta";
-      if (val > 90)  return "Alta";
-      if (val > 70)  return "Media";
-      if (val > 50)  return "Bassa";
-      return "Rischiosa";
+      if (val > 130) return "molto alta";
+      if (val > 110) return "alta";
+      if (val > 90)  return "medio-alta";
+      if (val > 70)  return "media";
+      if (val > 50)  return "bassa";
+      return "rischiosa";
     }
 
-    // Nomi eleganti per le famiglie di selezioni (stessa logica dello storico)
+    // Nomi eleganti per le famiglie di selezioni
     const CATEGORY_LABELS = {
       BEST_TIPS_OF_DAY: "Scelte d’Élite",
       SAFE_PICKS: "Selezioni Affidabili",
@@ -683,9 +717,8 @@
                   <span class="odd-label">@ ${oddStr}</span>
                 </div>
                 <div class="meta-row">
-                  <span class="model-pill">${p.model || ""}</span>
                   <span class="score-text">
-                    confidenza: ${confLabel}
+                    <span class="score-label-strong">Confidenza modello:</span> ${confLabel}
                   </span>
                   ${
                     badgeText
