@@ -78,6 +78,21 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: radial-gradient(circle at top, #1e293b, var(--bg));
       color: var(--text-main);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Watermark cane sullo sfondo, soft e sfocato */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: url("/favicon.png") center 140px no-repeat;
+      background-size: 520px;
+      opacity: 0.09;
+      filter: blur(4px);
+      z-index: -1;
     }
 
     main {
@@ -94,6 +109,14 @@
     }
 
     .title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .title-left {
       display: flex;
       flex-wrap: wrap;
       align-items: baseline;
@@ -116,6 +139,27 @@
       color: #fed7aa;
       text-transform: uppercase;
       letter-spacing: 0.08em;
+    }
+
+    /* Buy me a coffee */
+    .coffee-button {
+      font-size: 0.78rem;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(249, 115, 22, 0.8);
+      background: rgba(15, 23, 42, 0.95);
+      color: #fed7aa;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .coffee-button:hover {
+      background: rgba(249, 115, 22, 0.12);
+      border-color: #f97316;
+      color: #ffedd5;
     }
 
     .subtitle {
@@ -169,22 +213,54 @@
     .legend-dot.unknown { background: #6b7280; }
 
     .legend-note {
-      margin: 2px 0 0;
+      margin: 4px 0 0;
       font-size: 0.78rem;
       color: var(--text-muted);
       max-width: 780px;
     }
 
-    /* MINI GUIDA */
+    /* ACCORDION guida */
+    .guide-accordion {
+      margin-top: 8px;
+      max-width: 780px;
+    }
+
+    .guide-accordion > summary {
+      list-style: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: var(--text-main);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.95);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .guide-accordion > summary::marker {
+      display: none;
+    }
+
+    .guide-accordion-icon {
+      display: inline-block;
+      transition: transform 0.15s ease;
+      font-size: 0.9rem;
+    }
+
+    .guide-accordion[open] .guide-accordion-icon {
+      transform: rotate(90deg);
+    }
+
     .guide-block {
-      margin-top: 14px;
+      margin-top: 8px;
       padding: 10px 12px;
       border-radius: 14px;
       border: 1px solid rgba(148, 163, 184, 0.28);
       background: rgba(15, 23, 42, 0.9);
       font-size: 0.82rem;
       color: var(--text-muted);
-      max-width: 780px;
     }
 
     .guide-title {
@@ -399,6 +475,45 @@
       color: #e5e7eb;
     }
 
+    /* Feedback like / dislike */
+    .feedback-row {
+      margin-top: 4px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      font-size: 0.75rem;
+      align-items: center;
+    }
+
+    .vote-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-muted);
+      padding: 2px 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+    }
+
+    .vote-btn:hover {
+      border-color: var(--accent);
+      color: #fed7aa;
+    }
+
+    .vote-btn.selected {
+      border-color: var(--accent);
+      background: rgba(249, 115, 22, 0.12);
+      color: #fed7aa;
+    }
+
+    .vote-count {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
     .empty-state {
       margin-top: 40px;
       padding: 18px 16px;
@@ -420,8 +535,13 @@
       .category-block {
         padding: 14px 12px 8px;
       }
-      .guide-block {
-        padding: 9px 10px;
+      body::before {
+        background-size: 380px;
+        background-position: center 120px;
+      }
+      .title-row {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
   </style>
@@ -430,8 +550,18 @@
   <main>
     <header>
       <div class="title-row">
-        <h1>Pronostici Bomba</h1>
-        <span id="day-badge" class="badge-day"></span>
+        <div class="title-left">
+          <h1>Pronostici Bomba</h1>
+          <span id="day-badge" class="badge-day"></span>
+        </div>
+        <a
+          href="https://www.buymeacoffee.com/pronosticibomba"
+          target="_blank"
+          rel="noopener"
+          class="coffee-button"
+        >
+          Regala uno snack a Ralph
+        </a>
       </div>
 
       <p class="subtitle">
@@ -465,55 +595,61 @@
         “Confidenza modello” indica quanto il sistema gradisce il pick rispetto alla quota del bookmaker, non una vittoria sicura.
       </p>
 
-      <!-- MINI GUIDA UTILIZZO -->
-      <section class="guide-block">
-        <div class="guide-title">Come leggere le selezioni di oggi</div>
-        <p class="guide-text">
-          Ogni blocco raccoglie una famiglia di pronostici con un ruolo diverso nel bankroll:
-        </p>
-        <ul class="guide-list">
-          <li><strong>Scelte d’Élite</strong>: selezioni in cui il modello vede un equilibrio solido fra quota e probabilità.</li>
-          <li><strong>Selezioni Affidabili</strong>: pronostici più prudenti, pensati per dare stabilità al rendimento.</li>
-          <li><strong>Quote di Valore</strong>: partite in cui la quota sembra pagare troppo rispetto al rischio stimato.</li>
-          <li><strong>Tendenze Goal</strong> e <strong>Probabilità Entrambe</strong>: mercati legati ai gol, utili per diversificare il tipo di giocata.</li>
-          <li><strong>Combo Selettiva</strong> e <strong>Combo High Stakes</strong>: multiple con rischio crescente, da usare solo come extra.</li>
-        </ul>
+      <!-- MINI GUIDA IN ACCORDION -->
+      <details class="guide-accordion">
+        <summary>
+          <span class="guide-accordion-icon">▶</span>
+          Come usare le selezioni e la confidenza modello
+        </summary>
+        <div class="guide-block">
+          <div class="guide-title">Come leggere le selezioni di oggi</div>
+          <p class="guide-text">
+            Ogni blocco raccoglie una famiglia di pronostici con un ruolo diverso nel bankroll:
+          </p>
+          <ul class="guide-list">
+            <li><strong>Scelte d’Élite</strong>: selezioni in cui il modello vede un equilibrio solido fra quota e probabilità.</li>
+            <li><strong>Selezioni Affidabili</strong>: pronostici più prudenti, pensati per dare stabilità al rendimento.</li>
+            <li><strong>Quote di Valore</strong>: partite in cui la quota sembra pagare troppo rispetto al rischio stimato.</li>
+            <li><strong>Tendenze Goal</strong> e <strong>Probabilità Entrambe</strong>: mercati legati ai gol, utili per diversificare il tipo di giocata.</li>
+            <li><strong>Combo Selettiva</strong> e <strong>Combo High Stakes</strong>: multiple con rischio crescente, da usare solo come extra.</li>
+          </ul>
 
-        <div class="guide-subtitle">Come usare la “confidenza”</div>
-        <p class="guide-text">
-          La confidenza non significa che il pick è “sicuro”, ma indica quanto il modello vede i numeri dalla nostra parte
-          rispetto alla quota proposta dal bookmaker.
-        </p>
-        <ul class="guide-list">
-          <li><strong>Confidenza molto alta / alta</strong>: buone per le singole, dove vuoi costruire rendimento nel tempo.</li>
-          <li><strong>Confidenza media</strong>: adatte per completare una schedina da 2–3 eventi o per variare un po’ le giocate.</li>
-          <li><strong>Confidenza bassa</strong>: giocate dove il modello vede potenziale, ma il rischio è alto. Da usare solo con importi piccoli.</li>
-          <li><strong>Confidenza molto bassa / rischiosa</strong>: idee ad alto rischio. Se le usi, trattale come extra e non come base del bankroll.</li>
-        </ul>
+          <div class="guide-subtitle">Come usare la “confidenza”</div>
+          <p class="guide-text">
+            La confidenza non significa che il pick è “sicuro”, ma indica quanto il modello vede i numeri dalla nostra parte
+            rispetto alla quota proposta dal bookmaker.
+          </p>
+          <ul class="guide-list">
+            <li><strong>Confidenza molto alta / alta</strong>: buone per le singole, dove vuoi costruire rendimento nel tempo.</li>
+            <li><strong>Confidenza media</strong>: adatte per completare una schedina da 2–3 eventi o per variare un po’ le giocate.</li>
+            <li><strong>Confidenza bassa</strong>: giocate dove il modello vede potenziale, ma il rischio è alto. Da usare solo con importi piccoli.</li>
+            <li><strong>Confidenza molto bassa / rischiosa</strong>: idee ad alto rischio. Se le usi, trattale come extra e non come base del bankroll.</li>
+          </ul>
 
-        <div class="guide-subtitle">Esempi di utilizzo pratico</div>
-        <ul class="guide-examples-list">
-          <li>
-            <strong>Approccio prudente</strong>: stake fisso (es. 1 unità) su 3–5
-            <em>Selezioni Affidabili</em> o <em>Scelte d’Élite</em> con confidenza medio–alta.
-            Evita le confidenze basse e le combo più pesanti.
-          </li>
-          <li>
-            <strong>Approccio bilanciato</strong>: singole su 2–3 <em>Scelte d’Élite</em> con confidenza alta +
-            una <em>Combo Selettiva</em> con stake ridotto rispetto alle singole.
-          </li>
-          <li>
-            <strong>Approccio speculativo controllato</strong>: stessa base prudente (singole con confidenza alta)
-            e, in più, una sola giocata con confidenza bassa (o una <em>Combo High Stakes</em>)
-            con stake molto più piccolo rispetto alle giocate principali.
-          </li>
-        </ul>
+          <div class="guide-subtitle">Esempi di utilizzo pratico</div>
+          <ul class="guide-examples-list">
+            <li>
+              <strong>Approccio prudente</strong>: stake fisso (es. 1 unità) su 3–5
+              <em>Selezioni Affidabili</em> o <em>Scelte d’Élite</em> con confidenza medio–alta.
+              Evita le confidenze basse e le combo più pesanti.
+            </li>
+            <li>
+              <strong>Approccio bilanciato</strong>: singole su 2–3 <em>Scelte d’Élite</em> con confidenza alta +
+              una <em>Combo Selettiva</em> con stake ridotto rispetto alle singole.
+            </li>
+            <li>
+              <strong>Approccio speculativo controllato</strong>: stessa base prudente (singole con confidenza alta)
+              e, in più, una sola giocata con confidenza bassa (o una <em>Combo High Stakes</em>)
+              con stake molto più piccolo rispetto alle giocate principali.
+            </li>
+          </ul>
 
-        <p class="guide-text">
-          Lo storico del sito è calcolato con stake fisso di 1 unità per pick: se mantieni una logica simile è più semplice
-          confrontare i tuoi risultati con quelli mostrati nella pagina storico.
-        </p>
-      </section>
+          <p class="guide-text">
+            Lo storico del sito è calcolato con stake fisso di 1 unità per pick: se mantieni una logica simile è più semplice
+            confrontare i tuoi risultati con quelli mostrati nella pagina storico.
+          </p>
+        </div>
+      </details>
     </header>
 
     <section id="content"></section>
@@ -642,6 +778,138 @@
       return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
     }
 
+    // Carica feedback like/dislike aggregato per data
+    async function loadFeedbackMap(picksDate) {
+      try {
+        const rows = await sbFetch(
+          "feedback",
+          `?picks_date=eq.${picksDate}&select=fixture_id,pick,vote`
+        );
+        const map = new Map();
+        if (Array.isArray(rows)) {
+          for (const r of rows) {
+            if (!r.fixture_id || !r.pick) continue;
+            const key = String(r.fixture_id) + "__" + String(r.pick).trim();
+            let obj = map.get(key);
+            if (!obj) {
+              obj = { like: 0, dislike: 0 };
+              map.set(key, obj);
+            }
+            const v = (r.vote || "").toLowerCase();
+            if (v === "like") obj.like++;
+            if (v === "dislike") obj.dislike++;
+          }
+        }
+        return map;
+      } catch (e) {
+        console.warn("Impossibile caricare feedback, procedo senza:", e);
+        return new Map();
+      }
+    }
+
+    // Invia voto a Supabase
+    async function sendVoteToSupabase(picksDate, dataKey, vote) {
+      try {
+        const [fixtureId, ...rest] = dataKey.split("__");
+        const pick = rest.join("__");
+        const url = `${SUPABASE_URL}/rest/v1/feedback`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: "Bearer " + SUPABASE_ANON_KEY,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal"
+          },
+          body: JSON.stringify({
+            picks_date: picksDate,
+            fixture_id: fixtureId,
+            pick: pick,
+            vote: vote
+          })
+        });
+        if (!res.ok) {
+          const txt = await res.text();
+          console.warn("Errore salvataggio feedback:", res.status, txt);
+        }
+      } catch (e) {
+        console.warn("Eccezione salvataggio feedback:", e);
+      }
+    }
+
+    // Inizializza listeners like/dislike
+    function setupVoteHandlers(feedbackMap, picksDate) {
+      const rows = document.querySelectorAll(".feedback-row");
+      rows.forEach(row => {
+        const dataKey = row.getAttribute("data-key");
+        if (!dataKey) return;
+
+        const storageKey = "pb_vote_" + dataKey;
+        const existingVote = localStorage.getItem(storageKey);
+
+        const buttons = row.querySelectorAll(".vote-btn");
+        buttons.forEach(btn => {
+          const voteType = btn.getAttribute("data-vote");
+          const countSpan = btn.querySelector(".vote-count");
+
+          if (existingVote && existingVote === voteType) {
+            btn.classList.add("selected");
+          }
+
+          btn.addEventListener("click", () => {
+            const currentSelected = row.querySelector(".vote-btn.selected");
+            const currentVote = currentSelected ? currentSelected.getAttribute("data-vote") : null;
+
+            if (currentVote === voteType) {
+              return;
+            }
+
+            const fb = feedbackMap.get(dataKey) || { like: 0, dislike: 0 };
+
+            if (currentVote) {
+              const prevBtn = row.querySelector(`.vote-btn[data-vote="${currentVote}"]`);
+              const prevSpan = prevBtn ? prevBtn.querySelector(".vote-count") : null;
+              if (prevSpan) {
+                if (currentVote === "like" && fb.like > 0) {
+                  fb.like--;
+                  prevSpan.textContent = fb.like;
+                }
+                if (currentVote === "dislike" && fb.dislike > 0) {
+                  fb.dislike--;
+                  prevSpan.textContent = fb.dislike;
+                }
+              }
+            }
+
+            if (voteType === "like") {
+              fb.like++;
+            } else if (voteType === "dislike") {
+              fb.dislike++;
+            }
+            feedbackMap.set(dataKey, fb);
+
+            const likeBtn = row.querySelector('.vote-btn[data-vote="like"]');
+            const dislikeBtn = row.querySelector('.vote-btn[data-vote="dislike"]');
+            if (likeBtn) {
+              const s = likeBtn.querySelector(".vote-count");
+              if (s) s.textContent = fb.like;
+            }
+            if (dislikeBtn) {
+              const s = dislikeBtn.querySelector(".vote-count");
+              if (s) s.textContent = fb.dislike;
+            }
+
+            buttons.forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+
+            localStorage.setItem(storageKey, voteType);
+
+            sendVoteToSupabase(picksDate, dataKey, voteType);
+          });
+        });
+      });
+    }
+
     // ====== MAIN LOAD ======
     async function loadTodayPicks() {
       const container = document.getElementById("content");
@@ -650,7 +918,6 @@
       dayBadge.textContent = formatDateIT(todayStr);
 
       try {
-        // PICKS di oggi
         const picks = await sbFetch(
           "picks",
           `?run_date=eq.${todayStr}&match_date=eq.${todayStr}&select=*`
@@ -666,11 +933,12 @@
           return;
         }
 
-        // RESULTS di oggi (esiti)
         const results = await sbFetch(
           "results",
           `?picks_date=eq.${todayStr}&select=*`
         );
+
+        const feedbackMap = await loadFeedbackMap(todayStr);
 
         const resultMap = new Map();
         if (Array.isArray(results)) {
@@ -690,7 +958,6 @@
         for (const cat of categories) {
           const list = byCategory.get(cat) || [];
 
-          // Ordina per orario
           list.sort((a, b) => {
             const da = parseMatchDateTime(a);
             const db = parseMatchDateTime(b);
@@ -758,6 +1025,8 @@
             const confValue = Number(p.score || 0) * 100;
             const confLabel = confidenceLabel(confValue);
 
+            const fb = feedbackMap.get(key) || { like: 0, dislike: 0 };
+
             html += `
               <div class="pick-card${cardExtraClass}">
                 <div class="pick-header">
@@ -781,6 +1050,14 @@
                       : ""
                   }
                 </div>
+                <div class="feedback-row" data-key="${key}">
+                  <button class="vote-btn" data-vote="like">
+                    Like <span class="vote-count">${fb.like}</span>
+                  </button>
+                  <button class="vote-btn" data-vote="dislike">
+                    Dislike <span class="vote-count">${fb.dislike}</span>
+                  </button>
+                </div>
               </div>
             `;
           }
@@ -796,6 +1073,8 @@
 
         html += `</div>`;
         container.innerHTML = html;
+
+        setupVoteHandlers(feedbackMap, todayStr);
 
       } catch (err) {
         console.error("Errore nel caricamento dei picks:", err);
