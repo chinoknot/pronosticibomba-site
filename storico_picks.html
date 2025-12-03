@@ -382,7 +382,7 @@
         Il calcolo è sempre fatto ipotizzando uno stake fisso di 1 unità per ogni pick, sulle quote mostrate.
       </p>
       <p class="note">
-        I dati sono gli stessi usati per lo storico complessivo: qui puoi vedere il dettaglio partita per partita.
+        Se una giornata è stata ricalcolata più volte, qui ogni pick viene contata una sola volta (fixture + pick).
       </p>
 
       <div class="dates-wrapper">
@@ -456,7 +456,7 @@
       return "rischiosa";
     }
 
-    // Nomi eleganti per le famiglie di selezioni (come index/storico)
+    // Nomi eleganti per le famiglie di selezioni
     const CATEGORY_LABELS = {
       BEST_TIPS_OF_DAY: "Scelte d’Élite",
       SAFE_PICKS: "Selezioni Affidabili",
@@ -478,10 +478,9 @@
     let currentDate = null;
 
     async function loadAvailableDates() {
-      // Prendiamo le ultime ~120 righe e deduplichiamo le date
       const rows = await sbFetch(
         "results",
-        "?select=picks_date&order=picks_date.desc&limit=120"
+        "?select=picks_date&order=picks_date.desc&limit=200"
       );
 
       const seen = new Set();
@@ -536,7 +535,7 @@
       try {
         const rows = await sbFetch(
           "results",
-          `?picks_date=eq.${dateStr}&select=*&order=league.asc,home.asc,away.asc`
+          `?picks_date=eq.${dateStr}&select=*`
         );
 
         if (!Array.isArray(rows) || !rows.length) {
@@ -544,15 +543,36 @@
           return;
         }
 
-        // Statistiche giornaliere
-        let total = rows.length;
+        // Deduplica: fixture_id + pick = una sola pick
+        const map = new Map();
+        for (const r of rows) {
+          const fid = String(r.fixture_id || "").trim();
+          const pickText = String(r.pick || "").trim();
+          if (!fid && !pickText) continue;
+          const key = fid + "__" + pickText;
+          // se stesso pick ricalcolato più volte, sovrascriviamo e teniamo l'ultimo
+          map.set(key, r);
+        }
+        const uniqueRows = Array.from(map.values());
+
+        // Ordiniamo per lega e squadre per avere una lista pulita
+        uniqueRows.sort((a, b) => {
+          const la = (a.league || "").localeCompare(b.league || "");
+          if (la !== 0) return la;
+          const ha = (a.home || "").localeCompare(b.home || "");
+          if (ha !== 0) return ha;
+          return (a.away || "").localeCompare(b.away || "");
+        });
+
+        // Statistiche giornaliere basate sui picks unici
+        const total = uniqueRows.length;
         let wins = 0;
         let loses = 0;
         let pending = 0;
         let unknown = 0;
         let profit = 0; // in unità (stake 1 per pick)
 
-        for (const r of rows) {
+        for (const r of uniqueRows) {
           const res = (r.result || "").toUpperCase();
           const oddNum = Number(r.odd || 0);
 
@@ -571,7 +591,6 @@
           }
         }
 
-        const totalPlayed = wins + loses;
         const roi = total > 0 ? (profit / total) * 100 : 0;
 
         // Render riepilogo
@@ -580,7 +599,7 @@
             Riepilogo giornata – ${formatDateIT(dateStr)} (${dateStr})
           </div>
           <div class="day-summary-item">
-            <span class="day-summary-label">Totale picks</span>
+            <span class="day-summary-label">Totale picks (uniche)</span>
             <span class="day-summary-value">${total}</span>
           </div>
           <div class="day-summary-item">
@@ -616,7 +635,7 @@
         // Render picks
         const frag = document.createDocumentFragment();
 
-        rows.forEach(r => {
+        uniqueRows.forEach(r => {
           const resultClass = classifyResult(r.result);
           const card = document.createElement("article");
           card.className = "pick-card" + (resultClass ? " " + resultClass : "");
