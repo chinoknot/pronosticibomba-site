@@ -141,26 +141,94 @@
       letter-spacing: 0.08em;
     }
 
-    /* Buy me a coffee */
+        /* Buy me a coffee - versione più evidente ma non cafona */
     .coffee-button {
-      font-size: 0.78rem;
-      text-decoration: none;
-      padding: 6px 12px;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
       border-radius: 999px;
-      border: 1px solid rgba(249, 115, 22, 0.8);
-      background: rgba(15, 23, 42, 0.95);
-      color: #fed7aa;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      text-decoration: none;
+      font-size: 0.8rem;
       font-weight: 600;
-      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+
+      background: radial-gradient(circle at top left,
+        rgba(249, 115, 22, 0.35),
+        rgba(15, 23, 42, 1)
+      );
+      border: 1px solid rgba(249, 115, 22, 0.85);
+      color: #ffedd5;
+
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 14px 30px rgba(15, 23, 42, 0.9),
+        0 0 22px rgba(249, 115, 22, 0.22);
+
+      cursor: pointer;
+      overflow: hidden;
+      transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        background 0.16s ease,
+        border-color 0.16s ease,
+        color 0.16s ease;
+    }
+
+    .coffee-button::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(248, 250, 252, 0.16),
+        transparent
+      );
+      transform: translateX(-130%);
+      transition: transform 0.45s ease;
+      pointer-events: none;
     }
 
     .coffee-button:hover {
-      background: rgba(249, 115, 22, 0.12);
+      transform: translateY(-1px);
+      background: radial-gradient(circle at top left,
+        rgba(249, 115, 22, 0.45),
+        rgba(15, 23, 42, 1)
+      );
       border-color: #f97316;
-      color: #ffedd5;
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 16px 36px rgba(15, 23, 42, 1),
+        0 0 26px rgba(249, 115, 22, 0.3);
+      color: #fff7ed;
     }
+
+    .coffee-button:hover::after {
+      transform: translateX(130%);
+    }
+
+    .coffee-main {
+      line-height: 1.2;
+    }
+
+    .coffee-sub {
+      font-size: 0.7rem;
+      text-transform: none;
+      letter-spacing: 0.02em;
+      color: #fed7aa;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 640px) {
+      .coffee-button {
+        padding: 7px 14px;
+        font-size: 0.78rem;
+      }
+    }
+
 
     .subtitle {
       margin: 0;
