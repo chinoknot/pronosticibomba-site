@@ -382,8 +382,8 @@
         Il calcolo è sempre fatto ipotizzando uno stake fisso di 1 unità per ogni pick, sulle quote mostrate.
       </p>
       <p class="note">
-        La lista delle partite viene dalle picks del giorno. Gli esiti sono agganciati dai risultati registrati
-        (quando il match è stato elaborato dal sistema).
+        La lista delle partite viene dalle picks del giorno. Gli esiti sono agganciati dai risultati registrati.
+        Se una partita è stata ricalcolata più volte, viene mostrata la versione con risultato più aggiornato.
       </p>
 
       <div class="dates-wrapper">
@@ -474,12 +474,27 @@
       return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
     }
 
+    // ranking dei risultati: preferiamo righe con esito definito e match finito
+    function resultRank(r) {
+      let score = 0;
+      const res = (r.result || "").toUpperCase();
+      const st = (r.status_short || "").toUpperCase();
+
+      if (res === "WIN" || res === "LOSE") score += 4;
+      else if (res === "PENDING") score += 1;
+
+      if (["FT", "AET", "PEN", "AWD", "WO"].includes(st)) score += 3;
+      else if (["NS", "1H", "2H"].includes(st)) score += 1;
+
+      return score;
+    }
+
     // ====== DATE LOADING ======
     let availableDates = [];
     let currentDate = null;
 
     async function loadAvailableDates() {
-      // prendiamo le date dalle picks (quelle sono sicuramente tutte)
+      // le date le prendiamo dalle picks (sono le più "complete")
       const rows = await sbFetch(
         "picks",
         "?select=match_date&order=match_date.desc&limit=200"
@@ -535,7 +550,7 @@
       emptyState.style.display = "none";
 
       try {
-        // 1) prendo tutte le picks del giorno
+        // 1) tutte le picks del giorno
         const picks = await sbFetch(
           "picks",
           `?match_date=eq.${dateStr}&select=*`
@@ -546,13 +561,13 @@
           return;
         }
 
-        // 2) prendo tutti i results di quella giornata
+        // 2) tutti i risultati di quella giornata
         const results = await sbFetch(
           "results",
-          `?picks_date=eq.${dateStr}&select=*&order=run_date.asc,fixture_id.asc`
+          `?picks_date=eq.${dateStr}&select=*`
         );
 
-        // mappa: fixture_id + pick => ultimo result noto
+        // 2b) risultato "migliore" per fixture+pick
         const resultMap = new Map();
         if (Array.isArray(results)) {
           for (const r of results) {
@@ -560,12 +575,22 @@
             const pickText = String(r.pick || "").trim();
             if (!fid && !pickText) continue;
             const key = fid + "__" + pickText;
-            // l'ordine asc su run_date fa sì che l'ultima volta che passa è il run più recente
-            resultMap.set(key, r);
+
+            const current = resultMap.get(key);
+            if (!current) {
+              resultMap.set(key, r);
+            } else {
+              const oldScore = resultRank(current);
+              const newScore = resultRank(r);
+              // se il nuovo è "più completo", lo sostituiamo
+              if (newScore >= oldScore) {
+                resultMap.set(key, r);
+              }
+            }
           }
         }
 
-        // 3) compongo righe "dayRows" unendo pick + eventuale result
+        // 3) unione pick + eventuale result migliore
         const dayRows = picks.map(p => {
           const fid = String(p.fixture_id || "").trim();
           const pickText = String(p.pick || "").trim();
@@ -581,14 +606,13 @@
             pick: pickText,
             odd: p.odd || res.odd || null,
             score_model: p.score || res.score_model || null,
-            // result info
             result: (res.result || "").toUpperCase() || "",
             final_score: res.final_score || "",
             status_short: res.status_short || "",
           };
         });
 
-        // ordino in modo carino: lega -> home -> away
+        // ordino per leggibilità: lega -> home -> away
         dayRows.sort((a, b) => {
           const la = (a.league || "").localeCompare(b.league || "");
           if (la !== 0) return la;
@@ -599,12 +623,12 @@
 
         const totalPicks = dayRows.length;
 
-        // 4) statistiche: profit / ROI solo sulle picks con esito definito (WIN/LOSE)
+        // 4) statistiche su picks risolte
         let wins = 0;
         let loses = 0;
         let pending = 0;
         let unknown = 0;
-        let profit = 0; // in unità (stake 1)
+        let profit = 0; // in unità
 
         for (const r of dayRows) {
           const res = (r.result || "").toUpperCase();
