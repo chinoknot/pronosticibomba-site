@@ -48,6 +48,14 @@
       gap: 10px;
     }
 
+    .top-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+
     .back-link {
       color: var(--text-muted);
       text-decoration: none;
@@ -222,15 +230,19 @@
 <body>
   <main>
     <header>
-      <div class="top-row">
-        <h1>Storico pronostici</h1>
-        <a class="back-link" href="/index.html">← Torna ai pronostici</a>
-      </div>
+  <div class="top-row">
+    <h1>Storico pronostici</h1>
+    <div class="top-links">
+      <a href="/index.html" class="back-link">← Torna ai pronostici di oggi</a>
+      <a href="/storico_picks.html" class="back-link">Storico dettagliato picks</a>
+    </div>
+  </div>
+  <p class="subtitle">
+    Panoramica automatica di winrate e ROI per giorno, calcolata dai dati reali.
+    I pending e gli esiti non disponibili non vengono considerati in winrate/ROI.
+  </p>
+  <!-- il resto del tuo header rimane identico -->
 
-      <p class="subtitle">
-        Panoramica automatica su winrate e ROI, calcolata sui risultati ufficiali delle partite.
-        Le partite non concluse o con esito non disponibile non vengono conteggiate.
-      </p>
 
       <div class="controls">
         <span>Intervallo:</span>
