@@ -382,7 +382,8 @@
         Il calcolo è sempre fatto ipotizzando uno stake fisso di 1 unità per ogni pick, sulle quote mostrate.
       </p>
       <p class="note">
-        Se una giornata è stata ricalcolata più volte, qui ogni pick viene contata una sola volta (fixture + pick).
+        La lista delle partite viene dalle picks del giorno. Gli esiti sono agganciati dai risultati registrati
+        (quando il match è stato elaborato dal sistema).
       </p>
 
       <div class="dates-wrapper">
@@ -478,15 +479,16 @@
     let currentDate = null;
 
     async function loadAvailableDates() {
+      // prendiamo le date dalle picks (quelle sono sicuramente tutte)
       const rows = await sbFetch(
-        "results",
-        "?select=picks_date&order=picks_date.desc&limit=200"
+        "picks",
+        "?select=match_date&order=match_date.desc&limit=200"
       );
 
       const seen = new Set();
       const out = [];
       for (const r of rows) {
-        const d = r.picks_date;
+        const d = r.match_date;
         if (d && !seen.has(d)) {
           seen.add(d);
           out.push(d);
@@ -533,30 +535,61 @@
       emptyState.style.display = "none";
 
       try {
-        const rows = await sbFetch(
-          "results",
-          `?picks_date=eq.${dateStr}&select=*`
+        // 1) prendo tutte le picks del giorno
+        const picks = await sbFetch(
+          "picks",
+          `?match_date=eq.${dateStr}&select=*`
         );
 
-        if (!Array.isArray(rows) || !rows.length) {
+        if (!Array.isArray(picks) || !picks.length) {
           emptyState.style.display = "block";
           return;
         }
 
-        // Deduplica: fixture_id + pick = una sola pick
-        const map = new Map();
-        for (const r of rows) {
-          const fid = String(r.fixture_id || "").trim();
-          const pickText = String(r.pick || "").trim();
-          if (!fid && !pickText) continue;
-          const key = fid + "__" + pickText;
-          // se stesso pick ricalcolato più volte, sovrascriviamo e teniamo l'ultimo
-          map.set(key, r);
-        }
-        const uniqueRows = Array.from(map.values());
+        // 2) prendo tutti i results di quella giornata
+        const results = await sbFetch(
+          "results",
+          `?picks_date=eq.${dateStr}&select=*&order=run_date.asc,fixture_id.asc`
+        );
 
-        // Ordiniamo per lega e squadre per avere una lista pulita
-        uniqueRows.sort((a, b) => {
+        // mappa: fixture_id + pick => ultimo result noto
+        const resultMap = new Map();
+        if (Array.isArray(results)) {
+          for (const r of results) {
+            const fid = String(r.fixture_id || "").trim();
+            const pickText = String(r.pick || "").trim();
+            if (!fid && !pickText) continue;
+            const key = fid + "__" + pickText;
+            // l'ordine asc su run_date fa sì che l'ultima volta che passa è il run più recente
+            resultMap.set(key, r);
+          }
+        }
+
+        // 3) compongo righe "dayRows" unendo pick + eventuale result
+        const dayRows = picks.map(p => {
+          const fid = String(p.fixture_id || "").trim();
+          const pickText = String(p.pick || "").trim();
+          const key = fid + "__" + pickText;
+          const res = resultMap.get(key) || {};
+
+          return {
+            fixture_id: fid,
+            league: p.league || res.league || "",
+            home: p.home || res.home || "",
+            away: p.away || res.away || "",
+            category: p.category || res.category || "",
+            pick: pickText,
+            odd: p.odd || res.odd || null,
+            score_model: p.score || res.score_model || null,
+            // result info
+            result: (res.result || "").toUpperCase() || "",
+            final_score: res.final_score || "",
+            status_short: res.status_short || "",
+          };
+        });
+
+        // ordino in modo carino: lega -> home -> away
+        dayRows.sort((a, b) => {
           const la = (a.league || "").localeCompare(b.league || "");
           if (la !== 0) return la;
           const ha = (a.home || "").localeCompare(b.home || "");
@@ -564,43 +597,45 @@
           return (a.away || "").localeCompare(b.away || "");
         });
 
-        // Statistiche giornaliere basate sui picks unici
-        const total = uniqueRows.length;
+        const totalPicks = dayRows.length;
+
+        // 4) statistiche: profit / ROI solo sulle picks con esito definito (WIN/LOSE)
         let wins = 0;
         let loses = 0;
         let pending = 0;
         let unknown = 0;
-        let profit = 0; // in unità (stake 1 per pick)
+        let profit = 0; // in unità (stake 1)
 
-        for (const r of uniqueRows) {
+        for (const r of dayRows) {
           const res = (r.result || "").toUpperCase();
           const oddNum = Number(r.odd || 0);
 
           if (res === "WIN") {
             wins++;
             if (oddNum > 0) {
-              profit += (oddNum - 1); // vincita netta con stake 1
+              profit += (oddNum - 1);
             }
           } else if (res === "LOSE") {
             loses++;
             profit -= 1;
           } else if (res === "PENDING") {
             pending++;
-          } else {
+          } else if (res === "UNKNOWN" || !res) {
             unknown++;
           }
         }
 
-        const roi = total > 0 ? (profit / total) * 100 : 0;
+        const resolved = wins + loses;
+        const roi = resolved > 0 ? (profit / resolved) * 100 : 0;
 
-        // Render riepilogo
+        // 5) riepilogo giornata
         daySummaryEl.innerHTML = `
           <div class="day-summary-title">
             Riepilogo giornata – ${formatDateIT(dateStr)} (${dateStr})
           </div>
           <div class="day-summary-item">
-            <span class="day-summary-label">Totale picks (uniche)</span>
-            <span class="day-summary-value">${total}</span>
+            <span class="day-summary-label">Totale picks generate</span>
+            <span class="day-summary-value">${totalPicks}</span>
           </div>
           <div class="day-summary-item">
             <span class="day-summary-label">Esiti</span>
@@ -611,20 +646,20 @@
             </span>
           </div>
           <div class="day-summary-item">
-            <span class="day-summary-label">Profitto netto (stake 1 per pick)</span>
+            <span class="day-summary-label">Profitto netto (stake 1 per pick risolta)</span>
             <span class="day-summary-value ${profit >= 0 ? "roi-positive" : "roi-negative"}">
               ${profit.toFixed(2)} unità
             </span>
           </div>
           <div class="day-summary-item">
-            <span class="day-summary-label">ROI del giorno</span>
+            <span class="day-summary-label">ROI sui picks risolti</span>
             <span class="day-summary-value ${roi >= 0 ? "roi-positive" : "roi-negative"}">
               ${roi.toFixed(1)}%
             </span>
           </div>
           <div class="day-summary-item">
-            <span class="day-summary-label">Stake considerato</span>
-            <span class="day-summary-value">${total} unità (1 per pick)</span>
+            <span class="day-summary-label">Stake considerato per ROI</span>
+            <span class="day-summary-value">${resolved} unità (solo picks con esito WIN/LOSE)</span>
           </div>
         `;
         daySummaryEl.style.display = "flex";
@@ -632,10 +667,10 @@
         picksTitleEl.textContent = "Dettaglio picks della giornata";
         picksTitleEl.style.display = "block";
 
-        // Render picks
+        // 6) render lista picks
         const frag = document.createDocumentFragment();
 
-        uniqueRows.forEach(r => {
+        dayRows.forEach(r => {
           const resultClass = classifyResult(r.result);
           const card = document.createElement("article");
           card.className = "pick-card" + (resultClass ? " " + resultClass : "");
@@ -674,7 +709,7 @@
                 </span>
                 ${
                   finalScore
-                    ? `<span>Risultato: ${finalScore} (${r.status_short || ""})</span>`
+                    ? `<span>Risultato: ${finalScore} ${r.status_short ? "(" + r.status_short + ")" : ""}</span>`
                     : `<span>Risultato: ${r.status_short || "N.D."}</span>`
                 }
               </div>
@@ -693,9 +728,9 @@
 
       } catch (err) {
         console.error("Errore caricamento picks storico:", err);
-        const emptyState = document.getElementById("empty-state");
-        emptyState.textContent = "Errore nel caricamento dei dati. Riprova più tardi.";
-        emptyState.style.display = "block";
+        const emptyState2 = document.getElementById("empty-state");
+        emptyState2.textContent = "Errore nel caricamento dei dati. Riprova più tardi.";
+        emptyState2.style.display = "block";
       }
     }
 
