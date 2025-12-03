@@ -333,299 +333,383 @@
     <div id="table-container"></div>
   </main>
 
-  <script>
-    // ===== CONFIG SUPABASE (solo lettura) =====
-    const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
-    const SUPABASE_ANON_KEY =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
+<script>
+  // ===== CONFIG SUPABASE (solo lettura) =====
+  const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
 
-    async function sbFetch(table, query) {
-      const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
-      const res = await fetch(url, {
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: "Bearer " + SUPABASE_ANON_KEY,
-        },
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Supabase error ${res.status}: ${text}`);
+  async function sbFetch(table, query) {
+    const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+    const res = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+      },
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Supabase error ${res.status}: ${text}`);
+    }
+    return await res.json();
+  }
+
+  // ===== HELPER =====
+  function pad2(n) {
+    return n < 10 ? "0" + n : "" + n;
+  }
+
+  function formatDateIT(str) {
+    if (!str) return "";
+    const parts = str.split("-");
+    if (parts.length !== 3) return str;
+    const [y, m, d] = parts.map(Number);
+    const dt = new Date(y, m - 1, d);
+    const weekday = dt.toLocaleDateString("it-IT", { weekday: "long" });
+    const day = pad2(dt.getDate());
+    const month = dt.toLocaleDateString("it-IT", { month: "long" });
+    return `${weekday} ${day} ${month} ${y}`;
+  }
+
+  function getDateStrOffset(offsetDays) {
+    const now = new Date();
+    now.setDate(now.getDate() + offsetDays);
+    const y = now.getFullYear();
+    const m = pad2(now.getMonth() + 1);
+    const d = pad2(now.getDate());
+    return `${y}-${m}-${d}`;
+  }
+
+  function safeOdd(o) {
+    const n = Number(o);
+    if (!isFinite(n) || n <= 1) return 1.0;
+    return n;
+  }
+
+  // ===== NOMI ELEGANTI CATEGORIE =====
+  const CATEGORY_LABELS = {
+    BEST_TIPS_OF_DAY: "Scelte d’Élite",
+    SAFE_PICKS: "Selezioni Affidabili",
+    VALUE_PICKS: "Quote di Valore",
+    OVER_UNDER_TIPS: "Tendenze Goal",
+    BTTS_TIPS: "Probabilità Entrambe",
+    DAILY_2PLUS: "Combo Selettiva",
+    DAILY_10PLUS: "Combo High Stakes",
+    SINGLE_GAME: "Pick Esclusiva",
+    TOP_5_TIPS: "Top 5 Esclusive",
+  };
+
+  function getCategoryLabel(cat) {
+    const k = (cat || "").trim().toUpperCase();
+    return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
+  }
+
+  // ===== MAIN LOAD =====
+  async function loadHistory(daysBack) {
+    const tableContainer = document.getElementById("table-container");
+    tableContainer.innerHTML = `
+      <div class="table-wrapper">
+        <div class="empty">Carico dati degli ultimi ${daysBack} giorni...</div>
+      </div>
+    `;
+
+    const toDate = getDateStrOffset(0);
+    const fromDate = getDateStrOffset(-daysBack + 1);
+
+    try {
+      // 1) risultati grezzi
+      const rawResults = await sbFetch(
+        "results",
+        `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}&select=*`
+      );
+
+      if (!Array.isArray(rawResults) || !rawResults.length) {
+        tableContainer.innerHTML = `
+          <div class="table-wrapper">
+            <div class="empty">Nessun risultato disponibile per questo periodo.</div>
+          </div>
+        `;
+        document.getElementById("summary-period").textContent = "-";
+        document.getElementById("summary-days").textContent = "-";
+        document.getElementById("summary-winrate").textContent = "-";
+        document.getElementById("summary-wl").textContent = "-";
+        document.getElementById("summary-roi").textContent = "-";
+        document.getElementById("summary-profit").textContent = "-";
+        return;
       }
-      return await res.json();
-    }
 
-    // ===== HELPER =====
-    function pad2(n) {
-      return n < 10 ? "0" + n : "" + n;
-    }
+      // 2) dedup per fixture+category+pick
+      const latestByKey = new Map();
+      for (const r of rawResults) {
+        if (!r.fixture_id || !r.pick) continue;
+        const key =
+          String(r.fixture_id) +
+          "__" +
+          String(r.category || "").trim() +
+          "__" +
+          String(r.pick).trim();
+        latestByKey.set(key, r);
+      }
+      const resultsRows = Array.from(latestByKey.values());
+      if (!resultsRows.length) {
+        tableContainer.innerHTML = `
+          <div class="table-wrapper">
+            <div class="empty">Nessun risultato disponibile per questo periodo.</div>
+          </div>
+        `;
+        return;
+      }
 
-    function formatDateIT(str) {
-      if (!str) return "";
-      const parts = str.split("-");
-      if (parts.length !== 3) return str;
-      const [y, m, d] = parts.map(Number);
-      const dt = new Date(y, m - 1, d);
-      const weekday = dt.toLocaleDateString("it-IT", { weekday: "long" });
-      const day = pad2(dt.getDate());
-      const month = dt.toLocaleDateString("it-IT", { month: "long" });
-      return `${weekday} ${day} ${month} ${y}`;
-    }
+      // 3) picks per recuperare quote
+      const picksRows = await sbFetch(
+        "picks",
+        `?run_date=gte.${fromDate}&run_date=lte.${toDate}&select=*`
+      );
 
-    function getDateStrOffset(offsetDays) {
-      const now = new Date();
-      now.setDate(now.getDate() + offsetDays);
-      const y = now.getFullYear();
-      const m = pad2(now.getMonth() + 1);
-      const d = pad2(now.getDate());
-      return `${y}-${m}-${d}`;
-    }
+      const pickMap = new Map();
+      for (const p of picksRows) {
+        if (!p.fixture_id || !p.pick) continue;
+        const key =
+          String(p.fixture_id) +
+          "__" +
+          String(p.category || "").trim() +
+          "__" +
+          String(p.pick).trim();
+        pickMap.set(key, p);
+      }
 
-    function safeOdd(o) {
-      const n = Number(o);
-      if (!isFinite(n) || n <= 1) return 1.0;
-      return n;
-    }
+      // 4) aggregazioni
+      const byDay = new Map();
+      const byCategory = new Map();
+      let totalWins = 0;
+      let totalLoses = 0;
+      let totalStake = 0;
+      let totalProfit = 0;
 
-    // ===== MAIN LOAD =====
-    async function loadHistory(daysBack) {
-      const tableContainer = document.getElementById("table-container");
-      tableContainer.innerHTML = `
+      for (const r of resultsRows) {
+        const date = r.picks_date || r.match_date;
+        if (!date) continue;
+
+        const result = (r.result || "").toUpperCase();
+        if (result !== "WIN" && result !== "LOSE") continue;
+
+        const key =
+          String(r.fixture_id) +
+          "__" +
+          String(r.category || "").trim() +
+          "__" +
+          String(r.pick || "").trim();
+        const pick = pickMap.get(key);
+        const odd = pick ? safeOdd(pick.odd) : 1.0;
+
+        let wins = 0,
+          loses = 0,
+          stake = 0,
+          profit = 0;
+
+        if (result === "WIN") {
+          wins = 1;
+          stake = 1;
+          profit = odd - 1;
+        } else if (result === "LOSE") {
+          loses = 1;
+          stake = 1;
+          profit = -1;
+        }
+
+        if (!byDay.has(date)) {
+          byDay.set(date, { wins: 0, loses: 0, stake: 0, profit: 0 });
+        }
+        const agg = byDay.get(date);
+        agg.wins += wins;
+        agg.loses += loses;
+        agg.stake += stake;
+        agg.profit += profit;
+
+        const catKey = (r.category || "ALTRO").trim() || "ALTRO";
+        if (!byCategory.has(catKey)) {
+          byCategory.set(catKey, {
+            wins: 0,
+            loses: 0,
+            stake: 0,
+            profit: 0,
+            oddsSum: 0,
+            oddsCount: 0,
+          });
+        }
+        const cAgg = byCategory.get(catKey);
+        cAgg.wins += wins;
+        cAgg.loses += loses;
+        cAgg.stake += stake;
+        cAgg.profit += profit;
+        if (odd && !isNaN(odd)) {
+          cAgg.oddsSum += odd;
+          cAgg.oddsCount += 1;
+        }
+
+        totalWins += wins;
+        totalLoses += loses;
+        totalStake += stake;
+        totalProfit += profit;
+      }
+
+      const sortedDays = Array.from(byDay.keys()).sort().reverse();
+
+      // 5) summary globale
+      const firstDay = sortedDays[sortedDays.length - 1];
+      const lastDay = sortedDays[0];
+      document.getElementById("summary-period").textContent =
+        `${formatDateIT(firstDay)} → ${formatDateIT(lastDay)}`;
+      document.getElementById("summary-days").textContent =
+        `${sortedDays.length} giorni con picks`;
+
+      const totalPlayed = totalWins + totalLoses;
+      const winrateTotal =
+        totalPlayed > 0 ? ((totalWins / totalPlayed) * 100).toFixed(1) : "-";
+      const roiTotal =
+        totalStake > 0 ? ((totalProfit / totalStake) * 100).toFixed(1) : "-";
+
+      document.getElementById("summary-winrate").textContent =
+        winrateTotal === "-" ? "-" : `${winrateTotal}%`;
+      document.getElementById("summary-wl").textContent =
+        `${totalWins} win / ${totalLoses} lose`;
+
+      const roiEl = document.getElementById("summary-roi");
+      if (roiTotal === "-") {
+        roiEl.textContent = "-";
+        roiEl.className = "summary-value badge-neutral";
+      } else {
+        roiEl.textContent = `${roiTotal}%`;
+        roiEl.className =
+          "summary-value " +
+          (parseFloat(roiTotal) >= 0 ? "badge-pos" : "badge-neg");
+      }
+
+      const profitStr = totalProfit.toFixed(2).replace(".", ",");
+      const profitEl = document.getElementById("summary-profit");
+      profitEl.textContent =
+        `Profitto: ${profitStr} unità (stake = ${totalStake})`;
+      profitEl.className =
+        "summary-value-small " +
+        (totalProfit > 0 ? "badge-pos" : totalProfit < 0 ? "badge-neg" : "badge-neutral");
+
+      const sortedCategories = Array.from(byCategory.keys()).sort();
+
+      // 6) tabella per giorno
+      let html = `
         <div class="table-wrapper">
-          <div class="empty">Carico dati degli ultimi ${daysBack} giorni...</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Picks giocati</th>
+                <th>Win</th>
+                <th>Lose</th>
+                <th>Winrate</th>
+                <th>ROI</th>
+                <th>Profitto</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      for (const day of sortedDays) {
+        const { wins, loses, stake, profit } = byDay.get(day);
+        const played = wins + loses;
+        const winrate =
+          played > 0 ? ((wins / played) * 100).toFixed(1) : "-";
+        const roi =
+          stake > 0 ? ((profit / stake) * 100).toFixed(1) : "-";
+        const profitDayStr = profit.toFixed(2);
+
+        const roiClass =
+          roi === "-"
+            ? "badge-neutral"
+            : parseFloat(roi) >= 0
+            ? "badge-pos"
+            : "badge-neg";
+        const profitClass =
+          parseFloat(profitDayStr) > 0
+            ? "badge-pos"
+            : parseFloat(profitDayStr) < 0
+            ? "badge-neg"
+            : "badge-neutral";
+
+        html += `
+          <tr>
+            <td data-label="Data">${formatDateIT(day)}</td>
+            <td data-label="Picks giocati">${played}</td>
+            <td data-label="Win">${wins}</td>
+            <td data-label="Lose">${loses}</td>
+            <td data-label="Winrate">${winrate === "-" ? "-" : winrate + "%"}</td>
+            <td data-label="ROI" class="${roiClass}">${roi === "-" ? "-" : roi + "%"}</td>
+            <td data-label="Profitto" class="${profitClass}">${profitDayStr}</td>
+          </tr>
+        `;
+      }
+
+      html += `
+            </tbody>
+          </table>
         </div>
       `;
 
-      const toDate = getDateStrOffset(0);
-      const fromDate = getDateStrOffset(-daysBack + 1);
-
-      try {
-        // 1) risultati grezzi
-        const rawResults = await sbFetch(
-          "results",
-          `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}&select=*`
-        );
-
-        if (!Array.isArray(rawResults) || !rawResults.length) {
-          tableContainer.innerHTML = `
-            <div class="table-wrapper">
-              <div class="empty">Nessun risultato disponibile per questo periodo.</div>
-            </div>
-          `;
-          document.getElementById("summary-period").textContent = "-";
-          document.getElementById("summary-days").textContent = "-";
-          document.getElementById("summary-winrate").textContent = "-";
-          document.getElementById("summary-wl").textContent = "-";
-          document.getElementById("summary-roi").textContent = "-";
-          document.getElementById("summary-profit").textContent = "-";
-          return;
-        }
-
-        // 2) dedup per fixture+category+pick
-        const latestByKey = new Map();
-        for (const r of rawResults) {
-          if (!r.fixture_id || !r.pick) continue;
-          const key =
-            String(r.fixture_id) +
-            "__" +
-            String(r.category || "").trim() +
-            "__" +
-            String(r.pick).trim();
-          latestByKey.set(key, r);
-        }
-        const resultsRows = Array.from(latestByKey.values());
-        if (!resultsRows.length) {
-          tableContainer.innerHTML = `
-            <div class="table-wrapper">
-              <div class="empty">Nessun risultato disponibile per questo periodo.</div>
-            </div>
-          `;
-          return;
-        }
-
-        // 3) picks per recuperare quote
-        const picksRows = await sbFetch(
-          "picks",
-          `?run_date=gte.${fromDate}&run_date=lte.${toDate}&select=*`
-        );
-
-        const pickMap = new Map();
-        for (const p of picksRows) {
-          if (!p.fixture_id || !p.pick) continue;
-          const key =
-            String(p.fixture_id) +
-            "__" +
-            String(p.category || "").trim() +
-            "__" +
-            String(p.pick).trim();
-          pickMap.set(key, p);
-        }
-
-        // 4) aggregazioni
-        const byDay = new Map();
-        const byCategory = new Map();
-        let totalWins = 0;
-        let totalLoses = 0;
-        let totalStake = 0;
-        let totalProfit = 0;
-
-        for (const r of resultsRows) {
-          const date = r.picks_date || r.match_date;
-          if (!date) continue;
-
-          const result = (r.result || "").toUpperCase();
-          if (result !== "WIN" && result !== "LOSE") continue;
-
-          const key =
-            String(r.fixture_id) +
-            "__" +
-            String(r.category || "").trim() +
-            "__" +
-            String(r.pick || "").trim();
-          const pick = pickMap.get(key);
-          const odd = pick ? safeOdd(pick.odd) : 1.0;
-
-          let wins = 0,
-              loses = 0,
-              stake = 0,
-              profit = 0;
-
-          if (result === "WIN") {
-            wins = 1;
-            stake = 1;
-            profit = odd - 1;
-          } else if (result === "LOSE") {
-            loses = 1;
-            stake = 1;
-            profit = -1;
-          }
-
-          if (!byDay.has(date)) {
-            byDay.set(date, { wins: 0, loses: 0, stake: 0, profit: 0 });
-          }
-          const agg = byDay.get(date);
-          agg.wins += wins;
-          agg.loses += loses;
-          agg.stake += stake;
-          agg.profit += profit;
-
-          const cat = (r.category || "ALTRO").trim() || "ALTRO";
-          if (!byCategory.has(cat)) {
-            byCategory.set(cat, {
-              wins: 0,
-              loses: 0,
-              stake: 0,
-              profit: 0,
-              oddsSum: 0,
-              oddsCount: 0,
-            });
-          }
-          const cAgg = byCategory.get(cat);
-          cAgg.wins += wins;
-          cAgg.loses += loses;
-          cAgg.stake += stake;
-          cAgg.profit += profit;
-          if (odd && !isNaN(odd)) {
-            cAgg.oddsSum += odd;
-            cAgg.oddsCount += 1;
-          }
-
-          totalWins += wins;
-          totalLoses += loses;
-          totalStake += stake;
-          totalProfit += profit;
-        }
-
-        const sortedDays = Array.from(byDay.keys()).sort().reverse();
-
-        // 5) summary globale
-        const firstDay = sortedDays[sortedDays.length - 1];
-        const lastDay = sortedDays[0];
-        document.getElementById("summary-period").textContent =
-          `${formatDateIT(firstDay)} → ${formatDateIT(lastDay)}`;
-        document.getElementById("summary-days").textContent =
-          `${sortedDays.length} giorni con picks`;
-
-        const totalPlayed = totalWins + totalLoses;
-        const winrateTotal =
-          totalPlayed > 0 ? ((totalWins / totalPlayed) * 100).toFixed(1) : "-";
-        const roiTotal =
-          totalStake > 0 ? ((totalProfit / totalStake) * 100).toFixed(1) : "-";
-
-        document.getElementById("summary-winrate").textContent =
-          winrateTotal === "-" ? "-" : `${winrateTotal}%`;
-        document.getElementById("summary-wl").textContent =
-          `${totalWins} win / ${totalLoses} lose`;
-
-        const roiEl = document.getElementById("summary-roi");
-        if (roiTotal === "-") {
-          roiEl.textContent = "-";
-          roiEl.className = "summary-value badge-neutral";
-        } else {
-          roiEl.textContent = `${roiTotal}%`;
-          roiEl.className =
-            "summary-value " +
-            (parseFloat(roiTotal) >= 0 ? "badge-pos" : "badge-neg");
-        }
-
-        const profitStr = totalProfit.toFixed(2).replace(".", ",");
-        const profitEl = document.getElementById("summary-profit");
-        profitEl.textContent =
-          `Profitto: ${profitStr} unità (stake = ${totalStake})`;
-        profitEl.className =
-          "summary-value-small " +
-          (totalProfit > 0 ? "badge-pos" : totalProfit < 0 ? "badge-neg" : "badge-neutral");
-
-        const sortedCategories = Array.from(byCategory.keys()).sort();
-
-        // 6) tavola per giorno
-        let html = `
+      // 7) tabella per categoria con QUOTA MEDIA e nomi eleganti
+      if (sortedCategories.length) {
+        html += `
           <div class="table-wrapper">
+            <h2 class="section-title" style="margin-top:4px;">
+              Rendimento per categoria (solo picks con esito WIN/LOSE)
+            </h2>
             <table>
               <thead>
                 <tr>
-                  <th>Data</th>
+                  <th>Categoria</th>
                   <th>Picks giocati</th>
                   <th>Win</th>
                   <th>Lose</th>
                   <th>Winrate</th>
                   <th>ROI</th>
-                  <th>Profitto</th>
+                  <th>Quota media</th>
                 </tr>
               </thead>
               <tbody>
         `;
 
-        for (const day of sortedDays) {
-          const { wins, loses, stake, profit } = byDay.get(day);
-          const played = wins + loses;
-          const winrate =
-            played > 0 ? ((wins / played) * 100).toFixed(1) : "-";
-          const roi =
-            stake > 0 ? ((profit / stake) * 100).toFixed(1) : "-";
-          const profitDayStr = profit.toFixed(2);
+        for (const catKey of sortedCategories) {
+          const c = byCategory.get(catKey);
+          const playedCat = c.wins + c.loses;
+          const winrateCat =
+            playedCat > 0
+              ? ((c.wins / playedCat) * 100).toFixed(1)
+              : "-";
+          const roiCat =
+            c.stake > 0
+              ? ((c.profit / c.stake) * 100).toFixed(1)
+              : "-";
+          const avgOdd =
+            c.oddsCount > 0
+              ? (c.oddsSum / c.oddsCount).toFixed(2)
+              : "-";
 
-          const roiClass =
-            roi === "-"
+          const roiCatClass =
+            roiCat === "-"
               ? "badge-neutral"
-              : parseFloat(roi) >= 0
+              : parseFloat(roiCat) >= 0
               ? "badge-pos"
               : "badge-neg";
-          const profitClass =
-            parseFloat(profitDayStr) > 0
-              ? "badge-pos"
-              : parseFloat(profitDayStr) < 0
-              ? "badge-neg"
-              : "badge-neutral";
+
+          const label = getCategoryLabel(catKey);
 
           html += `
             <tr>
-              <td data-label="Data">${formatDateIT(day)}</td>
-              <td data-label="Picks giocati">${played}</td>
-              <td data-label="Win">${wins}</td>
-              <td data-label="Lose">${loses}</td>
-              <td data-label="Winrate">${winrate === "-" ? "-" : winrate + "%"}</td>
-              <td data-label="ROI" class="${roiClass}">${roi === "-" ? "-" : roi + "%"}</td>
-              <td data-label="Profitto" class="${profitClass}">${profitDayStr}</td>
+              <td data-label="Categoria">${label}</td>
+              <td data-label="Picks giocati">${playedCat}</td>
+              <td data-label="Win">${c.wins}</td>
+              <td data-label="Lose">${c.loses}</td>
+              <td data-label="Winrate">${winrateCat === "-" ? "-" : winrateCat + "%"}</td>
+              <td data-label="ROI" class="${roiCatClass}">${roiCat === "-" ? "-" : roiCat + "%"}</td>
+              <td data-label="Quota media">${avgOdd}</td>
             </tr>
           `;
         }
@@ -635,91 +719,28 @@
             </table>
           </div>
         `;
-
-        // 7) tavola per categoria con quota media
-        if (sortedCategories.length) {
-          html += `
-            <div class="table-wrapper">
-              <h2 class="section-title" style="margin-top:4px;">
-                Rendimento per categoria (solo picks con esito WIN/LOSE)
-              </h2>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Categoria</th>
-                    <th>Picks giocati</th>
-                    <th>Win</th>
-                    <th>Lose</th>
-                    <th>Winrate</th>
-                    <th>ROI</th>
-                    <th>Quota media</th>
-                  </tr>
-                </thead>
-                <tbody>
-          `;
-
-          for (const cat of sortedCategories) {
-            const c = byCategory.get(cat);
-            const playedCat = c.wins + c.loses;
-            const winrateCat =
-              playedCat > 0
-                ? ((c.wins / playedCat) * 100).toFixed(1)
-                : "-";
-            const roiCat =
-              c.stake > 0
-                ? ((c.profit / c.stake) * 100).toFixed(1)
-                : "-";
-            const avgOdd =
-              c.oddsCount > 0
-                ? (c.oddsSum / c.oddsCount).toFixed(2)
-                : "-";
-
-            const roiCatClass =
-              roiCat === "-"
-                ? "badge-neutral"
-                : parseFloat(roiCat) >= 0
-                ? "badge-pos"
-                : "badge-neg";
-
-            html += `
-              <tr>
-                <td data-label="Categoria">${cat}</td>
-                <td data-label="Picks giocati">${playedCat}</td>
-                <td data-label="Win">${c.wins}</td>
-                <td data-label="Lose">${c.loses}</td>
-                <td data-label="Winrate">${winrateCat === "-" ? "-" : winrateCat + "%"}</td>
-                <td data-label="ROI" class="${roiCatClass}">${roiCat === "-" ? "-" : roiCat + "%"}</td>
-                <td data-label="Quota media">${avgOdd}</td>
-              </tr>
-            `;
-          }
-
-          html += `
-                </tbody>
-              </table>
-            </div>
-          `;
-        }
-
-        tableContainer.innerHTML = html;
-      } catch (err) {
-        console.error("Errore storico:", err);
-        tableContainer.innerHTML = `
-          <div class="table-wrapper">
-            <div class="empty">Errore nel caricamento dello storico.</div>
-          </div>
-        `;
       }
-    }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const select = document.getElementById("range-select");
-      loadHistory(parseInt(select.value, 10));
-      select.addEventListener("change", () => {
-        const v = parseInt(select.value, 10);
-        loadHistory(v);
-      });
+      tableContainer.innerHTML = html;
+    } catch (err) {
+      console.error("Errore storico:", err);
+      tableContainer.innerHTML = `
+        <div class="table-wrapper">
+          <div class="empty">Errore nel caricamento dello storico.</div>
+        </div>
+      `;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const select = document.getElementById("range-select");
+    loadHistory(parseInt(select.value, 10));
+    select.addEventListener("change", () => {
+      const v = parseInt(select.value, 10);
+      loadHistory(v);
     });
-  </script>
+  });
+</script>
+
 </body>
 </html>
