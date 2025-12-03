@@ -809,33 +809,55 @@
 
     // Invia voto a Supabase
     async function sendVoteToSupabase(picksDate, dataKey, vote) {
-      try {
-        const [fixtureId, ...rest] = dataKey.split("__");
-        const pick = rest.join("__");
-        const url = `${SUPABASE_URL}/rest/v1/feedback`;
-        const res = await fetch(url, {
-          method: "POST",
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: "Bearer " + SUPABASE_ANON_KEY,
-            "Content-Type": "application/json",
-            Prefer: "return=minimal"
-          },
-          body: JSON.stringify({
-            picks_date: picksDate,
-            fixture_id: fixtureId,
-            pick: pick,
-            vote: vote
-          })
-        });
-        if (!res.ok) {
-          const txt = await res.text();
-          console.warn("Errore salvataggio feedback:", res.status, txt);
-        }
-      } catch (e) {
-        console.warn("Eccezione salvataggio feedback:", e);
-      }
+  try {
+    const [fixtureId, ...rest] = dataKey.split("__");
+    const pick = rest.join("__");
+    const clientId = getClientId();
+
+    // upsert: una riga per (client_id, picks_date, fixture_id, pick)
+    const url = `${SUPABASE_URL}/rest/v1/feedback?on_conflict=client_id,picks_date,fixture_id,pick`;
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json",
+        // merge-duplicates = se esiste già, fa UPDATE invece di INSERT
+        Prefer: "return=minimal,resolution=merge-duplicates"
+      },
+      body: JSON.stringify({
+        client_id: clientId,
+        picks_date: picksDate,
+        fixture_id: fixtureId,
+        pick: pick,
+        vote: vote
+      })
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      console.warn("Errore salvataggio feedback:", res.status, txt);
     }
+  } catch (e) {
+    console.warn("Eccezione salvataggio feedback:", e);
+  }
+}
+
+
+    function getClientId() {
+  const key = "pb_client_id";
+  let cid = localStorage.getItem(key);
+  if (!cid) {
+    if (window.crypto && crypto.randomUUID) {
+      cid = crypto.randomUUID();
+    } else {
+      cid = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
+    localStorage.setItem(key, cid);
+  }
+  return cid;
+}
 
     // Inizializza listeners like/dislike
     function setupVoteHandlers(feedbackMap, picksDate) {
