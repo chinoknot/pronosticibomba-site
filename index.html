@@ -106,6 +106,8 @@
       flex-direction: column;
       gap: 12px;
       margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
     }
 
     .title-row {
@@ -125,9 +127,21 @@
 
     h1 {
       margin: 0;
-      font-size: 1.9rem;
+      font-size: 2.1rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
+      position: relative;
+    }
+
+    h1::after {
+      content: "";
+      display: block;
+      margin-top: 4px;
+      width: 72px;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(to right, #f97316, #fed7aa, transparent);
+      opacity: 0.9;
     }
 
     .badge-day {
@@ -141,7 +155,7 @@
       letter-spacing: 0.08em;
     }
 
-        /* Buy me a coffee - versione più evidente ma non cafona */
+    /* Buy me a coffee - versione più evidente ma non cafona */
     .coffee-button {
       position: relative;
       display: inline-flex;
@@ -598,7 +612,7 @@
         margin-top: 20px;
       }
       h1 {
-        font-size: 1.5rem;
+        font-size: 1.7rem;
       }
       .category-block {
         padding: 14px 12px 8px;
@@ -661,6 +675,10 @@
 
       <p class="legend-note">
         “Confidenza modello” indica quanto il sistema gradisce il pick rispetto alla quota del bookmaker, non una vittoria sicura.
+      </p>
+
+      <p class="legend-note">
+        Tutti gli orari delle partite sono mostrati in <strong>orario italiano</strong> (CET/CEST), anche se il sistema viene eseguito dal fuso orario irlandese.
       </p>
 
       <!-- MINI GUIDA IN ACCORDION -->
@@ -769,22 +787,21 @@
     }
 
     function parseMatchDateTime(row) {
-  const d = row.match_date;
-  const t = row.match_time;
-  if (!d || !t) return null;
+      const d = row.match_date;
+      const t = row.match_time;
+      if (!d || !t) return null;
 
-  const [h, m] = t.split(":").map(x => parseInt(x, 10));
-  const [yy, mm, dd] = d.split("-").map(x => parseInt(x, 10));
+      const [h, m] = t.split(":").map(x => parseInt(x, 10));
+      const [yy, mm, dd] = d.split("-").map(x => parseInt(x, 10));
 
-  if (!yy || !mm || !dd || isNaN(h) || isNaN(m)) return null;
+      if (!yy || !mm || !dd || isNaN(h) || isNaN(m)) return null;
 
-  // Gli orari nel DB sono in fuso Europe/Dublin (scraper).
-  // Qui li convertiamo ad "orario italiano" aggiungendo 1 ora.
-  const dt = new Date(yy, mm - 1, dd, h, m);
-  dt.setHours(dt.getHours() + 1);
-  return dt;
-}
-
+      // Gli orari nel DB sono in fuso Europe/Dublin (scraper).
+      // Qui li convertiamo ad "orario italiano" aggiungendo 1 ora.
+      const dt = new Date(yy, mm - 1, dd, h, m);
+      dt.setHours(dt.getHours() + 1);
+      return dt;
+    }
 
     function groupByCategory(picks) {
       const map = new Map();
@@ -885,55 +902,54 @@
 
     // Invia voto a Supabase
     async function sendVoteToSupabase(picksDate, dataKey, vote) {
-  try {
-    const [fixtureId, ...rest] = dataKey.split("__");
-    const pick = rest.join("__");
-    const clientId = getClientId();
+      try {
+        const [fixtureId, ...rest] = dataKey.split("__");
+        const pick = rest.join("__");
+        const clientId = getClientId();
 
-    // upsert: una riga per (client_id, picks_date, fixture_id, pick)
-    const url = `${SUPABASE_URL}/rest/v1/feedback?on_conflict=client_id,picks_date,fixture_id,pick`;
+        // upsert: una riga per (client_id, picks_date, fixture_id, pick)
+        const url = `${SUPABASE_URL}/rest/v1/feedback?on_conflict=client_id,picks_date,fixture_id,pick`;
 
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: "Bearer " + SUPABASE_ANON_KEY,
-        "Content-Type": "application/json",
-        // merge-duplicates = se esiste già, fa UPDATE invece di INSERT
-        Prefer: "return=minimal,resolution=merge-duplicates"
-      },
-      body: JSON.stringify({
-        client_id: clientId,
-        picks_date: picksDate,
-        fixture_id: fixtureId,
-        pick: pick,
-        vote: vote
-      })
-    });
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: "Bearer " + SUPABASE_ANON_KEY,
+            "Content-Type": "application/json",
+            // merge-duplicates = se esiste già, fa UPDATE invece di INSERT
+            Prefer: "return=minimal,resolution=merge-duplicates"
+          },
+          body: JSON.stringify({
+            client_id: clientId,
+            picks_date: picksDate,
+            fixture_id: fixtureId,
+            pick: pick,
+            vote: vote
+          })
+        });
 
-    if (!res.ok) {
-      const txt = await res.text();
-      console.warn("Errore salvataggio feedback:", res.status, txt);
+        if (!res.ok) {
+          const txt = await res.text();
+          console.warn("Errore salvataggio feedback:", res.status, txt);
+        }
+      } catch (e) {
+        console.warn("Eccezione salvataggio feedback:", e);
+      }
     }
-  } catch (e) {
-    console.warn("Eccezione salvataggio feedback:", e);
-  }
-}
-
 
     function getClientId() {
-  const key = "pb_client_id";
-  let cid = localStorage.getItem(key);
-  if (!cid) {
-    if (window.crypto && crypto.randomUUID) {
-      cid = crypto.randomUUID();
-    } else {
-      cid = Date.now().toString(36) + Math.random().toString(36).slice(2);
+      const key = "pb_client_id";
+      let cid = localStorage.getItem(key);
+      if (!cid) {
+        if (window.crypto && crypto.randomUUID) {
+          cid = crypto.randomUUID();
+        } else {
+          cid = Date.now().toString(36) + Math.random().toString(36).slice(2);
+        }
+        localStorage.setItem(key, cid);
+      }
+      return cid;
     }
-    localStorage.setItem(key, cid);
-  }
-  return cid;
-}
 
     // Inizializza listeners like/dislike
     function setupVoteHandlers(feedbackMap, picksDate) {
