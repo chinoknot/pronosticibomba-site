@@ -769,14 +769,22 @@
     }
 
     function parseMatchDateTime(row) {
-      const d = row.match_date;
-      const t = row.match_time;
-      if (!d || !t) return null;
-      const [h, m] = t.split(":").map(x => parseInt(x, 10));
-      const [yy, mm, dd] = d.split("-").map(x => parseInt(x, 10));
-      if (!yy || !mm || !dd || isNaN(h) || isNaN(m)) return null;
-      return new Date(yy, mm - 1, dd, h, m);
-    }
+  const d = row.match_date;
+  const t = row.match_time;
+  if (!d || !t) return null;
+
+  const [h, m] = t.split(":").map(x => parseInt(x, 10));
+  const [yy, mm, dd] = d.split("-").map(x => parseInt(x, 10));
+
+  if (!yy || !mm || !dd || isNaN(h) || isNaN(m)) return null;
+
+  // Gli orari nel DB sono in fuso Europe/Dublin (scraper).
+  // Qui li convertiamo ad "orario italiano" aggiungendo 1 ora.
+  const dt = new Date(yy, mm - 1, dd, h, m);
+  dt.setHours(dt.getHours() + 1);
+  return dt;
+}
+
 
     function groupByCategory(picks) {
       const map = new Map();
