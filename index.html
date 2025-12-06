@@ -859,9 +859,9 @@
       const preferred = [
         "BEST_TIPS_OF_DAY",
         "SAFE_PICKS",
+        "SAFE_GOALS",
         "VALUE_PICKS",
         "OVER_UNDER_TIPS",
-        "BTTS_TIPS",
         "DAILY_2PLUS",
         "DAILY_10PLUS",
         "SINGLE_GAME",
@@ -897,6 +897,7 @@
     const CATEGORY_LABELS = {
       BEST_TIPS_OF_DAY: "Scelte d’Élite",
       SAFE_PICKS: "Selezioni Affidabili",
+      SAFE_GOALS: "Safe goals (Over 2.5 o BTTS)",
       VALUE_PICKS: "Quote di Valore",
       OVER_UNDER_TIPS: "Tendenze Goal",
       BTTS_TIPS: "Probabilità Entrambe",
@@ -1179,9 +1180,7 @@
             const confValue = Number(p.score || 0) * 100;
             const confLabel = confidenceLabel(confValue);
 
-            // NUOVA LOGICA DI TESTO:
-            // - SAFE_PICKS e DAILY_2PLUS: niente "confidenza bassa", ma ruolo nel bankroll
-            // - altre categorie: confidenza modello come prima
+            // Testo ruolo/confidenza
             let scoreHtml;
             if (cat === "SAFE_PICKS") {
               scoreHtml = `
