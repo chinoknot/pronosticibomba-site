@@ -422,13 +422,18 @@
     return `${weekday} ${day} ${month} ${y}`;
   }
 
-  function getDateStrOffset(offsetDays) {
-    const now = new Date();
-    now.setDate(now.getDate() + offsetDays);
-    const y = now.getFullYear();
-    const m = pad2(now.getMonth() + 1);
-    const d = pad2(now.getDate());
-    return `${y}-${m}-${d}`;
+  function getLastNDates(daysBack) {
+    const dates = [];
+    const today = new Date();
+    for (let i = 0; i < daysBack; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const y = d.getFullYear();
+      const m = pad2(d.getMonth() + 1);
+      const day = pad2(d.getDate());
+      dates.push(`${y}-${m}-${day}`);
+    }
+    return dates;
   }
 
   function safeOdd(o) {
@@ -484,6 +489,109 @@
     return "Negativa";
   }
 
+  // ===== FETCH STATISTICHE DI UNA GIORNATA (STESSA LOGICA DELLO STORICO PICKS) =====
+  async function fetchDayStats(dateStr) {
+    // tutte le picks di quel giorno
+    const picks = await sbFetch(
+      "picks",
+      `?match_date=eq.${dateStr}&select=*`
+    );
+
+    if (!Array.isArray(picks) || !picks.length) {
+      return null;
+    }
+
+    // tutti i risultati di quel giorno
+    const results = await sbFetch(
+      "results",
+      `?picks_date=eq.${dateStr}&select=*`
+    );
+
+    // scegliamo il "miglior" risultato per fixture+pick (come Storico Picks)
+    const resultMap = new Map();
+    if (Array.isArray(results)) {
+      for (const r of results) {
+        const fid = String(r.fixture_id || "").trim();
+        const pickText = String(r.pick || "").trim();
+        if (!fid && !pickText) continue;
+        const key = fid + "__" + pickText;
+
+        const current = resultMap.get(key);
+        if (!current) {
+          resultMap.set(key, r);
+        } else {
+          const oldScore = resultRank(current);
+          const newScore = resultRank(r);
+          if (newScore >= oldScore) {
+            resultMap.set(key, r);
+          }
+        }
+      }
+    }
+
+    let wins = 0;
+    let loses = 0;
+    let stake = 0;
+    let profit = 0;
+
+    const categories = {};
+
+    for (const p of picks) {
+      const fid = String(p.fixture_id || "").trim();
+      const pickText = String(p.pick || "").trim();
+      if (!fid && !pickText) continue;
+
+      const key = fid + "__" + pickText;
+      const res = resultMap.get(key) || {};
+      const result = (res.result || "").toUpperCase();
+
+      const odd = safeOdd(p.odd);
+
+      if (result === "WIN" || result === "LOSE") {
+        stake += 1;
+        if (result === "WIN") {
+          wins += 1;
+          profit += (odd - 1);
+        } else {
+          loses += 1;
+          profit -= 1;
+        }
+
+        const catKey = (p.category || "ALTRO").trim() || "ALTRO";
+        if (!categories[catKey]) {
+          categories[catKey] = {
+            wins: 0,
+            loses: 0,
+            stake: 0,
+            profit: 0,
+            oddsSum: 0,
+            oddsCount: 0,
+          };
+        }
+        const c = categories[catKey];
+        c.stake += 1;
+        if (result === "WIN") {
+          c.wins += 1;
+          c.profit += (odd - 1);
+        } else {
+          c.loses += 1;
+          c.profit -= 1;
+        }
+        if (odd && !isNaN(odd)) {
+          c.oddsSum += odd;
+          c.oddsCount += 1;
+        }
+      }
+    }
+
+    if (stake === 0) {
+      // nessuna pick con WIN/LOSE quel giorno
+      return null;
+    }
+
+    return { date: dateStr, wins, loses, stake, profit, categories };
+  }
+
   // ===== MAIN LOAD =====
   async function loadHistory(daysBack) {
     const tableContainer = document.getElementById("table-container");
@@ -493,150 +601,17 @@
       </div>
     `;
 
-    const toDate = getDateStrOffset(0);
-    const fromDate = getDateStrOffset(-daysBack + 1);
+    const dates = getLastNDates(daysBack);
 
     try {
-      // 1) Tutte le picks nell'intervallo (fonte "vera")
-      const picksRows = await sbFetch(
-        "picks",
-        `?match_date=gte.${fromDate}&match_date=lte.${toDate}&select=*`
+      // fetch in parallelo delle statistiche giorno per giorno
+      const statsListRaw = await Promise.all(
+        dates.map(d => fetchDayStats(d).catch(() => null))
       );
 
-      if (!Array.isArray(picksRows) || !picksRows.length) {
-        tableContainer.innerHTML = `
-          <div class="table-wrapper">
-            <div class="empty">Nessuna pick disponibile per questo periodo.</div>
-          </div>
-        `;
-        document.getElementById("summary-period").textContent = "-";
-        document.getElementById("summary-days").textContent = "-";
-        document.getElementById("summary-winrate").textContent = "-";
-        document.getElementById("summary-wl").textContent = "-";
-        document.getElementById("summary-roi").textContent = "-";
-        document.getElementById("summary-profit").textContent = "-";
-        document.getElementById("summary-winrate-needed").textContent = "-";
-        document.getElementById("summary-reliability").textContent = "-";
-        return;
-      }
+      const statsList = statsListRaw.filter(s => s && s.stake > 0);
 
-      // 2) Tutti i risultati per lo stesso intervallo
-      const resultsRows = await sbFetch(
-        "results",
-        `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}` +
-        `&select=*` +
-        `&order=picks_date.asc,run_date.asc,id.asc`
-      );
-
-      // 3) Mappa risultato migliore per fixture+pick (come Storico Picks)
-      const resultMap = new Map();
-      if (Array.isArray(resultsRows)) {
-        for (const r of resultsRows) {
-          const fid = String(r.fixture_id || "").trim();
-          const pickText = String(r.pick || "").trim();
-          if (!fid && !pickText) continue;
-          const key = fid + "__" + pickText;
-
-          const current = resultMap.get(key);
-          if (!current) {
-            resultMap.set(key, r);
-          } else {
-            const oldScore = resultRank(current);
-            const newScore = resultRank(r);
-            if (newScore >= oldScore) {
-              resultMap.set(key, r);
-            }
-          }
-        }
-      }
-
-      // 4) Aggregazioni su base "pick"
-      const byDay = new Map();
-      const byCategory = new Map();
-      let totalWins = 0;
-      let totalLoses = 0;
-      let totalStake = 0;
-      let totalProfit = 0;
-      let totalOddsSum = 0;
-      let totalOddsCount = 0;
-
-      for (const p of picksRows) {
-        const date = p.match_date;
-        if (!date) continue;
-
-        const fid = String(p.fixture_id || "").trim();
-        const pickText = String(p.pick || "").trim();
-        if (!fid && !pickText) continue;
-
-        const key = fid + "__" + pickText;
-        const res = resultMap.get(key) || {};
-        const result = (res.result || "").toUpperCase();
-
-        if (result !== "WIN" && result !== "LOSE") {
-          // Non entra nel ROI (picks non ancora risolte)
-          continue;
-        }
-
-        const odd = safeOdd(p.odd);
-        let wins = 0;
-        let loses = 0;
-        let stake = 1;
-        let profit = 0;
-
-        if (result === "WIN") {
-          wins = 1;
-          profit = odd - 1;
-        } else if (result === "LOSE") {
-          loses = 1;
-          profit = -1;
-        }
-
-        // Per giorno
-        if (!byDay.has(date)) {
-          byDay.set(date, { wins: 0, loses: 0, stake: 0, profit: 0 });
-        }
-        const agg = byDay.get(date);
-        agg.wins += wins;
-        agg.loses += loses;
-        agg.stake += stake;
-        agg.profit += profit;
-
-        // Per categoria
-        const catKey = (p.category || "ALTRO").trim() || "ALTRO";
-        if (!byCategory.has(catKey)) {
-          byCategory.set(catKey, {
-            wins: 0,
-            loses: 0,
-            stake: 0,
-            profit: 0,
-            oddsSum: 0,
-            oddsCount: 0,
-          });
-        }
-        const cAgg = byCategory.get(catKey);
-        cAgg.wins += wins;
-        cAgg.loses += loses;
-        cAgg.stake += stake;
-        cAgg.profit += profit;
-        if (odd && !isNaN(odd)) {
-          cAgg.oddsSum += odd;
-          cAgg.oddsCount += 1;
-        }
-
-        // Totale
-        totalWins += wins;
-        totalLoses += loses;
-        totalStake += stake;
-        totalProfit += profit;
-        if (odd && !isNaN(odd)) {
-          totalOddsSum += odd;
-          totalOddsCount += 1;
-        }
-      }
-
-      const sortedDays = Array.from(byDay.keys()).sort().reverse();
-
-      if (!sortedDays.length) {
+      if (!statsList.length) {
         tableContainer.innerHTML = `
           <div class="table-wrapper">
             <div class="empty">Nessuna pick risolta (WIN/LOSE) in questo intervallo.</div>
@@ -653,13 +628,65 @@
         return;
       }
 
-      // 5) summary globale
-      const firstDay = sortedDays[sortedDays.length - 1];
-      const lastDay = sortedDays[0];
+      // aggregazioni globali
+      const byDay = new Map();
+      const byCategory = {};
+
+      let totalWins = 0;
+      let totalLoses = 0;
+      let totalStake = 0;
+      let totalProfit = 0;
+      let totalOddsSum = 0;
+      let totalOddsCount = 0;
+
+      for (const s of statsList) {
+        byDay.set(s.date, {
+          wins: s.wins,
+          loses: s.loses,
+          stake: s.stake,
+          profit: s.profit,
+        });
+
+        totalWins += s.wins;
+        totalLoses += s.loses;
+        totalStake += s.stake;
+        totalProfit += s.profit;
+
+        for (const catKey in s.categories) {
+          if (!Object.prototype.hasOwnProperty.call(s.categories, catKey)) continue;
+          const cDay = s.categories[catKey];
+
+          if (!byCategory[catKey]) {
+            byCategory[catKey] = {
+              wins: 0,
+              loses: 0,
+              stake: 0,
+              profit: 0,
+              oddsSum: 0,
+              oddsCount: 0,
+            };
+          }
+          const cAgg = byCategory[catKey];
+          cAgg.wins += cDay.wins;
+          cAgg.loses += cDay.loses;
+          cAgg.stake += cDay.stake;
+          cAgg.profit += cDay.profit;
+          cAgg.oddsSum += cDay.oddsSum;
+          cAgg.oddsCount += cDay.oddsCount;
+
+          totalOddsSum += cDay.oddsSum;
+          totalOddsCount += cDay.oddsCount;
+        }
+      }
+
+      const allDates = statsList.map(s => s.date).sort();
+      const firstDay = allDates[0];
+      const lastDay = allDates[allDates.length - 1];
+
       document.getElementById("summary-period").textContent =
         `${formatDateIT(firstDay)} → ${formatDateIT(lastDay)}`;
       document.getElementById("summary-days").textContent =
-        `${sortedDays.length} giorni con picks`;
+        `${allDates.length} giorni con picks`;
 
       const totalPlayed = totalWins + totalLoses;
       const winrateTotal =
@@ -721,9 +748,9 @@
         relEl.className = "summary-value-small " + cls;
       }
 
-      const sortedCategories = Array.from(byCategory.keys()).sort();
-
       // 6) tabella per giorno
+      const sortedDays = Array.from(byDay.keys()).sort().reverse();
+
       let html = `
         <div class="table-wrapper">
           <table>
@@ -742,7 +769,12 @@
       `;
 
       for (const day of sortedDays) {
-        const { wins, loses, stake, profit } = byDay.get(day);
+        const info = byDay.get(day);
+        const wins = info.wins;
+        const loses = info.loses;
+        const stake = info.stake;
+        const profit = info.profit;
+
         const played = wins + loses;
         const winrate =
           played > 0 ? ((wins / played) * 100).toFixed(1) : "-";
@@ -783,6 +815,8 @@
       `;
 
       // 7) tabella per categoria
+      const sortedCategories = Object.keys(byCategory).sort();
+
       if (sortedCategories.length) {
         html += `
           <div class="table-wrapper">
@@ -807,7 +841,7 @@
         `;
 
         for (const catKey of sortedCategories) {
-          const c = byCategory.get(catKey);
+          const c = byCategory[catKey];
           const playedCat = c.wins + c.loses;
           const winrateCat =
             playedCat > 0
