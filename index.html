@@ -1179,6 +1179,26 @@
             const confValue = Number(p.score || 0) * 100;
             const confLabel = confidenceLabel(confValue);
 
+            // NUOVA LOGICA DI TESTO:
+            // - SAFE_PICKS e DAILY_2PLUS: niente "confidenza bassa", ma ruolo nel bankroll
+            // - altre categorie: confidenza modello come prima
+            let scoreHtml;
+            if (cat === "SAFE_PICKS") {
+              scoreHtml = `
+                <span class="score-label-strong">Ruolo nel bankroll:</span>
+                selezione pensata per dare stabilità al rendimento (singole o doppie prudenti).
+              `;
+            } else if (cat === "DAILY_2PLUS") {
+              scoreHtml = `
+                <span class="score-label-strong">Ruolo nel bankroll:</span>
+                combo selettiva su eventi filtrati dal modello, da usare solo in multipla.
+              `;
+            } else {
+              scoreHtml = `
+                <span class="score-label-strong">Confidenza modello:</span> ${confLabel}
+              `;
+            }
+
             const fb = feedbackMap.get(key) || { like: 0, dislike: 0 };
 
             html += `
@@ -1196,7 +1216,7 @@
                 </div>
                 <div class="meta-row">
                   <span class="score-text">
-                    <span class="score-label-strong">Confidenza modello:</span> ${confLabel}
+                    ${scoreHtml}
                   </span>
                   ${
                     badgeText
