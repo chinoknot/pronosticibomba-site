@@ -460,6 +460,26 @@
     return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
   }
 
+  // ===== FASCE CONFIDENZA (stessa logica della home) =====
+  const CONFIDENCE_ORDER = [
+    "Molto alta",
+    "Alta",
+    "Medio-alta",
+    "Media",
+    "Bassa",
+    "Rischiosa"
+  ];
+
+  function confidenceLabelFromScore(score) {
+    const val = Number(score || 0) * 100;
+    if (val > 130) return "Molto alta";
+    if (val > 110) return "Alta";
+    if (val > 90)  return "Medio-alta";
+    if (val > 70)  return "Media";
+    if (val > 50)  return "Bassa";
+    return "Rischiosa";
+  }
+
   // ranking dei risultati: preferiamo righe con esito definito e match finito
   function resultRank(r) {
     let score = 0;
@@ -535,6 +555,7 @@
     let profit = 0;
 
     const categories = {};
+    const confBands = {};
 
     for (const p of picks) {
       const fid = String(p.fixture_id || "").trim();
@@ -557,6 +578,7 @@
           profit -= 1;
         }
 
+        // per categoria
         const catKey = (p.category || "ALTRO").trim() || "ALTRO";
         if (!categories[catKey]) {
           categories[catKey] = {
@@ -581,6 +603,34 @@
           c.oddsSum += odd;
           c.oddsCount += 1;
         }
+
+        // per fascia di confidenza
+        const bandLabel = confidenceLabelFromScore(p.score);
+        if (bandLabel) {
+          if (!confBands[bandLabel]) {
+            confBands[bandLabel] = {
+              wins: 0,
+              loses: 0,
+              stake: 0,
+              profit: 0,
+              oddsSum: 0,
+              oddsCount: 0,
+            };
+          }
+          const b = confBands[bandLabel];
+          b.stake += 1;
+          if (result === "WIN") {
+            b.wins += 1;
+            b.profit += (odd - 1);
+          } else {
+            b.loses += 1;
+            b.profit -= 1;
+          }
+          if (odd && !isNaN(odd)) {
+            b.oddsSum += odd;
+            b.oddsCount += 1;
+          }
+        }
       }
     }
 
@@ -589,7 +639,7 @@
       return null;
     }
 
-    return { date: dateStr, wins, loses, stake, profit, categories };
+    return { date: dateStr, wins, loses, stake, profit, categories, confBands };
   }
 
   // ===== MAIN LOAD =====
@@ -631,6 +681,7 @@
       // aggregazioni globali
       const byDay = new Map();
       const byCategory = {};
+      const byConfidence = {};
 
       let totalWins = 0;
       let totalLoses = 0;
@@ -652,6 +703,7 @@
         totalStake += s.stake;
         totalProfit += s.profit;
 
+        // per categoria
         for (const catKey in s.categories) {
           if (!Object.prototype.hasOwnProperty.call(s.categories, catKey)) continue;
           const cDay = s.categories[catKey];
@@ -674,8 +726,33 @@
           cAgg.oddsSum += cDay.oddsSum;
           cAgg.oddsCount += cDay.oddsCount;
 
+          // per media globale quota
           totalOddsSum += cDay.oddsSum;
           totalOddsCount += cDay.oddsCount;
+        }
+
+        // per fascia di confidenza
+        for (const bandKey in s.confBands) {
+          if (!Object.prototype.hasOwnProperty.call(s.confBands, bandKey)) continue;
+          const bDay = s.confBands[bandKey];
+
+          if (!byConfidence[bandKey]) {
+            byConfidence[bandKey] = {
+              wins: 0,
+              loses: 0,
+              stake: 0,
+              profit: 0,
+              oddsSum: 0,
+              oddsCount: 0,
+            };
+          }
+          const bAgg = byConfidence[bandKey];
+          bAgg.wins += bDay.wins;
+          bAgg.loses += bDay.loses;
+          bAgg.stake += bDay.stake;
+          bAgg.profit += bDay.profit;
+          bAgg.oddsSum += bDay.oddsSum;
+          bAgg.oddsCount += bDay.oddsCount;
         }
       }
 
@@ -894,6 +971,102 @@
               <td data-label="Quota media">${avgOddStr}</td>
               <td data-label="Winrate necessaria">${winNeedCat === "-" ? "-" : winNeedCat + "%"}</td>
               <td data-label="Reliability score" class="${relClass}">${relLabel}</td>
+            </tr>
+          `;
+        }
+
+        html += `
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      // 8) tabella per fascia di confidenza
+      const sortedBands = Object.keys(byConfidence).sort((a, b) => {
+        const ia = CONFIDENCE_ORDER.indexOf(a);
+        const ib = CONFIDENCE_ORDER.indexOf(b);
+        if (ia === -1 && ib === -1) return a.localeCompare(b);
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
+
+      if (sortedBands.length) {
+        html += `
+          <div class="table-wrapper">
+            <h2 class="section-title" style="margin-top:4px;">
+              Rendimento per fascia di confidenza modello
+            </h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Confidenza modello</th>
+                  <th>Picks giocati</th>
+                  <th>Win</th>
+                  <th>Lose</th>
+                  <th>Winrate</th>
+                  <th>ROI</th>
+                  <th>Quota media</th>
+                  <th>Winrate necessaria</th>
+                  <th>Reliability score</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        for (const bandKey of sortedBands) {
+          const c = byConfidence[bandKey];
+          const playedBand = c.wins + c.loses;
+          const winrateBand =
+            playedBand > 0
+              ? ((c.wins / playedBand) * 100).toFixed(1)
+              : "-";
+          const roiBand =
+            c.stake > 0
+              ? ((c.profit / c.stake) * 100).toFixed(1)
+              : "-";
+          const avgOddBand =
+            c.oddsCount > 0
+              ? (c.oddsSum / c.oddsCount)
+              : null;
+          const avgOddBandStr = avgOddBand ? avgOddBand.toFixed(2) : "-";
+          const winNeedBand =
+            avgOddBand && avgOddBand > 1
+              ? (100 / avgOddBand).toFixed(1)
+              : "-";
+
+          const roiBandClass =
+            roiBand === "-"
+              ? "badge-neutral"
+              : parseFloat(roiBand) >= 0
+              ? "badge-pos"
+              : "badge-neg";
+
+          let relLabelB = "-";
+          let relClassB = "badge-neutral";
+          if (winrateBand !== "-" && winNeedBand !== "-") {
+            const wrNumB = parseFloat(winrateBand);
+            const needNumB = parseFloat(winNeedBand);
+            relLabelB = reliabilityLabel(playedBand, wrNumB, needNumB);
+            if (relLabelB.startsWith("Molto") || relLabelB.startsWith("Buona")) {
+              relClassB = "badge-pos";
+            } else if (relLabelB.startsWith("Debole") || relLabelB.startsWith("Negativa")) {
+              relClassB = "badge-neg";
+            }
+          }
+
+          html += `
+            <tr>
+              <td data-label="Confidenza modello">${bandKey}</td>
+              <td data-label="Picks giocati">${playedBand}</td>
+              <td data-label="Win">${c.wins}</td>
+              <td data-label="Lose">${c.loses}</td>
+              <td data-label="Winrate">${winrateBand === "-" ? "-" : winrateBand + "%"}</td>
+              <td data-label="ROI" class="${roiBandClass}">${roiBand === "-" ? "-" : roiBand + "%"}</td>
+              <td data-label="Quota media">${avgOddBandStr}</td>
+              <td data-label="Winrate necessaria">${winNeedBand === "-" ? "-" : winNeedBand + "%"}</td>
+              <td data-label="Reliability score" class="${relClassB}">${relLabelB}</td>
             </tr>
           `;
         }
