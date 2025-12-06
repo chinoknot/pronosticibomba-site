@@ -482,11 +482,13 @@
     const fromDate = getDateStrOffset(-daysBack + 1);
 
     try {
-      // 1) risultati grezzi
-      const rawResults = await sbFetch(
-        "results",
-        `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}&select=*`
-      );
+     const rawResults = await sbFetch(
+  "results",
+  `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}` +
+  `&select=*` +
+  `&order=picks_date.asc,run_date.asc,id.asc`
+);
+
 
       if (!Array.isArray(rawResults) || !rawResults.length) {
         tableContainer.innerHTML = `
