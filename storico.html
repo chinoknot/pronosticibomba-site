@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Storico ROI – Pronostici Bomba</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-soft: #0f172a;
+      --card: #020617;
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.18);
+      --border: rgba(148, 163, 184, 0.2);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --shadow-soft: 0 20px 45px rgba(15, 23, 42, 0.9);
+      --win: #16a34a;
+      --lose: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text-main);
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 32px auto 40px;
+      padding: 0 16px 40px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.9rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .back-link {
+      font-size: 0.8rem;
+      text-decoration: none;
+      color: var(--text-main);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .back-link:hover {
+      border-color: var(--accent);
+      color: #fed7aa;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      max-width: 760px;
+      line-height: 1.45;
+    }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .range-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    select {
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: var(--text-main);
+      padding: 5px 12px;
+      font-size: 0.82rem;
+    }
+
+    /* SUMMARY */
+    .summary-card {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.9));
+      border: 1px solid rgba(30, 64, 175, 0.55);
+      box-shadow: var(--shadow-soft);
+      display: grid;
+      grid-template-columns: 2fr 2fr 3fr;
+      gap: 10px 18px;
+      font-size: 0.86rem;
+    }
+
+    .summary-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .summary-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .summary-value {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .summary-value-small {
+      font-size: 0.86rem;
+      font-weight: 500;
+    }
+
+    .badge-pos {
+      color: #bbf7d0;
+    }
+
+    .badge-neg {
+      color: #fecaca;
+    }
+
+    .badge-neutral {
+      color: var(--text-main);
+    }
+
+    /* TABLES */
+    .section-title {
+      margin-top: 24px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .table-wrapper {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 18px;
+      border: 1px solid rgba(30, 64, 175, 0.4);
+      box-shadow: var(--shadow-soft);
+      padding: 12px 10px 10px;
+      margin-bottom: 18px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      min-width: 600px;
+    }
+
+    thead {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    th, td {
+      padding: 6px 8px;
+      text-align: left;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.8);
+      white-space: nowrap;
+    }
+
+    th {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    td.badge-pos {
+      color: #bbf7d0;
+      font-weight: 600;
+    }
+
+    td.badge-neg {
+      color: #fecaca;
+      font-weight: 600;
+    }
+
+    td.badge-neutral {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .empty {
+      text-align: center;
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      padding: 6px 4px;
+    }
+
+    /* BLOCCO SPIEGAZIONE */
+    .info-block {
+      margin-top: 10px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.95);
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .info-title {
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .info-list {
+      margin: 4px 0 0 16px;
+      padding: 0;
+    }
+
+    .info-list li {
+      margin-bottom: 4px;
+    }
+
+    /* MOBILE: card-table */
+    @media (max-width: 640px) {
+      main {
+        margin-top: 20px;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .summary-card {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .table-wrapper {
+        padding: 8px 8px 6px;
+      }
+
+      table {
+        border: 0;
+        min-width: 0;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tbody, tr, td {
+        display: block;
+        width: 100%;
+      }
+
+      tbody tr {
+        margin-bottom: 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(31, 41, 55, 0.8);
+        background: rgba(15, 23, 42, 0.98);
+        padding: 4px 6px;
+      }
+
+      td {
+        border-bottom: none;
+        padding: 4px 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 0.8rem;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-weight: 500;
+        color: var(--text-muted);
+        margin-right: 8px;
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: 0.78rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="title-row">
+        <h1>Storico ROI</h1>
+        <a href="/index.html" class="back-link">← Torna ai pronostici di oggi</a>
+      </div>
+      <p class="subtitle">
+        Qui trovi il rendimento storico delle picks con stake fisso 1 unità per pronostico.
+        Il ROI e il profitto sono calcolati solo sulle picks con esito WIN/LOSE; le quote
+        sono quelle mostrate al momento della generazione.
+      </p>
+
+      <div class="controls-row">
+        <span class="range-label">Intervallo analizzato</span>
+        <select id="range-select">
+          <option value="7">Ultimi 7 giorni</option>
+          <option value="14">Ultimi 14 giorni</option>
+          <option value="30">Ultimi 30 giorni</option>
+        </select>
+      </div>
+    </header>
+
+    <section class="summary-card">
+      <div class="summary-item">
+        <span class="summary-label">ROI totale</span>
+        <span id="summary-roi" class="summary-value badge-neutral">-</span>
+        <span id="summary-profit" class="summary-value-small badge-neutral">-</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Periodo coperto</span>
+        <span id="summary-period" class="summary-value-small">-</span>
+        <span id="summary-days" class="summary-value-small" style="color: var(--text-muted);">-</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Winrate & affidabilità</span>
+        <span id="summary-winrate" class="summary-value badge-neutral">-</span>
+        <span id="summary-wl" class="summary-value-small" style="color: var(--text-muted);">-</span>
+        <span id="summary-winrate-needed" class="summary-value-small" style="color: var(--text-muted);">-</span>
+        <span id="summary-reliability" class="summary-value-small badge-neutral">-</span>
+      </div>
+    </section>
+
+    <h2 class="section-title">Andamento giornaliero (solo picks risolte)</h2>
+    <div id="table-container"></div>
+
+    <section class="info-block">
+      <div class="info-title">Come leggere ROI, winrate e reliability</div>
+      <ul class="info-list">
+        <li><strong>Profitto</strong>: ogni pick parte da 1 unità di stake. Una WIN vale <em>(quota − 1)</em>, una LOSE vale <em>−1</em>. Il profitto è la somma di tutte le unità vinte/perse.</li>
+        <li><strong>ROI</strong>: rendimento sul capitale. Con stake fisso è <em>profitto / numero di picks</em>, espresso in percentuale.</li>
+        <li><strong>Winrate</strong>: percentuale di picks vinte su tutte le picks giocate (<em>WIN / (WIN + LOSE)</em>).</li>
+        <li><strong>Quota media</strong>: media delle quote delle picks giocate in quella categoria.</li>
+        <li><strong>Winrate necessaria</strong>: percentuale minima di vittorie per andare in pari con quella quota media. Formula: <em>winrate necessaria = 100 / quota media</em>. Esempio: quota media 1.80 → serve circa il 55,6% di WIN per non perdere soldi.</li>
+        <li><strong>Reliability score</strong>: indica quanto quella categoria sta andando <em>meglio o peggio</em> della soglia di pareggio:
+          <ul class="info-list">
+            <li><em>Molto solida</em>: winrate ben sopra la soglia (≥ +10 punti).</li>
+            <li><em>Buona</em>: qualche punto sopra la soglia.</li>
+            <li><em>Sul confine</em>: winrate vicino alla soglia di pareggio.</li>
+            <li><em>Debole / Negativa</em>: sotto la soglia → al momento categoria in perdita.</li>
+            <li>Se i dati sono pochi, viene mostrato <em>Dati pochi (campione ridotto)</em>.</li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+<script>
+  // ===== CONFIG SUPABASE (solo lettura) =====
+  const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
+
+  async function sbFetch(table, query) {
+    const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+    const res = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+      },
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Supabase error ${res.status}: ${text}`);
+    }
+    return await res.json();
+  }
+
+  // ===== HELPER =====
+  function pad2(n) {
+    return n < 10 ? "0" + n : "" + n;
+  }
+
+  function formatDateIT(str) {
+    if (!str) return "";
+    const parts = str.split("-");
+    if (parts.length !== 3) return str;
+    const [y, m, d] = parts.map(Number);
+    const dt = new Date(y, m - 1, d);
+    const weekday = dt.toLocaleDateString("it-IT", { weekday: "long" });
+    const day = pad2(dt.getDate());
+    const month = dt.toLocaleDateString("it-IT", { month: "long" });
+    return `${weekday} ${day} ${month} ${y}`;
+  }
+
+  function getDateStrOffset(offsetDays) {
+    const now = new Date();
+    now.setDate(now.getDate() + offsetDays);
+    const y = now.getFullYear();
+    const m = pad2(now.getMonth() + 1);
+    const d = pad2(now.getDate());
+    return `${y}-${m}-${d}`;
+  }
+
+  function safeOdd(o) {
+    const n = Number(o);
+    if (!isFinite(n) || n <= 1) return 1.0;
+    return n;
+  }
+
+  // ===== NOMI ELEGANTI CATEGORIE =====
+  const CATEGORY_LABELS = {
+    BEST_TIPS_OF_DAY: "Scelte d’Élite",
+    SAFE_PICKS: "Selezioni Affidabili",
+    VALUE_PICKS: "Quote di Valore",
+    OVER_UNDER_TIPS: "Tendenze Goal",
+    BTTS_TIPS: "Probabilità Entrambe",
+    DAILY_2PLUS: "Combo Selettiva",
+    DAILY_10PLUS: "Combo High Stakes",
+    SINGLE_GAME: "Pick Esclusiva",
+    TOP_5_TIPS: "Top 5 Esclusive",
+  };
+
+  function getCategoryLabel(cat) {
+    const k = (cat || "").trim().toUpperCase();
+    return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
+  }
+
+  // ===== RANKING RISULTATI (come storico picks) =====
+  function resultRank(r) {
+    let score = 0;
+    const res = (r.result || "").toUpperCase();
+    const st = (r.status_short || "").toUpperCase();
+
+    if (res === "WIN" || res === "LOSE") score += 4;
+    else if (res === "PENDING") score += 1;
+
+    if (["FT", "AET", "PEN", "AWD", "WO"].includes(st)) score += 3;
+    else if (["NS", "1H", "2H"].includes(st)) score += 1;
+
+    return score;
+  }
+
+  // ===== RELIABILITY =====
+  function reliabilityLabel(played, winrate, needed) {
+    if (!played || played <= 0 || !winrate || !needed) return "N/D";
+    if (played < 30) return "Dati pochi (campione ridotto)";
+
+    const diff = winrate - needed; // in punti percentuali
+
+    if (diff >= 10) return "Molto solida";
+    if (diff >= 5)  return "Buona";
+    if (diff >= 0)  return "Sul confine";
+    if (diff >= -5) return "Debole";
+    return "Negativa";
+  }
+
+  // ===== MAIN LOAD =====
+  async function loadHistory(daysBack) {
+    const tableContainer = document.getElementById("table-container");
+    tableContainer.innerHTML = `
+      <div class="table-wrapper">
+        <div class="empty">Carico dati degli ultimi ${daysBack} giorni...</div>
+      </div>
+    `;
+
+    const toDate = getDateStrOffset(0);
+    const fromDate = getDateStrOffset(-daysBack + 1);
+
+    try {
+      // 1) risultati grezzi (ordinati per data/run/id)
+      const rawResults = await sbFetch(
+        "results",
+        `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}` +
+        `&select=*` +
+        `&order=picks_date.asc,run_date.asc,id.asc`
+      );
+
+      if (!Array.isArray(rawResults) || !rawResults.length) {
+        tableContainer.innerHTML = `
+          <div class="table-wrapper">
+            <div class="empty">Nessun risultato disponibile per questo periodo.</div>
+          </div>
+        `;
+        document.getElementById("summary-period").textContent = "-";
+        document.getElementById("summary-days").textContent = "-";
+        document.getElementById("summary-winrate").textContent = "-";
+        document.getElementById("summary-wl").textContent = "-";
+        document.getElementById("summary-roi").textContent = "-";
+        document.getElementById("summary-profit").textContent = "-";
+        document.getElementById("summary-winrate-needed").textContent = "-";
+        document.getElementById("summary-reliability").textContent = "-";
+        return;
+      }
+
+      // 2) dedup per fixture+category+pick scegliendo la versione "migliore"
+      const latestByKey = new Map();
+      for (const r of rawResults) {
+        if (!r.fixture_id || !r.pick) continue;
+        const key =
+          String(r.fixture_id) +
+          "__" +
+          String(r.category || "").trim() +
+          "__" +
+          String(r.pick).trim();
+
+        const existing = latestByKey.get(key);
+        if (!existing) {
+          latestByKey.set(key, r);
+        } else {
+          const oldScore = resultRank(existing);
+          const newScore = resultRank(r);
+          if (newScore >= oldScore) {
+            latestByKey.set(key, r);
+          }
+        }
+      }
+      const resultsRows = Array.from(latestByKey.values());
+      if (!resultsRows.length) {
+        tableContainer.innerHTML = `
+          <div class="table-wrapper">
+            <div class="empty">Nessun risultato disponibile per questo periodo.</div>
+          </div>
+        `;
+        return;
+      }
+
+      // 3) picks per recuperare quote
+      const picksRows = await sbFetch(
+        "picks",
+        `?run_date=gte.${fromDate}&run_date=lte.${toDate}&select=*`
+      );
+
+      const pickMap = new Map();
+      for (const p of picksRows) {
+        if (!p.fixture_id || !p.pick) continue;
+        const key =
+          String(p.fixture_id) +
+          "__" +
+          String(p.category || "").trim() +
+          "__" +
+          String(p.pick).trim();
+        pickMap.set(key, p);
+      }
+
+      // 4) aggregazioni
+      const byDay = new Map();
+      const byCategory = new Map();
+      let totalWins = 0;
+      let totalLoses = 0;
+      let totalStake = 0;
+      let totalProfit = 0;
+      let totalOddsSum = 0;
+      let totalOddsCount = 0;
+
+      for (const r of resultsRows) {
+        const date = r.picks_date || r.match_date;
+        if (!date) continue;
+
+        const result = (r.result || "").toUpperCase();
+        if (result !== "WIN" && result !== "LOSE") continue;
+
+        const key =
+          String(r.fixture_id) +
+          "__" +
+          String(r.category || "").trim() +
+          "__" +
+          String(r.pick || "").trim();
+        const pick = pickMap.get(key);
+        const odd = pick ? safeOdd(pick.odd) : 1.0;
+
+        let wins = 0,
+          loses = 0,
+          stake = 0,
+          profit = 0;
+
+        if (result === "WIN") {
+          wins = 1;
+          stake = 1;
+          profit = odd - 1;
+        } else if (result === "LOSE") {
+          loses = 1;
+          stake = 1;
+          profit = -1;
+        }
+
+        if (!byDay.has(date)) {
+          byDay.set(date, { wins: 0, loses: 0, stake: 0, profit: 0 });
+        }
+        const agg = byDay.get(date);
+        agg.wins += wins;
+        agg.loses += loses;
+        agg.stake += stake;
+        agg.profit += profit;
+
+        const catKey = (r.category || "ALTRO").trim() || "ALTRO";
+        if (!byCategory.has(catKey)) {
+          byCategory.set(catKey, {
+            wins: 0,
+            loses: 0,
+            stake: 0,
+            profit: 0,
+            oddsSum: 0,
+            oddsCount: 0,
+          });
+        }
+        const cAgg = byCategory.get(catKey);
+        cAgg.wins += wins;
+        cAgg.loses += loses;
+        cAgg.stake += stake;
+        cAgg.profit += profit;
+        if (odd && !isNaN(odd)) {
+          cAgg.oddsSum += odd;
+          cAgg.oddsCount += 1;
+        }
+
+        totalWins += wins;
+        totalLoses += loses;
+        totalStake += stake;
+        totalProfit += profit;
+        if (odd && !isNaN(odd)) {
+          totalOddsSum += odd;
+          totalOddsCount += 1;
+        }
+      }
+
+      const sortedDays = Array.from(byDay.keys()).sort().reverse();
+
+      // 5) summary globale
+      const firstDay = sortedDays[sortedDays.length - 1];
+      const lastDay = sortedDays[0];
+      document.getElementById("summary-period").textContent =
+        `${formatDateIT(firstDay)} → ${formatDateIT(lastDay)}`;
+      document.getElementById("summary-days").textContent =
+        `${sortedDays.length} giorni con picks`;
+
+      const totalPlayed = totalWins + totalLoses;
+      const winrateTotal =
+        totalPlayed > 0 ? ((totalWins / totalPlayed) * 100).toFixed(1) : "-";
+      const roiTotal =
+        totalStake > 0 ? ((totalProfit / totalStake) * 100).toFixed(1) : "-";
+
+      const avgOddGlobal =
+        totalOddsCount > 0 ? (totalOddsSum / totalOddsCount) : null;
+      const winrateNeededGlobal =
+        avgOddGlobal && avgOddGlobal > 1
+          ? (100 / avgOddGlobal).toFixed(1)
+          : "-";
+
+      document.getElementById("summary-winrate").textContent =
+        winrateTotal === "-" ? "-" : `${winrateTotal}%`;
+      document.getElementById("summary-wl").textContent =
+        `${totalWins} win / ${totalLoses} lose`;
+
+      const roiEl = document.getElementById("summary-roi");
+      if (roiTotal === "-") {
+        roiEl.textContent = "-";
+        roiEl.className = "summary-value badge-neutral";
+      } else {
+        roiEl.textContent = `${roiTotal}%`;
+        roiEl.className =
+          "summary-value " +
+          (parseFloat(roiTotal) >= 0 ? "badge-pos" : "badge-neg");
+      }
+
+      const profitStr = totalProfit.toFixed(2).replace(".", ",");
+      const profitEl = document.getElementById("summary-profit");
+      profitEl.textContent =
+        `Profitto: ${profitStr} unità (stake = ${totalStake})`;
+      profitEl.className =
+        "summary-value-small " +
+        (totalProfit > 0 ? "badge-pos" : totalProfit < 0 ? "badge-neg" : "badge-neutral");
+
+      const winNeedEl = document.getElementById("summary-winrate-needed");
+      if (winrateNeededGlobal === "-") {
+        winNeedEl.textContent = "Winrate necessaria: -";
+      } else {
+        winNeedEl.textContent =
+          `Winrate necessaria per break-even: ${winrateNeededGlobal}% (quota media ~ ${avgOddGlobal.toFixed(2)})`;
+      }
+
+      const relEl = document.getElementById("summary-reliability");
+      if (winrateTotal === "-" || winrateNeededGlobal === "-") {
+        relEl.textContent = "-";
+        relEl.className = "summary-value-small badge-neutral";
+      } else {
+        const wrNum = parseFloat(winrateTotal);
+        const needNum = parseFloat(winrateNeededGlobal);
+        const label = reliabilityLabel(totalPlayed, wrNum, needNum);
+        relEl.textContent = `Reliability: ${label}`;
+        let cls = "badge-neutral";
+        if (label.startsWith("Molto") || label.startsWith("Buona")) cls = "badge-pos";
+        else if (label.startsWith("Debole") || label.startsWith("Negativa")) cls = "badge-neg";
+        relEl.className = "summary-value-small " + cls;
+      }
+
+      const sortedCategories = Array.from(byCategory.keys()).sort();
+
+      // 6) tabella per giorno
+      let html = `
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Picks giocati</th>
+                <th>Win</th>
+                <th>Lose</th>
+                <th>Winrate</th>
+                <th>ROI</th>
+                <th>Profitto</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      for (const day of sortedDays) {
+        const { wins, loses, stake, profit } = byDay.get(day);
+        const played = wins + loses;
+        const winrate =
+          played > 0 ? ((wins / played) * 100).toFixed(1) : "-";
+        const roi =
+          stake > 0 ? ((profit / stake) * 100).toFixed(1) : "-";
+        const profitDayStr = profit.toFixed(2);
+
+        const roiClass =
+          roi === "-"
+            ? "badge-neutral"
+            : parseFloat(roi) >= 0
+            ? "badge-pos"
+            : "badge-neg";
+        const profitClass =
+          parseFloat(profitDayStr) > 0
+            ? "badge-pos"
+            : parseFloat(profitDayStr) < 0
+            ? "badge-neg"
+            : "badge-neutral";
+
+        html += `
+          <tr>
+            <td data-label="Data">${formatDateIT(day)}</td>
+            <td data-label="Picks giocati">${played}</td>
+            <td data-label="Win">${wins}</td>
+            <td data-label="Lose">${loses}</td>
+            <td data-label="Winrate">${winrate === "-" ? "-" : winrate + "%"}</td>
+            <td data-label="ROI" class="${roiClass}">${roi === "-" ? "-" : roi + "%"}</td>
+            <td data-label="Profitto" class="${profitClass}">${profitDayStr}</td>
+          </tr>
+        `;
+      }
+
+      html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      // 7) tabella per categoria con QUOTA MEDIA + WINRATE NECESSARIA + RELIABILITY
+      if (sortedCategories.length) {
+        html += `
+          <div class="table-wrapper">
+            <h2 class="section-title" style="margin-top:4px;">
+              Rendimento per categoria (solo picks con esito WIN/LOSE)
+            </h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Categoria</th>
+                  <th>Picks giocati</th>
+                  <th>Win</th>
+                  <th>Lose</th>
+                  <th>Winrate</th>
+                  <th>ROI</th>
+                  <th>Quota media</th>
+                  <th>Winrate necessaria</th>
+                  <th>Reliability score</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        for (const catKey of sortedCategories) {
+          const c = byCategory.get(catKey);
+          const playedCat = c.wins + c.loses;
+          const winrateCat =
+            playedCat > 0
+              ? ((c.wins / playedCat) * 100).toFixed(1)
+              : "-";
+          const roiCat =
+            c.stake > 0
+              ? ((c.profit / c.stake) * 100).toFixed(1)
+              : "-";
+          const avgOdd =
+            c.oddsCount > 0
+              ? (c.oddsSum / c.oddsCount)
+              : null;
+          const avgOddStr = avgOdd ? avgOdd.toFixed(2) : "-";
+          const winNeedCat =
+            avgOdd && avgOdd > 1
+              ? (100 / avgOdd).toFixed(1)
+              : "-";
+
+          const roiCatClass =
+            roiCat === "-"
+              ? "badge-neutral"
+              : parseFloat(roiCat) >= 0
+              ? "badge-pos"
+              : "badge-neg";
+
+          let relLabel = "-";
+          let relClass = "badge-neutral";
+          if (winrateCat !== "-" && winNeedCat !== "-") {
+            const wrNum = parseFloat(winrateCat);
+            const needNum = parseFloat(winNeedCat);
+            relLabel = reliabilityLabel(playedCat, wrNum, needNum);
+            if (relLabel.startsWith("Molto") || relLabel.startsWith("Buona")) {
+              relClass = "badge-pos";
+            } else if (relLabel.startsWith("Debole") || relLabel.startsWith("Negativa")) {
+              relClass = "badge-neg";
+            }
+          }
+
+          const label = getCategoryLabel(catKey);
+
+          html += `
+            <tr>
+              <td data-label="Categoria">${label}</td>
+              <td data-label="Picks giocati">${playedCat}</td>
+              <td data-label="Win">${c.wins}</td>
+              <td data-label="Lose">${c.loses}</td>
+              <td data-label="Winrate">${winrateCat === "-" ? "-" : winrateCat + "%"}</td>
+              <td data-label="ROI" class="${roiCatClass}">${roiCat === "-" ? "-" : roiCat + "%"}</td>
+              <td data-label="Quota media">${avgOddStr}</td>
+              <td data-label="Winrate necessaria">${winNeedCat === "-" ? "-" : winNeedCat + "%"}</td>
+              <td data-label="Reliability score" class="${relClass}">${relLabel}</td>
+            </tr>
+          `;
+        }
+
+        html += `
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      tableContainer.innerHTML = html;
+    } catch (err) {
+      console.error("Errore storico:", err);
+      tableContainer.innerHTML = `
+        <div class="table-wrapper">
+          <div class="empty">Errore nel caricamento dello storico.</div>
+        </div>
+      `;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const select = document.getElementById("range-select");
+    loadHistory(parseInt(select.value, 10));
+    select.addEventListener("change", () => {
+      const v = parseInt(select.value, 10);
+      loadHistory(v);
+    });
+  });
+</script>
+
+</body>
+</html>
