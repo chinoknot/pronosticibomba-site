@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
@@ -255,7 +255,7 @@
       margin-bottom: 4px;
     }
 
-    /* MOBILE: card-table */
+    /* MOBILE */
     @media (max-width: 640px) {
       main {
         margin-top: 20px;
@@ -370,7 +370,7 @@
         <li><strong>ROI</strong>: rendimento sul capitale. Con stake fisso è <em>profitto / numero di picks</em>, espresso in percentuale.</li>
         <li><strong>Winrate</strong>: percentuale di picks vinte su tutte le picks giocate (<em>WIN / (WIN + LOSE)</em>).</li>
         <li><strong>Quota media</strong>: media delle quote delle picks giocate in quella categoria.</li>
-        <li><strong>Winrate necessaria</strong>: percentuale minima di vittorie per andare in pari con quella quota media. Formula: <em>winrate necessaria = 100 / quota media</em>. Esempio: quota media 1.80 → serve circa il 55,6% di WIN per non perdere soldi.</li>
+        <li><strong>Winrate necessaria</strong>: percentuale minima di vittorie per andare in pari con quella quota media. Formula: <em>winrate necessaria = 100 / quota media</em>.</li>
         <li><strong>Reliability score</strong>: indica quanto quella categoria sta andando <em>meglio o peggio</em> della soglia di pareggio:
           <ul class="info-list">
             <li><em>Molto solida</em>: winrate ben sopra la soglia (≥ +10 punti).</li>
@@ -455,7 +455,7 @@
     return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
   }
 
-  // ===== RANKING RISULTATI (come storico picks) =====
+  // ranking dei risultati: preferiamo righe con esito definito e match finito
   function resultRank(r) {
     let score = 0;
     const res = (r.result || "").toUpperCase();
@@ -475,7 +475,7 @@
     if (!played || played <= 0 || !winrate || !needed) return "N/D";
     if (played < 30) return "Dati pochi (campione ridotto)";
 
-    const diff = winrate - needed; // in punti percentuali
+    const diff = winrate - needed;
 
     if (diff >= 10) return "Molto solida";
     if (diff >= 5)  return "Buona";
@@ -497,18 +497,16 @@
     const fromDate = getDateStrOffset(-daysBack + 1);
 
     try {
-      // 1) risultati grezzi (ordinati per data/run/id)
-      const rawResults = await sbFetch(
-        "results",
-        `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}` +
-        `&select=*` +
-        `&order=picks_date.asc,run_date.asc,id.asc`
+      // 1) Tutte le picks nell'intervallo (fonte "vera")
+      const picksRows = await sbFetch(
+        "picks",
+        `?match_date=gte.${fromDate}&match_date=lte.${toDate}&select=*`
       );
 
-      if (!Array.isArray(rawResults) || !rawResults.length) {
+      if (!Array.isArray(picksRows) || !picksRows.length) {
         tableContainer.innerHTML = `
           <div class="table-wrapper">
-            <div class="empty">Nessun risultato disponibile per questo periodo.</div>
+            <div class="empty">Nessuna pick disponibile per questo periodo.</div>
           </div>
         `;
         document.getElementById("summary-period").textContent = "-";
@@ -522,57 +520,37 @@
         return;
       }
 
-      // 2) dedup per fixture+category+pick scegliendo la versione "migliore"
-      const latestByKey = new Map();
-      for (const r of rawResults) {
-        if (!r.fixture_id || !r.pick) continue;
-        const key =
-          String(r.fixture_id) +
-          "__" +
-          String(r.category || "").trim() +
-          "__" +
-          String(r.pick).trim();
+      // 2) Tutti i risultati per lo stesso intervallo
+      const resultsRows = await sbFetch(
+        "results",
+        `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}` +
+        `&select=*` +
+        `&order=picks_date.asc,run_date.asc,id.asc`
+      );
 
-        const existing = latestByKey.get(key);
-        if (!existing) {
-          latestByKey.set(key, r);
-        } else {
-          const oldScore = resultRank(existing);
-          const newScore = resultRank(r);
-          if (newScore >= oldScore) {
-            latestByKey.set(key, r);
+      // 3) Mappa risultato migliore per fixture+pick (come Storico Picks)
+      const resultMap = new Map();
+      if (Array.isArray(resultsRows)) {
+        for (const r of resultsRows) {
+          const fid = String(r.fixture_id || "").trim();
+          const pickText = String(r.pick || "").trim();
+          if (!fid && !pickText) continue;
+          const key = fid + "__" + pickText;
+
+          const current = resultMap.get(key);
+          if (!current) {
+            resultMap.set(key, r);
+          } else {
+            const oldScore = resultRank(current);
+            const newScore = resultRank(r);
+            if (newScore >= oldScore) {
+              resultMap.set(key, r);
+            }
           }
         }
       }
-      const resultsRows = Array.from(latestByKey.values());
-      if (!resultsRows.length) {
-        tableContainer.innerHTML = `
-          <div class="table-wrapper">
-            <div class="empty">Nessun risultato disponibile per questo periodo.</div>
-          </div>
-        `;
-        return;
-      }
 
-      // 3) picks per recuperare quote
-      const picksRows = await sbFetch(
-        "picks",
-        `?run_date=gte.${fromDate}&run_date=lte.${toDate}&select=*`
-      );
-
-      const pickMap = new Map();
-      for (const p of picksRows) {
-        if (!p.fixture_id || !p.pick) continue;
-        const key =
-          String(p.fixture_id) +
-          "__" +
-          String(p.category || "").trim() +
-          "__" +
-          String(p.pick).trim();
-        pickMap.set(key, p);
-      }
-
-      // 4) aggregazioni
+      // 4) Aggregazioni su base "pick"
       const byDay = new Map();
       const byCategory = new Map();
       let totalWins = 0;
@@ -582,37 +560,38 @@
       let totalOddsSum = 0;
       let totalOddsCount = 0;
 
-      for (const r of resultsRows) {
-        const date = r.picks_date || r.match_date;
+      for (const p of picksRows) {
+        const date = p.match_date;
         if (!date) continue;
 
-        const result = (r.result || "").toUpperCase();
-        if (result !== "WIN" && result !== "LOSE") continue;
+        const fid = String(p.fixture_id || "").trim();
+        const pickText = String(p.pick || "").trim();
+        if (!fid && !pickText) continue;
 
-        const key =
-          String(r.fixture_id) +
-          "__" +
-          String(r.category || "").trim() +
-          "__" +
-          String(r.pick || "").trim();
-        const pick = pickMap.get(key);
-        const odd = pick ? safeOdd(pick.odd) : 1.0;
+        const key = fid + "__" + pickText;
+        const res = resultMap.get(key) || {};
+        const result = (res.result || "").toUpperCase();
 
-        let wins = 0,
-          loses = 0,
-          stake = 0,
-          profit = 0;
+        if (result !== "WIN" && result !== "LOSE") {
+          // Non entra nel ROI (picks non ancora risolte)
+          continue;
+        }
+
+        const odd = safeOdd(p.odd);
+        let wins = 0;
+        let loses = 0;
+        let stake = 1;
+        let profit = 0;
 
         if (result === "WIN") {
           wins = 1;
-          stake = 1;
           profit = odd - 1;
         } else if (result === "LOSE") {
           loses = 1;
-          stake = 1;
           profit = -1;
         }
 
+        // Per giorno
         if (!byDay.has(date)) {
           byDay.set(date, { wins: 0, loses: 0, stake: 0, profit: 0 });
         }
@@ -622,7 +601,8 @@
         agg.stake += stake;
         agg.profit += profit;
 
-        const catKey = (r.category || "ALTRO").trim() || "ALTRO";
+        // Per categoria
+        const catKey = (p.category || "ALTRO").trim() || "ALTRO";
         if (!byCategory.has(catKey)) {
           byCategory.set(catKey, {
             wins: 0,
@@ -643,6 +623,7 @@
           cAgg.oddsCount += 1;
         }
 
+        // Totale
         totalWins += wins;
         totalLoses += loses;
         totalStake += stake;
@@ -654,6 +635,23 @@
       }
 
       const sortedDays = Array.from(byDay.keys()).sort().reverse();
+
+      if (!sortedDays.length) {
+        tableContainer.innerHTML = `
+          <div class="table-wrapper">
+            <div class="empty">Nessuna pick risolta (WIN/LOSE) in questo intervallo.</div>
+          </div>
+        `;
+        document.getElementById("summary-period").textContent = "-";
+        document.getElementById("summary-days").textContent = "-";
+        document.getElementById("summary-winrate").textContent = "-";
+        document.getElementById("summary-wl").textContent = "-";
+        document.getElementById("summary-roi").textContent = "-";
+        document.getElementById("summary-profit").textContent = "-";
+        document.getElementById("summary-winrate-needed").textContent = "-";
+        document.getElementById("summary-reliability").textContent = "-";
+        return;
+      }
 
       // 5) summary globale
       const firstDay = sortedDays[sortedDays.length - 1];
@@ -784,7 +782,7 @@
         </div>
       `;
 
-      // 7) tabella per categoria con QUOTA MEDIA + WINRATE NECESSARIA + RELIABILITY
+      // 7) tabella per categoria
       if (sortedCategories.length) {
         html += `
           <div class="table-wrapper">
