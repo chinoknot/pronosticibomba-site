@@ -466,6 +466,173 @@
       margin-top: 6px;
     }
 
+    /* ==== SCHEDINE PRONTE (COMBO TICKETS) ==== */
+
+.combo-section {
+  margin: 28px 0 8px;
+  padding: 18px 16px 20px;
+  border-radius: 18px;
+  background: radial-gradient(circle at top left, rgba(249,115,22,0.22), transparent 55%),
+              linear-gradient(135deg, rgba(15,23,42,0.96), rgba(2,6,23,0.98));
+  border: 1px solid rgba(248,250,252,0.05);
+  box-shadow: 0 18px 45px rgba(15,23,42,0.9);
+}
+
+.combo-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.combo-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.combo-subtitle {
+  font-size: 0.86rem;
+  opacity: 0.85;
+  max-width: 640px;
+}
+
+.combo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.combo-card {
+  position: relative;
+  border-radius: 16px;
+  padding: 12px 12px 10px;
+  background: radial-gradient(circle at top right, rgba(148,163,184,0.14), transparent 60%),
+              linear-gradient(145deg, #020617, #020617);
+  border: 1px solid rgba(148,163,184,0.35);
+  box-shadow: 0 10px 28px rgba(15,23,42,0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.combo-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.combo-label {
+  font-size: 0.94rem;
+  font-weight: 600;
+}
+
+.combo-type-pill {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.7);
+  opacity: 0.9;
+}
+
+.combo-odd-and-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.combo-total-odd {
+  font-weight: 600;
+}
+
+.combo-legs {
+  margin-top: 3px;
+  border-radius: 10px;
+  background: rgba(15,23,42,0.9);
+  padding: 6px 7px;
+  max-height: 190px;
+  overflow: auto;
+}
+
+.combo-leg {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 2px;
+  border-bottom: 1px dashed rgba(30,64,175,0.5);
+}
+
+.combo-leg:last-child {
+  border-bottom: none;
+}
+
+.combo-leg-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 0.82rem;
+}
+
+.combo-leg-teams {
+  font-weight: 500;
+}
+
+.combo-leg-pick {
+  white-space: nowrap;
+}
+
+.combo-leg-extra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 0.72rem;
+  opacity: 0.95;
+}
+
+.combo-pill {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(15,23,42,0.8);
+  border: 1px solid rgba(148,163,184,0.4);
+}
+
+.combo-legs .result-badge {
+  font-size: 0.7rem;
+  padding: 1px 6px;
+}
+
+/* badge colori già usati: win/lose/pending/unknown */
+.combo-card.win {
+  border-color: rgba(34,197,94,0.7);
+}
+.combo-card.lose {
+  border-color: rgba(248,113,113,0.9);
+}
+.combo-card.pending {
+  border-color: rgba(234,179,8,0.8);
+}
+.combo-card.unknown {
+  border-color: rgba(148,163,184,0.55);
+}
+
+@media (max-width: 640px) {
+  .combo-section {
+    margin-inline: -4px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+}
+
+
     .pick-card {
       background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.18), var(--card));
       border-radius: 14px;
@@ -1061,204 +1228,371 @@
       });
     }
 
-    // ====== MAIN LOAD ======
-    async function loadTodayPicks() {
-      const container = document.getElementById("content");
-      const todayStr = getTodayStr();
-      const dayBadge = document.getElementById("day-badge");
-      dayBadge.textContent = formatDateIT(todayStr);
+// ====== MAIN LOAD ======
+async function loadTodayPicks() {
+  const container = document.getElementById("content");
+  const todayStr = getTodayStr();
+  const dayBadge = document.getElementById("day-badge");
+  dayBadge.textContent = formatDateIT(todayStr);
 
-      try {
-        const picks = await sbFetch(
-          "picks",
-          `?run_date=eq.${todayStr}&match_date=eq.${todayStr}&select=*`
-        );
+  try {
+    const picks = await sbFetch(
+      "picks",
+      `?run_date=eq.${todayStr}&match_date=eq.${todayStr}&select=*`
+    );
 
-        if (!Array.isArray(picks) || !picks.length) {
-          container.innerHTML = `
-            <div class="empty-state">
-              Nessun pick disponibile per oggi.<br />
-              Torna più tardi quando i modelli avranno generato nuovi pronostici.
+    if (!Array.isArray(picks) || !picks.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          Nessun pick disponibile per oggi.<br />
+          Torna più tardi quando i modelli avranno generato nuovi pronostici.
+        </div>
+      `;
+      return;
+    }
+
+    // risultati singole
+    const results = await sbFetch(
+      "results",
+      `?picks_date=eq.${todayStr}&select=*`
+    );
+
+    const feedbackMap = await loadFeedbackMap(todayStr);
+
+    const resultMap = new Map();
+    if (Array.isArray(results)) {
+      for (const r of results) {
+        if (r.fixture_id && r.pick) {
+          const key = String(r.fixture_id) + "__" + String(r.pick).trim();
+          resultMap.set(key, r);
+        }
+      }
+    }
+
+    const byCategory = groupByCategory(picks);
+    const categories = sortCategoriesOrder(Array.from(byCategory.keys()));
+
+    // ================== HTML PICKS CLASSICI ==================
+    let html = `<div class="categories-container">`;
+
+    for (const cat of categories) {
+      const list = byCategory.get(cat) || [];
+
+      list.sort((a, b) => {
+        const da = parseMatchDateTime(a);
+        const db = parseMatchDateTime(b);
+        if (da && db) return da - db;
+        if (da) return -1;
+        if (db) return 1;
+        return 0;
+      });
+
+      const total = list.length;
+      let wins = 0;
+      let loses = 0;
+
+      for (const p of list) {
+        const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
+        const res = resultMap.get(key);
+        const rLabel = (res && res.result) ? res.result.toUpperCase() : "";
+        if (rLabel === "WIN") wins++;
+        if (rLabel === "LOSE") loses++;
+      }
+
+      const totalPlayed = wins + loses;
+      const winrate =
+        totalPlayed > 0 ? ((wins / totalPlayed) * 100).toFixed(1) : "-";
+
+      const niceCatName = getCategoryLabel(cat);
+
+      html += `
+        <details class="category-block">
+          <summary class="category-header">
+            <div class="category-header-main">
+              <h2 class="category-title">${niceCatName}</h2>
+              <div class="category-meta">
+                ${total} picks · ${wins} win / ${loses} lose
+              </div>
             </div>
-          `;
-          return;
+            <span class="category-chevron">▶</span>
+          </summary>
+          <div class="category-body">
+            <div class="picks-grid">
+      `;
+
+      for (const p of list) {
+        const dt = parseMatchDateTime(p);
+        const timeStr = dt
+          ? dt.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+          : (p.match_time || "-");
+
+        const oddNum = Number(p.odd || 0);
+        const oddStr = oddNum ? oddNum.toFixed(2) : "-";
+
+        const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
+        const res = resultMap.get(key);
+        const resResult = res ? res.result : "";
+        const resScore = res ? res.final_score : "";
+
+        const resultClass = classifyResult(resResult);
+        const cardExtraClass = resultClass ? ` ${resultClass}` : "";
+
+        const resultLabel = (resResult || "").toUpperCase();
+        const finalScore = resScore || "";
+        let badgeText = "";
+        if (resultLabel) {
+          badgeText = finalScore
+            ? `${resultLabel} · ${finalScore}`
+            : resultLabel;
         }
+        const badgeClass = resultClass ? ` ${resultClass}` : "";
 
-        const results = await sbFetch(
-          "results",
-          `?picks_date=eq.${todayStr}&select=*`
-        );
+        const confValue = Number(p.score || 0) * 100;
+        const confLabel = confidenceLabel(confValue);
 
-        const feedbackMap = await loadFeedbackMap(todayStr);
-
-        const resultMap = new Map();
-        if (Array.isArray(results)) {
-          for (const r of results) {
-            if (r.fixture_id && r.pick) {
-              const key = String(r.fixture_id) + "__" + String(r.pick).trim();
-              resultMap.set(key, r);
-            }
-          }
-        }
-
-        const byCategory = groupByCategory(picks);
-        const categories = sortCategoriesOrder(Array.from(byCategory.keys()));
-
-        let html = `<div class="categories-container">`;
-
-        for (const cat of categories) {
-          const list = byCategory.get(cat) || [];
-
-          list.sort((a, b) => {
-            const da = parseMatchDateTime(a);
-            const db = parseMatchDateTime(b);
-            if (da && db) return da - db;
-            if (da) return -1;
-            if (db) return 1;
-            return 0;
-          });
-
-          const total = list.length;
-          let wins = 0;
-          let loses = 0;
-
-          for (const p of list) {
-            const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
-            const res = resultMap.get(key);
-            const rLabel = (res && res.result) ? res.result.toUpperCase() : "";
-            if (rLabel === "WIN") wins++;
-            if (rLabel === "LOSE") loses++;
-          }
-
-          const totalPlayed = wins + loses;
-          const winrate = totalPlayed > 0 ? ((wins / totalPlayed) * 100).toFixed(1) : "-";
-
-          const niceCatName = getCategoryLabel(cat);
-
-          html += `
-            <details class="category-block">
-              <summary class="category-header">
-                <div class="category-header-main">
-                  <h2 class="category-title">${niceCatName}</h2>
-                  <div class="category-meta">
-                    ${total} picks · ${wins} win / ${loses} lose
-                  </div>
-                </div>
-                <span class="category-chevron">▶</span>
-              </summary>
-              <div class="category-body">
-                <div class="picks-grid">
+        // Testo ruolo/confidenza
+        let scoreHtml;
+        if (cat === "SAFE_PICKS") {
+          scoreHtml = `
+            <span class="score-label-strong">Ruolo nel bankroll:</span>
+            selezione pensata per dare stabilità al rendimento (singole o doppie prudenti).
           `;
-
-          for (const p of list) {
-            const dt = parseMatchDateTime(p);
-            const timeStr = dt
-              ? dt.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
-              : (p.match_time || "-");
-
-            const oddNum = Number(p.odd || 0);
-            const oddStr = oddNum ? oddNum.toFixed(2) : "-";
-
-            const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
-            const res = resultMap.get(key);
-            const resResult = res ? res.result : "";
-            const resScore = res ? res.final_score : "";
-
-            const resultClass = classifyResult(resResult);
-            const cardExtraClass = resultClass ? ` ${resultClass}` : "";
-
-            const resultLabel = (resResult || "").toUpperCase();
-            const finalScore = resScore || "";
-            let badgeText = "";
-            if (resultLabel) {
-              badgeText = finalScore
-                ? `${resultLabel} · ${finalScore}`
-                : resultLabel;
-            }
-            const badgeClass = resultClass ? ` ${resultClass}` : "";
-
-            const confValue = Number(p.score || 0) * 100;
-            const confLabel = confidenceLabel(confValue);
-
-            // Testo ruolo/confidenza
-            let scoreHtml;
-            if (cat === "SAFE_PICKS") {
-              scoreHtml = `
-                <span class="score-label-strong">Ruolo nel bankroll:</span>
-                selezione pensata per dare stabilità al rendimento (singole o doppie prudenti).
-              `;
-            } else if (cat === "DAILY_2PLUS") {
-              scoreHtml = `
-                <span class="score-label-strong">Ruolo nel bankroll:</span>
-                combo selettiva su eventi filtrati dal modello, da usare solo in multipla.
-              `;
-            } else {
-              scoreHtml = `
-                <span class="score-label-strong">Confidenza modello:</span> ${confLabel}
-              `;
-            }
-
-            const fb = feedbackMap.get(key) || { like: 0, dislike: 0 };
-
-            html += `
-              <div class="pick-card${cardExtraClass}">
-                <div class="pick-header">
-                  <span class="league-pill">${p.league || ""} (${p.country || ""})</span>
-                  <span class="match-time">${timeStr}</span>
-                </div>
-                <div class="teams">
-                  ${p.home || ""} – ${p.away || ""}
-                </div>
-                <div class="pick-main">
-                  <span class="pick-label">${p.pick || ""}</span>
-                  <span class="odd-label">@ ${oddStr}</span>
-                </div>
-                <div class="meta-row">
-                  <span class="score-text">
-                    ${scoreHtml}
-                  </span>
-                  ${
-                    badgeText
-                      ? `<span class="result-badge${badgeClass}">${badgeText}</span>`
-                      : ""
-                  }
-                </div>
-                <div class="feedback-row" data-key="${key}">
-                  <button class="vote-btn" data-vote="like">
-                    Like <span class="vote-count">${fb.like}</span>
-                  </button>
-                  <button class="vote-btn" data-vote="dislike">
-                    Dislike <span class="vote-count">${fb.dislike}</span>
-                  </button>
-                </div>
-              </div>
-            `;
-          }
-
-          html += `
-                </div>
-                <div class="category-winrate">
-                  Winrate categoria: <strong>${winrate === "-" ? "-" : winrate + "%"}</strong> (${wins}W / ${loses}L)
-                </div>
-              </div>
-            </details>
+        } else if (cat === "DAILY_2PLUS") {
+          scoreHtml = `
+            <span class="score-label-strong">Ruolo nel bankroll:</span>
+            combo selettiva su eventi filtrati dal modello, da usare solo in multipla.
+          `;
+        } else {
+          scoreHtml = `
+            <span class="score-label-strong">Confidenza modello:</span> ${confLabel}
           `;
         }
 
-        html += `</div>`;
-        container.innerHTML = html;
+        const fb = feedbackMap.get(key) || { like: 0, dislike: 0 };
 
-        setupVoteHandlers(feedbackMap, todayStr);
-
-      } catch (err) {
-        console.error("Errore nel caricamento dei picks:", err);
-        container.innerHTML = `
-          <div class="empty-state">
-            Errore nel caricamento dei picks. Riprova tra qualche minuto.
+        html += `
+          <div class="pick-card${cardExtraClass}">
+            <div class="pick-header">
+              <span class="league-pill">${p.league || ""} (${p.country || ""})</span>
+              <span class="match-time">${timeStr}</span>
+            </div>
+            <div class="teams">
+              ${p.home || ""} – ${p.away || ""}
+            </div>
+            <div class="pick-main">
+              <span class="pick-label">${p.pick || ""}</span>
+              <span class="odd-label">@ ${oddStr}</span>
+            </div>
+            <div class="meta-row">
+              <span class="score-text">
+                ${scoreHtml}
+              </span>
+              ${
+                badgeText
+                  ? `<span class="result-badge${badgeClass}">${badgeText}</span>`
+                  : ""
+              }
+            </div>
+            <div class="feedback-row" data-key="${key}">
+              <button class="vote-btn" data-vote="like">
+                👍 <span class="vote-count">${fb.like || 0}</span>
+              </button>
+              <button class="vote-btn" data-vote="dislike">
+                👎 <span class="vote-count">${fb.dislike || 0}</span>
+              </button>
+            </div>
           </div>
         `;
       }
+
+      html += `
+            </div>
+          </div>
+        </details>
+      `;
     }
+
+    html += `</div>`; // chiusura categories-container
+
+    // ================== SCHEDINE PRONTE (COMBO_TICKETS) ==================
+
+    // ordiniamo in modo fisso X2, X5, X10, X20
+    const TICKET_ORDER = ["X2", "X5", "X10", "X20"];
+    const TICKET_LABELS = {
+      X2: "Raddoppio di giornata",
+      X5: "Quota 5/6",
+      X10: "Quota 10/12",
+      X20: "Quota over 20",
+    };
+
+    let comboTickets = [];
+    try {
+      comboTickets = await sbFetch(
+        "combo_tickets",
+        `?run_date=eq.${todayStr}&select=*`
+      );
+    } catch (e) {
+      console.warn("Errore caricamento combo_tickets:", e);
+    }
+
+    if (Array.isArray(comboTickets) && comboTickets.length) {
+      comboTickets.sort((a, b) => {
+        const ia = TICKET_ORDER.indexOf(a.ticket_type);
+        const ib = TICKET_ORDER.indexOf(b.ticket_type);
+        if (ia === -1 && ib === -1) return 0;
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
+
+      html += `
+        <section class="combo-section">
+          <div class="combo-header-row">
+            <div class="combo-title">Schedine pronte del giorno</div>
+            <p class="combo-subtitle">
+              Quattro combinazioni generate automaticamente dai modelli
+              (raddoppio, quota 5/6, 10/12 e over 20). Sono pensate come extra
+              e <strong>non rientrano nel ROI globale</strong>: se le giochi tieni
+              sempre uno stake più piccolo rispetto alle singole.
+            </p>
+          </div>
+          <div class="combo-grid">
+      `;
+
+      for (const t of comboTickets) {
+        const type = (t.ticket_type || "").toUpperCase();
+        const label = TICKET_LABELS[type] || t.label || type;
+        const totalOdd = Number(t.total_odd || 0);
+        const totalOddStr = totalOdd ? totalOdd.toFixed(2) : "-";
+
+        const legs = Array.isArray(t.legs) ? t.legs : [];
+
+        // calcoliamo esito complessivo della schedina
+        let hasLose = false;
+        let hasPending = false;
+        let hasUnknown = false;
+        let allWin = true;
+
+        const legViews = legs.map(leg => {
+          const fid = String(leg.fixture_id || "").trim();
+          const pickText = String(leg.pick || "").trim();
+          const key = fid && pickText ? `${fid}__${pickText}` : null;
+          const r = key ? resultMap.get(key) : null;
+          const res = (r && r.result) ? r.result.toUpperCase() : "UNKNOWN";
+          const cls = classifyResult(res);
+          const score = r && r.final_score ? r.final_score : "";
+
+          if (res === "LOSE") {
+            hasLose = true;
+            allWin = false;
+          } else if (res === "WIN") {
+            // ok
+          } else if (res === "PENDING") {
+            hasPending = true;
+            allWin = false;
+          } else {
+            hasUnknown = true;
+            allWin = false;
+          }
+
+          return {
+            leg,
+            res,
+            cls,
+            score,
+          };
+        });
+
+        let ticketStatus = "UNKNOWN";
+        if (legs.length === 0) {
+          ticketStatus = "UNKNOWN";
+        } else if (allWin) {
+          ticketStatus = "WIN";
+        } else if (hasLose) {
+          ticketStatus = "LOSE";
+        } else if (hasPending) {
+          ticketStatus = "PENDING";
+        } else {
+          ticketStatus = "UNKNOWN";
+        }
+
+        const statusClass = classifyResult(ticketStatus);
+        const statusLabel = ticketStatus === "UNKNOWN"
+          ? "In preparazione / dati incompleti"
+          : ticketStatus;
+
+        html += `
+          <article class="combo-card ${statusClass || ""}">
+            <div class="combo-card-header">
+              <div class="combo-label">${label}</div>
+              <div class="combo-type-pill">${type}</div>
+            </div>
+            <div class="combo-odd-and-status">
+              <span class="combo-total-odd">Quota totale: ${totalOddStr}</span>
+              <span class="result-badge ${statusClass || ""}">
+                ${statusLabel}
+              </span>
+            </div>
+            <div class="combo-legs">
+        `;
+
+        for (const lv of legViews) {
+          const leg = lv.leg;
+          const teams = `${leg.home || ""} – ${leg.away || ""}`;
+          const pickLabel = `${leg.pick || ""} @ ${Number(leg.odd || 0).toFixed(2)}`;
+          const timeStr = leg.match_time || "-";
+          const leagueStr = leg.league || "";
+          const countryStr = leg.country || "";
+          const catLabel = getCategoryLabel(leg.category || "");
+
+          let legBadge = "";
+          if (lv.res && lv.res !== "UNKNOWN") {
+            const txt = lv.score
+              ? `${lv.res} · ${lv.score}`
+              : lv.res;
+            legBadge = `<span class="result-badge ${lv.cls || ""}">${txt}</span>`;
+          }
+
+          html += `
+            <div class="combo-leg">
+              <div class="combo-leg-main">
+                <span class="combo-leg-teams">${teams}</span>
+                <span class="combo-leg-pick">${pickLabel}</span>
+              </div>
+              <div class="combo-leg-extra">
+                <span class="combo-pill">${timeStr}</span>
+                <span class="combo-pill">${leagueStr}${countryStr ? " (" + countryStr + ")" : ""}</span>
+                <span class="combo-pill">${catLabel}</span>
+                ${legBadge}
+              </div>
+            </div>
+          `;
+        }
+
+        html += `
+            </div>
+          </article>
+        `;
+      }
+
+      html += `
+          </div>
+        </section>
+      `;
+    }
+
+    container.innerHTML = html;
+    setupVoteHandlers(feedbackMap, todayStr);
+  } catch (err) {
+    console.error("Errore caricamento picks:", err);
+    container.innerHTML = `
+      <div class="empty-state">
+        Errore nel caricamento dei dati. Riprova tra qualche minuto.
+      </div>
+    `;
+  }
+}
+
 
     document.addEventListener("DOMContentLoaded", loadTodayPicks);
   </script>
