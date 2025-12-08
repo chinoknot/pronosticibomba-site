@@ -14,110 +14,118 @@
       --border: rgba(148, 163, 184, 0.2);
       --text-main: #e5e7eb;
       --text-muted: #9ca3af;
-      --shadow-soft: 0 20px 45px rgba(15, 23, 42, 0.9);
-      --win: #16a34a;
-      --lose: #dc2626;
+      --text-soft: #6b7280;
+      --accent-strong: #fb923c;
+      --shadow-soft: 0 20px 45px rgba(15, 23, 42, 0.95);
+      --danger: #f97373;
+      --success: #4ade80;
+      --pending: #eab308;
     }
 
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 55%),
+                  radial-gradient(circle at bottom right, rgba(249, 115, 22, 0.18), transparent 60%),
+                  #020617;
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Inter", sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
 
     body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #1e293b, var(--bg));
-      color: var(--text-main);
+      min-height: 100vh;
+      padding: 20px 10px 32px;
+      display: flex;
+      justify-content: center;
     }
 
     main {
+      width: 100%;
       max-width: 1100px;
-      margin: 32px auto 40px;
-      padding: 0 16px 40px;
     }
 
     header {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 14px;
     }
 
     .title-row {
       display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
       justify-content: space-between;
-      gap: 10px;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 4px;
     }
 
     h1 {
-      margin: 0;
-      font-size: 1.9rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      font-size: 1.35rem;
+      font-weight: 650;
+      letter-spacing: 0.03em;
     }
 
     .back-link {
       font-size: 0.8rem;
+      color: var(--text-muted);
       text-decoration: none;
-      color: var(--text-main);
-      padding: 4px 10px;
+      padding: 4px 8px;
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.35);
       background: rgba(15, 23, 42, 0.9);
     }
 
     .back-link:hover {
-      border-color: var(--accent);
-      color: #fed7aa;
+      border-color: rgba(248, 250, 252, 0.6);
+      color: #e5e7eb;
     }
 
     .subtitle {
-      margin: 0;
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      max-width: 760px;
-      line-height: 1.45;
+      font-size: 0.86rem;
+      color: var(--text-soft);
+      max-width: 700px;
+      line-height: 1.5;
     }
 
     .controls-row {
+      margin-top: 12px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 12px;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
     }
 
     .range-label {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      font-weight: 500;
     }
 
-    select {
-      background: rgba(15, 23, 42, 0.95);
+    #range-select {
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
       border-radius: 999px;
       border: 1px solid rgba(148, 163, 184, 0.6);
-      color: var(--text-main);
-      padding: 5px 12px;
-      font-size: 0.82rem;
+      padding: 4px 8px;
+      font-size: 0.8rem;
     }
 
-    /* SUMMARY */
     .summary-card {
-      margin-top: 16px;
-      padding: 14px 16px;
+      margin-top: 14px;
+      margin-bottom: 14px;
+      padding: 12px 12px;
       border-radius: 18px;
-      background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.9));
-      border: 1px solid rgba(30, 64, 175, 0.55);
+      background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.28), transparent 65%),
+                  linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98));
+      border: 1px solid rgba(37, 99, 235, 0.5);
       box-shadow: var(--shadow-soft);
       display: grid;
-      grid-template-columns: 2fr 2fr 3fr;
-      gap: 10px 18px;
-      font-size: 0.86rem;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 8px;
+      font-size: 0.82rem;
     }
 
     .summary-item {
@@ -130,7 +138,7 @@
       font-size: 0.78rem;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
     }
 
     .summary-value {
@@ -153,6 +161,71 @@
 
     .badge-neutral {
       color: var(--text-main);
+    }
+
+
+    /* ==== STORICO COMBO_TICKETS ==== */
+
+    .combo-historical {
+      margin-top: 22px;
+    }
+
+    .combo-hint {
+      font-size: 0.86rem;
+      opacity: 0.86;
+      margin-bottom: 10px;
+    }
+
+    .combo-summary-wrapper {
+      margin-top: 6px;
+    }
+
+    .combo-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+    }
+
+    .combo-summary-card {
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: radial-gradient(circle at top right, rgba(148,163,184,0.18), transparent 60%),
+                  linear-gradient(135deg, #020617, #020617);
+      border: 1px solid rgba(148,163,184,0.45);
+      box-shadow: 0 12px 30px rgba(15,23,42,0.95);
+      font-size: 0.84rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .combo-summary-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .combo-summary-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .combo-summary-meta span {
+      opacity: 0.9;
+    }
+
+    .combo-summary-badge {
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      border: 1px solid rgba(148,163,184,0.7);
+    }
+
+    .combo-summary-empty {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      padding: 4px 2px;
     }
 
     /* TABLES */
@@ -188,116 +261,127 @@
     th, td {
       padding: 6px 8px;
       text-align: left;
-      border-bottom: 1px solid rgba(31, 41, 55, 0.8);
+      border-bottom: 1px solid rgba(30, 64, 175, 0.3);
       white-space: nowrap;
     }
 
     th {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    tbody tr:last-child td {
-      border-bottom: none;
-    }
-
-    td.badge-pos {
-      color: #bbf7d0;
-      font-weight: 600;
-    }
-
-    td.badge-neg {
-      color: #fecaca;
-      font-weight: 600;
-    }
-
-    td.badge-neutral {
-      color: var(--text-main);
       font-weight: 500;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    tbody tr:hover {
+      background: rgba(30, 64, 175, 0.35);
+    }
+
+    td {
+      font-size: 0.8rem;
     }
 
     .empty {
-      text-align: center;
-      font-size: 0.86rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
       padding: 6px 4px;
     }
 
-    /* BLOCCO SPIEGAZIONE */
     .info-block {
-      margin-top: 10px;
-      padding: 14px 16px;
-      border-radius: 18px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      background: rgba(15, 23, 42, 0.95);
-      font-size: 0.84rem;
-      color: var(--text-muted);
-      line-height: 1.5;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 0.82rem;
+      color: var(--text-soft);
     }
 
     .info-title {
-      font-size: 0.86rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-main);
+      font-weight: 600;
       margin-bottom: 6px;
     }
 
     .info-list {
-      margin: 4px 0 0 16px;
-      padding: 0;
+      list-style: disc;
+      padding-left: 16px;
+      margin-top: 4px;
     }
 
     .info-list li {
       margin-bottom: 4px;
     }
 
-    /* MOBILE */
-    @media (max-width: 640px) {
-      main {
-        margin-top: 20px;
-      }
+    .info-list strong {
+      color: #e5e7eb;
+    }
 
-      h1 {
-        font-size: 1.5rem;
+    .badge-win {
+      color: var(--success);
+    }
+
+    .badge-lose {
+      color: var(--danger);
+    }
+
+    .badge-pending {
+      color: var(--pending);
+    }
+
+    .badge-unknown {
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 12px 6px 24px;
       }
 
       .summary-card {
-        grid-template-columns: 1fr;
-        gap: 8px;
+        border-radius: 14px;
       }
 
       .table-wrapper {
-        padding: 8px 8px 6px;
+        border-radius: 14px;
       }
 
       table {
-        border: 0;
-        min-width: 0;
+        font-size: 0.78rem;
+      }
+
+      th, td {
+        padding: 6px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
       }
 
       thead {
         display: none;
       }
 
-      tbody, tr, td {
-        display: block;
-        width: 100%;
+      table {
+        min-width: 0;
       }
 
-      tbody tr {
+      tr {
         margin-bottom: 10px;
-        border-radius: 12px;
-        border: 1px solid rgba(31, 41, 55, 0.8);
-        background: rgba(15, 23, 42, 0.98);
-        padding: 4px 6px;
+        border-radius: 10px;
+        border: 1px solid rgba(30, 64, 175, 0.5);
+        overflow: hidden;
       }
 
       td {
-        border-bottom: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
         padding: 4px 4px;
         display: flex;
         justify-content: space-between;
@@ -363,23 +447,40 @@
     <h2 class="section-title">Andamento giornaliero (solo picks risolte)</h2>
     <div id="table-container"></div>
 
+    <section class="combo-historical">
+      <h2 class="section-title">
+        Storico schedine pronte (combo) – ROI dedicato
+      </h2>
+      <p class="combo-hint">
+        Queste sono le schedine generate automaticamente dai modelli (raddoppio,
+        quota 5/6, 10/12 e over 20). Il loro rendimento <strong>non è incluso</strong>
+        nel ROI globale: qui vedi solo lo storico di queste multipla, con stake fisso
+        1 unità per schedina chiusa.
+      </p>
+      <div id="combo-summary" class="combo-summary-wrapper"></div>
+    </section>
+
     <section class="info-block">
       <div class="info-title">Come leggere ROI, winrate e reliability</div>
       <ul class="info-list">
-        <li><strong>Profitto</strong>: ogni pick parte da 1 unità di stake. Una WIN vale <em>(quota − 1)</em>, una LOSE vale <em>−1</em>. Il profitto è la somma di tutte le unità vinte/perse.</li>
-        <li><strong>ROI</strong>: rendimento sul capitale. Con stake fisso è <em>profitto / numero di picks</em>, espresso in percentuale.</li>
-        <li><strong>Winrate</strong>: percentuale di picks vinte su tutte le picks giocate (<em>WIN / (WIN + LOSE)</em>).</li>
-        <li><strong>Quota media</strong>: media delle quote delle picks giocate in quella categoria.</li>
-        <li><strong>Winrate necessaria</strong>: percentuale minima di vittorie per andare in pari con quella quota media. Formula: <em>winrate necessaria = 100 / quota media</em>.</li>
-        <li><strong>Reliability score</strong>: indica quanto quella categoria sta andando <em>meglio o peggio</em> della soglia di pareggio:
+        <li><strong>ROI</strong>: profitto percentuale rispetto allo stake totale. Es:
+          ROI 12% significa 12 unità di profitto ogni 100 giocate.</li>
+        <li><strong>Winrate</strong>: percentuale di pronostici vinti sul totale
+          (solo picks con esito WIN/LOSE).</li>
+        <li><strong>Quota media & winrate necessaria</strong>:
+          ogni quota media ha un winrate di pareggio (break-even). Esempio:
+          quota media 1.80 ⇒ winrate necessaria ≈ 55.6%.</li>
+        <li><strong>Reliability</strong>:
+          un indicatore qualitativo che prende in considerazione:
           <ul class="info-list">
-            <li><em>Molto solida</em>: winrate ben sopra la soglia (≥ +10 punti).</li>
-            <li><em>Buona</em>: qualche punto sopra la soglia.</li>
-            <li><em>Sul confine</em>: winrate vicino alla soglia di pareggio.</li>
-            <li><em>Debole / Negativa</em>: sotto la soglia → al momento categoria in perdita.</li>
-            <li>Se i dati sono pochi, viene mostrato <em>Dati pochi (campione ridotto)</em>.</li>
+            <li>numero di pronostici giocati (più è alto, meglio è);</li>
+            <li>quanto il winrate effettivo è sopra (o sotto) il winrate di pareggio;</li>
+            <li>stabilità del ROI nel periodo selezionato.</li>
           </ul>
         </li>
+        <li><strong>Campione ridotto</strong>:
+          se le picks sono poche, la reliability viene penalizzata.
+          Se i dati sono pochi, viene mostrato <em>Dati pochi (campione ridotto)</em>.</li>
       </ul>
     </section>
   </main>
@@ -388,14 +489,14 @@
   // ===== CONFIG SUPABASE (solo lettura) =====
   const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
   const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS...CI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
 
   async function sbFetch(table, query) {
     const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
     const res = await fetch(url, {
       headers: {
         apikey: SUPABASE_ANON_KEY,
-        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       },
     });
     if (!res.ok) {
@@ -414,20 +515,18 @@
     if (!str) return "";
     const parts = str.split("-");
     if (parts.length !== 3) return str;
-    const [y, m, d] = parts.map(Number);
-    const dt = new Date(y, m - 1, d);
-    const weekday = dt.toLocaleDateString("it-IT", { weekday: "long" });
-    const day = pad2(dt.getDate());
-    const month = dt.toLocaleDateString("it-IT", { month: "long" });
-    return `${weekday} ${day} ${month} ${y}`;
+    const [y, m, d] = parts;
+    return `${d}/${m}/${y}`;
   }
 
-  function getLastNDates(daysBack) {
+  function getLastNDates(n) {
     const dates = [];
-    const today = new Date();
-    for (let i = 0; i < daysBack; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < n; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
       const y = d.getFullYear();
       const m = pad2(d.getMonth() + 1);
       const day = pad2(d.getDate());
@@ -460,6 +559,18 @@
     return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
   }
 
+  const TICKET_TYPE_LABELS = {
+    X2: "Raddoppio di giornata",
+    X5: "Quota 5/6",
+    X10: "Quota 10/12",
+    X20: "Quota over 20",
+  };
+
+  function getTicketTypeLabel(type, fallback) {
+    const k = (type || "").trim().toUpperCase();
+    return TICKET_TYPE_LABELS[k] || fallback || k || "Combo";
+  }
+
   // ===== FASCE CONFIDENZA (stessa logica della home) =====
   const CONFIDENCE_ORDER = [
     "Molto alta",
@@ -489,45 +600,65 @@
     if (res === "WIN" || res === "LOSE") score += 4;
     else if (res === "PENDING") score += 1;
 
-    if (["FT", "AET", "PEN", "AWD", "WO"].includes(st)) score += 3;
-    else if (["NS", "1H", "2H"].includes(st)) score += 1;
+    if (["FT", "AET", "PEN"].includes(st)) score += 4;
+    else if (["2H", "HT"].includes(st)) score += 2;
+
+    if (res === "WIN") score += 2;
+    if (res === "LOSE") score += 1;
 
     return score;
   }
 
-  // ===== RELIABILITY =====
-  function reliabilityLabel(played, winrate, needed) {
-    if (!played || played <= 0 || !winrate || !needed) return "N/D";
-    if (played < 30) return "Dati pochi (campione ridotto)";
+  function reliabilityLabel(totalPicks, winrate, neededWinrate) {
+    if (!totalPicks || !isFinite(winrate) || !isFinite(neededWinrate)) {
+      return "Dati insufficienti";
+    }
+    const diff = winrate - neededWinrate;
 
-    const diff = winrate - needed;
+    if (totalPicks < 20) {
+      if (diff >= 5) return "Buona ma campione ridotto";
+      if (diff >= 0) return "Ok ma campione ridotto";
+      return "Dati pochi (campione ridotto)";
+    }
 
-    if (diff >= 10) return "Molto solida";
-    if (diff >= 5)  return "Buona";
-    if (diff >= 0)  return "Sul confine";
-    if (diff >= -5) return "Debole";
+    if (totalPicks < 50) {
+      if (diff >= 5) return "Buona";
+      if (diff >= 0) return "Discreta";
+      if (diff >= -3) return "Debole";
+      return "Negativa";
+    }
+
+    if (diff >= 7) return "Molto buona";
+    if (diff >= 3) return "Buona";
+    if (diff >= 0) return "Discreta";
+    if (diff >= -3) return "Debole";
     return "Negativa";
   }
 
-  // ===== FETCH STATISTICHE DI UNA GIORNATA (STESSA LOGICA DELLO STORICO PICKS) =====
   async function fetchDayStats(dateStr) {
-    // tutte le picks di quel giorno
     const picks = await sbFetch(
       "picks",
       `?match_date=eq.${dateStr}&select=*`
     );
 
-    if (!Array.isArray(picks) || !picks.length) {
-      return null;
+    if (!Array.isArray(picks) || picks.length === 0) {
+      return {
+        date: dateStr,
+        wins: 0,
+        loses: 0,
+        stake: 0,
+        profit: 0,
+        avgOdd: null,
+        confidenceStats: {},
+        categoryStats: {},
+      };
     }
 
-    // tutti i risultati di quel giorno
     const results = await sbFetch(
       "results",
       `?picks_date=eq.${dateStr}&select=*`
     );
 
-    // scegliamo il "miglior" risultato per fixture+pick (come Storico Picks)
     const resultMap = new Map();
     if (Array.isArray(results)) {
       for (const r of results) {
@@ -536,15 +667,9 @@
         if (!fid && !pickText) continue;
         const key = fid + "__" + pickText;
 
-        const current = resultMap.get(key);
-        if (!current) {
+        const existing = resultMap.get(key);
+        if (!existing || resultRank(r) > resultRank(existing)) {
           resultMap.set(key, r);
-        } else {
-          const oldScore = resultRank(current);
-          const newScore = resultRank(r);
-          if (newScore >= oldScore) {
-            resultMap.set(key, r);
-          }
         }
       }
     }
@@ -553,9 +678,11 @@
     let loses = 0;
     let stake = 0;
     let profit = 0;
+    let oddsSum = 0;
+    let oddsCount = 0;
 
-    const categories = {};
     const confBands = {};
+    const categories = {};
 
     for (const p of picks) {
       const fid = String(p.fixture_id || "").trim();
@@ -572,77 +699,80 @@
         stake += 1;
         if (result === "WIN") {
           wins += 1;
-          profit += (odd - 1);
+          profit += odd - 1;
         } else {
           loses += 1;
           profit -= 1;
         }
+        oddsSum += odd;
+        oddsCount += 1;
+      }
 
-        // per categoria
-        const catKey = (p.category || "ALTRO").trim() || "ALTRO";
-        if (!categories[catKey]) {
-          categories[catKey] = {
-            wins: 0,
-            loses: 0,
-            stake: 0,
-            profit: 0,
-            oddsSum: 0,
-            oddsCount: 0,
-          };
+      const confLabel = confidenceLabelFromScore(p.score || 0);
+      if (!confBands[confLabel]) {
+        confBands[confLabel] = {
+          wins: 0,
+          loses: 0,
+          stake: 0,
+          profit: 0,
+          oddsSum: 0,
+          oddsCount: 0,
+        };
+      }
+      const band = confBands[confLabel];
+      if (result === "WIN" || result === "LOSE") {
+        band.stake += 1;
+        if (result === "WIN") {
+          band.wins += 1;
+          band.profit += odd - 1;
+        } else {
+          band.loses += 1;
+          band.profit -= 1;
         }
-        const c = categories[catKey];
+        band.oddsSum += odd;
+        band.oddsCount += 1;
+      }
+
+      const catKey = (p.category || "ALTRO").trim() || "ALTRO";
+      if (!categories[catKey]) {
+        categories[catKey] = {
+          wins: 0,
+          loses: 0,
+          stake: 0,
+          profit: 0,
+          oddsSum: 0,
+          oddsCount: 0,
+        };
+      }
+      const c = categories[catKey];
+      if (result === "WIN" || result === "LOSE") {
         c.stake += 1;
         if (result === "WIN") {
           c.wins += 1;
-          c.profit += (odd - 1);
+          c.profit += odd - 1;
         } else {
           c.loses += 1;
           c.profit -= 1;
         }
-        if (odd && !isNaN(odd)) {
-          c.oddsSum += odd;
-          c.oddsCount += 1;
-        }
-
-        // per fascia di confidenza
-        const bandLabel = confidenceLabelFromScore(p.score);
-        if (bandLabel) {
-          if (!confBands[bandLabel]) {
-            confBands[bandLabel] = {
-              wins: 0,
-              loses: 0,
-              stake: 0,
-              profit: 0,
-              oddsSum: 0,
-              oddsCount: 0,
-            };
-          }
-          const b = confBands[bandLabel];
-          b.stake += 1;
-          if (result === "WIN") {
-            b.wins += 1;
-            b.profit += (odd - 1);
-          } else {
-            b.loses += 1;
-            b.profit -= 1;
-          }
-          if (odd && !isNaN(odd)) {
-            b.oddsSum += odd;
-            b.oddsCount += 1;
-          }
-        }
+        c.oddsSum += odd;
+        c.oddsCount += 1;
       }
     }
 
-    if (stake === 0) {
-      // nessuna pick con WIN/LOSE quel giorno
-      return null;
-    }
+    const avgOdd = oddsCount > 0 ? oddsSum / oddsCount : null;
 
-    return { date: dateStr, wins, loses, stake, profit, categories, confBands };
+    return {
+      date: dateStr,
+      wins,
+      loses,
+      stake,
+      profit,
+      avgOdd,
+      confidenceStats: confBands,
+      categoryStats: categories,
+    };
   }
 
-  // ===== MAIN LOAD =====
   async function loadHistory(daysBack) {
     const tableContainer = document.getElementById("table-container");
     tableContainer.innerHTML = `
@@ -654,17 +784,18 @@
     const dates = getLastNDates(daysBack);
 
     try {
-      // fetch in parallelo delle statistiche giorno per giorno
       const statsListRaw = await Promise.all(
         dates.map(d => fetchDayStats(d).catch(() => null))
       );
 
       const statsList = statsListRaw.filter(s => s && s.stake > 0);
 
-      if (!statsList.length) {
+      if (!statsList || statsList.length === 0) {
         tableContainer.innerHTML = `
           <div class="table-wrapper">
-            <div class="empty">Nessuna pick risolta (WIN/LOSE) in questo intervallo.</div>
+            <div class="empty">
+              Nessun dato disponibile nel periodo selezionato.
+            </div>
           </div>
         `;
         document.getElementById("summary-period").textContent = "-";
@@ -678,7 +809,6 @@
         return;
       }
 
-      // aggregazioni globali
       const byDay = new Map();
       const byCategory = {};
       const byConfidence = {};
@@ -702,40 +832,12 @@
         totalLoses += s.loses;
         totalStake += s.stake;
         totalProfit += s.profit;
-
-        // per categoria
-        for (const catKey in s.categories) {
-          if (!Object.prototype.hasOwnProperty.call(s.categories, catKey)) continue;
-          const cDay = s.categories[catKey];
-
-          if (!byCategory[catKey]) {
-            byCategory[catKey] = {
-              wins: 0,
-              loses: 0,
-              stake: 0,
-              profit: 0,
-              oddsSum: 0,
-              oddsCount: 0,
-            };
-          }
-          const cAgg = byCategory[catKey];
-          cAgg.wins += cDay.wins;
-          cAgg.loses += cDay.loses;
-          cAgg.stake += cDay.stake;
-          cAgg.profit += cDay.profit;
-          cAgg.oddsSum += cDay.oddsSum;
-          cAgg.oddsCount += cDay.oddsCount;
-
-          // per media globale quota
-          totalOddsSum += cDay.oddsSum;
-          totalOddsCount += cDay.oddsCount;
+        if (s.avgOdd) {
+          totalOddsSum += s.avgOdd * (s.wins + s.loses);
+          totalOddsCount += (s.wins + s.loses);
         }
 
-        // per fascia di confidenza
-        for (const bandKey in s.confBands) {
-          if (!Object.prototype.hasOwnProperty.call(s.confBands, bandKey)) continue;
-          const bDay = s.confBands[bandKey];
-
+        for (const [bandKey, b] of Object.entries(s.confidenceStats || {})) {
           if (!byConfidence[bandKey]) {
             byConfidence[bandKey] = {
               wins: 0,
@@ -746,31 +848,50 @@
               oddsCount: 0,
             };
           }
-          const bAgg = byConfidence[bandKey];
-          bAgg.wins += bDay.wins;
-          bAgg.loses += bDay.loses;
-          bAgg.stake += bDay.stake;
-          bAgg.profit += bDay.profit;
-          bAgg.oddsSum += bDay.oddsSum;
-          bAgg.oddsCount += bDay.oddsCount;
+          const dest = byConfidence[bandKey];
+          dest.wins += b.wins || 0;
+          dest.loses += b.loses || 0;
+          dest.stake += b.stake || 0;
+          dest.profit += b.profit || 0;
+          dest.oddsSum += b.oddsSum || 0;
+          dest.oddsCount += b.oddsCount || 0;
+        }
+
+        for (const [catKey, c] of Object.entries(s.categoryStats || {})) {
+          if (!byCategory[catKey]) {
+            byCategory[catKey] = {
+              wins: 0,
+              loses: 0,
+              stake: 0,
+              profit: 0,
+              oddsSum: 0,
+              oddsCount: 0,
+            };
+          }
+          const dest = byCategory[catKey];
+          dest.wins += c.wins || 0;
+          dest.loses += c.loses || 0;
+          dest.stake += c.stake || 0;
+          dest.profit += c.profit || 0;
+          dest.oddsSum += c.oddsSum || 0;
+          dest.oddsCount += c.oddsCount || 0;
         }
       }
 
-      const allDates = statsList.map(s => s.date).sort();
-      const firstDay = allDates[0];
-      const lastDay = allDates[allDates.length - 1];
+      const startDate = statsList[statsList.length - 1].date;
+      const endDate = statsList[0].date;
+      const periodLabel = `${formatDateIT(startDate)} → ${formatDateIT(endDate)}`;
+      const daysEffective = statsList.length;
 
-      document.getElementById("summary-period").textContent =
-        `${formatDateIT(firstDay)} → ${formatDateIT(lastDay)}`;
+      document.getElementById("summary-period").textContent = periodLabel;
       document.getElementById("summary-days").textContent =
-        `${allDates.length} giorni con picks`;
+        `${daysEffective} giorni con picks giocate`;
 
       const totalPlayed = totalWins + totalLoses;
       const winrateTotal =
         totalPlayed > 0 ? ((totalWins / totalPlayed) * 100).toFixed(1) : "-";
       const roiTotal =
         totalStake > 0 ? ((totalProfit / totalStake) * 100).toFixed(1) : "-";
-
       const avgOddGlobal =
         totalOddsCount > 0 ? (totalOddsSum / totalOddsCount) : null;
       const winrateNeededGlobal =
@@ -778,29 +899,39 @@
           ? (100 / avgOddGlobal).toFixed(1)
           : "-";
 
-      document.getElementById("summary-winrate").textContent =
-        winrateTotal === "-" ? "-" : `${winrateTotal}%`;
-      document.getElementById("summary-wl").textContent =
-        `${totalWins} win / ${totalLoses} lose`;
-
       const roiEl = document.getElementById("summary-roi");
+      const profitEl = document.getElementById("summary-profit");
       if (roiTotal === "-") {
         roiEl.textContent = "-";
         roiEl.className = "summary-value badge-neutral";
+        profitEl.textContent = "-";
+        profitEl.className = "summary-value-small badge-neutral";
       } else {
         roiEl.textContent = `${roiTotal}%`;
+        const roiNum = parseFloat(roiTotal);
         roiEl.className =
-          "summary-value " +
-          (parseFloat(roiTotal) >= 0 ? "badge-pos" : "badge-neg");
+          "summary-value " + (roiNum >= 0 ? "badge-pos" : "badge-neg");
+
+        const profLabel =
+          totalProfit >= 0
+            ? `Profitto totale: +${totalProfit.toFixed(2)} unità`
+            : `Profitto totale: ${totalProfit.toFixed(2)} unità`;
+        profitEl.textContent = profLabel;
+        profitEl.className =
+          "summary-value-small " + (totalProfit >= 0 ? "badge-pos" : "badge-neg");
       }
 
-      const profitStr = totalProfit.toFixed(2).replace(".", ",");
-      const profitEl = document.getElementById("summary-profit");
-      profitEl.textContent =
-        `Profitto: ${profitStr} unità (stake = ${totalStake})`;
-      profitEl.className =
-        "summary-value-small " +
-        (totalProfit > 0 ? "badge-pos" : totalProfit < 0 ? "badge-neg" : "badge-neutral");
+      const wrEl = document.getElementById("summary-winrate");
+      const wlEl = document.getElementById("summary-wl");
+      if (winrateTotal === "-") {
+        wrEl.textContent = "-";
+        wrEl.className = "summary-value badge-neutral";
+        wlEl.textContent = "-";
+      } else {
+        wrEl.textContent = `${winrateTotal}%`;
+        wrEl.className = "summary-value badge-neutral";
+        wlEl.textContent = `${totalWins} win / ${totalLoses} lose (solo picks con esito definito)`;
+      }
 
       const winNeedEl = document.getElementById("summary-winrate-needed");
       if (winrateNeededGlobal === "-") {
@@ -825,7 +956,6 @@
         relEl.className = "summary-value-small " + cls;
       }
 
-      // 6) tabella per giorno
       const sortedDays = Array.from(byDay.keys()).sort().reverse();
 
       let html = `
@@ -834,11 +964,10 @@
             <thead>
               <tr>
                 <th>Data</th>
-                <th>Picks giocati</th>
+                <th>Picks giocate</th>
                 <th>Win</th>
                 <th>Lose</th>
-                <th>Winrate</th>
-                <th>ROI</th>
+                <th>ROI giornaliero</th>
                 <th>Profitto</th>
               </tr>
             </thead>
@@ -846,41 +975,29 @@
       `;
 
       for (const day of sortedDays) {
-        const info = byDay.get(day);
-        const wins = info.wins;
-        const loses = info.loses;
-        const stake = info.stake;
-        const profit = info.profit;
-
-        const played = wins + loses;
-        const winrate =
-          played > 0 ? ((wins / played) * 100).toFixed(1) : "-";
-        const roi =
-          stake > 0 ? ((profit / stake) * 100).toFixed(1) : "-";
-        const profitDayStr = profit.toFixed(2);
-
+        const s = byDay.get(day);
+        const played = s.wins + s.loses;
+        const roiDay =
+          s.stake > 0 ? ((s.profit / s.stake) * 100).toFixed(1) : "-";
+        const profitStr =
+          s.profit >= 0 ? `+${s.profit.toFixed(2)}` : s.profit.toFixed(2);
         const roiClass =
-          roi === "-"
+          roiDay === "-"
             ? "badge-neutral"
-            : parseFloat(roi) >= 0
+            : parseFloat(roiDay) >= 0
             ? "badge-pos"
             : "badge-neg";
-        const profitClass =
-          parseFloat(profitDayStr) > 0
-            ? "badge-pos"
-            : parseFloat(profitDayStr) < 0
-            ? "badge-neg"
-            : "badge-neutral";
 
         html += `
           <tr>
             <td data-label="Data">${formatDateIT(day)}</td>
-            <td data-label="Picks giocati">${played}</td>
-            <td data-label="Win">${wins}</td>
-            <td data-label="Lose">${loses}</td>
-            <td data-label="Winrate">${winrate === "-" ? "-" : winrate + "%"}</td>
-            <td data-label="ROI" class="${roiClass}">${roi === "-" ? "-" : roi + "%"}</td>
-            <td data-label="Profitto" class="${profitClass}">${profitDayStr}</td>
+            <td data-label="Picks giocate">${played}</td>
+            <td data-label="Win">${s.wins}</td>
+            <td data-label="Lose">${s.loses}</td>
+            <td data-label="ROI giornaliero" class="${roiClass}">
+              ${roiDay === "-" ? "-" : roiDay + "%"}
+            </td>
+            <td data-label="Profitto">${profitStr} u</td>
           </tr>
         `;
       }
@@ -891,39 +1008,33 @@
         </div>
       `;
 
-      // 7) tabella per categoria
-      const sortedCategories = Object.keys(byCategory).sort();
-
-      if (sortedCategories.length) {
+      const catKeys = Object.keys(byCategory);
+      if (catKeys.length) {
         html += `
           <div class="table-wrapper">
-            <h2 class="section-title" style="margin-top:4px;">
-              Rendimento per categoria (solo picks con esito WIN/LOSE)
-            </h2>
+            <h2 class="section-title">Rendimento per categoria di modello</h2>
             <table>
               <thead>
                 <tr>
                   <th>Categoria</th>
-                  <th>Picks giocati</th>
+                  <th>Picks giocate</th>
                   <th>Win</th>
                   <th>Lose</th>
                   <th>Winrate</th>
-                  <th>ROI</th>
+                  <th>ROI (stake=1)</th>
                   <th>Quota media</th>
-                  <th>Winrate necessaria</th>
-                  <th>Reliability score</th>
+                  <th>Winrate pareggio</th>
+                  <th>Reliability</th>
                 </tr>
               </thead>
               <tbody>
         `;
 
-        for (const catKey of sortedCategories) {
+        for (const catKey of catKeys) {
           const c = byCategory[catKey];
           const playedCat = c.wins + c.loses;
           const winrateCat =
-            playedCat > 0
-              ? ((c.wins / playedCat) * 100).toFixed(1)
-              : "-";
+            playedCat > 0 ? ((c.wins / playedCat) * 100).toFixed(1) : "-";
           const roiCat =
             c.stake > 0
               ? ((c.profit / c.stake) * 100).toFixed(1)
@@ -958,19 +1069,17 @@
             }
           }
 
-          const label = getCategoryLabel(catKey);
-
           html += `
             <tr>
-              <td data-label="Categoria">${label}</td>
-              <td data-label="Picks giocati">${playedCat}</td>
+              <td data-label="Categoria">${getCategoryLabel(catKey)}</td>
+              <td data-label="Picks giocate">${playedCat}</td>
               <td data-label="Win">${c.wins}</td>
               <td data-label="Lose">${c.loses}</td>
               <td data-label="Winrate">${winrateCat === "-" ? "-" : winrateCat + "%"}</td>
               <td data-label="ROI" class="${roiCatClass}">${roiCat === "-" ? "-" : roiCat + "%"}</td>
               <td data-label="Quota media">${avgOddStr}</td>
-              <td data-label="Winrate necessaria">${winNeedCat === "-" ? "-" : winNeedCat + "%"}</td>
-              <td data-label="Reliability score" class="${relClass}">${relLabel}</td>
+              <td data-label="Winrate pareggio">${winNeedCat === "-" ? "-" : winNeedCat + "%"}</td>
+              <td data-label="Reliability" class="${relClass}">${relLabel}</td>
             </tr>
           `;
         }
@@ -982,17 +1091,16 @@
         `;
       }
 
-      // 8) tabella per fascia di confidenza
-      const sortedBands = Object.keys(byConfidence).sort((a, b) => {
-        const ia = CONFIDENCE_ORDER.indexOf(a);
-        const ib = CONFIDENCE_ORDER.indexOf(b);
-        if (ia === -1 && ib === -1) return a.localeCompare(b);
-        if (ia === -1) return 1;
-        if (ib === -1) return -1;
-        return ia - ib;
-      });
+      const bandKeys = Object.keys(byConfidence);
+      if (bandKeys.length) {
+        const byConfOrdered = {};
+        for (const label of CONFIDENCE_ORDER) {
+          if (byConfidence[label]) byConfOrdered[label] = byConfidence[label];
+        }
+        for (const k of bandKeys) {
+          if (!byConfOrdered[k]) byConfOrdered[k] = byConfidence[k];
+        }
 
-      if (sortedBands.length) {
         html += `
           <div class="table-wrapper">
             <h2 class="section-title" style="margin-top:4px;">
@@ -1001,27 +1109,25 @@
             <table>
               <thead>
                 <tr>
-                  <th>Confidenza modello</th>
-                  <th>Picks giocati</th>
+                  <th>Fascia confidenza</th>
+                  <th>Picks giocate</th>
                   <th>Win</th>
                   <th>Lose</th>
                   <th>Winrate</th>
-                  <th>ROI</th>
+                  <th>ROI (stake=1)</th>
                   <th>Quota media</th>
-                  <th>Winrate necessaria</th>
-                  <th>Reliability score</th>
+                  <th>Winrate pareggio</th>
+                  <th>Reliability</th>
                 </tr>
               </thead>
               <tbody>
         `;
 
-        for (const bandKey of sortedBands) {
-          const c = byConfidence[bandKey];
+        for (const bandKey of Object.keys(byConfOrdered)) {
+          const c = byConfOrdered[bandKey];
           const playedBand = c.wins + c.loses;
           const winrateBand =
-            playedBand > 0
-              ? ((c.wins / playedBand) * 100).toFixed(1)
-              : "-";
+            playedBand > 0 ? ((c.wins / playedBand) * 100).toFixed(1) : "-";
           const roiBand =
             c.stake > 0
               ? ((c.profit / c.stake) * 100).toFixed(1)
@@ -1065,8 +1171,8 @@
               <td data-label="Winrate">${winrateBand === "-" ? "-" : winrateBand + "%"}</td>
               <td data-label="ROI" class="${roiBandClass}">${roiBand === "-" ? "-" : roiBand + "%"}</td>
               <td data-label="Quota media">${avgOddBandStr}</td>
-              <td data-label="Winrate necessaria">${winNeedBand === "-" ? "-" : winNeedBand + "%"}</td>
-              <td data-label="Reliability score" class="${relClassB}">${relLabelB}</td>
+              <td data-label="Winrate pareggio">${winNeedBand === "-" ? "-" : winNeedBand + "%"}</td>
+              <td data-label="Reliability" class="${relClassB}">${relLabelB}</td>
             </tr>
           `;
         }
@@ -1080,10 +1186,251 @@
 
       tableContainer.innerHTML = html;
     } catch (err) {
-      console.error("Errore storico:", err);
+      console.error(err);
       tableContainer.innerHTML = `
         <div class="table-wrapper">
-          <div class="empty">Errore nel caricamento dello storico.</div>
+          <div class="empty">
+            Errore nel caricamento dei dati. Riprova tra qualche minuto.
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // ===== STORICO SCHEDINE COMBO (combo_tickets) =====
+  async function loadComboHistory(daysBack) {
+    const container = document.getElementById("combo-summary");
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="combo-summary-empty">
+        Carico storico delle schedine...
+      </div>
+    `;
+
+    const dates = getLastNDates(daysBack);
+    if (!dates.length) {
+      container.innerHTML = `
+        <div class="combo-summary-empty">
+          Nessuna data disponibile.
+        </div>
+      `;
+      return;
+    }
+
+    const today = dates[0];
+    const fromDate = dates[dates.length - 1];
+
+    try {
+      const tickets = await sbFetch(
+        "combo_tickets",
+        `?run_date=gte.${fromDate}&run_date=lte.${today}&select=*`
+      );
+
+      if (!Array.isArray(tickets) || !tickets.length) {
+        container.innerHTML = `
+          <div class="combo-summary-empty">
+            Nessuna schedina generata in questo intervallo.
+          </div>
+        `;
+        return;
+      }
+
+      const results = await sbFetch(
+        "results",
+        `?picks_date=gte.${fromDate}&picks_date=lte.${today}&select=*`
+      );
+
+      const resultMap = new Map();
+      if (Array.isArray(results)) {
+        for (const r of results) {
+          const fid = String(r.fixture_id || "").trim();
+          const pickText = String(r.pick || "").trim();
+          if (!fid && !pickText) continue;
+          const key = fid + "__" + pickText;
+
+          const current = resultMap.get(key);
+          if (!current || resultRank(r) >= resultRank(current)) {
+            resultMap.set(key, r);
+          }
+        }
+      }
+
+      const statsByType = {};
+      let globalStake = 0;
+      let globalProfit = 0;
+      let globalWins = 0;
+      let globalLoses = 0;
+
+      function ensureType(type, label) {
+        if (!statsByType[type]) {
+          statsByType[type] = {
+            label,
+            played: 0,
+            wins: 0,
+            loses: 0,
+            stake: 0,
+            profit: 0,
+          };
+        }
+        return statsByType[type];
+      }
+
+      for (const t of tickets) {
+        const type = (t.ticket_type || "").toUpperCase();
+        const label = getTicketTypeLabel(type, t.label);
+
+        const legs = Array.isArray(t.legs) ? t.legs : [];
+        if (!legs.length) continue;
+
+        let hasLose = false;
+        let hasPending = false;
+        let hasUnknown = false;
+        let allWin = true;
+
+        for (const leg of legs) {
+          const fid = String(leg.fixture_id || "").trim();
+          const pickText = String(leg.pick || "").trim();
+          if (!fid && !pickText) {
+            hasUnknown = true;
+            allWin = false;
+            continue;
+          }
+          const key = fid + "__" + pickText;
+          const r = resultMap.get(key);
+          const res = (r && r.result ? r.result : "UNKNOWN").toUpperCase();
+
+          if (res === "LOSE") {
+            hasLose = true;
+            allWin = false;
+          } else if (res === "WIN") {
+          } else if (res === "PENDING") {
+            hasPending = true;
+            allWin = false;
+          } else {
+            hasUnknown = true;
+            allWin = false;
+          }
+        }
+
+        let status = "UNKNOWN";
+        if (allWin) status = "WIN";
+        else if (hasLose) status = "LOSE";
+        else if (hasPending) status = "PENDING";
+        else if (hasUnknown) status = "UNKNOWN";
+
+        if (status !== "WIN" && status !== "LOSE") continue;
+
+        const totalOdd = safeOdd(t.total_odd);
+        const stake = 1;
+        const profit = status === "WIN" ? (totalOdd - 1) : -1;
+
+        const s = ensureType(type, label);
+        s.played += 1;
+        s.stake += stake;
+        s.profit += profit;
+        if (status === "WIN") s.wins += 1;
+        if (status === "LOSE") s.loses += 1;
+
+        globalStake += stake;
+        globalProfit += profit;
+        if (status === "WIN") globalWins += 1;
+        if (status === "LOSE") globalLoses += 1;
+      }
+
+      const types = Object.keys(statsByType);
+      if (!types.length) {
+        container.innerHTML = `
+          <div class="combo-summary-empty">
+            Nessuna schedina chiusa (WIN/LOSE) nel periodo selezionato.
+          </div>
+        `;
+        return;
+      }
+
+      const globalPlayed = globalWins + globalLoses;
+      const globalWinrate =
+        globalPlayed > 0 ? ((globalWins / globalPlayed) * 100).toFixed(1) : "-";
+      const globalRoi =
+        globalStake > 0 ? ((globalProfit / globalStake) * 100).toFixed(1) : "-";
+      const roiClassGlobal =
+        globalRoi === "-"
+          ? "badge-neutral"
+          : parseFloat(globalRoi) >= 0
+          ? "badge-pos"
+          : "badge-neg";
+
+      let html = `<div class="combo-summary-grid">`;
+
+      html += `
+        <div class="combo-summary-card">
+          <div class="combo-summary-title">Totale schedine</div>
+          <div class="combo-summary-meta">
+            <span>${globalPlayed} giocate · ${globalWins} win / ${globalLoses} lose</span>
+          </div>
+          <div class="combo-summary-meta">
+            <span>Stake: ${globalStake} unità · Profitto: ${globalProfit.toFixed(2)} u</span>
+          </div>
+          <div class="combo-summary-meta">
+            <span>Winrate: ${globalWinrate === "-" ? "-" : globalWinrate + "%"}</span>
+            <span class="combo-summary-badge ${roiClassGlobal}">
+              ROI: ${globalRoi === "-" ? "-" : globalRoi + "%"}
+            </span>
+          </div>
+        </div>
+      `;
+
+      const order = ["X2", "X5", "X10", "X20"];
+      types.sort((a, b) => {
+        const ia = order.indexOf(a);
+        const ib = order.indexOf(b);
+        if (ia === -1 && ib === -1) return a.localeCompare(b);
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
+
+      for (const type of types) {
+        const s = statsByType[type];
+        const played = s.played;
+        const wr =
+          played > 0 ? ((s.wins / played) * 100).toFixed(1) : "-";
+        const roi =
+          s.stake > 0 ? ((s.profit / s.stake) * 100).toFixed(1) : "-";
+
+        const roiClass =
+          roi === "-"
+            ? "badge-neutral"
+            : parseFloat(roi) >= 0
+            ? "badge-pos"
+            : "badge-neg";
+
+        html += `
+          <div class="combo-summary-card">
+            <div class="combo-summary-title">${s.label}</div>
+            <div class="combo-summary-meta">
+              <span>${played} schedine · ${s.wins} win / ${s.loses} lose</span>
+            </div>
+            <div class="combo-summary-meta">
+              <span>Stake: ${s.stake} u · Profitto: ${s.profit.toFixed(2)} u</span>
+            </div>
+            <div class="combo-summary-meta">
+              <span>Winrate: ${wr === "-" ? "-" : wr + "%"}</span>
+              <span class="combo-summary-badge ${roiClass}">
+                ROI: ${roi === "-" ? "-" : roi + "%"}
+              </span>
+            </div>
+          </div>
+        `;
+      }
+
+      html += `</div>`;
+      container.innerHTML = html;
+    } catch (err) {
+      console.error("Errore storico combo:", err);
+      container.innerHTML = `
+        <div class="combo-summary-empty">
+          Errore nel caricamento delle schedine.
         </div>
       `;
     }
@@ -1091,10 +1438,13 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     const select = document.getElementById("range-select");
-    loadHistory(parseInt(select.value, 10));
+    const initial = parseInt(select.value, 10);
+    loadHistory(initial);
+    loadComboHistory(initial);
     select.addEventListener("change", () => {
       const v = parseInt(select.value, 10);
       loadHistory(v);
+      loadComboHistory(v);
     });
   });
 </script>
