@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pronostici Bomba – Pronostici calcio con statistiche reali e ROI trasparente</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO base -->
+  <meta name="description"
+        content="Pronostici Bomba genera pronostici calcio con modelli statistici e dati reali, seleziona solo le partite con valore e mostra uno storico ROI trasparente e aggiornato.">
+  <meta name="keywords"
+        content="pronostici calcio, pronostici oggi, scommesse sportive, over 1.5, over 2.5, betting tips, quote di valore, pronostici statistiche, pronostici bomba">
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://pronosticibomba.com/" />
+
+  <!-- Favicon / Icone -->
+  <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="/favicon.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="/favicon.png" />
+  <meta name="theme-color" content="#050816" />
+
+  <!-- Open Graph (Facebook / WhatsApp) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Pronostici Bomba">
+  <meta property="og:title" content="Pronostici Bomba – Pronostici calcio con ROI reale">
+  <meta property="og:description"
+        content="Pronostici automatici da modelli su statistiche e quote, filtrati per qualità e rischio. Storico ROI pubblico per capire davvero come performano le selezioni.">
+  <meta property="og:url" content="https://pronosticibomba.com/">
+  <meta property="og:image" content="https://pronosticibomba.com/favicon.png">
+  <meta property="og:locale" content="it_IT">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Pronostici Bomba – Pronostici calcio con ROI reale">
+  <meta name="twitter:description"
+        content="Modelli statistici, analisi delle quote e pronostici giornalieri con storico ROI consultabile.">
+  <meta name="twitter:image" content="https://pronosticibomba.com/favicon.png">
+
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Pronostici Bomba",
+    "url": "https://pronosticibomba.com/",
+    "description": "Pronostici calcio generati da modelli statistici su dati reali, con storico ROI pubblico e spiegato.",
+    "inLanguage": "it-IT",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://pronosticibomba.com/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+
+  <!-- STILI -->
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-soft: #0f172a;
+      --card: #020617;
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.18);
+      --border: rgba(148, 163, 184, 0.2);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --pill-bg: rgba(148, 163, 184, 0.15);
+      --shadow-soft: 0 20px 45px rgba(15, 23, 42, 0.9);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text-main);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Watermark sullo sfondo, soft e sfocato */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: url("/favicon.png") center 140px no-repeat;
+      background-size: 520px;
+      opacity: 0.09;
+      filter: blur(4px);
+      z-index: -1;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 32px auto 40px;
+      padding: 0 16px 40px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .title-left {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2.1rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      position: relative;
+    }
+
+    h1::after {
+      content: "";
+      display: block;
+      margin-top: 4px;
+      width: 72px;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(to right, #f97316, #fed7aa, transparent);
+      opacity: 0.9;
+    }
+
+    .badge-day {
+      font-size: 0.85rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      color: #fed7aa;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* Buy me a coffee */
+    .coffee-button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+
+      background: radial-gradient(circle at top left,
+        rgba(249, 115, 22, 0.35),
+        rgba(15, 23, 42, 1)
+      );
+      border: 1px solid rgba(249, 115, 22, 0.85);
+      color: #ffedd5;
+
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 14px 30px rgba(15, 23, 42, 0.9),
+        0 0 22px rgba(249, 115, 22, 0.22);
+
+      cursor: pointer;
+      overflow: hidden;
+      transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        background 0.16s ease,
+        border-color 0.16s ease,
+        color 0.16s ease;
+    }
+
+    .coffee-button::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(248, 250, 252, 0.16),
+        transparent
+      );
+      transform: translateX(-130%);
+      transition: transform 0.45s ease;
+      pointer-events: none;
+    }
+
+    .coffee-button:hover {
+      transform: translateY(-1px);
+      background: radial-gradient(circle at top left,
+        rgba(249, 115, 22, 0.45),
+        rgba(15, 23, 42, 1)
+      );
+      border-color: #f97316;
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 16px 36px rgba(15, 23, 42, 1),
+        0 0 26px rgba(249, 115, 22, 0.3);
+      color: #fff7ed;
+    }
+
+    .coffee-button:hover::after {
+      transform: translateX(130%);
+    }
+
+    .coffee-main {
+      line-height: 1.2;
+    }
+
+    .coffee-sub {
+      font-size: 0.7rem;
+      text-transform: none;
+      letter-spacing: 0.02em;
+      color: #fed7aa;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 640px) {
+      .coffee-button {
+        padding: 7px 14px;
+        font-size: 0.78rem;
+      }
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      line-height: 1.45;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .history-link {
+      color: var(--text-main);
+      text-decoration: none;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 0.78rem;
+    }
+
+    .history-link:hover {
+      border-color: var(--accent);
+      color: #fed7aa;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+    }
+
+    .legend-dot.win { background: #16a34a; }
+    .legend-dot.lose { background: #dc2626; }
+    .legend-dot.pending { background: #facc15; }
+    .legend-dot.unknown { background: #6b7280; }
+
+    .legend-note {
+      margin: 4px 0 0;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      max-width: 780px;
+    }
+
+    /* ACCORDION guida */
+    .guide-accordion {
+      margin-top: 8px;
+      max-width: 780px;
+    }
+
+    .guide-accordion > summary {
+      list-style: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: var(--text-main);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.95);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .guide-accordion > summary::marker {
+      display: none;
+    }
+
+    .guide-accordion-icon {
+      display: inline-block;
+      transition: transform 0.15s ease;
+      font-size: 0.9rem;
+    }
+
+    .guide-accordion[open] .guide-accordion-icon {
+      transform: rotate(90deg);
+    }
+
+    .guide-block {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .guide-title {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+
+    .guide-text {
+      margin: 4px 0 6px;
+      line-height: 1.45;
+    }
+
+    .guide-list {
+      margin: 4px 0 6px 16px;
+      padding: 0;
+    }
+
+    .guide-list li {
+      margin-bottom: 3px;
+    }
+
+    .guide-subtitle {
+      margin-top: 8px;
+      font-weight: 600;
+      color: var(--text-main);
+      font-size: 0.83rem;
+    }
+
+    .guide-examples-list {
+      margin: 4px 0 0 16px;
+      padding: 0;
+    }
+
+    .categories-container {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-top: 20px;
+    }
+
+    /* CATEGORY BLOCK + ACCORDION */
+
+    .category-block {
+      background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.86));
+      border-radius: 18px;
+      border: 1px solid rgba(30, 64, 175, 0.45);
+      box-shadow: var(--shadow-soft);
+      padding: 0; /* il padding lo gestiamo dentro per non tagliare il summary */
+      overflow: hidden;
+    }
+
+    .category-block[open] {
+      border-color: rgba(59, 130, 246, 0.8);
+    }
+
+    .category-block > summary {
+      list-style: none;
+      cursor: pointer;
+      margin: 0;
+      padding: 14px 16px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.5);
+    }
+
+    .category-block > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .category-header-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .category-title {
+      margin: 0;
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .category-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .category-chevron {
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      transition: transform 0.15s ease;
+      color: var(--text-muted);
+    }
+
+    .category-block[open] .category-chevron {
+      transform: rotate(90deg);
+      color: #e5e7eb;
+    }
+
+    .category-body {
+      padding: 10px 16px 10px;
+    }
+
+    .picks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+    }
+
+    .category-winrate {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+   /* ==== SCHEDINE PRONTE (COMBO TICKETS) ==== */
+
+.combo-section {
+  margin: 28px 0 8px;
+  padding: 18px 16px 20px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.22), transparent 55%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98));
+  border: 1px solid rgba(248, 250, 252, 0.05);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
+}
+
+.combo-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.combo-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.combo-subtitle {
+  font-size: 0.86rem;
+  opacity: 0.85;
+  max-width: 640px;
+}
+
+.combo-accordions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* Ogni schedina è un <details> tipo accordion */
+.combo-accordion {
+  border-radius: 14px;
+  overflow: hidden;
+  background: radial-gradient(circle at top right, rgba(148, 163, 184, 0.16), transparent 60%),
+              linear-gradient(145deg, #020617, #020617);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.9);
+}
+
+/* Colore bordo in base allo stato */
+.combo-accordion.win {
+  border-color: rgba(34, 197, 94, 0.7);
+}
+.combo-accordion.lose {
+  border-color: rgba(248, 113, 113, 0.9);
+}
+.combo-accordion.pending {
+  border-color: rgba(234, 179, 8, 0.8);
+}
+.combo-accordion.unknown {
+  border-color: rgba(148, 163, 184, 0.55);
+}
+
+.combo-accordion > summary {
+  list-style: none;
+  cursor: pointer;
+  margin: 0;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid rgba(30, 64, 175, 0.5);
+}
+
+.combo-accordion > summary::-webkit-details-marker {
+  display: none;
+}
+
+.combo-summary-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.combo-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.combo-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.combo-type-pill {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  opacity: 0.9;
+}
+
+.combo-summary-meta {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.combo-summary-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.combo-total-odd {
+  font-weight: 600;
+}
+
+.combo-chevron {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.combo-accordion[open] .combo-chevron {
+  transform: rotate(90deg);
+  color: #e5e7eb;
+}
+
+.combo-body {
+  padding: 9px 10px 10px;
+  background: rgba(15, 23, 42, 0.96);
+}
+
+.combo-legs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Singola partita dentro la schedina */
+.combo-leg {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px 2px 6px;
+  border-bottom: 1px dashed rgba(30, 64, 175, 0.6);
+}
+
+.combo-leg:last-child {
+  border-bottom: none;
+}
+
+.combo-leg-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+.combo-leg-teams {
+  font-weight: 500;
+}
+
+.combo-leg-pick {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.combo-leg-extra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 0.72rem;
+  opacity: 0.95;
+}
+
+.combo-pill {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.combo-legs .result-badge {
+  font-size: 0.7rem;
+  padding: 1px 6px;
+}
+
+@media (max-width: 640px) {
+  .combo-section {
+    margin-inline: -4px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .combo-leg-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .combo-leg-pick {
+    white-space: normal;
+  }
+}
+
+
+
+    .pick-card {
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.18), var(--card));
+      border-radius: 14px;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+      position: relative;
+    }
+
+    .pick-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 32px rgba(15, 23, 42, 0.85);
+      border-color: rgba(148, 163, 184, 0.6);
+    }
+
+    .pick-card.win {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.7);
+    }
+
+    .pick-card.lose {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.7);
+    }
+
+    .pick-card.pending { border-color: #facc15; }
+    .pick-card.unknown { border-color: #6b7280; }
+
+    .pick-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .league-pill {
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: var(--pill-bg);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      max-width: 70%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .match-time {
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+    }
+
+    .teams {
+      font-size: 0.9rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pick-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+    }
+
+    .pick-label {
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 250, 252, 0.22);
+      background: rgba(15, 23, 42, 0.9);
+      font-weight: 500;
+    }
+
+    .odd-label {
+      font-weight: 600;
+      font-size: 0.86rem;
+      letter-spacing: 0.04em;
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+    }
+
+    .score-text {
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.78rem;
+    }
+
+    .score-label-strong {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .result-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 9999px;
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .result-badge.win {
+      border-color: #16a34a;
+      color: #bbf7d0;
+    }
+
+    .result-badge.lose {
+      border-color: #dc2626;
+      color: #fecaca;
+    }
+
+    .result-badge.pending {
+      border-color: #facc15;
+      color: #fef9c3;
+    }
+
+    .result-badge.unknown {
+      border-color: #6b7280;
+      color: #e5e7eb;
+    }
+
+    /* Feedback like / dislike */
+    .feedback-row {
+      margin-top: 4px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      font-size: 0.75rem;
+      align-items: center;
+    }
+
+    .vote-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-muted);
+      padding: 2px 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+    }
+
+    .vote-btn:hover {
+      border-color: var(--accent);
+      color: #fed7aa;
+    }
+
+    .vote-btn.selected {
+      border-color: var(--accent);
+      background: rgba(249, 115, 22, 0.12);
+      color: #fed7aa;
+    }
+
+    .vote-count {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
+    .empty-state {
+      margin-top: 40px;
+      padding: 18px 16px;
+      border-radius: 14px;
+      border: 1px dashed rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.8);
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 640px) {
+      main {
+        margin-top: 20px;
+      }
+      h1 {
+        font-size: 1.7rem;
+      }
+      body::before {
+        background-size: 380px;
+        background-position: center 120px;
+      }
+      .title-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="title-row">
+        <div class="title-left">
+          <h1>Pronostici Bomba</h1>
+          <span id="day-badge" class="badge-day"></span>
+        </div>
+        <a
+          href="https://www.buymeacoffee.com/pronosticibomba"
+          target="_blank"
+          rel="noopener"
+          class="coffee-button"
+        >
+          Regala uno snack a Ralph
+        </a>
+      </div>
+
+      <p class="subtitle">
+        I pronostici non sono copiati da altri siti: vengono generati giorno per giorno da modelli che analizzano quote,
+        statistiche e dati storici. Vedi solo partite che superano determinati filtri di qualità e sono organizzate per
+        famiglia di selezioni, rischio e valore.
+      </p>
+
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-dot win"></span> Presa
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot lose"></span> Persa
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot pending"></span> In corso / non ancora iniziata
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot unknown"></span> Esito non disponibile
+        </div>
+        <div class="legend-item">
+          <a href="/storico.html" class="history-link">Storico risultati</a>
+        </div>
+        <div class="legend-item">
+          <a href="/storico_picks.html" class="history-link">Storico dettagliato picks</a>
+        </div>
+      </div>
+
+      <p class="legend-note">
+        “Confidenza modello” indica quanto il sistema gradisce il pick rispetto alla quota del bookmaker, non una vittoria sicura.
+      </p>
+
+      <p class="legend-note">
+        <b>Tutti gli orari delle partite sono mostrati in <strong>orario italiano</strong> (CET/CEST).</b>
+      </p>
+
+      <!-- MINI GUIDA IN ACCORDION -->
+      <details class="guide-accordion">
+        <summary>
+          <span class="guide-accordion-icon">▶</span>
+          Come usare le selezioni e la confidenza modello
+        </summary>
+        <div class="guide-block">
+          <div class="guide-title">Come leggere le selezioni di oggi</div>
+          <p class="guide-text">
+            Ogni blocco raccoglie una famiglia di pronostici con un ruolo diverso nel bankroll:
+          </p>
+          <ul class="guide-list">
+            <li><strong>Scelte d’Élite</strong>: selezioni in cui il modello vede un equilibrio solido fra quota e probabilità.</li>
+            <li><strong>Selezioni Affidabili</strong>: pronostici più prudenti, pensati per dare stabilità al rendimento.</li>
+            <li><strong>Quote di Valore</strong>: partite in cui la quota sembra pagare troppo rispetto al rischio stimato.</li>
+            <li><strong>Tendenze Goal</strong> e <strong>Probabilità Entrambe</strong>: mercati legati ai gol, utili per diversificare il tipo di giocata.</li>
+            <li><strong>Combo Selettiva</strong> e <strong>Combo High Stakes</strong>: multiple con rischio crescente, da usare solo come extra.</li>
+          </ul>
+
+          <div class="guide-subtitle">Come usare la “confidenza”</div>
+          <p class="guide-text">
+            La confidenza non significa che il pick è “sicuro”, ma indica quanto il modello vede i numeri dalla nostra parte
+            rispetto alla quota proposta dal bookmaker.
+          </p>
+          <ul class="guide-list">
+            <li><strong>Confidenza molto alta / alta</strong>: buone per le singole, dove vuoi costruire rendimento nel tempo.</li>
+            <li><strong>Confidenza media</strong>: adatte per completare una schedina da 2–3 eventi o per variare un po’ le giocate.</li>
+            <li><strong>Confidenza bassa</strong>: giocate dove il modello vede potenziale, ma il rischio è alto. Da usare solo con importi piccoli.</li>
+            <li><strong>Confidenza molto bassa / rischiosa</strong>: idee ad alto rischio. Se le usi, trattale come extra e non come base del bankroll.</li>
+          </ul>
+
+          <div class="guide-subtitle">Esempi di utilizzo pratico</div>
+          <ul class="guide-examples-list">
+            <li>
+              <strong>Approccio prudente</strong>: stake fisso (es. 1 unità) su 3–5
+              <em>Selezioni Affidabili</em> o <em>Scelte d’Élite</em> con confidenza medio–alta.
+              Evita le confidenze basse e le combo più pesanti.
+            </li>
+            <li>
+              <strong>Approccio bilanciato</strong>: singole su 2–3 <em>Scelte d’Élite</em> con confidenza alta +
+              una <em>Combo Selettiva</em> con stake ridotto rispetto alle singole.
+            </li>
+            <li>
+              <strong>Approccio speculativo controllato</strong>: stessa base prudente (singole con confidenza alta)
+              e, in più, una sola giocata con confidenza bassa (o una <em>Combo High Stakes</em>)
+              con stake molto più piccolo rispetto alle giocate principali.
+            </li>
+          </ul>
+
+          <p class="guide-text">
+            Lo storico del sito è calcolato con stake fisso di 1 unità per pick: se mantieni una logica simile è più semplice
+            confrontare i tuoi risultati con quelli mostrati nella pagina storico.
+          </p>
+        </div>
+      </details>
+    </header>
+
+    <section id="content"></section>
+  </main>
+
+  <script>
+    // ====== CONFIG SUPABASE (solo lettura) ======
+    const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
+
+    async function sbFetch(table, query) {
+      const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        },
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Errore dati ${res.status}: ${text}`);
+      }
+      return await res.json();
+    }
+
+    // ====== UTIL ======
+    function pad2(n) {
+      return n < 10 ? "0" + n : "" + n;
+    }
+
+    function getTodayStr() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = pad2(now.getMonth() + 1);
+      const d = pad2(now.getDate());
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatDateIT(str) {
+      const parts = str.split("-");
+      if (parts.length !== 3) return str;
+      const [y, m, d] = parts.map(Number);
+      const dt = new Date(y, m - 1, d);
+      const weekday = dt.toLocaleDateString("it-IT", { weekday: "long" });
+      const day = pad2(dt.getDate());
+      const month = dt.toLocaleDateString("it-IT", { month: "long" });
+      return `${weekday} ${day} ${month} ${y}`;
+    }
+
+    function parseMatchDateTime(row) {
+      const d = row.match_date;
+      const t = row.match_time;
+      if (!d || !t) return null;
+
+      const [h, m] = t.split(":").map(x => parseInt(x, 10));
+      const [yy, mm, dd] = d.split("-").map(x => parseInt(x, 10));
+
+      if (!yy || !mm || !dd || isNaN(h) || isNaN(m)) return null;
+
+      // Orari DB in Europe/Dublin -> mostriamo orario italiano (+1)
+      const dt = new Date(yy, mm - 1, dd, h, m);
+      dt.setHours(dt.getHours() + 1);
+      return dt;
+    }
+
+    function groupByCategory(picks) {
+      const map = new Map();
+      for (const p of picks) {
+        const cat = p.category || "OTHER";
+        if (!map.has(cat)) {
+          map.set(cat, []);
+        }
+        map.get(cat).push(p);
+      }
+      return map;
+    }
+
+    function sortCategoriesOrder(categories) {
+      const preferred = [
+        "BEST_TIPS_OF_DAY",
+        "SAFE_PICKS",
+        "SAFE_GOALS",
+        "VALUE_PICKS",
+        "OVER_UNDER_TIPS",
+        "DAILY_2PLUS",
+        "DAILY_10PLUS",
+        "SINGLE_GAME",
+      ];
+      return categories.sort((a, b) => {
+        const ia = preferred.indexOf(a);
+        const ib = preferred.indexOf(b);
+        if (ia === -1 && ib === -1) return a.localeCompare(b);
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
+    }
+
+    function classifyResult(resultRaw) {
+      const res = (resultRaw || "").toUpperCase();
+      if (res === "WIN") return "win";
+      if (res === "LOSE") return "lose";
+      if (res === "PENDING") return "pending";
+      if (res === "VOID") return "unknown";   // stile neutro per match void
+      if (res === "UNKNOWN") return "unknown";
+      return "";
+    }
+
+    function confidenceLabel(val) {
+      if (val > 130) return "molto alta";
+      if (val > 110) return "alta";
+      if (val > 90)  return "medio-alta";
+      if (val > 70)  return "media";
+      if (val > 50)  return "bassa";
+      return "rischiosa";
+    }
+
+    const CATEGORY_LABELS = {
+      BEST_TIPS_OF_DAY: "Scelte d’Élite",
+      SAFE_PICKS: "Selezioni Affidabili",
+      SAFE_GOALS: "Safe goals (Over 2.5 o BTTS)",
+      VALUE_PICKS: "Quote di Valore",
+      OVER_UNDER_TIPS: "Tendenze Goal",
+      BTTS_TIPS: "Probabilità Entrambe",
+      DAILY_2PLUS: "Combo Selettiva",
+      DAILY_10PLUS: "Combo High Stakes",
+      SINGLE_GAME: "Pick Esclusiva"
+    };
+
+    function getCategoryLabel(cat) {
+      const k = (cat || "").trim().toUpperCase();
+      return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
+    }
+
+    // ====== FEEDBACK LIKE / DISLIKE ======
+
+    async function loadFeedbackMap(picksDate) {
+      try {
+        const rows = await sbFetch(
+          "feedback",
+          `?picks_date=eq.${picksDate}&select=fixture_id,pick,vote`
+        );
+        const map = new Map();
+        if (Array.isArray(rows)) {
+          for (const r of rows) {
+            if (!r.fixture_id || !r.pick) continue;
+            const key = String(r.fixture_id) + "__" + String(r.pick).trim();
+            let obj = map.get(key);
+            if (!obj) {
+              obj = { like: 0, dislike: 0 };
+              map.set(key, obj);
+            }
+            const v = (r.vote || "").toLowerCase();
+            if (v === "like") obj.like++;
+            if (v === "dislike") obj.dislike++;
+          }
+        }
+        return map;
+      } catch (e) {
+        console.warn("Impossibile caricare feedback, procedo senza:", e);
+        return new Map();
+      }
+    }
+
+    async function sendVoteToSupabase(picksDate, dataKey, vote) {
+      try {
+        const [fixtureId, ...rest] = dataKey.split("__");
+        const pick = rest.join("__");
+        const clientId = getClientId();
+
+        const url = `${SUPABASE_URL}/rest/v1/feedback?on_conflict=client_id,picks_date,fixture_id,pick`;
+
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: "Bearer " + SUPABASE_ANON_KEY,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal,resolution=merge-duplicates"
+          },
+          body: JSON.stringify({
+            client_id: clientId,
+            picks_date: picksDate,
+            fixture_id: fixtureId,
+            pick: pick,
+            vote: vote
+          })
+        });
+
+        if (!res.ok) {
+          const txt = await res.text();
+          console.warn("Errore salvataggio feedback:", res.status, txt);
+        }
+      } catch (e) {
+        console.warn("Eccezione salvataggio feedback:", e);
+      }
+    }
+
+    function getClientId() {
+      const key = "pb_client_id";
+      let cid = localStorage.getItem(key);
+      if (!cid) {
+        if (window.crypto && crypto.randomUUID) {
+          cid = crypto.randomUUID();
+        } else {
+          cid = Date.now().toString(36) + Math.random().toString(36).slice(2);
+        }
+        localStorage.setItem(key, cid);
+      }
+      return cid;
+    }
+
+    function setupVoteHandlers(feedbackMap, picksDate) {
+      const rows = document.querySelectorAll(".feedback-row");
+      rows.forEach(row => {
+        const dataKey = row.getAttribute("data-key");
+        if (!dataKey) return;
+
+        const storageKey = "pb_vote_" + dataKey;
+        const existingVote = localStorage.getItem(storageKey);
+
+        const buttons = row.querySelectorAll(".vote-btn");
+        buttons.forEach(btn => {
+          const voteType = btn.getAttribute("data-vote");
+          const countSpan = btn.querySelector(".vote-count");
+
+          if (existingVote && existingVote === voteType) {
+            btn.classList.add("selected");
+          }
+
+          btn.addEventListener("click", () => {
+            const currentSelected = row.querySelector(".vote-btn.selected");
+            const currentVote = currentSelected ? currentSelected.getAttribute("data-vote") : null;
+
+            if (currentVote === voteType) {
+              return;
+            }
+
+            const fb = feedbackMap.get(dataKey) || { like: 0, dislike: 0 };
+
+            if (currentVote) {
+              const prevBtn = row.querySelector(`.vote-btn[data-vote="${currentVote}"]`);
+              const prevSpan = prevBtn ? prevBtn.querySelector(".vote-count") : null;
+              if (prevSpan) {
+                if (currentVote === "like" && fb.like > 0) {
+                  fb.like--;
+                  prevSpan.textContent = fb.like;
+                }
+                if (currentVote === "dislike" && fb.dislike > 0) {
+                  fb.dislike--;
+                  prevSpan.textContent = fb.dislike;
+                }
+              }
+            }
+
+            if (voteType === "like") {
+              fb.like++;
+            } else if (voteType === "dislike") {
+              fb.dislike++;
+            }
+            feedbackMap.set(dataKey, fb);
+
+            const likeBtn = row.querySelector('.vote-btn[data-vote="like"]');
+            const dislikeBtn = row.querySelector('.vote-btn[data-vote="dislike"]');
+            if (likeBtn) {
+              const s = likeBtn.querySelector(".vote-count");
+              if (s) s.textContent = fb.like;
+            }
+            if (dislikeBtn) {
+              const s = dislikeBtn.querySelector(".vote-count");
+              if (s) s.textContent = fb.dislike;
+            }
+
+            buttons.forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+
+            localStorage.setItem(storageKey, voteType);
+
+            sendVoteToSupabase(picksDate, dataKey, voteType);
+          });
+        });
+      });
+    }
+
+// ====== MAIN LOAD ======
+async function loadTodayPicks() {
+  const container = document.getElementById("content");
+  const todayStr = getTodayStr();
+  const dayBadge = document.getElementById("day-badge");
+  dayBadge.textContent = formatDateIT(todayStr);
+
+  try {
+    const picks = await sbFetch(
+      "picks",
+      `?run_date=eq.${todayStr}&match_date=eq.${todayStr}&select=*`
+    );
+
+    if (!Array.isArray(picks) || !picks.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          Nessun pick disponibile per oggi.<br />
+          Torna più tardi quando i modelli avranno generato nuovi pronostici.
+        </div>
+      `;
+      return;
+    }
+
+    // risultati singole
+    const results = await sbFetch(
+      "results",
+      `?picks_date=eq.${todayStr}&select=*`
+    );
+
+    const feedbackMap = await loadFeedbackMap(todayStr);
+
+    const resultMap = new Map();
+    const fixtureResultMap = new Map();
+    if (Array.isArray(results)) {
+      for (const r of results) {
+        if (r.fixture_id && r.pick) {
+          const fidStr = String(r.fixture_id).trim();
+          const key = fidStr + "__" + String(r.pick).trim();
+          resultMap.set(key, r);
+          // mappa per fixture_id, usata come fallback quando il testo del pick non coincide
+          const arr = fixtureResultMap.get(fidStr) || [];
+          arr.push(r);
+          fixtureResultMap.set(fidStr, arr);
+        }
+      }
+    }
+
+    const byCategory = groupByCategory(picks);
+    const categories = sortCategoriesOrder(Array.from(byCategory.keys()));
+
+    // ================== HTML PICKS CLASSICI ==================
+    let html = `<div class="categories-container">`;
+
+    for (const cat of categories) {
+      const list = byCategory.get(cat) || [];
+
+      list.sort((a, b) => {
+        const da = parseMatchDateTime(a);
+        const db = parseMatchDateTime(b);
+        if (da && db) return da - db;
+        if (da) return -1;
+        if (db) return 1;
+        return 0;
+      });
+
+      const total = list.length;
+      let wins = 0;
+      let loses = 0;
+
+      for (const p of list) {
+        const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
+        const res = resultMap.get(key);
+        const rLabel = (res && res.result) ? res.result.toUpperCase() : "";
+        if (rLabel === "WIN") wins++;
+        if (rLabel === "LOSE") loses++;
+      }
+
+      const totalPlayed = wins + loses;
+      const winrate =
+        totalPlayed > 0 ? ((wins / totalPlayed) * 100).toFixed(1) : "-";
+
+      const niceCatName = getCategoryLabel(cat);
+
+      html += `
+        <details class="category-block">
+          <summary class="category-header">
+            <div class="category-header-main">
+              <h2 class="category-title">${niceCatName}</h2>
+              <div class="category-meta">
+                ${total} picks · ${wins} win / ${loses} lose
+              </div>
+            </div>
+            <span class="category-chevron">▶</span>
+          </summary>
+          <div class="category-body">
+            <div class="picks-grid">
+      `;
+
+      for (const p of list) {
+        const dt = parseMatchDateTime(p);
+        const timeStr = dt
+          ? dt.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+          : (p.match_time || "-");
+
+        const oddNum = Number(p.odd || 0);
+        const oddStr = oddNum ? oddNum.toFixed(2) : "-";
+
+        const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
+        const res = resultMap.get(key);
+        const resResult = res ? res.result : "";
+        const resScore = res ? res.final_score : "";
+
+        const resultClass = classifyResult(resResult);
+        const cardExtraClass = resultClass ? ` ${resultClass}` : "";
+
+        const resultLabel = (resResult || "").toUpperCase();
+        const finalScore = resScore || "";
+        let badgeText = "";
+        if (resultLabel) {
+          badgeText = finalScore
+            ? `${resultLabel} · ${finalScore}`
+            : resultLabel;
+        }
+        const badgeClass = resultClass ? ` ${resultClass}` : "";
+
+        const confValue = Number(p.score || 0) * 100;
+        const confLabel = confidenceLabel(confValue);
+
+        // Testo ruolo/confidenza
+        let scoreHtml;
+        if (cat === "SAFE_PICKS") {
+          scoreHtml = `
+            <span class="score-label-strong">Ruolo nel bankroll:</span>
+            selezione pensata per dare stabilità al rendimento (singole o doppie prudenti).
+          `;
+        } else if (cat === "DAILY_2PLUS") {
+          scoreHtml = `
+            <span class="score-label-strong">Ruolo nel bankroll:</span>
+            combo selettiva su eventi filtrati dal modello, da usare solo in multipla.
+          `;
+        } else {
+          scoreHtml = `
+            <span class="score-label-strong">Confidenza modello:</span> ${confLabel}
+          `;
+        }
+
+        const fb = feedbackMap.get(key) || { like: 0, dislike: 0 };
+
+        html += `
+          <div class="pick-card${cardExtraClass}">
+            <div class="pick-header">
+              <span class="league-pill">${p.league || ""} (${p.country || ""})</span>
+              <span class="match-time">${timeStr}</span>
+            </div>
+            <div class="teams">
+              ${p.home || ""} – ${p.away || ""}
+            </div>
+            <div class="pick-main">
+              <span class="pick-label">${p.pick || ""}</span>
+              <span class="odd-label">@ ${oddStr}</span>
+            </div>
+            <div class="meta-row">
+              <span class="score-text">
+                ${scoreHtml}
+              </span>
+              ${
+                badgeText
+                  ? `<span class="result-badge${badgeClass}">${badgeText}</span>`
+                  : ""
+              }
+            </div>
+            <div class="feedback-row" data-key="${key}">
+              <button class="vote-btn" data-vote="like">
+                👍 <span class="vote-count">${fb.like || 0}</span>
+              </button>
+              <button class="vote-btn" data-vote="dislike">
+                👎 <span class="vote-count">${fb.dislike || 0}</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      html += `
+            </div>
+          </div>
+        </details>
+      `;
+    }
+
+    html += `</div>`; // chiusura categories-container
+
+              // ================== SCHEDINE PRONTE (COMBO_TICKETS) ==================
+
+    // ordiniamo in modo fisso X2, X5, X10, X20
+    const TICKET_ORDER = ["X2", "X5", "X10", "X20"];
+    const TICKET_LABELS = {
+      X2: "Raddoppio di giornata",
+      X5: "Quota 5/6",
+      X10: "Quota 10/12",
+      X20: "Quota over 20",
+    };
+
+    let comboTickets = [];
+    try {
+      comboTickets = await sbFetch(
+        "combo_tickets",
+        `?run_date=eq.${todayStr}&select=*`
+      );
+    } catch (e) {
+      console.warn("Errore caricamento combo_tickets:", e);
+    }
+
+    if (Array.isArray(comboTickets) && comboTickets.length) {
+      comboTickets.sort((a, b) => {
+        const ta = (a.ticket_type || "").toUpperCase();
+        const tb = (b.ticket_type || "").toUpperCase();
+        const ia = TICKET_ORDER.indexOf(ta);
+        const ib = TICKET_ORDER.indexOf(tb);
+        if (ia === -1 && ib === -1) return 0;
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
+
+      html += `
+        <section class="combo-section">
+          <div class="combo-header-row">
+            <div class="combo-title">Schedine pronte del giorno</div>
+            <p class="combo-subtitle">
+              Quattro combinazioni generate automaticamente dai modelli
+              (raddoppio, quota 5/6, 10/12 e over 20). Sono pensate come extra
+              e <strong>non rientrano nel ROI globale</strong>: se le giochi tieni
+              sempre uno stake più piccolo rispetto alle singole.
+            </p>
+          </div>
+          <div class="combo-accordions">
+      `;
+
+      for (const t of comboTickets) {
+        const type = (t.ticket_type || "").toUpperCase();
+        const label = TICKET_LABELS[type] || t.label || type;
+        const storedOdd = Number(t.total_odd || 0);
+
+        const legs = Array.isArray(t.legs) ? t.legs : [];
+
+        let hasLose = false;
+        let hasPending = false;
+        let hasUnknown = false;
+        let hasVoid = false;
+        const legViews = [];
+        const nonVoidLegs = [];
+
+        for (const leg of legs) {
+          const fid = String(leg.fixture_id || "").trim();
+          const pickText = String(leg.pick || "").trim();
+          const key = fid && pickText ? `${fid}__${pickText}` : null;
+          let r = key ? resultMap.get(key) : null;
+          // Fallback 1: se non troviamo match per (fixture_id + pick),
+          // usiamo comunque il primo risultato disponibile per quel fixture.
+          // Le schedine pronte NON entrano nel ROI globale, quindi questo
+          // compromesso è accettabile per mostrare correttamente il punteggio.
+          if (!r && fid) {
+            const arr = fixtureResultMap.get(fid);
+            if (arr && arr.length >= 1) {
+              r = arr[0];
+            }
+          }
+          // Fallback 2: se ancora niente, proviamo a matchare per nome squadra
+          if (!r && Array.isArray(results)) {
+            const homeName = (leg.home || "").toLowerCase().trim();
+            const awayName = (leg.away || "").toLowerCase().trim();
+            if (homeName && awayName) {
+              r = results.find(rr => {
+                const rh = String(rr.home || "").toLowerCase().trim();
+                const ra = String(rr.away || "").toLowerCase().trim();
+                return rh.includes(homeName) && ra.includes(awayName);
+              }) || null;
+            }
+          }
+
+          const rawRes = (r && r.result) ? r.result.toUpperCase() : "UNKNOWN";
+          const statusShort = (r && r.status_short ? r.status_short : "").toUpperCase();
+
+          const isVoid =
+            rawRes === "VOID" ||
+            ["PST", "CANC", "ABD"].includes(statusShort);
+
+          let logicalRes = rawRes;
+          if (isVoid) {
+            logicalRes = "VOID";
+            hasVoid = true;
+          } else {
+            if (logicalRes === "LOSE") {
+              hasLose = true;
+            } else if (logicalRes === "PENDING") {
+              hasPending = true;
+            } else if (logicalRes !== "WIN") {
+              hasUnknown = true;
+            }
+            nonVoidLegs.push({ leg, r, logicalRes });
+          }
+
+          const cls = classifyResult(logicalRes);
+          const score = r && r.final_score ? r.final_score : "";
+
+          legViews.push({
+            leg,
+            cls,
+            score,
+            res: logicalRes,
+            isVoid,
+          });
+        }
+
+        let ticketStatus = "UNKNOWN";
+        if (nonVoidLegs.length === 0) {
+          ticketStatus = "UNKNOWN"; // tutte VOID → schedina annullata/ignorata
+        } else if (hasLose) {
+          ticketStatus = "LOSE";
+        } else if (hasPending || hasUnknown) {
+          ticketStatus = "PENDING";
+        } else {
+          ticketStatus = "WIN";
+        }
+
+        // quota effettiva: prodotto solo gambe non-void
+        let effectiveOdd = 1.0;
+        let hasNonVoidOdd = false;
+        for (const lv of legViews) {
+          if (lv.isVoid) continue;
+          const legOddNum = Number(lv.leg.odd || 0);
+          if (legOddNum > 1) {
+            effectiveOdd *= legOddNum;
+            hasNonVoidOdd = true;
+          }
+        }
+
+        let oddToShow;
+        if (ticketStatus === "WIN" || ticketStatus === "LOSE") {
+          oddToShow = hasNonVoidOdd ? effectiveOdd : storedOdd;
+        } else {
+          oddToShow = storedOdd || (hasNonVoidOdd ? effectiveOdd : 0);
+        }
+        const totalOddStr = oddToShow ? oddToShow.toFixed(2) : "-";
+
+        const statusClass = classifyResult(ticketStatus);
+        const statusLabel =
+          ticketStatus === "UNKNOWN"
+            ? "In preparazione / dati incompleti"
+            : ticketStatus;
+
+        html += `
+          <details class="combo-accordion ${statusClass || ""}">
+            <summary>
+              <div class="combo-summary-main">
+                <div class="combo-label-row">
+                  <span class="combo-label">${label}</span>
+                  <span class="combo-type-pill">${type}</span>
+                </div>
+                <div class="combo-summary-meta">
+                  <span class="combo-total-odd">Quota totale: ${totalOddStr}</span>
+                </div>
+              </div>
+              <div class="combo-summary-right">
+                <span class="result-badge ${statusClass || ""}">
+                  ${statusLabel}
+                </span>
+                <span class="combo-chevron">▶</span>
+              </div>
+            </summary>
+            <div class="combo-body">
+              <div class="combo-legs">
+        `;
+
+        for (const lv of legViews) {
+          const leg = lv.leg;
+          const teams = `${leg.home || ""} – ${leg.away || ""}`;
+          const legOddNum = Number(leg.odd || 0);
+          const legOddStr = legOddNum ? legOddNum.toFixed(2) : "-";
+          const pickLabel = `${leg.pick || ""} @ ${legOddStr}`;
+          const timeStr = leg.match_time || "-";
+          const leagueStr = leg.league || "";
+          const countryStr = leg.country || "";
+          const catLabel = getCategoryLabel(leg.category || "");
+
+          let legBadge = "";
+          if (lv.res && lv.res !== "UNKNOWN") {
+            const txt = lv.score ? `${lv.res} · ${lv.score}` : lv.res;
+            legBadge = `<span class="result-badge ${lv.cls || ""}">${txt}</span>`;
+          }
+
+          html += `
+            <div class="combo-leg">
+              <div class="combo-leg-main">
+                <span class="combo-leg-teams">${teams}</span>
+                <span class="combo-leg-pick">${pickLabel}</span>
+              </div>
+              <div class="combo-leg-extra">
+                <span class="combo-pill">${timeStr}</span>
+                <span class="combo-pill">
+                  ${leagueStr}${countryStr ? " (" + countryStr + ")" : ""}
+                </span>
+                <span class="combo-pill">${catLabel}</span>
+                ${legBadge}
+              </div>
+            </div>
+          `;
+        }
+
+        html += `
+              </div>
+            </div>
+          </details>
+        `;
+      }
+
+      html += `
+          </div>
+        </section>
+      `;
+    }
+    container.innerHTML = html;
+    setupVoteHandlers(feedbackMap, todayStr);
+  } catch (err) {
+    console.error("Errore caricamento picks:", err);
+    container.innerHTML = `
+      <div class="empty-state">
+        Errore nel caricamento dei dati. Riprova tra qualche minuto.
+      </div>
+    `;
+  }
+}
+
+
+    document.addEventListener("DOMContentLoaded", loadTodayPicks);
+  </script>
+</body>
+</html>
