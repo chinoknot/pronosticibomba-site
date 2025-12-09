@@ -1403,9 +1403,9 @@ async function loadTodayPicks() {
         // Testo ruolo/confidenza
         let scoreHtml;
         if (cat === "SAFE_PICKS") {
-          scoreHtml = `
-            <span class="score-label-strong">Ruolo nel bankroll:</span>
-            selezione pensata per dare stabilità al rendimento (singole o doppie prudenti).
+        scoreHtml = `
+        <span class="score-label-strong">Confidenza modello:</span>
+            ${confidenceLabel(pick.score)}
           `;
         } else if (cat === "DAILY_2PLUS") {
           scoreHtml = `
