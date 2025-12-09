@@ -466,16 +466,17 @@
       margin-top: 6px;
     }
 
-    /* ==== SCHEDINE PRONTE (COMBO TICKETS) ==== */
+   /* ==== SCHEDINE PRONTE (COMBO TICKETS) ==== */
 
 .combo-section {
   margin: 28px 0 8px;
   padding: 18px 16px 20px;
   border-radius: 18px;
-  background: radial-gradient(circle at top left, rgba(249,115,22,0.22), transparent 55%),
-              linear-gradient(135deg, rgba(15,23,42,0.96), rgba(2,6,23,0.98));
-  border: 1px solid rgba(248,250,252,0.05);
-  box-shadow: 0 18px 45px rgba(15,23,42,0.9);
+  background:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.22), transparent 55%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98));
+  border: 1px solid rgba(248, 250, 252, 0.05);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
 }
 
 .combo-header-row {
@@ -499,35 +500,69 @@
   max-width: 640px;
 }
 
-.combo-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.combo-card {
-  position: relative;
-  border-radius: 16px;
-  padding: 12px 12px 10px;
-  background: radial-gradient(circle at top right, rgba(148,163,184,0.14), transparent 60%),
-              linear-gradient(145deg, #020617, #020617);
-  border: 1px solid rgba(148,163,184,0.35);
-  box-shadow: 0 10px 28px rgba(15,23,42,0.9);
+.combo-accordions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  margin-top: 6px;
 }
 
-.combo-card-header {
+/* Ogni schedina è un <details> tipo accordion */
+.combo-accordion {
+  border-radius: 14px;
+  overflow: hidden;
+  background: radial-gradient(circle at top right, rgba(148, 163, 184, 0.16), transparent 60%),
+              linear-gradient(145deg, #020617, #020617);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.9);
+}
+
+/* Colore bordo in base allo stato */
+.combo-accordion.win {
+  border-color: rgba(34, 197, 94, 0.7);
+}
+.combo-accordion.lose {
+  border-color: rgba(248, 113, 113, 0.9);
+}
+.combo-accordion.pending {
+  border-color: rgba(234, 179, 8, 0.8);
+}
+.combo-accordion.unknown {
+  border-color: rgba(148, 163, 184, 0.55);
+}
+
+.combo-accordion > summary {
+  list-style: none;
+  cursor: pointer;
+  margin: 0;
+  padding: 10px 12px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: baseline;
-  gap: 6px;
+  gap: 10px;
+  border-bottom: 1px solid rgba(30, 64, 175, 0.5);
+}
+
+.combo-accordion > summary::-webkit-details-marker {
+  display: none;
+}
+
+.combo-summary-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.combo-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .combo-label {
-  font-size: 0.94rem;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
@@ -535,39 +570,57 @@
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  padding: 3px 8px;
+  padding: 2px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(148,163,184,0.7);
+  border: 1px solid rgba(148, 163, 184, 0.7);
   opacity: 0.9;
 }
 
-.combo-odd-and-status {
+.combo-summary-meta {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.combo-summary-right {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .combo-total-odd {
   font-weight: 600;
 }
 
-.combo-legs {
-  margin-top: 3px;
-  border-radius: 10px;
-  background: rgba(15,23,42,0.9);
-  padding: 6px 7px;
-  max-height: 190px;
-  overflow: auto;
+.combo-chevron {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  transition: transform 0.15s ease, color 0.15s ease;
 }
 
+.combo-accordion[open] .combo-chevron {
+  transform: rotate(90deg);
+  color: #e5e7eb;
+}
+
+.combo-body {
+  padding: 9px 10px 10px;
+  background: rgba(15, 23, 42, 0.96);
+}
+
+.combo-legs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Singola partita dentro la schedina */
 .combo-leg {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 4px 2px;
-  border-bottom: 1px dashed rgba(30,64,175,0.5);
+  gap: 3px;
+  padding: 4px 2px 6px;
+  border-bottom: 1px dashed rgba(30, 64, 175, 0.6);
 }
 
 .combo-leg:last-child {
@@ -577,7 +630,7 @@
 .combo-leg-main {
   display: flex;
   justify-content: space-between;
-  gap: 6px;
+  gap: 8px;
   font-size: 0.82rem;
 }
 
@@ -587,6 +640,7 @@
 
 .combo-leg-pick {
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .combo-leg-extra {
@@ -600,27 +654,13 @@
 .combo-pill {
   padding: 2px 6px;
   border-radius: 999px;
-  background: rgba(15,23,42,0.8);
-  border: 1px solid rgba(148,163,184,0.4);
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.4);
 }
 
 .combo-legs .result-badge {
   font-size: 0.7rem;
   padding: 1px 6px;
-}
-
-/* badge colori già usati: win/lose/pending/unknown */
-.combo-card.win {
-  border-color: rgba(34,197,94,0.7);
-}
-.combo-card.lose {
-  border-color: rgba(248,113,113,0.9);
-}
-.combo-card.pending {
-  border-color: rgba(234,179,8,0.8);
-}
-.combo-card.unknown {
-  border-color: rgba(148,163,184,0.55);
 }
 
 @media (max-width: 640px) {
@@ -630,7 +670,17 @@
     border-left: none;
     border-right: none;
   }
+
+  .combo-leg-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .combo-leg-pick {
+    white-space: normal;
+  }
 }
+
 
 
     .pick-card {
@@ -1414,7 +1464,7 @@ async function loadTodayPicks() {
 
     html += `</div>`; // chiusura categories-container
 
-    // ================== SCHEDINE PRONTE (COMBO_TICKETS) ==================
+       // ================== SCHEDINE PRONTE (COMBO_TICKETS) ==================
 
     // ordiniamo in modo fisso X2, X5, X10, X20
     const TICKET_ORDER = ["X2", "X5", "X10", "X20"];
@@ -1437,8 +1487,8 @@ async function loadTodayPicks() {
 
     if (Array.isArray(comboTickets) && comboTickets.length) {
       comboTickets.sort((a, b) => {
-        const ia = TICKET_ORDER.indexOf(a.ticket_type);
-        const ib = TICKET_ORDER.indexOf(b.ticket_type);
+        const ia = TICKET_ORDER.indexOf((a.ticket_type || "").toUpperCase());
+        const ib = TICKET_ORDER.indexOf((b.ticket_type || "").toUpperCase());
         if (ia === -1 && ib === -1) return 0;
         if (ia === -1) return 1;
         if (ib === -1) return -1;
@@ -1456,7 +1506,7 @@ async function loadTodayPicks() {
               sempre uno stake più piccolo rispetto alle singole.
             </p>
           </div>
-          <div class="combo-grid">
+          <div class="combo-accordions">
       `;
 
       for (const t of comboTickets) {
@@ -1517,29 +1567,40 @@ async function loadTodayPicks() {
         }
 
         const statusClass = classifyResult(ticketStatus);
-        const statusLabel = ticketStatus === "UNKNOWN"
-          ? "In preparazione / dati incompleti"
-          : ticketStatus;
+        const statusLabel =
+          ticketStatus === "UNKNOWN"
+            ? "In preparazione / dati incompleti"
+            : ticketStatus;
 
         html += `
-          <article class="combo-card ${statusClass || ""}">
-            <div class="combo-card-header">
-              <div class="combo-label">${label}</div>
-              <div class="combo-type-pill">${type}</div>
-            </div>
-            <div class="combo-odd-and-status">
-              <span class="combo-total-odd">Quota totale: ${totalOddStr}</span>
-              <span class="result-badge ${statusClass || ""}">
-                ${statusLabel}
-              </span>
-            </div>
-            <div class="combo-legs">
+          <details class="combo-accordion ${statusClass || ""}">
+            <summary>
+              <div class="combo-summary-main">
+                <div class="combo-label-row">
+                  <span class="combo-label">${label}</span>
+                  <span class="combo-type-pill">${type}</span>
+                </div>
+                <div class="combo-summary-meta">
+                  <span class="combo-total-odd">Quota totale: ${totalOddStr}</span>
+                </div>
+              </div>
+              <div class="combo-summary-right">
+                <span class="result-badge ${statusClass || ""}">
+                  ${statusLabel}
+                </span>
+                <span class="combo-chevron">▶</span>
+              </div>
+            </summary>
+            <div class="combo-body">
+              <div class="combo-legs">
         `;
 
         for (const lv of legViews) {
           const leg = lv.leg;
           const teams = `${leg.home || ""} – ${leg.away || ""}`;
-          const pickLabel = `${leg.pick || ""} @ ${Number(leg.odd || 0).toFixed(2)}`;
+          const legOddNum = Number(leg.odd || 0);
+          const legOddStr = legOddNum ? legOddNum.toFixed(2) : "-";
+          const pickLabel = `${leg.pick || ""} @ ${legOddStr}`;
           const timeStr = leg.match_time || "-";
           const leagueStr = leg.league || "";
           const countryStr = leg.country || "";
@@ -1547,9 +1608,7 @@ async function loadTodayPicks() {
 
           let legBadge = "";
           if (lv.res && lv.res !== "UNKNOWN") {
-            const txt = lv.score
-              ? `${lv.res} · ${lv.score}`
-              : lv.res;
+            const txt = lv.score ? `${lv.res} · ${lv.score}` : lv.res;
             legBadge = `<span class="result-badge ${lv.cls || ""}">${txt}</span>`;
           }
 
@@ -1561,7 +1620,9 @@ async function loadTodayPicks() {
               </div>
               <div class="combo-leg-extra">
                 <span class="combo-pill">${timeStr}</span>
-                <span class="combo-pill">${leagueStr}${countryStr ? " (" + countryStr + ")" : ""}</span>
+                <span class="combo-pill">
+                  ${leagueStr}${countryStr ? " (" + countryStr + ")" : ""}
+                </span>
                 <span class="combo-pill">${catLabel}</span>
                 ${legBadge}
               </div>
@@ -1570,8 +1631,9 @@ async function loadTodayPicks() {
         }
 
         html += `
+              </div>
             </div>
-          </article>
+          </details>
         `;
       }
 
@@ -1581,6 +1643,7 @@ async function loadTodayPicks() {
       `;
     }
 
+    
     container.innerHTML = html;
     setupVoteHandlers(feedbackMap, todayStr);
   } catch (err) {
