@@ -414,14 +414,7 @@
         sono quelle mostrate al momento della generazione.
       </p>
 
-      <div class="controls-row">
-        <span class="range-label">Intervallo analizzato</span>
-        <select id="range-select">
-          <option value="7">Ultimi 7 giorni</option>
-          <option value="14">Ultimi 14 giorni</option>
-          <option value="30">Ultimi 30 giorni</option>
-        </select>
-      </div>
+      
     </header>
 
     <section class="summary-card">
@@ -1438,16 +1431,11 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    const select = document.getElementById("range-select");
-    const initial = parseInt(select.value, 10);
-    loadHistory(initial);
-    loadComboHistory(initial);
-    select.addEventListener("change", () => {
-      const v = parseInt(select.value, 10);
-      loadHistory(v);
-      loadComboHistory(v);
-    });
-  });
+  const DAYS = 30; // fisso, sempre 30 giorni
+
+  loadHistory(DAYS);
+  loadComboHistory(DAYS);
+});
 </script>
 
 </body>
