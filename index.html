@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
@@ -1547,7 +1547,7 @@ async function loadTodayPicks() {
               r = arr[0];
             }
           }
-          // Fallback 2: se ancora niente, proviamo a matchare per nome squadra
+          // Fallback 2: se ancora niente, proviamo a matchare per nome squadra (contains)
           if (!r && Array.isArray(results)) {
             const homeName = (leg.home || "").toLowerCase().trim();
             const awayName = (leg.away || "").toLowerCase().trim();
@@ -1557,6 +1557,20 @@ async function loadTodayPicks() {
                 const ra = String(rr.away || "").toLowerCase().trim();
                 return rh.includes(homeName) && ra.includes(awayName);
               }) || null;
+            }
+          }
+          // Fallback 3: se ancora niente, chiamiamo direttamente Supabase per quel fixture_id
+          if (!r && fid) {
+            try {
+              const extraRes = await sbFetch(
+                "results",
+                `?fixture_id=eq.${encodeURIComponent(fid)}&select=*`
+              );
+              if (Array.isArray(extraRes) && extraRes.length > 0) {
+                r = extraRes[0];
+              }
+            } catch (e) {
+              console.warn("Errore extra lookup results per fixture", fid, e);
             }
           }
 
