@@ -1102,9 +1102,6 @@
         “Confidenza modello” indica quanto il sistema gradisce il pick rispetto alla quota del bookmaker, non una vittoria sicura.
       </p>
 
-      <p class="legend-note">
-        <b>Tutti gli orari delle partite sono mostrati in <strong>orario italiano</strong> (CET/CEST).</b>
-      </p>
 
       <div id="model-stats-box" class="model-stats" style="display:none;">
         <span class="model-stats-label">Ultimi 30 giorni del modello</span>
@@ -1113,11 +1110,8 @@
         <span class="model-stats-pill" id="model-stats-roi">ROI: -</span>
       </div>
 
-      <div class="app-cta">
-        <span>Stiamo preparando l'app Android ufficiale: stessa logica del sito, ma con notifiche per le nuove selezioni.</span>
-        <a class="app-cta-button disabled" href="#" aria-disabled="true">
-          In arrivo su Google Play
-        </a>
+      <div style="margin-top: 8px;">
+        <a href="/storico.html" class="history-link">Storico &amp; statistiche</a>
       </div>
 
       <!-- MINI GUIDA IN ACCORDION -->
@@ -1196,6 +1190,13 @@
     </header>
 
     <section id="content"></section>
+
+    <div class="app-cta">
+      <span>Stiamo preparando l'app Android ufficiale: stessa logica del sito, ma con notifiche per le nuove selezioni.</span>
+      <a class="app-cta-button disabled" href="#" aria-disabled="true">
+        In arrivo su Google Play
+      </a>
+    </div>
   </main>
 
   <script>
@@ -2024,36 +2025,6 @@ async function loadModelStats() {
     }
 container.innerHTML = html;
 setupVoteHandlers(feedbackMap, todayStr);
-
-// Costruisce mini-indice categorie
-(function buildCategoriesNav() {
-  const containerEl = document.getElementById("content");
-  if (!containerEl) return;
-  const catsContainer = containerEl.querySelector(".categories-container");
-  if (!catsContainer) return;
-
-  const blocks = catsContainer.querySelectorAll(".category-block");
-  if (!blocks.length) return;
-
-  const nav = document.createElement("nav");
-  nav.className = "categories-nav";
-
-  blocks.forEach((block, idx) => {
-    let id = block.getAttribute("id");
-    if (!id) {
-      id = "cat-" + (idx + 1);
-      block.id = id;
-    }
-    const titleEl = block.querySelector(".category-title");
-    const label = titleEl ? titleEl.textContent.trim() : ("Categoria " + (idx + 1));
-    const a = document.createElement("a");
-    a.href = "#" + id;
-    a.textContent = label;
-    nav.appendChild(a);
-  });
-
-  containerEl.insertBefore(nav, containerEl.firstChild);
-})();
 
 // Scroll to top button
 (function setupScrollTop() {
