@@ -343,6 +343,81 @@
       color: #e5e7eb;
     }
 
+
+    /* Accordion per categorie */
+    .categories-container {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .category-block {
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: radial-gradient(circle at top left, rgba(15,23,42,0.96), rgba(15,23,42,0.98));
+      box-shadow: 0 18px 40px rgba(15,23,42,0.9);
+      overflow: hidden;
+    }
+
+    .category-block summary {
+      list-style: none;
+    }
+
+    .category-header {
+      padding: 9px 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .category-header-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .category-title {
+      margin: 0;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .category-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .category-chevron {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      transition: transform 0.16s ease;
+    }
+
+    .category-block[open] .category-chevron {
+      transform: rotate(90deg);
+    }
+
+    .category-body {
+      border-top: 1px solid rgba(148,163,184,0.25);
+      padding: 8px 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: radial-gradient(circle at top right, rgba(15,23,42,0.94), rgba(2,6,23,0.98));
+    }
+
+    .category-empty {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding: 4px 2px;
+    }
+
+
     .empty-state {
       margin-top: 24px;
       padding: 16px 14px;
@@ -691,63 +766,115 @@
         picksTitleEl.textContent = "Dettaglio picks della giornata";
         picksTitleEl.style.display = "block";
 
-        // 6) render lista picks
-        const frag = document.createDocumentFragment();
-
-        dayRows.forEach(r => {
-          const resultClass = classifyResult(r.result);
-          const card = document.createElement("article");
-          card.className = "pick-card" + (resultClass ? " " + resultClass : "");
-
-          const catName = getCategoryLabel(r.category || "");
-
-          const oddNum = Number(r.odd || 0);
-          const oddStr = oddNum ? oddNum.toFixed(2) : "-";
-
-          const confVal = Number(r.score_model || 0) * 100;
-          const confLabel = confidenceLabel(confVal);
-
-          const resultLabel = (r.result || "").toUpperCase();
-          const finalScore = r.final_score || "";
-          let badgeText = "";
-          if (resultLabel) {
-            badgeText = finalScore ? `${resultLabel} · ${finalScore}` : resultLabel;
+        // 6) render lista picks raggruppate per categoria
+        const groups = new Map();
+        for (const r of dayRows) {
+          const catKey = (r.category || "ALTRO").toUpperCase();
+          if (!groups.has(catKey)) {
+            groups.set(catKey, {
+              label: getCategoryLabel(catKey),
+              rows: [],
+              wins: 0,
+              loses: 0,
+            });
           }
+          const g = groups.get(catKey);
+          g.rows.push(r);
+          const resUp = (r.result || "").toUpperCase();
+          if (resUp === "WIN") g.wins++;
+          if (resUp === "LOSE") g.loses++;
+        }
 
-          card.innerHTML = `
-            <div class="pick-header">
-              <span class="league-pill">${r.league || ""}</span>
-              <span class="category-pill">${catName}</span>
-            </div>
-            <div class="teams-row">
-              ${r.home || ""} – ${r.away || ""}
-            </div>
-            <div class="pick-main-row">
-              <span class="pick-label">${r.pick || ""}</span>
-              <span class="odd-label">@ ${oddStr}</span>
-            </div>
-            <div class="bottom-row">
-              <div class="bottom-left">
-                <span class="conf-text">
-                  <span class="score-label-strong">Confidenza modello:</span> ${confLabel}
-                </span>
-                ${
-                  finalScore
-                    ? `<span>Risultato: ${finalScore} ${r.status_short ? "(" + r.status_short + ")" : ""}</span>`
-                    : `<span>Risultato: ${r.status_short || "N.D."}</span>`
-                }
+        const frag = document.createDocumentFragment();
+        const containerDiv = document.createElement("div");
+        containerDiv.className = "categories-container";
+
+        Array.from(groups.values())
+          .sort((a, b) => a.label.localeCompare(b.label))
+          .forEach((g, idx) => {
+            const details = document.createElement("details");
+            details.className = "category-block";
+            if (idx === 0) details.open = true;
+
+            const summary = document.createElement("summary");
+            summary.className = "category-header";
+            summary.innerHTML = `
+              <div class="category-header-main">
+                <h3 class="category-title">${g.label}</h3>
+                <div class="category-meta">
+                  ${g.rows.length} picks · ${g.wins} win / ${g.loses} lose
+                </div>
               </div>
-              ${
-                badgeText
-                  ? `<span class="result-badge ${resultClass}">${badgeText}</span>`
-                  : ""
-              }
-            </div>
-          `;
+              <span class="category-chevron">▶</span>
+            `;
+            details.appendChild(summary);
 
-          frag.appendChild(card);
-        });
+            const body = document.createElement("div");
+            body.className = "category-body";
 
+            if (!g.rows.length) {
+              const emptyP = document.createElement("p");
+              emptyP.className = "category-empty";
+              emptyP.textContent = "Nessuna pick in questa categoria per la data selezionata.";
+              body.appendChild(emptyP);
+            } else {
+              g.rows.forEach(r => {
+                const resultClass = classifyResult(r.result);
+                const card = document.createElement("article");
+                card.className = "pick-card" + (resultClass ? " " + resultClass : "");
+
+                const oddNum = Number(r.odd || 0);
+                const oddStr = oddNum ? oddNum.toFixed(2) : "-";
+
+                const confVal = Number(r.score_model || 0) * 100;
+                const confLabel = confidenceLabel(confVal);
+
+                const resultLabel = (r.result || "").toUpperCase();
+                const finalScore = r.final_score || "";
+                let badgeText = "";
+                if (resultLabel) {
+                  badgeText = finalScore ? `${resultLabel} · ${finalScore}` : resultLabel;
+                }
+
+                card.innerHTML = `
+                  <div class="pick-header">
+                    <span class="league-pill">${r.league || ""}</span>
+                  </div>
+                  <div class="teams-row">
+                    ${r.home || ""} – ${r.away || ""}
+                  </div>
+                  <div class="pick-main-row">
+                    <span class="pick-label">${r.pick || ""}</span>
+                    <span class="odd-label">@ ${oddStr}</span>
+                  </div>
+                  <div class="bottom-row">
+                    <div class="bottom-left">
+                      <span class="conf-text">
+                        <span class="score-label-strong">Confidenza modello:</span> ${confLabel}
+                      </span>
+                      ${
+                        finalScore
+                          ? `<span>Risultato: ${finalScore} ${r.status_short ? "(" + r.status_short + ")" : ""}</span>`
+                          : `<span>Risultato: ${r.status_short || "N.D."}</span>`
+                      }
+                    </div>
+                    ${
+                      badgeText
+                        ? `<span class="result-badge ${resultClass}">${badgeText}</span>`
+                        : ""
+                    }
+                  </div>
+                `;
+
+                body.appendChild(card);
+              });
+            }
+
+            details.appendChild(body);
+            containerDiv.appendChild(details);
+          });
+
+        frag.appendChild(containerDiv);
         container.appendChild(frag);
 
       } catch (err) {
