@@ -1492,74 +1492,174 @@ const CATEGORY_DESCRIPTIONS = {
 // ====== MAIN LOAD ======
 async function loadTodayPicks() {
 
+
+    function safeOdd(o) {
+      const n = Number(o);
+      if (!isFinite(n) || n <= 1) return 1.0;
+      return n;
+    }
+
+    function getLastNDates(n) {
+      const dates = [];
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+
+      for (let i = 0; i < n; i++) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
+        const y = d.getFullYear();
+        const m = pad2(d.getMonth() + 1);
+        const day = pad2(d.getDate());
+        dates.push(`${y}-${m}-${day}`);
+      }
+      return dates;
+    }
+
+    function resultRank(r) {
+      let score = 0;
+      const res = (r.result || "").toUpperCase();
+      const st = (r.status_short || "").toUpperCase();
+
+      if (res === "WIN" || res === "LOSE") score += 4;
+      else if (res === "PENDING") score += 1;
+
+      if (["FT", "AET", "PEN"].includes(st)) score += 4;
+      else if (["2H", "HT"].includes(st)) score += 2;
+
+      if (res === "WIN") score += 2;
+      if (res === "LOSE") score += 1;
+
+      return score;
+    }
+
+    async function fetchDayStatsSimple(dateStr) {
+      const picks = await sbFetch(
+        "picks",
+        `?match_date=eq.${dateStr}&select=*`
+      );
+
+      if (!Array.isArray(picks) || picks.length === 0) {
+        return {
+          date: dateStr,
+          wins: 0,
+          loses: 0,
+          stake: 0,
+          profit: 0,
+          avgOdd: null,
+        };
+      }
+
+      const results = await sbFetch(
+        "results",
+        `?picks_date=eq.${dateStr}&select=*`
+      );
+
+      const resultMap = new Map();
+      if (Array.isArray(results)) {
+        for (const r of results) {
+          const fid = String(r.fixture_id || "").trim();
+          const pickText = String(r.pick || "").trim();
+          if (!fid && !pickText) continue;
+          const key = fid + "__" + pickText;
+
+          const existing = resultMap.get(key);
+          if (!existing || resultRank(r) > resultRank(existing)) {
+            resultMap.set(key, r);
+          }
+        }
+      }
+
+      let wins = 0;
+      let loses = 0;
+      let stake = 0;
+      let profit = 0;
+      let oddsSum = 0;
+      let oddsCount = 0;
+
+      for (const p of picks) {
+        const fid = String(p.fixture_id || "").trim();
+        const pickText = String(p.pick || "").trim();
+        if (!fid && !pickText) continue;
+
+        const key = fid + "__" + pickText;
+        const res = resultMap.get(key) || {};
+        const result = (res.result || "").toUpperCase();
+
+        const odd = safeOdd(p.odd);
+
+        if (result === "WIN" || result === "LOSE") {
+          stake += 1;
+          if (result === "WIN") {
+            wins += 1;
+            profit += odd - 1;
+          } else {
+            loses += 1;
+            profit -= 1;
+          }
+          oddsSum += odd;
+          oddsCount += 1;
+        }
+      }
+
+      const avgOdd = oddsCount > 0 ? oddsSum / oddsCount : null;
+
+      return {
+        date: dateStr,
+        wins,
+        loses,
+        stake,
+        profit,
+        avgOdd,
+      };
+    }
+
 async function loadModelStats() {
   const statsBox = document.getElementById("model-stats-box");
   if (!statsBox) return;
 
   try {
-    const now = new Date();
-    const past = new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000);
-    const y = past.getFullYear();
-    const m = pad2(past.getMonth() + 1);
-    const d = pad2(past.getDate());
-    const fromStr = `${y}-${m}-${d}`;
+    const DAYS = 30;
+    const dates = getLastNDates(DAYS);
 
-    const picks30 = await sbFetch(
-      "picks",
-      `?match_date=gte.${fromStr}&select=fixture_id,pick,odd,match_date`
-    );
-    const results30 = await sbFetch(
-      "results",
-      `?picks_date=gte.${fromStr}&select=fixture_id,pick,result,picks_date`
+    const statsListRaw = await Promise.all(
+      dates.map(d => fetchDayStatsSimple(d).catch(() => null))
     );
 
-    const resMap30 = new Map();
-    if (Array.isArray(results30)) {
-      for (const r of results30) {
-        if (!r.fixture_id || !r.pick) continue;
-        const key = String(r.fixture_id).trim() + "__" + String(r.pick).trim();
-        resMap30.set(key, r);
-      }
+    const statsList = statsListRaw.filter(s => s && s.stake > 0);
+
+    if (!statsList.length) {
+      return;
     }
 
-    let total = 0;
-    let winCount = 0;
-    let profit = 0;
+    let totalWins = 0;
+    let totalLoses = 0;
+    let totalStake = 0;
+    let totalProfit = 0;
 
-    if (Array.isArray(picks30)) {
-      for (const p of picks30) {
-        const key = String(p.fixture_id).trim() + "__" + String(p.pick || "").trim();
-        const r = resMap30.get(key);
-        if (!r || !r.result) continue;
-        const rr = String(r.result).toUpperCase();
-        if (rr !== "WIN" && rr !== "LOSE") continue;
-
-        const odd = Number(p.odd || 0);
-        if (!odd || odd <= 1) continue;
-
-        total += 1;
-        if (rr === "WIN") {
-          winCount += 1;
-          profit += (odd - 1);
-        } else if (rr === "LOSE") {
-          profit -= 1;
-        }
-      }
+    for (const s of statsList) {
+      totalWins += s.wins;
+      totalLoses += s.loses;
+      totalStake += s.stake;
+      totalProfit += s.profit;
     }
 
-    if (total > 0) {
-      const winrate = ((winCount / total) * 100).toFixed(1);
-      const roi = ((profit / total) * 100).toFixed(1);
+    const totalPlayed = totalWins + totalLoses;
+
+    if (totalPlayed > 0 && totalStake > 0) {
+      const winrate = ((totalWins / totalPlayed) * 100).toFixed(1);
+      const roi = ((totalProfit / totalStake) * 100).toFixed(1);
+
       const countEl = document.getElementById("model-stats-count");
       const wrEl = document.getElementById("model-stats-winrate");
       const roiEl = document.getElementById("model-stats-roi");
 
-      if (countEl) countEl.textContent = `${total} picks`;
+      if (countEl) countEl.textContent = `${totalPlayed} picks`;
       if (wrEl) wrEl.textContent = `Winrate: ${winrate}%`;
       if (roiEl) {
         roiEl.textContent = `ROI: ${roi}%`;
         roiEl.classList.add(Number(roi) >= 0 ? "positive" : "negative");
       }
+
       statsBox.style.display = "inline-flex";
     }
   } catch (e) {
