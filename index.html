@@ -524,9 +524,7 @@
 .combo-accordion.lose {
   border-color: rgba(248, 113, 113, 0.9);
 }
-.combo-accordion.pending {
-  border-color: rgba(234, 179, 8, 0.8);
-}
+
 .combo-accordion.unknown {
   border-color: rgba(148, 163, 184, 0.55);
 }
@@ -868,6 +866,151 @@
       color: var(--text-muted);
     }
 
+
+    /* Sticky titolo categoria quando aperta */
+    .category-block[open] .category-title {
+      position: sticky;
+      top: 0;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      background: linear-gradient(to bottom, rgba(15,23,42,0.98), rgba(15,23,42,0.92));
+      z-index: 2;
+    }
+
+    /* Box statistiche modello (ultimi 30 giorni) */
+    .model-stats {
+      margin-top: 12px;
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      font-size: 0.8rem;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: radial-gradient(circle at top left, rgba(34,197,94,0.18), rgba(15,23,42,0.95));
+      box-shadow: 0 10px 24px rgba(15,23,42,0.8);
+    }
+
+    .model-stats-label {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    .model-stats-pill {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.95);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .model-stats-pill.positive {
+      border-color: #22c55e;
+      color: #bbf7d0;
+    }
+
+    .model-stats-pill.negative {
+      border-color: #f97316;
+      color: #fed7aa;
+    }
+
+    /* CTA app */
+    .app-cta {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      max-width: 640px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .app-cta-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 250, 252, 0.16);
+      background: radial-gradient(circle at top left, rgba(59,130,246,0.35), rgba(15,23,42,1));
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: #e5e7eb;
+      box-shadow: 0 10px 24px rgba(15,23,42,0.9);
+    }
+
+    .app-cta-button.disabled {
+      cursor: default;
+      opacity: 0.7;
+    }
+
+    /* Bottoni espandi / riduci tutto */
+    .categories-toolbar {
+      margin-top: 10px;
+      margin-bottom: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.78rem;
+    }
+
+    .categories-toolbar button {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      background: rgba(15,23,42,0.96);
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .categories-toolbar button:hover {
+      border-color: var(--accent);
+      color: #fed7aa;
+    }
+
+    /* Animazione apertura accordion */
+    @keyframes fadeInBody {
+      from { opacity: 0; transform: translateY(-2px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .category-block[open] .category-body,
+    .combo-accordion[open] .combo-body {
+      animation: fadeInBody 0.18s ease-out;
+    }
+
+    /* Micro-interazioni sulle card risultato */
+    .pick-card.win,
+    .pick-card.lose {
+      transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+    }
+
+    .pick-card.win {
+      box-shadow: 0 0 0 1px rgba(34,197,94,0.8), 0 12px 26px rgba(22,163,74,0.35);
+    }
+
+    .pick-card.lose {
+      box-shadow: 0 0 0 1px rgba(248,113,113,0.8), 0 12px 26px rgba(220,38,38,0.35);
+    }
+
+    /* Stato LIVE */
+    .result-badge.live {
+      border-color: #38bdf8;
+      color: #e0f2fe;
+    }
+
+    /* Ridurre densità combo legs */
+    .combo-leg {
+      padding: 3px 1px 5px;
+    }
+
     @media (max-width: 640px) {
       main {
         margin-top: 20px;
@@ -938,6 +1081,20 @@
       <p class="legend-note">
         <b>Tutti gli orari delle partite sono mostrati in <strong>orario italiano</strong> (CET/CEST).</b>
       </p>
+
+      <div id="model-stats-box" class="model-stats" style="display:none;">
+        <span class="model-stats-label">Ultimi 30 giorni del modello</span>
+        <span class="model-stats-pill" id="model-stats-count">0 picks</span>
+        <span class="model-stats-pill" id="model-stats-winrate">Winrate: -</span>
+        <span class="model-stats-pill" id="model-stats-roi">ROI: -</span>
+      </div>
+
+      <div class="app-cta">
+        <span>Stiamo preparando l'app Android ufficiale: stessa logica del sito, ma con notifiche per le nuove selezioni.</span>
+        <a class="app-cta-button disabled" href="#" aria-disabled="true">
+          In arrivo su Google Play
+        </a>
+      </div>
 
       <!-- MINI GUIDA IN ACCORDION -->
       <details class="guide-accordion">
@@ -1092,14 +1249,16 @@
 
     function sortCategoriesOrder(categories) {
       const preferred = [
-        "BEST_TIPS_OF_DAY",
-        "SAFE_PICKS",
-        "SAFE_GOALS",
-        "VALUE_PICKS",
-        "OVER_UNDER_TIPS",
-        "DAILY_2PLUS",
-        "DAILY_10PLUS",
-        "SINGLE_GAME",
+        "BEST_TIPS_OF_DAY",   // Scelte d’Élite
+        "SAFE_PICKS",         // Selezioni Affidabili
+        "SAFE_GOALS",         // Safe Goals
+        "VALUE_PICKS",        // Quote di Valore
+        "OVER_UNDER_TIPS",    // Tendenze Goal
+        "BTTS_TIPS",          // Probabilità Entrambe (se presente)
+        "DAILY_2PLUS",        // Combo Selettiva
+        "DAILY_10PLUS",       // Combo High Stakes
+        "SINGLE_GAME",        // Pick Esclusiva
+        "TOP_5_TIPS",         // Top 5 Tips (se presente)
       ];
       return categories.sort((a, b) => {
         const ia = preferred.indexOf(a);
@@ -1131,6 +1290,23 @@
     }
 
     const CATEGORY_LABELS = {
+      // Descrizioni sintetiche per ogni categoria, usate nelle sezioni aperte
+    };
+
+    const descriptions = {
+      "BEST_TIPS_OF_DAY": "Scelte singole con il miglior mix fra valore statistico e quota. Punto di partenza consigliato per la giornata.",
+      "SAFE_PICKS": "Selezioni più prudenti, pensate per dare stabilità al rendimento. Di solito con quote medio-basse.",
+      "SAFE_GOALS": "Partite dove i numeri indicano forte tendenza ai gol (Over 2.5 o entrambe segnano).",
+      "VALUE_PICKS": "Giocate dove la quota del bookmaker sembra pagare più del rischio reale stimato dal modello.",
+      "OVER_UNDER_TIPS": "Match con tendenza ai gol in base a attacco/difesa, xG e forma recente.",
+      "BTTS_TIPS": "Pronostici su entrambe segnano / no, basati sulla probabilità che vadano a segno tutte e due le squadre.",
+      "DAILY_2PLUS": "Combo selettiva di 2–3 eventi filtrati dal modello. Da usare solo in multipla con stake ridotto.",
+      "DAILY_10PLUS": "Combo più aggressiva con payout alto. Sempre extra rispetto alle giocate principali.",
+      "SINGLE_GAME": "Pick particolare su una singola partita, generata solo quando appare un pattern statistico raro.",
+      "TOP_5_TIPS": "I 5 pronostici migliori del giorno secondo il modello, considerando valore, solidità e quota."
+    };
+
+    const CATEGORY_LABELS_REAL = {
       BEST_TIPS_OF_DAY: "Scelte d’Élite",
       SAFE_PICKS: "Selezioni Affidabili",
       SAFE_GOALS: "Safe goals (Over 2.5 o BTTS)",
@@ -1139,7 +1315,19 @@
       BTTS_TIPS: "Probabilità Entrambe",
       DAILY_2PLUS: "Combo Selettiva",
       DAILY_10PLUS: "Combo High Stakes",
-      SINGLE_GAME: "Pick Esclusiva"
+      SINGLE_GAME: "Pick Esclusiva",
+      TOP_5_TIPS: "Top 5 Tips"
+    };
+      BEST_TIPS_OF_DAY: "Scelte d’Élite",
+      SAFE_PICKS: "Selezioni Affidabili",
+      SAFE_GOALS: "Safe goals (Over 2.5 o BTTS)",
+      VALUE_PICKS: "Quote di Valore",
+      OVER_UNDER_TIPS: "Tendenze Goal",
+      BTTS_TIPS: "Probabilità Entrambe",
+      DAILY_2PLUS: "Combo Selettiva",
+      DAILY_10PLUS: "Combo High Stakes",
+      SINGLE_GAME: "Pick Esclusiva",
+      TOP_5_TIPS: "Top 5 Tips"
     };
 
     function getCategoryLabel(cat) {
@@ -1348,7 +1536,12 @@ async function loadTodayPicks() {
     const categories = sortCategoriesOrder(Array.from(byCategory.keys()));
 
     // ================== HTML PICKS CLASSICI ==================
-    let html = `<div class="categories-container">`;
+    let html = `
+      <div class="categories-toolbar">
+        <button type="button" id="btn-expand-all">Espandi tutte</button>
+        <button type="button" id="btn-collapse-all">Chiudi tutte</button>
+      </div>
+      <div class="categories-container">`;
 
     for (const cat of categories) {
       const list = byCategory.get(cat) || [];
@@ -1392,6 +1585,11 @@ async function loadTodayPicks() {
             <span class="category-chevron">▶</span>
           </summary>
           <div class="category-body">
+            ${
+              descriptions[cat]
+                ? `<p class="category-winrate">${descriptions[cat]}</p>`
+                : ""
+            }
             <div class="picks-grid">
       `;
 
@@ -1408,11 +1606,19 @@ async function loadTodayPicks() {
         const res = resultMap.get(key);
         const resResult = res ? res.result : "";
         const resScore = res ? res.final_score : "";
+        const statusShort = res && res.status_short ? String(res.status_short).toUpperCase() : "";
 
-        const resultClass = classifyResult(resResult);
+        let resultLabel = (resResult || "").toUpperCase();
+        let resultClass = classifyResult(resultLabel);
+
+        const liveStatuses = ["1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"];
+        if (resultLabel === "PENDING" && liveStatuses.includes(statusShort)) {
+          resultLabel = "LIVE";
+          resultClass = "live";
+        }
+
         const cardExtraClass = resultClass ? ` ${resultClass}` : "";
 
-        const resultLabel = (resResult || "").toUpperCase();
         const finalScore = resScore || "";
         let badgeText = "";
         if (resultLabel) {
@@ -1647,7 +1853,7 @@ async function loadTodayPicks() {
         const statusLabel =
           ticketStatus === "UNKNOWN"
             ? "In preparazione / dati incompleti"
-            : ticketStatus;
+            : (ticketStatus === "PENDING" ? "In attesa" : ticketStatus);
 
         html += `
           <details class="combo-accordion ${statusClass || ""}">
@@ -1685,8 +1891,16 @@ async function loadTodayPicks() {
 
           let legBadge = "";
           if (lv.res && lv.res !== "UNKNOWN") {
-            const txt = lv.score ? `${lv.res} · ${lv.score}` : lv.res;
-            legBadge = `<span class="result-badge ${lv.cls || ""}">${txt}</span>`;
+            let legLabel = lv.res;
+            let legClass = lv.cls || "";
+            const liveStatuses = ["1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"];
+            const stShort = (lv.leg.status_short || "").toUpperCase();
+            if (legLabel === "PENDING" && liveStatuses.includes(stShort)) {
+              legLabel = "LIVE";
+              legClass = "live";
+            }
+            const txt = lv.score ? `${legLabel} · ${lv.score}` : legLabel;
+            legBadge = `<span class="result-badge ${legClass}">${txt}</span>`;
           }
 
           html += `
@@ -1721,6 +1935,91 @@ async function loadTodayPicks() {
     }
     container.innerHTML = html;
     setupVoteHandlers(feedbackMap, todayStr);
+
+    // Setup espandi/chiudi tutto per le categorie
+    const btnExpandAll = document.getElementById("btn-expand-all");
+    const btnCollapseAll = document.getElementById("btn-collapse-all");
+    if (btnExpandAll && btnCollapseAll) {
+      btnExpandAll.addEventListener("click", () => {
+        document.querySelectorAll(".category-block").forEach(d => (d.open = true));
+      });
+      btnCollapseAll.addEventListener("click", () => {
+        document.querySelectorAll(".category-block").forEach(d => (d.open = false));
+      });
+    }
+
+    // Carica statistiche modello ultimi 30 giorni
+    try {
+      const statsBox = document.getElementById("model-stats-box");
+      if (statsBox) {
+        const now = new Date();
+        const past = new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000);
+        const y = past.getFullYear();
+        const m = pad2(past.getMonth() + 1);
+        const d = pad2(past.getDate());
+        const fromStr = `${y}-${m}-${d}`;
+
+        const picks30 = await sbFetch(
+          "picks",
+          `?run_date=gte.${fromStr}&select=fixture_id,pick,odd,run_date`
+        );
+        const results30 = await sbFetch(
+          "results",
+          `?picks_date=gte.${fromStr}&select=fixture_id,pick,result,picks_date`
+        );
+
+        const resMap30 = new Map();
+        if (Array.isArray(results30)) {
+          for (const r of results30) {
+            if (!r.fixture_id || !r.pick) continue;
+            const key = String(r.fixture_id).trim() + "__" + String(r.pick).trim();
+            resMap30.set(key, r);
+          }
+        }
+
+        let total = 0;
+        let winCount = 0;
+        let profit = 0;
+
+        if (Array.isArray(picks30)) {
+          for (const p of picks30) {
+            const key = String(p.fixture_id).trim() + "__" + String(p.pick || "").trim();
+            const r = resMap30.get(key);
+            if (!r || !r.result) continue;
+            const rr = String(r.result).toUpperCase();
+            if (rr !== "WIN" && rr !== "LOSE") continue;
+            const odd = Number(p.odd || 0);
+            if (!odd || odd <= 1) continue;
+
+            total += 1;
+            if (rr === "WIN") {
+              winCount += 1;
+              profit += (odd - 1);
+            } else if (rr === "LOSE") {
+              profit -= 1;
+            }
+          }
+        }
+
+        if (total > 0) {
+          const winrate = ((winCount / total) * 100).toFixed(1);
+          const roi = ((profit / total) * 100).toFixed(1);
+          const countEl = document.getElementById("model-stats-count");
+          const wrEl = document.getElementById("model-stats-winrate");
+          const roiEl = document.getElementById("model-stats-roi");
+          if (countEl) countEl.textContent = `${total} picks`;
+          if (wrEl) wrEl.textContent = `Winrate: ${winrate}%`;
+          if (roiEl) {
+            roiEl.textContent = `ROI: ${roi}%`;
+            roiEl.classList.add(roi >= 0 ? "positive" : "negative");
+          }
+          statsBox.style.display = "inline-flex";
+        }
+      }
+    } catch (e) {
+      console.warn("Impossibile calcolare le statistiche 30 giorni:", e);
+    }
+
   } catch (err) {
     console.error("Errore caricamento picks:", err);
     container.innerHTML = `
