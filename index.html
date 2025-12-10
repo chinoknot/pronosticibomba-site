@@ -1554,20 +1554,36 @@ async function loadTodayPicks() {
         `?picks_date=eq.${dateStr}&select=*`
       );
 
-      const resultMap = new Map();
-      if (Array.isArray(results)) {
-        for (const r of results) {
-          const fid = String(r.fixture_id || "").trim();
-          const pickText = String(r.pick || "").trim();
-          if (!fid && !pickText) continue;
-          const key = fid + "__" + pickText;
+          const resultMap = new Map();
+    const fixtureResultMap = new Map();
 
-          const existing = resultMap.get(key);
-          if (!existing || resultRank(r) > resultRank(existing)) {
-            resultMap.set(key, r);
-          }
+    if (Array.isArray(results)) {
+      for (const r of results) {
+        if (!r.fixture_id || !r.pick) continue;
+
+        const fidStr = String(r.fixture_id).trim();
+        const pickText = String(r.pick).trim();
+        const key = fidStr + "__" + pickText;
+
+        // 1) scegliamo sempre il "miglior" risultato per fixture+pick
+        const existing = resultMap.get(key);
+        if (!existing || resultRank(r) > resultRank(existing)) {
+          resultMap.set(key, r);
         }
+
+        // 2) accumuliamo tutti i risultati per fixture_id
+        const arr = fixtureResultMap.get(fidStr) || [];
+        arr.push(r);
+        fixtureResultMap.set(fidStr, arr);
       }
+
+      // 3) ordiniamo per qualità: il primo elemento sarà il più aggiornato
+      for (const [fid, arr] of fixtureResultMap.entries()) {
+        arr.sort((a, b) => resultRank(b) - resultRank(a));
+        fixtureResultMap.set(fid, arr);
+      }
+    }
+
 
       let wins = 0;
       let loses = 0;
