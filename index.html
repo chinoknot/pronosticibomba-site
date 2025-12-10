@@ -236,7 +236,57 @@
       opacity: 0.8;
     }
 
-    @media (max-width: 640px) {
+    
+.categories-nav {
+  margin-top: 14px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.78rem;
+}
+
+.categories-nav a {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: rgba(15, 23, 42, 0.96);
+  color: var(--text-main);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.categories-nav a:hover {
+  border-color: var(--accent);
+  color: #fed7aa;
+}
+
+.scroll-top-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 18px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.96);
+  color: var(--text-main);
+  font-size: 0.78rem;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.95);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  transform: translateY(8px);
+  z-index: 40;
+}
+
+.scroll-top-btn.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+@media (max-width: 640px) {
       .coffee-button {
         padding: 7px 14px;
         font-size: 0.78rem;
@@ -1972,8 +2022,56 @@ async function loadModelStats() {
         </section>
       `;
     }
-    container.innerHTML = html;
-    setupVoteHandlers(feedbackMap, todayStr);
+container.innerHTML = html;
+setupVoteHandlers(feedbackMap, todayStr);
+
+// Costruisce mini-indice categorie
+(function buildCategoriesNav() {
+  const containerEl = document.getElementById("content");
+  if (!containerEl) return;
+  const catsContainer = containerEl.querySelector(".categories-container");
+  if (!catsContainer) return;
+
+  const blocks = catsContainer.querySelectorAll(".category-block");
+  if (!blocks.length) return;
+
+  const nav = document.createElement("nav");
+  nav.className = "categories-nav";
+
+  blocks.forEach((block, idx) => {
+    let id = block.getAttribute("id");
+    if (!id) {
+      id = "cat-" + (idx + 1);
+      block.id = id;
+    }
+    const titleEl = block.querySelector(".category-title");
+    const label = titleEl ? titleEl.textContent.trim() : ("Categoria " + (idx + 1));
+    const a = document.createElement("a");
+    a.href = "#" + id;
+    a.textContent = label;
+    nav.appendChild(a);
+  });
+
+  containerEl.insertBefore(nav, containerEl.firstChild);
+})();
+
+// Scroll to top button
+(function setupScrollTop() {
+  const btn = document.getElementById("scroll-top-btn");
+  if (!btn) return;
+
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 260) {
+      btn.classList.add("visible");
+    } else {
+      btn.classList.remove("visible");
+    }
+  });
+
+  btn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
 
     // Bottoni espandi / chiudi tutto dopo il render delle categorie
     const btnExpandAll = document.getElementById("btn-expand-all");
@@ -2001,5 +2099,7 @@ async function loadModelStats() {
   loadTodayPicks();
 });
   </script>
+
+  <button id="scroll-top-btn" class="scroll-top-btn">Torna su</button>
 </body>
 </html>
