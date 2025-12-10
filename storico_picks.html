@@ -186,6 +186,52 @@
       color: #fecaca;
     }
 
+
+/* Result filters */
+.result-filters {
+  margin-top: 10px;
+  margin-bottom: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.result-filters-label {
+  font-weight: 500;
+}
+
+.result-filters-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.result-filter-pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: rgba(15, 23, 42, 0.9);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.result-filter-pill:hover {
+  border-color: var(--accent);
+  color: #fed7aa;
+}
+
+.result-filter-pill.active {
+  background: var(--accent-soft);
+  border-color: rgba(249, 115, 22, 0.9);
+  color: #fed7aa;
+  font-weight: 600;
+}
+
     /* Picks list */
     .section-title {
       margin-top: 20px;
@@ -469,6 +515,17 @@
 
     <section id="day-summary" class="day-summary" style="display:none;"></section>
 
+<div id="result-filters" class="result-filters" style="display:none;">
+  <span class="result-filters-label">Filtra per esito</span>
+  <div class="result-filters-pills">
+    <button type="button" class="result-filter-pill active" data-filter="ALL">Tutte</button>
+    <button type="button" class="result-filter-pill" data-filter="WIN">Vinte</button>
+    <button type="button" class="result-filter-pill" data-filter="LOSE">Perse</button>
+    <button type="button" class="result-filter-pill" data-filter="PENDING">In corso</button>
+    <button type="button" class="result-filter-pill" data-filter="UNKNOWN">Esito N.D.</button>
+  </div>
+</div>
+
     <h2 id="picks-title" class="section-title" style="display:none;"></h2>
     <section id="picks-container" class="picks-container"></section>
 
@@ -564,6 +621,25 @@
       return score;
     }
 
+
+// ====== RESULT FILTERING ======
+let currentResultFilter = "ALL";
+
+function setResultFilter(filterKey) {
+  if (currentResultFilter === filterKey) return;
+  currentResultFilter = filterKey;
+
+  const pills = document.querySelectorAll(".result-filter-pill");
+  pills.forEach(btn => {
+    const key = btn.getAttribute("data-filter") || "ALL";
+    btn.classList.toggle("active", key === filterKey);
+  });
+
+  if (currentDate) {
+    loadDayPicks(currentDate);
+  }
+}
+
     // ====== DATE LOADING ======
     let availableDates = [];
     let currentDate = null;
@@ -631,10 +707,12 @@
           `?match_date=eq.${dateStr}&select=*`
         );
 
-        if (!Array.isArray(picks) || !picks.length) {
-          emptyState.style.display = "block";
-          return;
-        }
+if (!Array.isArray(picks) || !picks.length) {
+  emptyState.style.display = "block";
+  const filtersEl = document.getElementById("result-filters");
+  if (filtersEl) filtersEl.style.display = "none";
+  return;
+}
 
         // 2) tutti i risultati di quella giornata
         const results = await sbFetch(
@@ -761,14 +839,27 @@
             <span class="day-summary-value">${resolved} unità (solo picks con esito WIN/LOSE)</span>
           </div>
         `;
-        daySummaryEl.style.display = "flex";
+daySummaryEl.style.display = "flex";
 
-        picksTitleEl.textContent = "Dettaglio picks della giornata";
-        picksTitleEl.style.display = "block";
+const filtersEl = document.getElementById("result-filters");
+if (filtersEl) filtersEl.style.display = "flex";
 
-        // 6) render lista picks raggruppate per categoria
-        const groups = new Map();
-        for (const r of dayRows) {
+picksTitleEl.textContent = "Dettaglio picks della giornata";
+picksTitleEl.style.display = "block";
+
+// 6) render lista picks raggruppate per categoria
+const groups = new Map();
+
+const filteredRows = dayRows.filter(r => {
+  const resUp = (r.result || "").toUpperCase();
+  if (currentResultFilter === "ALL") return true;
+  if (["WIN","LOSE","PENDING","UNKNOWN"].includes(currentResultFilter)) {
+    return resUp === currentResultFilter;
+  }
+  return true;
+});
+
+for (const r of filteredRows) {
           const catKey = (r.category || "ALTRO").toUpperCase();
           if (!groups.has(catKey)) {
             groups.set(catKey, {
@@ -794,7 +885,6 @@
           .forEach((g, idx) => {
             const details = document.createElement("details");
             details.className = "category-block";
-            if (idx === 0) details.open = true;
 
             const summary = document.createElement("summary");
             summary.className = "category-header";
@@ -893,9 +983,17 @@
           document.getElementById("empty-state").style.display = "block";
           return;
         }
-        currentDate = availableDates[0]; // data più recente
-        renderDatePills();
-        loadDayPicks(currentDate);
+currentDate = availableDates[0]; // data più recente
+renderDatePills();
+loadDayPicks(currentDate);
+
+const filterPills = document.querySelectorAll(".result-filter-pill");
+filterPills.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const key = btn.getAttribute("data-filter") || "ALL";
+    setResultFilter(key);
+  });
+});
       } catch (err) {
         console.error("Errore inizializzazione storico picks:", err);
         const emptyState = document.getElementById("empty-state");
