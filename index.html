@@ -1523,6 +1523,8 @@ async function loadModelStats() {
   }
 }
 
+  await loadModelStats();
+
   const container = document.getElementById("content");
   const todayStr = getTodayStr();
   const dayBadge = document.getElementById("day-badge");
@@ -1997,7 +1999,6 @@ async function loadModelStats() {
 
     document.addEventListener("DOMContentLoaded", () => {
   loadTodayPicks();
-  loadModelStats();
 });
   </script>
 </body>
