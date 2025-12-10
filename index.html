@@ -948,14 +948,32 @@
         <div class="guide-block">
           <div class="guide-title">Come leggere le selezioni di oggi</div>
           <p class="guide-text">
-            Ogni blocco raccoglie una famiglia di pronostici con un ruolo diverso nel bankroll:
+            Ogni blocco raccoglie una famiglia di pronostici con un ruolo diverso nel bankroll. Qui sotto trovi la spiegazione di
+            tutte le categorie che possono comparire nella pagina di oggi.
           </p>
           <ul class="guide-list">
-            <li><strong>Scelte d’Élite</strong>: selezioni in cui il modello vede un equilibrio solido fra quota e probabilità.</li>
-            <li><strong>Selezioni Affidabili</strong>: pronostici più prudenti, pensati per dare stabilità al rendimento.</li>
-            <li><strong>Quote di Valore</strong>: partite in cui la quota sembra pagare troppo rispetto al rischio stimato.</li>
-            <li><strong>Tendenze Goal</strong> e <strong>Probabilità Entrambe</strong>: mercati legati ai gol, utili per diversificare il tipo di giocata.</li>
-            <li><strong>Combo Selettiva</strong> e <strong>Combo High Stakes</strong>: multiple con rischio crescente, da usare solo come extra.</li>
+            <li><strong>Scelte d’Élite</strong>: selezione unica o quasi unica del giorno, scelta dal modello come pick con miglior
+              combinazione fra valore statistico e quota bookmaker. È sempre una singola e viene proposta solo quando i numeri sono
+              davvero forti.</li>
+            <li><strong>Selezioni Affidabili</strong>: pronostici più prudenti, pensati per dare stabilità al rendimento. Quote in
+              genere medio–basse, ma supportate da dati solidi. Sono la base “sicura” del bankroll rispetto ad altre categorie più
+              aggressive.</li>
+            <li><strong>Safe Goals (Over 2.5 o BTTS)</strong>: partite in cui il modello vede una forte tendenza ai gol, sia come
+              Over 2.5 che come entrambe segnano (BTTS). Ideali per schedine di 2–3 eventi quando vuoi puntare solo sui gol.</li>
+            <li><strong>Quote di Valore</strong>: situazioni in cui la quota del bookmaker sembra pagare troppo rispetto al rischio
+              stimato dal modello. Non sono per forza “facili”, ma nel lungo periodo hanno valore atteso positivo.</li>
+            <li><strong>Tendenze Goal</strong>: match con forte propensione ai gol emersa da attacco/difesa, xG e andamento recente.
+              Non sono per forza pick “safe”, ma seguono un trend chiaro nei numeri.</li>
+            <li><strong>Combo Selettiva</strong>: multipla di 2–3 eventi scelti fra i migliori trend della giornata. Mantiene un
+              rischio relativamente contenuto rispetto alle combo più grosse, ma resta una giocata extra rispetto alle singole.</li>
+            <li><strong>Combo High Stakes</strong>: multipla più aggressiva, con più eventi e rischio più alto. Il potenziale payout
+              è elevato, ma la variabilità pure. Va trattata sempre come extra e con stake molto più piccolo rispetto alle giocate
+              principali.</li>
+            <li><strong>Pick Esclusiva</strong>: pick particolare che il modello genera solo quando trova una situazione rara o
+              non perfettamente inquadrata nelle altre categorie (es. incroci statistici particolari o mercati meno standard).</li>
+            <li><strong>Top 5 Tips</strong>: le 5 selezioni che il modello ritiene complessivamente migliori per la giornata, tenendo
+              conto di valore, solidità dei numeri e quota. Se hai poco tempo, partire da qui è il modo più semplice per costruire
+              il piano di gioco.</li>
           </ul>
 
           <div class="guide-subtitle">Come usare la “confidenza”</div>
@@ -1625,22 +1643,11 @@ async function loadTodayPicks() {
         }
         const totalOddStr = oddToShow ? oddToShow.toFixed(2) : "-";
 
-        let statusClass = "";
-        let statusLabel = "";
-        if (ticketStatus === "WIN") {
-          statusClass = "win";
-          statusLabel = "WIN";
-        } else if (ticketStatus === "LOSE") {
-          statusClass = "lose";
-          statusLabel = "LOSE";
-        } else if (ticketStatus === "UNKNOWN") {
-          statusClass = "unknown";
-          statusLabel = "In preparazione / dati incompleti";
-        } else {
-          // PENDING: partite non ancora iniziate / in corso → stile neutro
-          statusClass = "";
-          statusLabel = "In attesa";
-        }
+        const statusClass = classifyResult(ticketStatus);
+        const statusLabel =
+          ticketStatus === "UNKNOWN"
+            ? "In preparazione / dati incompleti"
+            : ticketStatus;
 
         html += `
           <details class="combo-accordion ${statusClass || ""}">
