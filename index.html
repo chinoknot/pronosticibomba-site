@@ -1088,9 +1088,6 @@
           <span class="legend-dot pending"></span> In corso / non ancora iniziata
         </div>
         <div class="legend-item">
-          <span class="legend-dot unknown"></span> Esito non disponibile
-        </div>
-        <div class="legend-item">
           <a href="/storico.html" class="history-link">Storico risultati</a>
         </div>
         <div class="legend-item">
@@ -1108,10 +1105,6 @@
         <span class="model-stats-pill" id="model-stats-count">0 picks</span>
         <span class="model-stats-pill" id="model-stats-winrate">Winrate: -</span>
         <span class="model-stats-pill" id="model-stats-roi">ROI: -</span>
-      </div>
-
-      <div style="margin-top: 8px;">
-        <a href="/storico.html" class="history-link">Storico &amp; statistiche</a>
       </div>
 
       <!-- MINI GUIDA IN ACCORDION -->
@@ -1513,7 +1506,7 @@ async function loadModelStats() {
 
     const picks30 = await sbFetch(
       "picks",
-      `?run_date=gte.${fromStr}&select=fixture_id,pick,odd,run_date`
+      `?match_date=gte.${fromStr}&select=fixture_id,pick,odd,match_date`
     );
     const results30 = await sbFetch(
       "results",
@@ -1722,12 +1715,7 @@ async function loadModelStats() {
 
         // Testo ruolo/confidenza
         let scoreHtml;
-        if (cat === "SAFE_PICKS") {
-          scoreHtml = `
-            <span class="score-label-strong">Ruolo nel bankroll:</span>
-            selezione pensata per dare stabilità al rendimento (singole o doppie prudenti).
-          `;
-        } else if (cat === "DAILY_2PLUS") {
+        if (cat === "DAILY_2PLUS") {
           scoreHtml = `
             <span class="score-label-strong">Ruolo nel bankroll:</span>
             combo selettiva su eventi filtrati dal modello, da usare solo in multipla.
