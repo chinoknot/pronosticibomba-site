@@ -1554,36 +1554,20 @@ async function loadTodayPicks() {
         `?picks_date=eq.${dateStr}&select=*`
       );
 
-          const resultMap = new Map();
-    const fixtureResultMap = new Map();
+      const resultMap = new Map();
+      if (Array.isArray(results)) {
+        for (const r of results) {
+          const fid = String(r.fixture_id || "").trim();
+          const pickText = String(r.pick || "").trim();
+          if (!fid && !pickText) continue;
+          const key = fid + "__" + pickText;
 
-    if (Array.isArray(results)) {
-      for (const r of results) {
-        if (!r.fixture_id || !r.pick) continue;
-
-        const fidStr = String(r.fixture_id).trim();
-        const pickText = String(r.pick).trim();
-        const key = fidStr + "__" + pickText;
-
-        // 1) scegliamo sempre il "miglior" risultato per fixture+pick
-        const existing = resultMap.get(key);
-        if (!existing || resultRank(r) > resultRank(existing)) {
-          resultMap.set(key, r);
+          const existing = resultMap.get(key);
+          if (!existing || resultRank(r) > resultRank(existing)) {
+            resultMap.set(key, r);
+          }
         }
-
-        // 2) accumuliamo tutti i risultati per fixture_id
-        const arr = fixtureResultMap.get(fidStr) || [];
-        arr.push(r);
-        fixtureResultMap.set(fidStr, arr);
       }
-
-      // 3) ordiniamo per qualità: il primo elemento sarà il più aggiornato
-      for (const [fid, arr] of fixtureResultMap.entries()) {
-        arr.sort((a, b) => resultRank(b) - resultRank(a));
-        fixtureResultMap.set(fid, arr);
-      }
-    }
-
 
       let wins = 0;
       let loses = 0;
@@ -1715,22 +1699,37 @@ async function loadModelStats() {
     const feedbackMap = await loadFeedbackMap(todayStr);
 
     const resultMap = new Map();
-    const fixtureResultMap = new Map();
-    if (Array.isArray(results)) {
-      for (const r of results) {
-        if (r.fixture_id && r.pick) {
-          const fidStr = String(r.fixture_id).trim();
-          const key = fidStr + "__" + String(r.pick).trim();
-          resultMap.set(key, r);
-          // mappa per fixture_id, usata come fallback quando il testo del pick non coincide
-          const arr = fixtureResultMap.get(fidStr) || [];
-          arr.push(r);
-          fixtureResultMap.set(fidStr, arr);
-        }
-      }
+const fixtureResultMap = new Map();
+
+if (Array.isArray(results)) {
+  for (const r of results) {
+    if (!r.fixture_id || !r.pick) continue;
+
+    const fidStr = String(r.fixture_id).trim();
+    const pickText = String(r.pick).trim();
+    const key = fidStr + "__" + pickText;
+
+    // scegliamo sempre il "miglior" risultato per fixture+pick
+    const existing = resultMap.get(key);
+    if (!existing || resultRank(r) > resultRank(existing)) {
+      resultMap.set(key, r);
     }
 
-    const byCategory = groupByCategory(picks);
+    // accumuliamo tutti i risultati per fixture_id
+    const arr = fixtureResultMap.get(fidStr) || [];
+    arr.push(r);
+    fixtureResultMap.set(fidStr, arr);
+  }
+
+  // ordiniamo per qualità: il primo elemento sarà il più aggiornato
+  for (const [fid, arr] of fixtureResultMap.entries()) {
+    arr.sort((a, b) => resultRank(b) - resultRank(a));
+    fixtureResultMap.set(fid, arr);
+  }
+}
+
+const byCategory = groupByCategory(picks);
+
     const categories = sortCategoriesOrder(Array.from(byCategory.keys()));
 
     // ================== HTML PICKS CLASSICI ==================
