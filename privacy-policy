@@ -1,17 +1,70 @@
 Privacy Policy – Pronostici Bomba
 
-L’app Pronostici Bomba non raccoglie né conserva alcun dato personale dell’utente.  
-Non è richiesto alcun account, login o autenticazione.
+Last updated: 11 December 2025
 
-L’app non accede a:
-- informazioni sensibili
-- identificativi del dispositivo
-- cronologia di navigazione
-- contatti, foto, file o posizione
+Pronostici Bomba ("the App") is developed and provided as a free informational tool offering statistical football predictions, analysis, and daily picks.
+This Privacy Policy explains how the App handles user data.
 
-L’app mostra esclusivamente dati pubblici relativi alle partite di calcio forniti da terze parti (API-Football).  
-Questi dati non sono associati a utenti e non permettono nessuna forma di tracciamento.
+1. No Personal Data Collected
 
-Log tecnici e dati statistici sono gestiti da servizi esterni come API-Football e Supabase, ma non contengono dati che identificano l’utente finale.
+The App does not collect, store, or process:
 
-Per chiarimenti o richieste: chinoknot@gmail.com
+Personal information
+
+Names, emails, phone numbers
+
+Location or GPS data
+
+Contacts, photos, media, or files
+
+Device identifiers
+
+Advertising IDs
+
+The App does not require an account or login of any kind.
+
+2. Data Processing
+
+The App retrieves football match data, statistics, and odds from external APIs.
+This information is not connected to the user and contains no personal identifiers.
+
+3. Third-Party Services
+
+The App may use:
+
+Supabase (for storing model data and picks)
+
+API-Football (for football statistics and fixtures)
+
+These services handle only match data.
+No personal user information is ever sent to these services.
+
+4. Cookies and Tracking
+
+The App:
+
+does not use cookies
+
+does not implement analytics
+
+does not track user behavior
+
+does not show personalized advertising
+
+5. Children’s Privacy
+
+The App is not directed to children under 13, and it does not collect any information that would require parental consent under COPPA or similar laws.
+
+6. Security
+
+We do not collect personal data; however, best practices are applied to ensure that all server-side services store only aggregated football-related information, never user-related data.
+
+7. Changes to This Privacy Policy
+
+We may update this Privacy Policy from time to time.
+Changes will be posted at the URL containing this document.
+
+8. Contact
+
+For questions or concerns, you may contact the developer at:
+chinoknot@gmail.com
