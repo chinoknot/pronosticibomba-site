@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
@@ -100,15 +100,14 @@
       color: var(--text-muted);
     }
 
-
-.range-fixed-pill {
-  padding: 3px 9px;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  background: rgba(15, 23, 42, 0.9);
-  font-size: 0.78rem;
-  color: var(--text-main);
-}
+    .range-fixed-pill {
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 0.78rem;
+      color: var(--text-main);
+    }
 
       margin-top: 12px;
       display: flex;
@@ -182,8 +181,7 @@
       color: var(--text-main);
     }
 
-
-    /* ==== STORICO COMBO_TICKETS ==== */
+    /* ==== STORICO COMBO_TICKETS (NON PIÙ USATO IN UI) ==== */
 
     .combo-historical {
       margin-top: 22px;
@@ -402,9 +400,6 @@
         justify-content: space-between;
         align-items: baseline;
         padding: 4px 4px;
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
         font-size: 0.8rem;
       }
 
@@ -433,10 +428,10 @@
         sono quelle mostrate al momento della generazione.
       </p>
 
-<div class="controls-row">
-  <span class="range-label">Intervallo analizzato</span>
-  <span class="range-fixed-pill">Ultimi 30 giorni (fisso)</span>
-</div>
+      <div class="controls-row">
+        <span class="range-label">Intervallo analizzato</span>
+        <span class="range-fixed-pill">Ultimi 30 giorni (fisso)</span>
+      </div>
 
     </header>
 
@@ -463,6 +458,8 @@
     <h2 class="section-title">Andamento giornaliero (solo picks risolte)</h2>
     <div id="table-container"></div>
 
+    <!--
+    ===== STORICO SCHEDINE PRONTE (COMBO) – RIMOSSO DALLA UI =====
     <section class="combo-historical">
       <h2 class="section-title">
         Storico schedine pronte (combo) – ROI dedicato
@@ -475,6 +472,7 @@
       </p>
       <div id="combo-summary" class="combo-summary-wrapper"></div>
     </section>
+    -->
 
     <section class="info-block">
       <div class="info-title">Come leggere ROI, winrate e reliability</div>
@@ -575,6 +573,9 @@
     const k = (cat || "").trim().toUpperCase();
     return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
   }
+
+  // (ticket type labels e loadComboHistory restano definiti
+  // ma non vengono più usati nella UI)
 
   const TICKET_TYPE_LABELS = {
     X2: "Raddoppio di giornata",
@@ -1214,7 +1215,7 @@
     }
   }
 
-  // ===== STORICO SCHEDINE COMBO (combo_tickets) =====
+  // ===== STORICO SCHEDINE COMBO (NON CHIAMATO) =====
   async function loadComboHistory(daysBack) {
     const container = document.getElementById("combo-summary");
     if (!container) return;
@@ -1454,11 +1455,11 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-  const DAYS = 30; // fisso, sempre 30 giorni
+    const DAYS = 30; // fisso, sempre 30 giorni
 
-  loadHistory(DAYS);
-  loadComboHistory(DAYS);
-});
+    loadHistory(DAYS);
+    // loadComboHistory(DAYS); // disattivato: non mostriamo più lo storico schedine all'utente
+  });
 </script>
 
 </body>
