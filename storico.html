@@ -413,6 +413,35 @@
         font-size: 0.78rem;
       }
     }
+
+    .roi-toggle {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      margin-left: 6px;
+    }
+    .roi-toggle button {
+      appearance: none;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: transform 0.05s ease, border-color 0.15s ease, background 0.15s ease;
+      white-space: nowrap;
+    }
+    .roi-toggle button:hover {
+      border-color: rgba(248, 250, 252, 0.6);
+      transform: translateY(-1px);
+    }
+    .roi-toggle button.active {
+      border-color: rgba(249, 115, 22, 0.9);
+      background: var(--accent-soft);
+      color: #fff;
+    }
+
   </style>
 </head>
 <body>
@@ -423,14 +452,21 @@
         <a href="/index.html" class="back-link">← Torna ai pronostici di oggi</a>
       </div>
       <p class="subtitle">
-        Qui trovi il rendimento storico delle picks con stake fisso 1 unità per pronostico.
-        Il ROI e il profitto sono calcolati solo sulle picks con esito WIN/LOSE; le quote
+        Qui trovi il rendimento storico con stake fisso 1 unità.
+        Puoi scegliere se calcolare il ROI <strong>per pronostico</strong> (ogni pick = 1 stake)
+        oppure <strong>per evento</strong> (1 stake per partita/fixture, scegliendo la pick risolta migliore).
+        Il ROI e il profitto sono calcolati solo sulle righe con esito WIN/LOSE; le quote
         sono quelle mostrate al momento della generazione.
       </p>
 
       <div class="controls-row">
         <span class="range-label">Intervallo analizzato</span>
         <span class="range-fixed-pill">Ultimi 30 giorni (fisso)</span>
+
+        <div class="roi-toggle" aria-label="Modalità calcolo ROI">
+          <button id="roi-mode-event" type="button">Per evento</button>
+          <button id="roi-mode-pick" type="button">Per pronostico</button>
+        </div>
       </div>
 
     </header>
@@ -481,6 +517,14 @@
           ROI 12% significa 12 unità di profitto ogni 100 giocate.</li>
         <li><strong>Winrate</strong>: percentuale di pronostici vinti sul totale
           (solo picks con esito WIN/LOSE).</li>
+
+        <li><strong>Modalità calcolo</strong>:
+          <ul class="info-list">
+            <li><strong>Per pronostico</strong>: ogni pick conta come una giocata (stake 1 ciascuna).</li>
+            <li><strong>Per evento</strong>: ogni partita (fixture_id) conta una sola volta (stake 1), scegliendo la pick risolta con score più alto.</li>
+          </ul>
+        </li>
+
         <li><strong>Quota media & winrate necessaria</strong>:
           ogni quota media ha un winrate di pareggio (break-even). Esempio:
           quota media 1.80 ⇒ winrate necessaria ≈ 55.6%.</li>
@@ -504,6 +548,30 @@
   const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
   const SUPABASE_ANON_KEY =
      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
+
+
+  // ===== ROI MODE =====
+  // "event" = 1 stake per fixture (sceglie la pick risolta migliore per partita)
+  // "pick"  = 1 stake per pick (comportamento attuale)
+  let ROI_MODE = (localStorage.getItem("roi_mode") || "event").toLowerCase();
+
+  function applyRoiToggleUI() {
+    const bEvent = document.getElementById("roi-mode-event");
+    const bPick = document.getElementById("roi-mode-pick");
+    if (!bEvent || !bPick) return;
+    bEvent.classList.toggle("active", ROI_MODE === "event");
+    bPick.classList.toggle("active", ROI_MODE === "pick");
+  }
+
+  function setRoiMode(mode) {
+    const m = (mode || "").toLowerCase();
+    ROI_MODE = (m === "pick") ? "pick" : "event";
+    localStorage.setItem("roi_mode", ROI_MODE);
+    applyRoiToggleUI();
+    // ricarico storico
+    loadHistory(DAYS_FIXED);
+  }
+
 
 
   async function sbFetch(table, query) {
@@ -692,6 +760,35 @@
       }
     }
 
+    function pickResult(p) {
+      const fid = String(p.fixture_id || "").trim();
+      const pickText = String(p.pick || "").trim();
+      const key = fid + "__" + pickText;
+      const res = resultMap.get(key) || {};
+      return (res.result || "").toUpperCase();
+    }
+
+    function chooseBestResolvedPick(list) {
+      const resolved = list.filter(p => {
+        const r = pickResult(p);
+        return r === "WIN" || r === "LOSE";
+      });
+      if (!resolved.length) return null;
+
+      resolved.sort((a, b) => {
+        const sa = Number(a.score || 0);
+        const sb = Number(b.score || 0);
+        if (sb !== sa) return sb - sa;
+
+        // tie-break: odd più alta
+        const oa = safeOdd(a.odd);
+        const ob = safeOdd(b.odd);
+        return ob - oa;
+      });
+
+      return resolved[0];
+    }
+
     let wins = 0;
     let loses = 0;
     let stake = 0;
@@ -702,78 +799,84 @@
     const confBands = {};
     const categories = {};
 
-    for (const p of picks) {
-      const fid = String(p.fixture_id || "").trim();
-      const pickText = String(p.pick || "").trim();
-      if (!fid && !pickText) continue;
-
-      const key = fid + "__" + pickText;
-      const res = resultMap.get(key) || {};
-      const result = (res.result || "").toUpperCase();
-
-      const odd = safeOdd(p.odd);
-
-      if (result === "WIN" || result === "LOSE") {
-        stake += 1;
-        if (result === "WIN") {
-          wins += 1;
-          profit += odd - 1;
-        } else {
-          loses += 1;
-          profit -= 1;
-        }
-        oddsSum += odd;
-        oddsCount += 1;
+    function ensureBand(label) {
+      if (!confBands[label]) {
+        confBands[label] = { wins: 0, loses: 0, stake: 0, profit: 0, oddsSum: 0, oddsCount: 0 };
       }
+      return confBands[label];
+    }
 
-      const confLabel = confidenceLabelFromScore(p.score || 0);
-      if (!confBands[confLabel]) {
-        confBands[confLabel] = {
-          wins: 0,
-          loses: 0,
-          stake: 0,
-          profit: 0,
-          oddsSum: 0,
-          oddsCount: 0,
-        };
-      }
-      const band = confBands[confLabel];
-      if (result === "WIN" || result === "LOSE") {
-        band.stake += 1;
-        if (result === "WIN") {
-          band.wins += 1;
-          band.profit += odd - 1;
-        } else {
-          band.loses += 1;
-          band.profit -= 1;
-        }
-        band.oddsSum += odd;
-        band.oddsCount += 1;
-      }
-
-      const catKey = (p.category || "ALTRO").trim() || "ALTRO";
+    function ensureCategory(key) {
+      const catKey = (key || "ALTRO").trim() || "ALTRO";
       if (!categories[catKey]) {
-        categories[catKey] = {
-          wins: 0,
-          loses: 0,
-          stake: 0,
-          profit: 0,
-          oddsSum: 0,
-          oddsCount: 0,
-        };
+        categories[catKey] = { wins: 0, loses: 0, stake: 0, profit: 0, oddsSum: 0, oddsCount: 0 };
       }
-      const c = categories[catKey];
-      if (result === "WIN" || result === "LOSE") {
-        c.stake += 1;
-        if (result === "WIN") {
-          c.wins += 1;
-          c.profit += odd - 1;
-        } else {
-          c.loses += 1;
-          c.profit -= 1;
+      return categories[catKey];
+    }
+
+    function applyResolved(p, result) {
+      const odd = safeOdd(p.odd);
+      const confLabel = confidenceLabelFromScore(p.score || 0);
+      const band = ensureBand(confLabel);
+      const c = ensureCategory(p.category);
+
+      stake += 1;
+      band.stake += 1;
+      c.stake += 1;
+
+      if (result === "WIN") {
+        wins += 1;
+        profit += odd - 1;
+        band.wins += 1;
+        band.profit += odd - 1;
+        c.wins += 1;
+        c.profit += odd - 1;
+      } else {
+        loses += 1;
+        profit -= 1;
+        band.loses += 1;
+        band.profit -= 1;
+        c.loses += 1;
+        c.profit -= 1;
+      }
+
+      oddsSum += odd;
+      oddsCount += 1;
+      band.oddsSum += odd;
+      band.oddsCount += 1;
+      c.oddsSum += odd;
+      c.oddsCount += 1;
+    }
+
+    if (ROI_MODE === "pick") {
+      // === modalità attuale: 1 stake per pick ===
+      for (const p of picks) {
+        const fid = String(p.fixture_id || "").trim();
+        const pickText = String(p.pick || "").trim();
+        if (!fid && !pickText) continue;
+
+        const result = pickResult(p);
+        if (result === "WIN" || result === "LOSE") {
+          applyResolved(p, result);
         }
-        c.oddsSum += odd;
-        c.oddsCount += 1;
+      }
+    } else {
+      // === modalità realistica: 1 stake per evento (fixture_id) ===
+      const byFixture = {};
+      for (const p of picks) {
+        const fid = String(p.fixture_id || "").trim();
+        if (!fid) continue;
+        if (!byFixture[fid]) byFixture[fid] = [];
+        byFixture[fid].push(p);
+      }
+
+      for (const fid of Object.keys(byFixture)) {
+        const chosen = chooseBestResolvedPick(byFixture[fid]);
+        if (!chosen) continue;
+        const result = pickResult(chosen);
+        if (result === "WIN" || result === "LOSE") {
+          applyResolved(chosen, result);
+        }
       }
     }
 
@@ -790,8 +893,7 @@
       categoryStats: categories,
     };
   }
-
-  async function loadHistory(daysBack) {
+async function loadHistory(daysBack) {
     const tableContainer = document.getElementById("table-container");
     tableContainer.innerHTML = `
       <div class="table-wrapper">
@@ -1454,11 +1556,18 @@
     }
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    const DAYS = 30; // fisso, sempre 30 giorni
+  const DAYS_FIXED = 30; // fisso, sempre 30 giorni
 
-    loadHistory(DAYS);
-    // loadComboHistory(DAYS); // disattivato: non mostriamo più lo storico schedine all'utente
+  document.addEventListener("DOMContentLoaded", () => {
+    // init toggle
+    applyRoiToggleUI();
+    const bEvent = document.getElementById("roi-mode-event");
+    const bPick = document.getElementById("roi-mode-pick");
+    if (bEvent) bEvent.addEventListener("click", () => setRoiMode("event"));
+    if (bPick) bPick.addEventListener("click", () => setRoiMode("pick"));
+
+    loadHistory(DAYS_FIXED);
+    // loadComboHistory(DAYS_FIXED); // disattivato: non mostriamo più lo storico schedine all'utente
   });
 </script>
 
