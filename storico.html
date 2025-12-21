@@ -457,13 +457,13 @@
     DAILY_10PLUS: "Combo High Stakes",
     SINGLE_GAME: "Pick Esclusiva",
     TOP_5_TIPS: "Top 5 Esclusive",
+    COMBO_DC_O15: "Combo Doppia Chance + Over 1.5",
     __PICK_ESCLUSIVA__: "Pick Esclusiva",
     DNB_ENGINE: "DNB Engine",
     HT_O0_5: "HT Over 0.5",
     HT_OVER_0_5: "HT Over 0.5",
     BTTS: "BTTS",
     BTTS_TIPS: "BTTS",
-    COMBO_DOPPIA_O15: "Combo Doppia Chance + Over 1.5",
   };
 
   function getCategoryLabel(cat) {
@@ -483,24 +483,35 @@
   const EXCLUSIVE_AGG_KEY = "__PICK_ESCLUSIVA__";
 
   function normalizeCatKey(cat) {
-    const raw = (cat || "").toString().trim();
-    const up = raw.toUpperCase();
+    return (cat || "").trim().toUpperCase();
+  }
 
-    if (!up) return "";
 
-    // Normalize common aliases to match the category keys used in the homepage (index.html)
-    if (up === "GG SPECIAL" || up === "GG_SPECIAL" || up === "BTTS_TIPS" || up === "BTTS") return "BTTS";
-    if (up === "HT O0.5" || up === "HT_O0_5" || up === "HT_OVER_0_5" || up === "HT OVER 0.5") return "HT_OVER_0_5";
+  // Mappa categoria "visuale" -> chiave categoria usata nello storico
+  // Serve per allineare le sezioni dell'index (es. Double Chance + Over 1.5) anche se nel DB la category tecnica è diversa.
+  function deriveCategoryKeyFromPick(p) {
+    const cat = normalizeCatKey(p && p.category);
+    const model = normalizeCatKey(p && p.model);
+    const pickRaw = String((p && p.pick) || "").trim();
+    const pick = pickRaw.toLowerCase();
 
-    // Double Chance + Over 1.5 (UI: "Combo Doppia Chance + Over 1.5" / "Double Chance + Over 1.5")
-    // We accept many human labels coming from the scraper / manual edits.
-    if (
-      up === "COMBO_DOPPIA_O15" ||
-      (up.includes("DOPPIA") && (up.includes("O1.5") || up.includes("OVER 1.5") || up.includes("OVER1.5") || up.includes("OVER 1,5"))) ||
-      (up.includes("DOUBLE") && up.includes("CHANCE") && (up.includes("1.5") || up.includes("1,5")))
-    ) return "COMBO_DOPPIA_O15";
+    // Double Chance (1X/X2) + Over 1.5
+    // - UI: "Double Chance + Over 1.5" / "Combo Doppia Chance + Over 1.5"
+    // - DB: spesso arriva con category diversa (SAFE/GOALS/etc). Quindi riconosciamo dal testo pick o dal model.
+    const isDc =
+      pick.startsWith("1x") || pick.startsWith("x2") ||
+      pick.includes("1x &") || pick.includes("x2 &") ||
+      pick.includes("1x & over") || pick.includes("x2 & over");
+    const isO15 = pick.includes("over 1.5");
+    const isComboByModel = model.includes("O1_5") && (model.includes("DC") || model.includes("1X") || model.includes("X2"));
 
-    return up.replace(/\s+/g, "_");
+    if ((isDc && isO15) || isComboByModel) {
+      return "COMBO_DC_O15";
+    }
+
+    // Aggregazione Pick Esclusiva (SINGLE_GAME + TOP_5_TIPS) gestita più sotto,
+    // qui restituiamo la chiave tecnica.
+    return cat || "ALTRO";
   }
 
 // ranking dei risultati: preferiamo righe con esito definito e match finito
@@ -640,7 +651,7 @@
 
     function applyResolved(p, result) {
       const odd = safeOdd(p.odd);
-      const c = ensureCategory(p.category);
+      const c = ensureCategory(deriveCategoryKeyFromPick(p));
 
       stake += 1;
       c.stake += 1;
@@ -682,7 +693,7 @@
 for (const fid of Object.keys(byFixture)) {
   const cats = new Set();
   for (const p of byFixture[fid]) {
-    const ck = normalizeCatKey(p.category || "ALTRO") || "ALTRO";
+    const ck = deriveCategoryKeyFromPick(p) || "ALTRO";
     cats.add(ck);
   }
   for (const ck of cats) {
