@@ -463,6 +463,7 @@
     HT_OVER_0_5: "HT Over 0.5",
     BTTS: "BTTS",
     BTTS_TIPS: "BTTS",
+    COMBO_DOPPIA_O15: "Combo Doppia Chance + Over 1.5",
   };
 
   function getCategoryLabel(cat) {
@@ -482,7 +483,24 @@
   const EXCLUSIVE_AGG_KEY = "__PICK_ESCLUSIVA__";
 
   function normalizeCatKey(cat) {
-    return (cat || "").trim().toUpperCase();
+    const raw = (cat || "").toString().trim();
+    const up = raw.toUpperCase();
+
+    if (!up) return "";
+
+    // Normalize common aliases to match the category keys used in the homepage (index.html)
+    if (up === "GG SPECIAL" || up === "GG_SPECIAL" || up === "BTTS_TIPS" || up === "BTTS") return "BTTS";
+    if (up === "HT O0.5" || up === "HT_O0_5" || up === "HT_OVER_0_5" || up === "HT OVER 0.5") return "HT_OVER_0_5";
+
+    // Double Chance + Over 1.5 (UI: "Combo Doppia Chance + Over 1.5" / "Double Chance + Over 1.5")
+    // We accept many human labels coming from the scraper / manual edits.
+    if (
+      up === "COMBO_DOPPIA_O15" ||
+      (up.includes("DOPPIA") && (up.includes("O1.5") || up.includes("OVER 1.5") || up.includes("OVER1.5") || up.includes("OVER 1,5"))) ||
+      (up.includes("DOUBLE") && up.includes("CHANCE") && (up.includes("1.5") || up.includes("1,5")))
+    ) return "COMBO_DOPPIA_O15";
+
+    return up.replace(/\s+/g, "_");
   }
 
 // ranking dei risultati: preferiamo righe con esito definito e match finito
