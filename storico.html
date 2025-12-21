@@ -457,17 +457,35 @@
     DAILY_10PLUS: "Combo High Stakes",
     SINGLE_GAME: "Pick Esclusiva",
     TOP_5_TIPS: "Top 5 Esclusive",
+    __PICK_ESCLUSIVA__: "Pick Esclusiva",
+    DNB_ENGINE: "DNB Engine",
+    HT_O0_5: "HT Over 0.5",
+    HT_OVER_0_5: "HT Over 0.5",
+    BTTS: "BTTS",
+    BTTS_TIPS: "BTTS",
   };
 
   function getCategoryLabel(cat) {
-    const k = (cat || "").trim().toUpperCase();
+    const k = normalizeCatKey(cat);
+    if (k === EXCLUSIVE_AGG_KEY) return "Pick Esclusiva";
     return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
   }
 
   // categorie da NASCONDERE nella tabella "Rendimento per categoria di modello"
-  const HIDDEN_CATEGORY_KEYS = new Set(["DAILY_2PLUS", "DAILY_10PLUS", "TOP_5_TIPS"]);
+  const HIDDEN_CATEGORY_KEYS = new Set(["DAILY_2PLUS", "DAILY_10PLUS"]);
 
-  // ranking dei risultati: preferiamo righe con esito definito e match finito
+  
+  // Categoria UI: "Pick Esclusiva"
+  // In home spesso include SINGLE_GAME e (se presente) TOP_5_TIPS.
+  // Per lo storico, le aggreghiamo in un'unica riga per evitare mismatch UI ↔ storico.
+  const EXCLUSIVE_CATEGORY_KEYS = new Set(["SINGLE_GAME", "TOP_5_TIPS"]);
+  const EXCLUSIVE_AGG_KEY = "__PICK_ESCLUSIVA__";
+
+  function normalizeCatKey(cat) {
+    return (cat || "").trim().toUpperCase();
+  }
+
+// ranking dei risultati: preferiamo righe con esito definito e match finito
   function resultRank(r) {
     let score = 0;
     const res = (r.result || "").toUpperCase();
@@ -629,6 +647,11 @@
 
     // === SOLO modalità evento: 1 stake per fixture_id ===
     const byFixture = {};
+
+    // Per mostrare categorie anche quando hanno solo VOID/PENDING (stake 0),
+    // teniamo traccia di quante fixture hanno almeno una pick per categoria.
+    const categorySeenFixtures = {};
+
     for (const p of picks) {
       const fid = String(p.fixture_id || "").trim();
       if (!fid) continue;
@@ -636,7 +659,20 @@
       byFixture[fid].push(p);
     }
 
-    for (const fid of Object.keys(byFixture)) {
+
+// Popola presence per categoria (fixture uniche)
+for (const fid of Object.keys(byFixture)) {
+  const cats = new Set();
+  for (const p of byFixture[fid]) {
+    const ck = normalizeCatKey(p.category || "ALTRO") || "ALTRO";
+    cats.add(ck);
+  }
+  for (const ck of cats) {
+    categorySeenFixtures[ck] = (categorySeenFixtures[ck] || 0) + 1;
+  }
+}
+
+for (const fid of Object.keys(byFixture)) {
       const chosen = chooseBestResolvedPick(byFixture[fid]);
       if (!chosen) continue;
       const result = pickResult(chosen);
@@ -655,6 +691,7 @@
       profit,
       avgOdd,
       categoryStats: categories,
+      categorySeenFixtures,
     };
   }
 
@@ -696,6 +733,7 @@
 
       const byDay = new Map();
       const byCategory = {};
+      const byCategorySeen = {};
 
       let totalWins = 0;
       let totalLoses = 0;
@@ -705,6 +743,12 @@
       let totalOddsCount = 0;
 
       for (const s of statsList) {
+        // merge category presence (fixture uniche per giorno)
+        for (const [catKey, cnt] of Object.entries(s.categorySeenFixtures || {})) {
+          const k = normalizeCatKey(catKey) || "ALTRO";
+          byCategorySeen[k] = (byCategorySeen[k] || 0) + (cnt || 0);
+        }
+
         byDay.set(s.date, {
           wins: s.wins,
           loses: s.loses,
@@ -742,7 +786,42 @@
         }
       }
 
-      const startDate = statsList[statsList.length - 1].date;
+      
+
+// ===== Aggregazione "Pick Esclusiva" (SINGLE_GAME + TOP_5_TIPS) =====
+function mergeIntoExclusive(catKey) {
+  const k = normalizeCatKey(catKey);
+  const src = byCategory[k];
+  if (!src) return;
+  if (!byCategory[EXCLUSIVE_AGG_KEY]) {
+    byCategory[EXCLUSIVE_AGG_KEY] = { wins: 0, loses: 0, stake: 0, profit: 0, oddsSum: 0, oddsCount: 0 };
+  }
+  const dest = byCategory[EXCLUSIVE_AGG_KEY];
+  dest.wins += src.wins || 0;
+  dest.loses += src.loses || 0;
+  dest.stake += src.stake || 0;
+  dest.profit += src.profit || 0;
+  dest.oddsSum += src.oddsSum || 0;
+  dest.oddsCount += src.oddsCount || 0;
+
+  delete byCategory[k];
+}
+
+for (const k of EXCLUSIVE_CATEGORY_KEYS) {
+  mergeIntoExclusive(k);
+}
+
+// presence aggregation
+let exclusiveSeen = 0;
+for (const k of EXCLUSIVE_CATEGORY_KEYS) {
+  exclusiveSeen += (byCategorySeen[normalizeCatKey(k)] || 0);
+  delete byCategorySeen[normalizeCatKey(k)];
+}
+if (exclusiveSeen > 0) {
+  byCategorySeen[EXCLUSIVE_AGG_KEY] = (byCategorySeen[EXCLUSIVE_AGG_KEY] || 0) + exclusiveSeen;
+}
+
+const startDate = statsList[statsList.length - 1].date;
       const endDate = statsList[0].date;
       const periodLabel = `${formatDateIT(startDate)} → ${formatDateIT(endDate)}`;
       const daysEffective = statsList.length;
@@ -873,7 +952,7 @@
       `;
 
       // ===== RENDIMENTO PER CATEGORIA (con filtro richiesto) =====
-      const catKeysAll = Object.keys(byCategory);
+      const catKeysAll = Array.from(new Set([...Object.keys(byCategory), ...Object.keys(byCategorySeen)]));
       const catKeys = catKeysAll.filter(k => !HIDDEN_CATEGORY_KEYS.has(String(k || "").toUpperCase()));
 
       if (catKeys.length) {
@@ -898,7 +977,8 @@
         `;
 
         for (const catKey of catKeys) {
-          const c = byCategory[catKey];
+          const c = byCategory[catKey] || { wins: 0, loses: 0, stake: 0, profit: 0, oddsSum: 0, oddsCount: 0 };
+          const seen = byCategorySeen[normalizeCatKey(catKey)] || byCategorySeen[catKey] || 0;
           const playedCat = c.wins + c.loses;
           const winrateCat =
             playedCat > 0 ? ((c.wins / playedCat) * 100).toFixed(1) : "-";
@@ -924,8 +1004,10 @@
               : "badge-neg";
 
           let relLabel = "-";
+          if (playedCat === 0 && seen > 0) { relLabel = "Solo VOID/PENDING"; }
+
           let relClass = "badge-neutral";
-          if (winrateCat !== "-" && winNeedCat !== "-") {
+          if (relLabel === "-" && winrateCat !== "-" && winNeedCat !== "-") {
             const wrNum = parseFloat(winrateCat);
             const needNum = parseFloat(winNeedCat);
             relLabel = reliabilityLabel(playedCat, wrNum, needNum);
