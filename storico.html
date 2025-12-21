@@ -558,13 +558,21 @@
     }
 
     function chooseBestResolvedPick(list) {
+      // Modalità "per evento": una sola pick per fixture.
+      // Regola (Opzione 1):
+      // - Considera solo pick RISOLTE (WIN/LOSE)
+      // - Se esiste almeno una WIN, la fixture è WIN e scegliamo la WIN con score più alto (tie-break: odd)
+      // - Altrimenti (solo LOSE), la fixture è LOSE e scegliamo la LOSE con score più alto (tie-break: odd)
       const resolved = list.filter(p => {
         const r = pickResult(p);
         return r === "WIN" || r === "LOSE";
       });
       if (!resolved.length) return null;
 
-      resolved.sort((a, b) => {
+      const wins = resolved.filter(p => pickResult(p) === "WIN");
+      const pool = wins.length ? wins : resolved; // se non ci sono WIN, restano solo LOSE
+
+      pool.sort((a, b) => {
         const sa = Number(a.score || 0);
         const sb = Number(b.score || 0);
         if (sb !== sa) return sb - sa;
@@ -574,7 +582,7 @@
         return ob - oa;
       });
 
-      return resolved[0];
+      return pool[0];
     }
 
     let wins = 0;
