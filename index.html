@@ -1600,6 +1600,8 @@ async function loadTodayPicks() {
     }
 
     async function fetchDayStatsSimple(dateStr) {
+      // Calcolo ROI "per evento": 1 stake per fixture_id
+      // Se in un evento ci sono più picks, prende quella RISOLTA con score più alto (tie-break: quota più alta).
       const picks = await sbFetch(
         "picks",
         `?match_date=eq.${dateStr}&select=*`
@@ -1615,6 +1617,106 @@ async function loadTodayPicks() {
           avgOdd: null,
         };
       }
+
+      const results = await sbFetch(
+        "results",
+        `?picks_date=eq.${dateStr}&select=*`
+      );
+
+      // mappa risultati (dedup: prende la riga "migliore" per stessa fixture+pick)
+      const resultMap = new Map();
+      if (Array.isArray(results)) {
+        for (const r of results) {
+          const fid = String(r.fixture_id || "").trim();
+          const pickText = String(r.pick || "").trim();
+          if (!fid && !pickText) continue;
+
+          const key = fid + "__" + pickText;
+          const existing = resultMap.get(key);
+          if (!existing || resultRank(r) > resultRank(existing)) {
+            resultMap.set(key, r);
+          }
+        }
+      }
+
+      function pickResult(p) {
+        const fid = String(p.fixture_id || "").trim();
+        const pickText = String(p.pick || "").trim();
+        const key = fid + "__" + pickText;
+        const res = resultMap.get(key) || {};
+        return (res.result || "").toUpperCase();
+      }
+
+      function chooseBestResolvedPick(list) {
+        const resolved = list.filter(p => {
+          const r = pickResult(p);
+          return r === "WIN" || r === "LOSE";
+        });
+        if (!resolved.length) return null;
+
+        resolved.sort((a, b) => {
+          const sa = Number(a.score || 0);
+          const sb = Number(b.score || 0);
+          if (sb !== sa) return sb - sa;
+
+          const oa = safeOdd(a.odd);
+          const ob = safeOdd(b.odd);
+          return ob - oa;
+        });
+
+        return resolved[0];
+      }
+
+      // Raggruppa per evento (fixture_id)
+      const byFixture = {};
+      for (const p of picks) {
+        const fid = String(p.fixture_id || "").trim();
+        if (!fid) continue;
+        if (!byFixture[fid]) byFixture[fid] = [];
+        byFixture[fid].push(p);
+      }
+
+      let wins = 0;
+      let loses = 0;
+      let stake = 0;
+      let profit = 0;
+      let oddsSum = 0;
+      let oddsCount = 0;
+
+      for (const fid of Object.keys(byFixture)) {
+        const chosen = chooseBestResolvedPick(byFixture[fid]);
+        if (!chosen) continue;
+
+        const result = pickResult(chosen);
+        if (result !== "WIN" && result !== "LOSE") continue;
+
+        const odd = safeOdd(chosen.odd);
+
+        stake += 1;
+        if (result === "WIN") {
+          wins += 1;
+          profit += odd - 1;
+        } else {
+          loses += 1;
+          profit -= 1;
+        }
+
+        oddsSum += odd;
+        oddsCount += 1;
+      }
+
+      const avgOdd = oddsCount > 0 ? oddsSum / oddsCount : null;
+
+      return {
+        date: dateStr,
+        wins,
+        loses,
+        stake,
+        profit,
+        avgOdd,
+      };
+    }
+
 
       const results = await sbFetch(
         "results",
