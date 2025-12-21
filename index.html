@@ -1237,6 +1237,35 @@
       return `${weekday} ${day} ${month} ${y}`;
     }
 
+    function getTimeZoneOffsetMinutes(timeZone, dateUtc) {
+      // dateUtc: Date object representing a UTC timestamp
+      // returns offset minutes such that: localTime = utcTime + offset
+      const dtf = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        hour12: false,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+      const parts = dtf.formatToParts(dateUtc);
+      const map = {};
+      for (const p of parts) {
+        if (p.type !== "literal") map[p.type] = p.value;
+      }
+      const asUTC = Date.UTC(
+        Number(map.year),
+        Number(map.month) - 1,
+        Number(map.day),
+        Number(map.hour),
+        Number(map.minute),
+        Number(map.second)
+      );
+      return (asUTC - dateUtc.getTime()) / 60000;
+    }
+
     function parseMatchDateTime(row) {
       const d = row.match_date;
       const t = row.match_time;
@@ -1244,19 +1273,56 @@
 
       const [h, m] = t.split(":").map(x => parseInt(x, 10));
       const [yy, mm, dd] = d.split("-").map(x => parseInt(x, 10));
-
       if (!yy || !mm || !dd || isNaN(h) || isNaN(m)) return null;
 
-      // Orari DB in Europe/Dublin -> mostriamo orario italiano (+1)
-      const dt = new Date(yy, mm - 1, dd, h, m);
-      dt.setHours(dt.getHours() + 1);
-      return dt;
+      // DB orari in Europe/Dublin: convertiamo in timestamp UTC corretto,
+      // poi mostriamo SEMPRE in Europe/Rome (Italia), anche se l'utente è in un altro fuso.
+      const SOURCE_TZ = "Europe/Dublin";
+      const TARGET_TZ = "Europe/Rome";
+
+      // 1) ipotesi iniziale: quei numeri sono UTC
+      const utcGuess = new Date(Date.UTC(yy, mm - 1, dd, h, m, 0));
+
+      // 2) calcoliamo offset del SOURCE_TZ a quell'istante e risaliamo all'UTC reale
+      const sourceOffsetMin = getTimeZoneOffsetMinutes(SOURCE_TZ, utcGuess);
+      const utcRealMs = utcGuess.getTime() - sourceOffsetMin * 60000;
+
+      return new Date(utcRealMs);
     }
 
+
+    function normalizeCategory(rawCat) {
+      const raw = (rawCat || "").toString().trim();
+      const up = raw.toUpperCase();
+
+      if (!up) return "OTHER";
+
+      // categorie "canoniche" già OK
+      const canonical = new Set([
+        "BEST_TIPS_OF_DAY",
+        "SAFE_PICKS",
+        "SAFE_GOALS",
+        "OVER_UNDER_TIPS",
+        "VALUE_PICKS",
+        "SINGLE_GAME",
+        "DNB_ENGINE",
+        "HT_GOAL_ENGINE"
+      ]);
+      if (canonical.has(up)) return up;
+
+      // alias / naming umano
+      if (up === "GG SPECIAL" || up === "GG_SPECIAL" || up === "BTTS" || up === "BTTS_TIPS") return "GG_SPECIAL";
+      if (up.includes("COMBODOPPIA") || up.includes("DOPPIA") && up.includes("O1.5")) return "COMBO_DOPPIA_O15";
+      if (up === "COMBO_DOPPIA_O15") return "COMBO_DOPPIA_O15";
+
+      return up.replace(/\s+/g, "_");
+    }
+
+    
     function groupByCategory(picks) {
       const map = new Map();
       for (const p of picks) {
-        const cat = p.category || "OTHER";
+        const cat = normalizeCategory(p.category);
         if (!map.has(cat)) {
           map.set(cat, []);
         }
@@ -1267,17 +1333,18 @@
 
     function sortCategoriesOrder(categories) {
       const preferred = [
-        "BEST_TIPS_OF_DAY",   // Scelte d’Élite
-        "SAFE_PICKS",         // Selezioni Affidabili
-        "SAFE_GOALS",         // Safe Goals
-        "VALUE_PICKS",        // Quote di Valore
-        "OVER_UNDER_TIPS",    // Tendenze Goal
-        "BTTS_TIPS",          // Probabilità Entrambe
-        "DAILY_2PLUS",        // Combo Selettiva
-        "DAILY_10PLUS",       // Combo High Stakes
-        "SINGLE_GAME",        // Pick Esclusiva
-        "TOP_5_TIPS",         // Top 5 Tips
+        "BEST_TIPS_OF_DAY",    // Scelte d’Élite
+        "SINGLE_GAME",         // Pick Esclusiva
+        "SAFE_PICKS",          // Selezioni Affidabili
+        "SAFE_GOALS",          // SAFE GOALS
+        "COMBO_DOPPIA_O15",    // ComboDoppia+O1.5
+        "GG_SPECIAL",          // GG Special (BTTS)
+        "HT_GOAL_ENGINE",      // HT Goal Engine
+        "DNB_ENGINE",          // DNB Engine
+        "OVER_UNDER_TIPS",     // Tendenze Goal
+        "VALUE_PICKS"          // Quote di Valore
       ];
+
       return categories.sort((a, b) => {
         const ia = preferred.indexOf(a);
         const ib = preferred.indexOf(b);
@@ -1309,28 +1376,28 @@
 
     const CATEGORY_LABELS = {
       BEST_TIPS_OF_DAY: "Scelte d’Élite",
-      SAFE_PICKS: "Selezioni Affidabili",
-      SAFE_GOALS: "Safe goals (Over 2.5 o BTTS)",
-      VALUE_PICKS: "Quote di Valore",
-      OVER_UNDER_TIPS: "Tendenze Goal",
-      BTTS_TIPS: "Probabilità Entrambe",
-      DAILY_2PLUS: "Combo Selettiva",
-      DAILY_10PLUS: "Combo High Stakes",
       SINGLE_GAME: "Pick Esclusiva",
-      TOP_5_TIPS: "Top 5 Tips"
+      SAFE_PICKS: "Selezioni Affidabili",
+      SAFE_GOALS: "SAFE GOALS",
+      OVER_UNDER_TIPS: "Tendenze Goal",
+      VALUE_PICKS: "Quote di Valore",
+      GG_SPECIAL: "GG Special",
+      DNB_ENGINE: "DNB Engine",
+      HT_GOAL_ENGINE: "HT Goal Engine",
+      COMBO_DOPPIA_O15: "Combo Doppia Chance + Over 1.5"
     };
 
 const CATEGORY_DESCRIPTIONS = {
-      BEST_TIPS_OF_DAY: "Scelte singole con il miglior mix fra valore statistico e quota. Punto di partenza consigliato per la giornata.",
-      SAFE_PICKS: "Selezioni più prudenti, pensate per dare stabilità al rendimento. Di solito con quote medio-basse.",
-      SAFE_GOALS: "Partite dove i numeri indicano forte tendenza ai gol (Over 2.5 o entrambe segnano).",
-      VALUE_PICKS: "Giocate dove la quota del bookmaker sembra pagare più del rischio reale stimato dal modello.",
-      OVER_UNDER_TIPS: "Match con tendenza ai gol in base a attacco/difesa, xG e forma recente.",
-      BTTS_TIPS: "Pronostici su entrambe segnano / no, basati sulla probabilità che vadano a segno tutte e due le squadre.",
-      DAILY_2PLUS: "Combo selettiva di 2–3 eventi filtrati dal modello. Da usare solo in multipla con stake ridotto.",
-      DAILY_10PLUS: "Combo più aggressiva con payout alto. Sempre extra rispetto alle giocate principali.",
-      SINGLE_GAME: "Pick particolare su una singola partita, generata solo quando appare un pattern statistico raro.",
-      TOP_5_TIPS: "I 5 pronostici migliori del giorno secondo il modello, considerando valore, solidità e quota."
+      BEST_TIPS_OF_DAY: "La scelta singola più forte della giornata: miglior mix fra valore statistico e quota.",
+      SINGLE_GAME: "Pick particolare su una singola partita, quando appare un pattern statistico raro (quota in range controllato).",
+      SAFE_PICKS: "Selezioni più prudenti pensate per stabilità (di solito quote medio-basse).",
+      SAFE_GOALS: "Match dove i numeri indicano forte tendenza ai gol (Over 2.5 o BTTS).",
+      COMBO_DOPPIA_O15: "Combo 1X/X2 + Over 1.5: pensata per multipla, max 6 selezioni al giorno.",
+      GG_SPECIAL: "Selezioni BTTS (Entrambe segnano) costruite su profilo e contesto, con quote target controllate.",
+      HT_GOAL_ENGINE: "Team to score 1st Half: volume controllato su mercati 1° tempo.",
+      DNB_ENGINE: "Draw No Bet: selezioni conservative basate su probabilità e forma (quota stimata se non presente).",
+      OVER_UNDER_TIPS: "Tendenze goal (Over/Under) e spot con valore, filtrate per qualità.",
+      VALUE_PICKS: "Giocate dove la quota sembra pagare più del rischio stimato dal modello."
     };
 
 
@@ -1729,6 +1796,17 @@ if (Array.isArray(results)) {
 }
 
 const byCategory = groupByCategory(picks);
+    // lookup rapido fixture_id -> pick (per recuperare match_date/match_time e mostrare orario Italia anche nelle schedine)
+    const fixturePickLookup = new Map();
+    if (Array.isArray(picks)) {
+      for (const p of picks) {
+        if (p && p.fixture_id != null) {
+          const k = String(p.fixture_id).trim();
+          if (k && !fixturePickLookup.has(k)) fixturePickLookup.set(k, p);
+        }
+      }
+    }
+
 
     const categories = sortCategoriesOrder(Array.from(byCategory.keys()));
 
@@ -1793,7 +1871,7 @@ const byCategory = groupByCategory(picks);
       for (const p of list) {
         const dt = parseMatchDateTime(p);
         const timeStr = dt
-          ? dt.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+          ? dt.toLocaleTimeString("it-IT", { timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit" })
           : (p.match_time || "-");
 
         const oddNum = Number(p.odd || 0);
@@ -2077,7 +2155,15 @@ const byCategory = groupByCategory(picks);
           const legOddNum = Number(leg.odd || 0);
           const legOddStr = legOddNum ? legOddNum.toFixed(2) : "-";
           const pickLabel = `${leg.pick || ""} @ ${legOddStr}`;
-          const timeStr = leg.match_time || "-";
+          let timeStr = leg.match_time || "-";
+          const fid = (leg.fixture_id != null) ? String(leg.fixture_id).trim() : "";
+          const pickRow = fid ? fixturePickLookup.get(fid) : null;
+          if (pickRow) {
+            const dtLeg = parseMatchDateTime(pickRow);
+            if (dtLeg) {
+              timeStr = dtLeg.toLocaleTimeString("it-IT", { timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit" });
+            }
+          }
           const leagueStr = leg.league || "";
           const countryStr = leg.country || "";
           const catLabel = getCategoryLabel(leg.category || "");
