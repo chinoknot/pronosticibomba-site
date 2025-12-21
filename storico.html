@@ -86,7 +86,7 @@
     .subtitle {
       font-size: 0.86rem;
       color: var(--text-soft);
-      max-width: 700px;
+      max-width: 720px;
       line-height: 1.5;
     }
 
@@ -109,26 +109,8 @@
       color: var(--text-main);
     }
 
-      margin-top: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.82rem;
-      color: var(--text-muted);
-    }
-
     .range-label {
       font-weight: 500;
-    }
-
-    #range-select {
-      background: rgba(15, 23, 42, 0.9);
-      color: var(--text-main);
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      padding: 4px 8px;
-      font-size: 0.8rem;
     }
 
     .summary-card {
@@ -181,71 +163,6 @@
       color: var(--text-main);
     }
 
-    /* ==== STORICO COMBO_TICKETS (NON PIÙ USATO IN UI) ==== */
-
-    .combo-historical {
-      margin-top: 22px;
-    }
-
-    .combo-hint {
-      font-size: 0.86rem;
-      opacity: 0.86;
-      margin-bottom: 10px;
-    }
-
-    .combo-summary-wrapper {
-      margin-top: 6px;
-    }
-
-    .combo-summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 10px;
-    }
-
-    .combo-summary-card {
-      border-radius: 14px;
-      padding: 10px 12px;
-      background: radial-gradient(circle at top right, rgba(148,163,184,0.18), transparent 60%),
-                  linear-gradient(135deg, #020617, #020617);
-      border: 1px solid rgba(148,163,184,0.45);
-      box-shadow: 0 12px 30px rgba(15,23,42,0.95);
-      font-size: 0.84rem;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .combo-summary-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-
-    .combo-summary-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      align-items: center;
-    }
-
-    .combo-summary-meta span {
-      opacity: 0.9;
-    }
-
-    .combo-summary-badge {
-      padding: 2px 7px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      border: 1px solid rgba(148,163,184,0.7);
-    }
-
-    .combo-summary-empty {
-      font-size: 0.85rem;
-      opacity: 0.8;
-      padding: 4px 2px;
-    }
-
-    /* TABLES */
     .section-title {
       margin-top: 24px;
       margin-bottom: 8px;
@@ -337,22 +254,6 @@
       color: #e5e7eb;
     }
 
-    .badge-win {
-      color: var(--success);
-    }
-
-    .badge-lose {
-      color: var(--danger);
-    }
-
-    .badge-pending {
-      color: var(--pending);
-    }
-
-    .badge-unknown {
-      color: var(--text-muted);
-    }
-
     @media (max-width: 720px) {
       body {
         padding: 12px 6px 24px;
@@ -413,35 +314,6 @@
         font-size: 0.78rem;
       }
     }
-
-    .roi-toggle {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      margin-left: 6px;
-    }
-    .roi-toggle button {
-      appearance: none;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      background: rgba(15, 23, 42, 0.9);
-      color: var(--text-main);
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 0.78rem;
-      cursor: pointer;
-      transition: transform 0.05s ease, border-color 0.15s ease, background 0.15s ease;
-      white-space: nowrap;
-    }
-    .roi-toggle button:hover {
-      border-color: rgba(248, 250, 252, 0.6);
-      transform: translateY(-1px);
-    }
-    .roi-toggle button.active {
-      border-color: rgba(249, 115, 22, 0.9);
-      background: var(--accent-soft);
-      color: #fff;
-    }
-
   </style>
 </head>
 <body>
@@ -452,9 +324,9 @@
         <a href="/index.html" class="back-link">← Torna ai pronostici di oggi</a>
       </div>
       <p class="subtitle">
-        Qui trovi il rendimento storico con stake fisso 1 unità.
-        Puoi scegliere se calcolare il ROI <strong>per pronostico</strong> (ogni pick = 1 stake)
-        oppure <strong>per evento</strong> (1 stake per partita/fixture, scegliendo la pick risolta migliore).
+        Qui trovi il rendimento storico con stake fisso 1 unità,
+        calcolato <strong>per evento</strong>: ogni partita (fixture_id) conta una sola volta (stake 1),
+        scegliendo la pick risolta con score più alto.
         Il ROI e il profitto sono calcolati solo sulle righe con esito WIN/LOSE; le quote
         sono quelle mostrate al momento della generazione.
       </p>
@@ -462,13 +334,7 @@
       <div class="controls-row">
         <span class="range-label">Intervallo analizzato</span>
         <span class="range-fixed-pill">Ultimi 30 giorni (fisso)</span>
-
-        <div class="roi-toggle" aria-label="Modalità calcolo ROI">
-          <button id="roi-mode-event" type="button">Per evento</button>
-          <button id="roi-mode-pick" type="button">Per pronostico</button>
-        </div>
       </div>
-
     </header>
 
     <section class="summary-card">
@@ -494,22 +360,6 @@
     <h2 class="section-title">Andamento giornaliero (solo picks risolte)</h2>
     <div id="table-container"></div>
 
-    <!--
-    ===== STORICO SCHEDINE PRONTE (COMBO) – RIMOSSO DALLA UI =====
-    <section class="combo-historical">
-      <h2 class="section-title">
-        Storico schedine pronte (combo) – ROI dedicato
-      </h2>
-      <p class="combo-hint">
-        Queste sono le schedine generate automaticamente dai modelli (raddoppio,
-        quota 5/6, 10/12 e over 20). Il loro rendimento <strong>non è incluso</strong>
-        nel ROI globale: qui vedi solo lo storico di queste multipla, con stake fisso
-        1 unità per schedina chiusa.
-      </p>
-      <div id="combo-summary" class="combo-summary-wrapper"></div>
-    </section>
-    -->
-
     <section class="info-block">
       <div class="info-title">Come leggere ROI, winrate e reliability</div>
       <ul class="info-list">
@@ -517,14 +367,7 @@
           ROI 12% significa 12 unità di profitto ogni 100 giocate.</li>
         <li><strong>Winrate</strong>: percentuale di pronostici vinti sul totale
           (solo picks con esito WIN/LOSE).</li>
-
-        <li><strong>Modalità calcolo</strong>:
-          <ul class="info-list">
-            <li><strong>Per pronostico</strong>: ogni pick conta come una giocata (stake 1 ciascuna).</li>
-            <li><strong>Per evento</strong>: ogni partita (fixture_id) conta una sola volta (stake 1), scegliendo la pick risolta con score più alto.</li>
-          </ul>
-        </li>
-
+        <li><strong>Modalità calcolo</strong>: <strong>per evento</strong> (1 stake per partita/fixture, scegliendo la pick risolta con score più alto).</li>
         <li><strong>Quota media & winrate necessaria</strong>:
           ogni quota media ha un winrate di pareggio (break-even). Esempio:
           quota media 1.80 ⇒ winrate necessaria ≈ 55.6%.</li>
@@ -549,30 +392,9 @@
   const SUPABASE_ANON_KEY =
      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
 
-
   // ===== ROI MODE =====
-  // "event" = 1 stake per fixture (sceglie la pick risolta migliore per partita)
-  // "pick"  = 1 stake per pick (comportamento attuale)
-  let ROI_MODE = (localStorage.getItem("roi_mode") || "event").toLowerCase();
-
-  function applyRoiToggleUI() {
-    const bEvent = document.getElementById("roi-mode-event");
-    const bPick = document.getElementById("roi-mode-pick");
-    if (!bEvent || !bPick) return;
-    bEvent.classList.toggle("active", ROI_MODE === "event");
-    bPick.classList.toggle("active", ROI_MODE === "pick");
-  }
-
-  function setRoiMode(mode) {
-    const m = (mode || "").toLowerCase();
-    ROI_MODE = (m === "pick") ? "pick" : "event";
-    localStorage.setItem("roi_mode", ROI_MODE);
-    applyRoiToggleUI();
-    // ricarico storico
-    loadHistory(DAYS_FIXED);
-  }
-
-
+  // FISSO: SOLO "event"
+  const ROI_MODE = "event";
 
   async function sbFetch(table, query) {
     const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
@@ -642,40 +464,8 @@
     return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
   }
 
-  // (ticket type labels e loadComboHistory restano definiti
-  // ma non vengono più usati nella UI)
-
-  const TICKET_TYPE_LABELS = {
-    X2: "Raddoppio di giornata",
-    X5: "Quota 5/6",
-    X10: "Quota 10/12",
-    X20: "Quota over 20",
-  };
-
-  function getTicketTypeLabel(type, fallback) {
-    const k = (type || "").trim().toUpperCase();
-    return TICKET_TYPE_LABELS[k] || fallback || k || "Combo";
-  }
-
-  // ===== FASCE CONFIDENZA (stessa logica della home) =====
-  const CONFIDENCE_ORDER = [
-    "Molto alta",
-    "Alta",
-    "Medio-alta",
-    "Media",
-    "Bassa",
-    "Rischiosa"
-  ];
-
-  function confidenceLabelFromScore(score) {
-    const val = Number(score || 0) * 100;
-    if (val > 130) return "Molto alta";
-    if (val > 110) return "Alta";
-    if (val > 90)  return "Medio-alta";
-    if (val > 70)  return "Media";
-    if (val > 50)  return "Bassa";
-    return "Rischiosa";
-  }
+  // categorie da NASCONDERE nella tabella "Rendimento per categoria di modello"
+  const HIDDEN_CATEGORY_KEYS = new Set(["DAILY_2PLUS", "DAILY_10PLUS", "TOP_5_TIPS"]);
 
   // ranking dei risultati: preferiamo righe con esito definito e match finito
   function resultRank(r) {
@@ -735,7 +525,6 @@
         stake: 0,
         profit: 0,
         avgOdd: null,
-        confidenceStats: {},
         categoryStats: {},
       };
     }
@@ -780,7 +569,6 @@
         const sb = Number(b.score || 0);
         if (sb !== sa) return sb - sa;
 
-        // tie-break: odd più alta
         const oa = safeOdd(a.odd);
         const ob = safeOdd(b.odd);
         return ob - oa;
@@ -796,15 +584,7 @@
     let oddsSum = 0;
     let oddsCount = 0;
 
-    const confBands = {};
     const categories = {};
-
-    function ensureBand(label) {
-      if (!confBands[label]) {
-        confBands[label] = { wins: 0, loses: 0, stake: 0, profit: 0, oddsSum: 0, oddsCount: 0 };
-      }
-      return confBands[label];
-    }
 
     function ensureCategory(key) {
       const catKey = (key || "ALTRO").trim() || "ALTRO";
@@ -816,67 +596,44 @@
 
     function applyResolved(p, result) {
       const odd = safeOdd(p.odd);
-      const confLabel = confidenceLabelFromScore(p.score || 0);
-      const band = ensureBand(confLabel);
       const c = ensureCategory(p.category);
 
       stake += 1;
-      band.stake += 1;
       c.stake += 1;
 
       if (result === "WIN") {
         wins += 1;
         profit += odd - 1;
-        band.wins += 1;
-        band.profit += odd - 1;
         c.wins += 1;
         c.profit += odd - 1;
       } else {
         loses += 1;
         profit -= 1;
-        band.loses += 1;
-        band.profit -= 1;
         c.loses += 1;
         c.profit -= 1;
       }
 
       oddsSum += odd;
       oddsCount += 1;
-      band.oddsSum += odd;
-      band.oddsCount += 1;
       c.oddsSum += odd;
       c.oddsCount += 1;
     }
 
-    if (ROI_MODE === "pick") {
-      // === modalità attuale: 1 stake per pick ===
-      for (const p of picks) {
-        const fid = String(p.fixture_id || "").trim();
-        const pickText = String(p.pick || "").trim();
-        if (!fid && !pickText) continue;
+    // === SOLO modalità evento: 1 stake per fixture_id ===
+    const byFixture = {};
+    for (const p of picks) {
+      const fid = String(p.fixture_id || "").trim();
+      if (!fid) continue;
+      if (!byFixture[fid]) byFixture[fid] = [];
+      byFixture[fid].push(p);
+    }
 
-        const result = pickResult(p);
-        if (result === "WIN" || result === "LOSE") {
-          applyResolved(p, result);
-        }
-      }
-    } else {
-      // === modalità realistica: 1 stake per evento (fixture_id) ===
-      const byFixture = {};
-      for (const p of picks) {
-        const fid = String(p.fixture_id || "").trim();
-        if (!fid) continue;
-        if (!byFixture[fid]) byFixture[fid] = [];
-        byFixture[fid].push(p);
-      }
-
-      for (const fid of Object.keys(byFixture)) {
-        const chosen = chooseBestResolvedPick(byFixture[fid]);
-        if (!chosen) continue;
-        const result = pickResult(chosen);
-        if (result === "WIN" || result === "LOSE") {
-          applyResolved(chosen, result);
-        }
+    for (const fid of Object.keys(byFixture)) {
+      const chosen = chooseBestResolvedPick(byFixture[fid]);
+      if (!chosen) continue;
+      const result = pickResult(chosen);
+      if (result === "WIN" || result === "LOSE") {
+        applyResolved(chosen, result);
       }
     }
 
@@ -889,11 +646,11 @@
       stake,
       profit,
       avgOdd,
-      confidenceStats: confBands,
       categoryStats: categories,
     };
   }
-async function loadHistory(daysBack) {
+
+  async function loadHistory(daysBack) {
     const tableContainer = document.getElementById("table-container");
     tableContainer.innerHTML = `
       <div class="table-wrapper">
@@ -931,7 +688,6 @@ async function loadHistory(daysBack) {
 
       const byDay = new Map();
       const byCategory = {};
-      const byConfidence = {};
 
       let totalWins = 0;
       let totalLoses = 0;
@@ -955,26 +711,6 @@ async function loadHistory(daysBack) {
         if (s.avgOdd) {
           totalOddsSum += s.avgOdd * (s.wins + s.loses);
           totalOddsCount += (s.wins + s.loses);
-        }
-
-        for (const [bandKey, b] of Object.entries(s.confidenceStats || {})) {
-          if (!byConfidence[bandKey]) {
-            byConfidence[bandKey] = {
-              wins: 0,
-              loses: 0,
-              stake: 0,
-              profit: 0,
-              oddsSum: 0,
-              oddsCount: 0,
-            };
-          }
-          const dest = byConfidence[bandKey];
-          dest.wins += b.wins || 0;
-          dest.loses += b.loses || 0;
-          dest.stake += b.stake || 0;
-          dest.profit += b.profit || 0;
-          dest.oddsSum += b.oddsSum || 0;
-          dest.oddsCount += b.oddsCount || 0;
         }
 
         for (const [catKey, c] of Object.entries(s.categoryStats || {})) {
@@ -1128,7 +864,10 @@ async function loadHistory(daysBack) {
         </div>
       `;
 
-      const catKeys = Object.keys(byCategory);
+      // ===== RENDIMENTO PER CATEGORIA (con filtro richiesto) =====
+      const catKeysAll = Object.keys(byCategory);
+      const catKeys = catKeysAll.filter(k => !HIDDEN_CATEGORY_KEYS.has(String(k || "").toUpperCase()));
+
       if (catKeys.length) {
         html += `
           <div class="table-wrapper">
@@ -1211,98 +950,7 @@ async function loadHistory(daysBack) {
         `;
       }
 
-      const bandKeys = Object.keys(byConfidence);
-      if (bandKeys.length) {
-        const byConfOrdered = {};
-        for (const label of CONFIDENCE_ORDER) {
-          if (byConfidence[label]) byConfOrdered[label] = byConfidence[label];
-        }
-        for (const k of bandKeys) {
-          if (!byConfOrdered[k]) byConfOrdered[k] = byConfidence[k];
-        }
-
-        html += `
-          <div class="table-wrapper">
-            <h2 class="section-title" style="margin-top:4px;">
-              Rendimento per fascia di confidenza modello
-            </h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Fascia confidenza</th>
-                  <th>Picks giocate</th>
-                  <th>Win</th>
-                  <th>Lose</th>
-                  <th>Winrate</th>
-                  <th>ROI (stake=1)</th>
-                  <th>Quota media</th>
-                  <th>Winrate pareggio</th>
-                  <th>Reliability</th>
-                </tr>
-              </thead>
-              <tbody>
-        `;
-
-        for (const bandKey of Object.keys(byConfOrdered)) {
-          const c = byConfOrdered[bandKey];
-          const playedBand = c.wins + c.loses;
-          const winrateBand =
-            playedBand > 0 ? ((c.wins / playedBand) * 100).toFixed(1) : "-";
-          const roiBand =
-            c.stake > 0
-              ? ((c.profit / c.stake) * 100).toFixed(1)
-              : "-";
-          const avgOddBand =
-            c.oddsCount > 0
-              ? (c.oddsSum / c.oddsCount)
-              : null;
-          const avgOddBandStr = avgOddBand ? avgOddBand.toFixed(2) : "-";
-          const winNeedBand =
-            avgOddBand && avgOddBand > 1
-              ? (100 / avgOddBand).toFixed(1)
-              : "-";
-
-          const roiBandClass =
-            roiBand === "-"
-              ? "badge-neutral"
-              : parseFloat(roiBand) >= 0
-              ? "badge-pos"
-              : "badge-neg";
-
-          let relLabelB = "-";
-          let relClassB = "badge-neutral";
-          if (winrateBand !== "-" && winNeedBand !== "-") {
-            const wrNumB = parseFloat(winrateBand);
-            const needNumB = parseFloat(winNeedBand);
-            relLabelB = reliabilityLabel(playedBand, wrNumB, needNumB);
-            if (relLabelB.startsWith("Molto") || relLabelB.startsWith("Buona")) {
-              relClassB = "badge-pos";
-            } else if (relLabelB.startsWith("Debole") || relLabelB.startsWith("Negativa")) {
-              relClassB = "badge-neg";
-            }
-          }
-
-          html += `
-            <tr>
-              <td data-label="Confidenza modello">${bandKey}</td>
-              <td data-label="Picks giocati">${playedBand}</td>
-              <td data-label="Win">${c.wins}</td>
-              <td data-label="Lose">${c.loses}</td>
-              <td data-label="Winrate">${winrateBand === "-" ? "-" : winrateBand + "%"}</td>
-              <td data-label="ROI" class="${roiBandClass}">${roiBand === "-" ? "-" : roiBand + "%"}</td>
-              <td data-label="Quota media">${avgOddBandStr}</td>
-              <td data-label="Winrate pareggio">${winNeedBand === "-" ? "-" : winNeedBand + "%"}</td>
-              <td data-label="Reliability" class="${relClassB}">${relLabelB}</td>
-            </tr>
-          `;
-        }
-
-        html += `
-              </tbody>
-            </table>
-          </div>
-        `;
-      }
+      // ===== Sezione "Rendimento per fascia di confidenza modello" rimossa =====
 
       tableContainer.innerHTML = html;
     } catch (err) {
@@ -1317,257 +965,10 @@ async function loadHistory(daysBack) {
     }
   }
 
-  // ===== STORICO SCHEDINE COMBO (NON CHIAMATO) =====
-  async function loadComboHistory(daysBack) {
-    const container = document.getElementById("combo-summary");
-    if (!container) return;
-
-    container.innerHTML = `
-      <div class="combo-summary-empty">
-        Carico storico delle schedine...
-      </div>
-    `;
-
-    const dates = getLastNDates(daysBack);
-    if (!dates.length) {
-      container.innerHTML = `
-        <div class="combo-summary-empty">
-          Nessuna data disponibile.
-        </div>
-      `;
-      return;
-    }
-
-    const today = dates[0];
-    const fromDate = dates[dates.length - 1];
-
-    try {
-      const tickets = await sbFetch(
-        "combo_tickets",
-        `?run_date=gte.${fromDate}&run_date=lte.${today}&select=*`
-      );
-
-      if (!Array.isArray(tickets) || !tickets.length) {
-        container.innerHTML = `
-          <div class="combo-summary-empty">
-            Nessuna schedina generata in questo intervallo.
-          </div>
-        `;
-        return;
-      }
-
-      const results = await sbFetch(
-        "results",
-        `?picks_date=gte.${fromDate}&picks_date=lte.${today}&select=*`
-      );
-
-      const resultMap = new Map();
-      if (Array.isArray(results)) {
-        for (const r of results) {
-          const fid = String(r.fixture_id || "").trim();
-          const pickText = String(r.pick || "").trim();
-          if (!fid && !pickText) continue;
-          const key = fid + "__" + pickText;
-
-          const current = resultMap.get(key);
-          if (!current || resultRank(r) >= resultRank(current)) {
-            resultMap.set(key, r);
-          }
-        }
-      }
-
-      const statsByType = {};
-      let globalStake = 0;
-      let globalProfit = 0;
-      let globalWins = 0;
-      let globalLoses = 0;
-
-      function ensureType(type, label) {
-        if (!statsByType[type]) {
-          statsByType[type] = {
-            label,
-            played: 0,
-            wins: 0,
-            loses: 0,
-            stake: 0,
-            profit: 0,
-          };
-        }
-        return statsByType[type];
-      }
-
-      for (const t of tickets) {
-        const type = (t.ticket_type || "").toUpperCase();
-        const label = getTicketTypeLabel(type, t.label);
-
-        const legs = Array.isArray(t.legs) ? t.legs : [];
-        if (!legs.length) continue;
-
-        let hasLose = false;
-        let hasPending = false;
-        let hasUnknown = false;
-        let allWin = true;
-
-        for (const leg of legs) {
-          const fid = String(leg.fixture_id || "").trim();
-          const pickText = String(leg.pick || "").trim();
-          if (!fid && !pickText) {
-            hasUnknown = true;
-            allWin = false;
-            continue;
-          }
-          const key = fid + "__" + pickText;
-          const r = resultMap.get(key);
-          const res = (r && r.result ? r.result : "UNKNOWN").toUpperCase();
-
-          if (res === "LOSE") {
-            hasLose = true;
-            allWin = false;
-          } else if (res === "WIN") {
-          } else if (res === "PENDING") {
-            hasPending = true;
-            allWin = false;
-          } else {
-            hasUnknown = true;
-            allWin = false;
-          }
-        }
-
-        let status = "UNKNOWN";
-        if (allWin) status = "WIN";
-        else if (hasLose) status = "LOSE";
-        else if (hasPending) status = "PENDING";
-        else if (hasUnknown) status = "UNKNOWN";
-
-        if (status !== "WIN" && status !== "LOSE") continue;
-
-        const totalOdd = safeOdd(t.total_odd);
-        const stake = 1;
-        const profit = status === "WIN" ? (totalOdd - 1) : -1;
-
-        const s = ensureType(type, label);
-        s.played += 1;
-        s.stake += stake;
-        s.profit += profit;
-        if (status === "WIN") s.wins += 1;
-        if (status === "LOSE") s.loses += 1;
-
-        globalStake += stake;
-        globalProfit += profit;
-        if (status === "WIN") globalWins += 1;
-        if (status === "LOSE") globalLoses += 1;
-      }
-
-      const types = Object.keys(statsByType);
-      if (!types.length) {
-        container.innerHTML = `
-          <div class="combo-summary-empty">
-            Nessuna schedina chiusa (WIN/LOSE) nel periodo selezionato.
-          </div>
-        `;
-        return;
-      }
-
-      const globalPlayed = globalWins + globalLoses;
-      const globalWinrate =
-        globalPlayed > 0 ? ((globalWins / globalPlayed) * 100).toFixed(1) : "-";
-      const globalRoi =
-        globalStake > 0 ? ((globalProfit / globalStake) * 100).toFixed(1) : "-";
-      const roiClassGlobal =
-        globalRoi === "-"
-          ? "badge-neutral"
-          : parseFloat(globalRoi) >= 0
-          ? "badge-pos"
-          : "badge-neg";
-
-      let html = `<div class="combo-summary-grid">`;
-
-      html += `
-        <div class="combo-summary-card">
-          <div class="combo-summary-title">Totale schedine</div>
-          <div class="combo-summary-meta">
-            <span>${globalPlayed} giocate · ${globalWins} win / ${globalLoses} lose</span>
-          </div>
-          <div class="combo-summary-meta">
-            <span>Stake: ${globalStake} unità · Profitto: ${globalProfit.toFixed(2)} u</span>
-          </div>
-          <div class="combo-summary-meta">
-            <span>Winrate: ${globalWinrate === "-" ? "-" : globalWinrate + "%"}</span>
-            <span class="combo-summary-badge ${roiClassGlobal}">
-              ROI: ${globalRoi === "-" ? "-" : globalRoi + "%"}
-            </span>
-          </div>
-        </div>
-      `;
-
-      const order = ["X2", "X5", "X10", "X20"];
-      types.sort((a, b) => {
-        const ia = order.indexOf(a);
-        const ib = order.indexOf(b);
-        if (ia === -1 && ib === -1) return a.localeCompare(b);
-        if (ia === -1) return 1;
-        if (ib === -1) return -1;
-        return ia - ib;
-      });
-
-      for (const type of types) {
-        const s = statsByType[type];
-        const played = s.played;
-        const wr =
-          played > 0 ? ((s.wins / played) * 100).toFixed(1) : "-";
-        const roi =
-          s.stake > 0 ? ((s.profit / s.stake) * 100).toFixed(1) : "-";
-
-        const roiClass =
-          roi === "-"
-            ? "badge-neutral"
-            : parseFloat(roi) >= 0
-            ? "badge-pos"
-            : "badge-neg";
-
-        html += `
-          <div class="combo-summary-card">
-            <div class="combo-summary-title">${s.label}</div>
-            <div class="combo-summary-meta">
-              <span>${played} schedine · ${s.wins} win / ${s.loses} lose</span>
-            </div>
-            <div class="combo-summary-meta">
-              <span>Stake: ${s.stake} u · Profitto: ${s.profit.toFixed(2)} u</span>
-            </div>
-            <div class="combo-summary-meta">
-              <span>Winrate: ${wr === "-" ? "-" : wr + "%"}</span>
-              <span class="combo-summary-badge ${roiClass}">
-                ROI: ${roi === "-" ? "-" : roi + "%"}
-              </span>
-            </div>
-          </div>
-        `;
-      }
-
-      html += `</div>`;
-      container.innerHTML = html;
-    } catch (err) {
-      console.error("Errore storico combo:", err);
-      container.innerHTML = `
-        <div class="combo-summary-empty">
-          Errore nel caricamento delle schedine.
-        </div>
-      `;
-    }
-  }
-
   const DAYS_FIXED = 30; // fisso, sempre 30 giorni
 
   document.addEventListener("DOMContentLoaded", () => {
-    // init toggle
-    applyRoiToggleUI();
-    const bEvent = document.getElementById("roi-mode-event");
-    const bPick = document.getElementById("roi-mode-pick");
-    if (bEvent) bEvent.addEventListener("click", () => setRoiMode("event"));
-    if (bPick) bPick.addEventListener("click", () => setRoiMode("pick"));
-
     loadHistory(DAYS_FIXED);
-    // loadComboHistory(DAYS_FIXED); // disattivato: non mostriamo più lo storico schedine all'utente
   });
 </script>
 
