@@ -2604,6 +2604,15 @@ function applyStaticTranslations() {
   if (itBtn && enBtn) {
     itBtn.classList.toggle("active", lang === "it");
     enBtn.classList.toggle("active", lang === "en");
+
+      const msLabel = document.getElementById("model-stats-label");
+      if (msLabel) msLabel.textContent = tr("model_stats_label");
+
+      const gSum = document.getElementById("guide-summary");
+      const gBlock = document.getElementById("guide-block");
+      if (gSum) gSum.textContent = tr("guide_summary");
+      if (gBlock) gBlock.innerHTML = tr("guide_html");
+
   }
 }
 
