@@ -15,6 +15,11 @@
   <meta name="robots" content="index,follow" />
   <link rel="canonical" href="https://pronosticibomba.com/" />
 
+  <!-- hreflang alternates (same page, different language via query param) -->
+  <link rel="alternate" hreflang="it" href="https://pronosticibomba.com/?lang=it" />
+  <link rel="alternate" hreflang="en" href="https://pronosticibomba.com/?lang=en" />
+  <link rel="alternate" hreflang="x-default" href="https://pronosticibomba.com/" />
+
   <!-- Favicon / Icone -->
   <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
   <link rel="icon" type="image/png" href="/favicon.png" sizes="192x192" />
@@ -237,7 +242,45 @@
       opacity: 0.8;
     }
 
-    
+
+    .header-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .lang-switch {
+      display: inline-flex;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      background: rgba(15, 23, 42, 0.92);
+      overflow: hidden;
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.8);
+    }
+
+    .lang-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .lang-btn:hover {
+      color: #fed7aa;
+    }
+
+    .lang-btn.active {
+      color: #0b1220;
+      background: rgba(249, 115, 22, 0.95);
+    }
+
 .categories-nav {
   margin-top: 14px;
   margin-bottom: 8px;
@@ -1055,6 +1098,32 @@
   </style>
 </head>
 <body>
+
+  <script>
+  (function () {
+    // Language resolution order:
+    // 1) ?lang=it|en (explicit)
+    // 2) localStorage pb_lang
+    // 3) browser language (navigator.language)
+    const params = new URLSearchParams(window.location.search);
+    const qLang = (params.get("lang") || "").toLowerCase();
+
+    let lang = (qLang === "it" || qLang === "en") ? qLang : (localStorage.getItem("pb_lang") || "");
+
+    if (!lang) {
+      const browserLang = (navigator.language || navigator.userLanguage || "en").toLowerCase();
+      lang = browserLang.startsWith("it") ? "it" : "en";
+    }
+
+    localStorage.setItem("pb_lang", lang);
+    document.documentElement.lang = lang;
+    document.documentElement.setAttribute("data-lang", lang);
+    document.body && document.body.setAttribute("data-lang", lang);
+
+    // Clean URL (optional): keep ?lang=... only if user explicitly set it
+    // If qLang was set, we keep it. If not, we don't touch the URL.
+  })();
+  </script>
   <main>
     <header>
       <div class="title-row">
@@ -1062,43 +1131,43 @@
           <h1>Pronostici Bomba</h1>
           <span id="day-badge" class="badge-day"></span>
         </div>
-        <a
+        <div class="header-actions">
+          <div class="lang-switch" role="group" aria-label="Language">
+            <button type="button" class="lang-btn" id="lang-it">IT</button>
+            <button type="button" class="lang-btn" id="lang-en">EN</button>
+          </div>
+          <a
           href="https://www.buymeacoffee.com/pronosticibomba"
           target="_blank"
           rel="noopener"
           class="coffee-button"
         >
-          Regala uno snack a Ralph
+          <span id="coffee-cta"></span>
         </a>
+        </div>
       </div>
 
-      <p class="subtitle">
-        I pronostici non sono copiati da altri siti: vengono generati giorno per giorno da modelli che analizzano quote,
-        statistiche e dati storici. Vedi solo partite che superano determinati filtri di qualità e sono organizzate per
-        famiglia di selezioni, rischio e valore.
-      </p>
+      <p class="subtitle" id="subtitle"></p>
 
       <div class="legend">
         <div class="legend-item">
-          <span class="legend-dot win"></span> Presa
+          <span class="legend-dot win"></span> <span id="legend-win"></span>
         </div>
         <div class="legend-item">
-          <span class="legend-dot lose"></span> Persa
+          <span class="legend-dot lose"></span> <span id="legend-lose"></span>
         </div>
         <div class="legend-item">
-          <span class="legend-dot pending"></span> In corso / non ancora iniziata
+          <span class="legend-dot pending"></span> <span id="legend-pending"></span>
         </div>
         <div class="legend-item">
-          <a href="/storico.html" class="history-link">Storico risultati</a>
+          <a href="/storico.html" class="history-link" id="legend-history"></a>
         </div>
         <div class="legend-item">
-          <a href="/storico_picks.html" class="history-link">Storico dettagliato picks</a>
+          <a href="/storico_picks.html" class="history-link" id="legend-history-picks"></a>
         </div>
       </div>
 
-      <p class="legend-note">
-        “Confidenza modello” indica quanto il sistema gradisce il pick rispetto alla quota del bookmaker, non una vittoria sicura.
-      </p>
+      <p class="legend-note" id="legend-note"></p>
 
 
       <div id="model-stats-box" class="model-stats" style="display:none;">
@@ -1186,12 +1255,187 @@
     <section id="content"></section>
 
     <div class="app-cta">
-      <span>Stiamo preparando l'app Android ufficiale: stessa logica del sito, ma con notifiche per le nuove selezioni.</span>
-      <a class="app-cta-button disabled" href="#" aria-disabled="true">
-        In arrivo su Google Play
-      </a>
+      <span id="app-cta-text"></span>
+      <a class="app-cta-button disabled" href="#" aria-disabled="true" id="app-cta-button"></a>
     </div>
   </main>
+
+
+  <script>
+    function getLang() {
+      return (document.documentElement.getAttribute("data-lang") || document.documentElement.lang || "it").toLowerCase().startsWith("it") ? "it" : "en";
+    }
+
+    const I18N = {
+      it: {
+        coffee_cta: "Regala uno snack a Ralph",
+
+        subtitle: `I pronostici non sono copiati da altri siti: vengono generati giorno per giorno da modelli che analizzano quote,
+        statistiche e dati storici. Vedi solo partite che superano determinati filtri di qualità e sono organizzate per
+        famiglia di selezioni, rischio e valore.`,
+
+        legend_win: "Presa",
+        legend_lose: "Persa",
+        legend_pending: "In corso / non ancora iniziata",
+        legend_note: "“Confidenza modello” indica quanto il sistema gradisce il pick rispetto alla quota del bookmaker, non una vittoria sicura.",
+        history: "Storico risultati",
+        history_picks: "Storico dettagliato picks",
+
+        expand_all: "Espandi tutte",
+        collapse_all: "Chiudi tutte",
+
+        empty_today: `Nessun pick disponibile per oggi.<br />Torna più tardi quando i modelli avranno generato nuovi pronostici.`,
+
+        app_cta: "Stiamo preparando l'app Android ufficiale: stessa logica del sito, ma con notifiche per le nuove selezioni.",
+        app_soon: "In arrivo su Google Play",
+
+        // Results / badges
+        WIN: "WIN",
+        LOSE: "LOSE",
+        PENDING: "PENDING",
+        LIVE: "LIVE",
+        UNKNOWN: "UNKNOWN",
+        VOID: "VOID",
+        waiting: "In attesa",
+        preparing: "In preparazione / dati incompleti",
+
+        // Confidence labels
+        conf_very_high: "molto alta",
+        conf_high: "alta",
+        conf_mid_high: "medio-alta",
+        conf_medium: "media",
+        conf_low: "bassa",
+        conf_risky: "rischiosa",
+
+        // Combo section
+        combo_title: "Schedine pronte del giorno",
+        combo_subtitle: `Quattro combinazioni generate automaticamente dai modelli (raddoppio, quota 5/6, 10/12 e over 20).
+        Sono pensate come extra e <strong>non rientrano nel ROI globale</strong>: se le giochi tieni sempre uno stake più piccolo rispetto alle singole.`,
+
+        // Ticket labels
+        ticket_X2: "Raddoppio di giornata",
+        ticket_X5: "Quota 5/6",
+        ticket_X10: "Quota 10/12",
+        ticket_X20: "Quota over 20",
+
+        // Categories
+        categories: {
+          BEST_TIPS_OF_DAY: "Scelte d’Élite",
+          SINGLE_GAME: "Pick Esclusiva",
+          SAFE_PICKS: "Selezioni Affidabili",
+          SAFE_GOALS: "SAFE GOALS",
+          OVER_UNDER_TIPS: "Tendenze Goal",
+          VALUE_PICKS: "Quote di Valore",
+          GG_SPECIAL: "GG Special",
+          DNB_ENGINE: "DNB Engine",
+          HT_GOAL_ENGINE: "HT Goal Engine",
+          COMBO_DOPPIA_O15: "Combo Doppia Chance + Over 1.5"
+        },
+        category_descriptions: {
+          BEST_TIPS_OF_DAY: "La scelta singola più forte della giornata: miglior mix fra valore statistico e quota.",
+          SINGLE_GAME: "Pick particolare su una singola partita, quando appare un pattern statistico raro (quota in range controllato).",
+          SAFE_PICKS: "Selezioni più prudenti pensate per stabilità (di solito quote medio–basse).",
+          SAFE_GOALS: "Match dove i numeri indicano forte tendenza ai gol (Over 2.5 o BTTS).",
+          COMBO_DOPPIA_O15: "Combo 1X/X2 + Over 1.5: pensata per multipla, max 6 selezioni al giorno.",
+          GG_SPECIAL: "Selezioni BTTS (Entrambe segnano) costruite su profilo e contesto, con quote target controllate.",
+          HT_GOAL_ENGINE: "Team to score 1st Half: volume controllato su mercati 1° tempo.",
+          DNB_ENGINE: "Draw No Bet: selezioni conservative basate su probabilità e forma (quota stimata se non presente).",
+          OVER_UNDER_TIPS: "Tendenze goal (Over/Under) e spot con valore, filtrate per qualità.",
+          VALUE_PICKS: "Giocate dove la quota sembra pagare più del rischio stimato dal modello."
+        }
+      },
+
+      en: {
+        coffee_cta: "Buy Ralph a snack",
+
+        subtitle: `These tips are not copied from other websites: they are generated daily by models that analyze odds,
+        statistics and historical data. You only see matches that pass strict quality filters and are grouped
+        by selection type, risk and value.`,
+
+        legend_win: "Win",
+        legend_lose: "Lose",
+        legend_pending: "Live / Not started",
+        legend_note: "“Model confidence” shows how much the system likes the pick versus the bookmaker odds, not a guaranteed win.",
+        history: "Results history",
+        history_picks: "Detailed picks history",
+
+        expand_all: "Expand all",
+        collapse_all: "Collapse all",
+
+        empty_today: `No picks available for today.<br />Come back later when new selections are generated.`,
+
+        app_cta: "We are preparing the official Android app: same logic as the website, with notifications for new picks.",
+        app_soon: "Coming soon on Google Play",
+
+        WIN: "WIN",
+        LOSE: "LOSE",
+        PENDING: "PENDING",
+        LIVE: "LIVE",
+        UNKNOWN: "UNKNOWN",
+        VOID: "VOID",
+        waiting: "Waiting",
+        preparing: "Preparing / incomplete data",
+
+        conf_very_high: "very high",
+        conf_high: "high",
+        conf_mid_high: "mid-high",
+        conf_medium: "medium",
+        conf_low: "low",
+        conf_risky: "risky",
+
+        combo_title: "Today ready-made tickets",
+        combo_subtitle: `Four combinations generated by the models (double, 5/6, 10/12 and 20+).
+        They are meant as extra plays and <strong>are not included in the global ROI</strong>: if you play them, use a smaller stake than singles.`,
+
+        ticket_X2: "Daily double",
+        ticket_X5: "Odds 5/6",
+        ticket_X10: "Odds 10/12",
+        ticket_X20: "Odds 20+",
+
+        categories: {
+          BEST_TIPS_OF_DAY: "Elite picks",
+          SINGLE_GAME: "Exclusive pick",
+          SAFE_PICKS: "Reliable picks",
+          SAFE_GOALS: "SAFE GOALS",
+          OVER_UNDER_TIPS: "Goals trends",
+          VALUE_PICKS: "Value picks",
+          GG_SPECIAL: "BTTS Special",
+          DNB_ENGINE: "DNB Engine",
+          HT_GOAL_ENGINE: "HT Goal Engine",
+          COMBO_DOPPIA_O15: "Double Chance + Over 1.5"
+        },
+        category_descriptions: {
+          BEST_TIPS_OF_DAY: "Strongest single pick of the day: best balance between model edge and bookmaker odds.",
+          SINGLE_GAME: "A special single match spot when a rare statistical pattern appears (odds kept in a controlled range).",
+          SAFE_PICKS: "More conservative selections for stability (usually mid/low odds).",
+          SAFE_GOALS: "Matches where the numbers show a strong goal tendency (Over 2.5 or BTTS).",
+          COMBO_DOPPIA_O15: "1X/X2 + Over 1.5 combos: built for accumulators, max 6 selections per day.",
+          GG_SPECIAL: "BTTS selections built on profile/context with controlled target odds.",
+          HT_GOAL_ENGINE: "Team to score 1st Half: controlled volume on 1st-half markets.",
+          DNB_ENGINE: "Draw No Bet: conservative picks based on probability and form (estimated odds if missing).",
+          OVER_UNDER_TIPS: "Over/Under trends and value spots, filtered for quality.",
+          VALUE_PICKS: "Situations where the odds seem to pay more than the model estimated risk."
+        }
+      }
+    };
+
+    function tr(key) {
+      const lang = getLang();
+      return (I18N[lang] && I18N[lang][key]) || (I18N.it && I18N.it[key]) || "";
+    }
+
+    function trCat(catKey) {
+      const lang = getLang();
+      const k = (catKey || "").toString().trim().toUpperCase();
+      return (I18N[lang]?.categories?.[k]) || (I18N.it?.categories?.[k]) || (catKey || "Other").replace(/_/g, " ");
+    }
+
+    function trCatDesc(catKey) {
+      const lang = getLang();
+      const k = (catKey || "").toString().trim().toUpperCase();
+      return (I18N[lang]?.category_descriptions?.[k]) || (I18N.it?.category_descriptions?.[k]) || "";
+    }
+  </script>
 
   <script>
     // ====== CONFIG SUPABASE (solo lettura) ======
@@ -1227,16 +1471,24 @@
       return `${y}-${m}-${d}`;
     }
 
-    function formatDateIT(str) {
-      const parts = str.split("-");
-      if (parts.length !== 3) return str;
-      const [y, m, d] = parts.map(Number);
-      const dt = new Date(y, m - 1, d);
-      const weekday = dt.toLocaleDateString("it-IT", { weekday: "long" });
-      const day = pad2(dt.getDate());
-      const month = dt.toLocaleDateString("it-IT", { month: "long" });
-      return `${weekday} ${day} ${month} ${y}`;
-    }
+    
+function formatDateLocalized(str) {
+  const parts = str.split("-");
+  if (parts.length !== 3) return str;
+  const [y, m, d] = parts.map(Number);
+  const dt = new Date(y, m - 1, d);
+  const lang = getLang();
+  if (lang === "en") {
+    const weekday = dt.toLocaleDateString("en-GB", { weekday: "long" });
+    const day = pad2(dt.getDate());
+    const month = dt.toLocaleDateString("en-GB", { month: "long" });
+    return `${weekday} ${day} ${month} ${y}`;
+  }
+  const weekday = dt.toLocaleDateString("it-IT", { weekday: "long" });
+  const day = pad2(dt.getDate());
+  const month = dt.toLocaleDateString("it-IT", { month: "long" });
+  return `${weekday} ${day} ${month} ${y}`;
+}
 
     function getTimeZoneOffsetMinutes(timeZone, dateUtc) {
       // dateUtc: Date object representing a UTC timestamp
@@ -1356,7 +1608,21 @@
       });
     }
 
-    function classifyResult(resultRaw) {
+    
+function translateResultLabel(label) {
+  const up = (label || "").toUpperCase();
+  // Keep WIN/LOSE/PENDING/LIVE labels as-is (short), but allow future extension.
+  // For EN/IT they are the same here, except helper kept for consistency.
+  if (up === "WIN") return tr("WIN");
+  if (up === "LOSE") return tr("LOSE");
+  if (up === "PENDING") return tr("PENDING");
+  if (up === "LIVE") return tr("LIVE");
+  if (up === "VOID") return tr("VOID");
+  if (up === "UNKNOWN") return tr("UNKNOWN");
+  return up || "";
+}
+
+function classifyResult(resultRaw) {
       const res = (resultRaw || "").toUpperCase();
       if (res === "WIN") return "win";
       if (res === "LOSE") return "lose";
@@ -1366,46 +1632,23 @@
       return "";
     }
 
-    function confidenceLabel(val) {
-      if (val > 130) return "molto alta";
-      if (val > 110) return "alta";
-      if (val > 90)  return "medio-alta";
-      if (val > 70)  return "media";
-      if (val > 50)  return "bassa";
-      return "rischiosa";
-    }
+    
+function confidenceLabel(val) {
+  if (val > 130) return tr("conf_very_high");
+  if (val > 110) return tr("conf_high");
+  if (val > 90)  return tr("conf_mid_high");
+  if (val > 70)  return tr("conf_medium");
+  if (val > 50)  return tr("conf_low");
+  return tr("conf_risky");
+}
 
-    const CATEGORY_LABELS = {
-      BEST_TIPS_OF_DAY: "Scelte d’Élite",
-      SINGLE_GAME: "Pick Esclusiva",
-      SAFE_PICKS: "Selezioni Affidabili",
-      SAFE_GOALS: "SAFE GOALS",
-      OVER_UNDER_TIPS: "Tendenze Goal",
-      VALUE_PICKS: "Quote di Valore",
-      GG_SPECIAL: "GG Special",
-      DNB_ENGINE: "DNB Engine",
-      HT_GOAL_ENGINE: "HT Goal Engine",
-      COMBO_DOPPIA_O15: "Combo Doppia Chance + Over 1.5"
-    };
+    
 
-const CATEGORY_DESCRIPTIONS = {
-      BEST_TIPS_OF_DAY: "La scelta singola più forte della giornata: miglior mix fra valore statistico e quota.",
-      SINGLE_GAME: "Pick particolare su una singola partita, quando appare un pattern statistico raro (quota in range controllato).",
-      SAFE_PICKS: "Selezioni più prudenti pensate per stabilità (di solito quote medio-basse).",
-      SAFE_GOALS: "Match dove i numeri indicano forte tendenza ai gol (Over 2.5 o BTTS).",
-      COMBO_DOPPIA_O15: "Combo 1X/X2 + Over 1.5: pensata per multipla, max 6 selezioni al giorno.",
-      GG_SPECIAL: "Selezioni BTTS (Entrambe segnano) costruite su profilo e contesto, con quote target controllate.",
-      HT_GOAL_ENGINE: "Team to score 1st Half: volume controllato su mercati 1° tempo.",
-      DNB_ENGINE: "Draw No Bet: selezioni conservative basate su probabilità e forma (quota stimata se non presente).",
-      OVER_UNDER_TIPS: "Tendenze goal (Over/Under) e spot con valore, filtrate per qualità.",
-      VALUE_PICKS: "Giocate dove la quota sembra pagare più del rischio stimato dal modello."
-    };
-
-
-    function getCategoryLabel(cat) {
-      const k = (cat || "").trim().toUpperCase();
-      return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
-    }
+    
+function getCategoryLabel(cat) {
+  const k = (cat || "").toString().trim().toUpperCase();
+  return trCat(k);
+}
 
     // ====== FEEDBACK LIKE / DISLIKE ======
 
@@ -1740,7 +1983,7 @@ async function loadModelStats() {
   const container = document.getElementById("content");
   const todayStr = getTodayStr();
   const dayBadge = document.getElementById("day-badge");
-  dayBadge.textContent = formatDateIT(todayStr);
+  dayBadge.textContent = formatDateLocalized(todayStr);
 
   try {
     const picks = await sbFetch(
@@ -1751,8 +1994,7 @@ async function loadModelStats() {
     if (!Array.isArray(picks) || !picks.length) {
       container.innerHTML = `
         <div class="empty-state">
-          Nessun pick disponibile per oggi.<br />
-          Torna più tardi quando i modelli avranno generato nuovi pronostici.
+          ${tr("empty_today")}
         </div>
       `;
       return;
@@ -1814,8 +2056,8 @@ const byCategory = groupByCategory(picks);
     // ================== HTML PICKS CLASSICI ==================
     let html = `
       <div class="categories-toolbar">
-        <button type="button" id="btn-expand-all">Espandi tutte</button>
-        <button type="button" id="btn-collapse-all">Chiudi tutte</button>
+        <button type="button" id="btn-expand-all">${tr("expand_all")}</button>
+        <button type="button" id="btn-collapse-all">${tr("collapse_all")}</button>
       </div>
       <div class="categories-container">`;
 
@@ -1862,8 +2104,8 @@ const byCategory = groupByCategory(picks);
           </summary>
           <div class="category-body">
             ${
-              CATEGORY_DESCRIPTIONS[cat]
-                ? `<p class="category-winrate">${CATEGORY_DESCRIPTIONS[cat]}</p>`
+              trCatDesc(cat)
+                ? `<p class="category-winrate">${trCatDesc(cat)}</p>`
                 : ""
             }
             <div class="picks-grid">
@@ -1899,8 +2141,8 @@ const byCategory = groupByCategory(picks);
         let badgeText = "";
         if (resultLabel) {
           badgeText = finalScore
-            ? `${resultLabel} · ${finalScore}`
-            : resultLabel;
+            ? `${translateResultLabel(resultLabel)} · ${finalScore}`
+            : translateResultLabel(resultLabel);
         }
         const badgeClass = resultClass ? ` ${resultClass}` : "";
 
@@ -1970,12 +2212,13 @@ const byCategory = groupByCategory(picks);
 
     // ordiniamo in modo fisso X2, X5, X10, X20
     const TICKET_ORDER = ["X2", "X5", "X10", "X20"];
-    const TICKET_LABELS = {
-      X2: "Raddoppio di giornata",
-      X5: "Quota 5/6",
-      X10: "Quota 10/12",
-      X20: "Quota over 20",
-    };
+    
+const TICKET_LABELS = {
+  X2: tr("ticket_X2"),
+  X5: tr("ticket_X5"),
+  X10: tr("ticket_X10"),
+  X20: tr("ticket_X20")
+};
 
     let comboTickets = [];
     try {
@@ -2002,13 +2245,8 @@ const byCategory = groupByCategory(picks);
       html += `
         <section class="combo-section">
           <div class="combo-header-row">
-            <div class="combo-title">Schedine pronte del giorno</div>
-            <p class="combo-subtitle">
-              Quattro combinazioni generate automaticamente dai modelli
-              (raddoppio, quota 5/6, 10/12 e over 20). Sono pensate come extra
-              e <strong>non rientrano nel ROI globale</strong>: se le giochi tieni
-              sempre uno stake più piccolo rispetto alle singole.
-            </p>
+            <div class="combo-title">${tr("combo_title")}</div>
+            <p class="combo-subtitle">${tr("combo_subtitle")}</p>
           </div>
           <div class="combo-accordions">
       `;
@@ -2124,8 +2362,8 @@ const byCategory = groupByCategory(picks);
         const statusClass = classifyResult(ticketStatus);
         const statusLabel =
           ticketStatus === "UNKNOWN"
-            ? "In preparazione / dati incompleti"
-            : (ticketStatus === "PENDING" ? "In attesa" : ticketStatus);
+            ? tr("preparing")
+            : (ticketStatus === "PENDING" ? tr("waiting") : ticketStatus);
 
         html += `
           <details class="combo-accordion ${statusClass || ""}">
@@ -2179,7 +2417,7 @@ const byCategory = groupByCategory(picks);
               legLabel = "LIVE";
               legClass = "live";
             }
-            const txt = lv.score ? `${legLabel} · ${lv.score}` : legLabel;
+            const txt = lv.score ? `${translateResultLabel(legLabel)} · ${lv.score}` : translateResultLabel(legLabel);
             legBadge = `<span class="result-badge ${legClass}">${txt}</span>`;
           }
 
@@ -2256,7 +2494,66 @@ setupVoteHandlers(feedbackMap, todayStr);
 }
 
 
-    document.addEventListener("DOMContentLoaded", () => {
+    
+function applyStaticTranslations() {
+  const subtitleEl = document.getElementById("subtitle");
+  if (subtitleEl) subtitleEl.innerHTML = tr("subtitle");
+
+  const lw = document.getElementById("legend-win");
+  const ll = document.getElementById("legend-lose");
+  const lp = document.getElementById("legend-pending");
+  if (lw) lw.textContent = tr("legend_win");
+  if (ll) ll.textContent = tr("legend_lose");
+  if (lp) lp.textContent = tr("legend_pending");
+
+  const hn = document.getElementById("legend-note");
+  if (hn) hn.textContent = tr("legend_note");
+
+  const h1 = document.getElementById("legend-history");
+  const h2 = document.getElementById("legend-history-picks");
+  if (h1) h1.textContent = tr("history");
+  if (h2) h2.textContent = tr("history_picks");
+
+  const appText = document.getElementById("app-cta-text");
+  const appBtn = document.getElementById("app-cta-button");
+  if (appText) appText.textContent = tr("app_cta");
+  if (appBtn) appBtn.textContent = tr("app_soon");
+
+  const coffee = document.getElementById("coffee-cta");
+  if (coffee) coffee.textContent = tr("coffee_cta");
+
+  // Highlight active language button
+  const lang = getLang();
+  const itBtn = document.getElementById("lang-it");
+  const enBtn = document.getElementById("lang-en");
+  if (itBtn && enBtn) {
+    itBtn.classList.toggle("active", lang === "it");
+    enBtn.classList.toggle("active", lang === "en");
+  }
+}
+
+function setupLanguageSwitch() {
+  const itBtn = document.getElementById("lang-it");
+  const enBtn = document.getElementById("lang-en");
+  if (!itBtn || !enBtn) return;
+
+  function setLang(lang) {
+    const l = (lang === "it") ? "it" : "en";
+    localStorage.setItem("pb_lang", l);
+
+    // Keep the URL stable but expose SEO-friendly parameter.
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", l);
+    window.location.href = url.toString();
+  }
+
+  itBtn.addEventListener("click", () => setLang("it"));
+  enBtn.addEventListener("click", () => setLang("en"));
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  applyStaticTranslations();
+  setupLanguageSwitch();
   loadTodayPicks();
 });
   </script>
