@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Storico ROI – Pronostici Bomba</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-soft: #0f172a;
+      --card: #020617;
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.18);
+      --border: rgba(148, 163, 184, 0.2);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --text-soft: #6b7280;
+      --accent-strong: #fb923c;
+      --shadow-soft: 0 20px 45px rgba(15, 23, 42, 0.95);
+      --danger: #f97373;
+      --success: #4ade80;
+      --pending: #eab308;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 55%),
+                  radial-gradient(circle at bottom right, rgba(249, 115, 22, 0.18), transparent 60%),
+                  #020617;
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Inter", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 20px 10px 32px;
+      display: flex;
+      justify-content: center;
+    }
+
+    main {
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    header {
+      margin-bottom: 14px;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 650;
+      letter-spacing: 0.03em;
+    }
+
+    .back-link {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .back-link:hover {
+      border-color: rgba(248, 250, 252, 0.6);
+      color: #e5e7eb;
+    }
+
+    .subtitle {
+      font-size: 0.86rem;
+      color: var(--text-soft);
+      max-width: 720px;
+      line-height: 1.5;
+    }
+
+    .controls-row {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .range-fixed-pill {
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 0.78rem;
+      color: var(--text-main);
+    }
+
+    .range-label {
+      font-weight: 500;
+    }
+
+    .summary-card {
+      margin-top: 14px;
+      margin-bottom: 14px;
+      padding: 12px 12px;
+      border-radius: 18px;
+      background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.28), transparent 65%),
+                  linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98));
+      border: 1px solid rgba(37, 99, 235, 0.5);
+      box-shadow: var(--shadow-soft);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 8px;
+      font-size: 0.82rem;
+    }
+
+    .summary-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .summary-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .summary-value {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .summary-value-small {
+      font-size: 0.86rem;
+      font-weight: 500;
+    }
+
+    .badge-pos {
+      color: #bbf7d0;
+    }
+
+    .badge-neg {
+      color: #fecaca;
+    }
+
+    .badge-neutral {
+      color: var(--text-main);
+    }
+
+    .section-title {
+      margin-top: 24px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .table-wrapper {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 18px;
+      border: 1px solid rgba(30, 64, 175, 0.4);
+      box-shadow: var(--shadow-soft);
+      padding: 12px 10px 10px;
+      margin-bottom: 18px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      min-width: 600px;
+    }
+
+    thead {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    th, td {
+      padding: 6px 8px;
+      text-align: left;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.3);
+      white-space: nowrap;
+    }
+
+    th {
+      font-weight: 500;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    tbody tr:hover {
+      background: rgba(30, 64, 175, 0.35);
+    }
+
+    td {
+      font-size: 0.8rem;
+    }
+
+    .empty {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      padding: 6px 4px;
+    }
+
+    .info-block {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 0.82rem;
+      color: var(--text-soft);
+    }
+
+    .info-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .info-list {
+      list-style: disc;
+      padding-left: 16px;
+      margin-top: 4px;
+    }
+
+    .info-list li {
+      margin-bottom: 4px;
+    }
+
+    .info-list strong {
+      color: #e5e7eb;
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 12px 6px 24px;
+      }
+
+      .summary-card {
+        border-radius: 14px;
+      }
+
+      .table-wrapper {
+        border-radius: 14px;
+      }
+
+      table {
+        font-size: 0.78rem;
+      }
+
+      th, td {
+        padding: 6px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      table {
+        min-width: 0;
+      }
+
+      tr {
+        margin-bottom: 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(30, 64, 175, 0.5);
+        overflow: hidden;
+      }
+
+      td {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 4px 4px;
+        font-size: 0.8rem;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-weight: 500;
+        color: var(--text-muted);
+        margin-right: 8px;
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: 0.78rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="title-row">
+        <h1>Storico ROI</h1>
+        <a href="/index.html" class="back-link">← Torna ai pronostici di oggi</a>
+      </div>
+      <p class="subtitle">
+        Qui trovi il rendimento storico con stake fisso 1 unità,
+        calcolato <strong>per evento</strong>: ogni partita (fixture_id) conta una sola volta (stake 1),
+        scegliendo la pick risolta con score più alto.
+        Il ROI e il profitto sono calcolati solo sulle righe con esito WIN/LOSE; le quote
+        sono quelle mostrate al momento della generazione.
+      </p>
+
+      
+      <div class="controls-row">
+        <span class="range-label">Periodo</span>
+        <span id="month-pill" class="range-fixed-pill">-</span>
+        <span style="opacity:.7">•</span>
+        <div id="month-buttons" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+    </header>
+
+
+    <section class="summary-card">
+      <div class="summary-item">
+        <span class="summary-label">ROI totale</span>
+        <span id="summary-roi" class="summary-value badge-neutral">-</span>
+        <span id="summary-profit" class="summary-value-small badge-neutral">-</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Periodo coperto</span>
+        <span id="summary-period" class="summary-value-small">-</span>
+        <span id="summary-days" class="summary-value-small" style="color: var(--text-muted);">-</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Winrate & affidabilità</span>
+        <span id="summary-winrate" class="summary-value badge-neutral">-</span>
+        <span id="summary-wl" class="summary-value-small" style="color: var(--text-muted);">-</span>
+        <span id="summary-winrate-needed" class="summary-value-small" style="color: var(--text-muted);">-</span>
+        <span id="summary-reliability" class="summary-value-small badge-neutral">-</span>
+      </div>
+    </section>
+
+    <h2 class="section-title">Andamento giornaliero (solo picks risolte)</h2>
+    <div id="table-container"></div>
+
+    <section class="info-block">
+      <div class="info-title">Come leggere ROI, winrate e reliability</div>
+      <ul class="info-list">
+        <li><strong>ROI</strong>: profitto percentuale rispetto allo stake totale. Es:
+          ROI 12% significa 12 unità di profitto ogni 100 giocate.</li>
+        <li><strong>Winrate</strong>: percentuale di pronostici vinti sul totale
+          (solo picks con esito WIN/LOSE).</li>
+        <li><strong>Modalità calcolo</strong>: <strong>per evento</strong> (1 stake per partita/fixture, scegliendo la pick risolta con score più alto).</li>
+        <li><strong>Quota media & winrate necessaria</strong>:
+          ogni quota media ha un winrate di pareggio (break-even). Esempio:
+          quota media 1.80 ⇒ winrate necessaria ≈ 55.6%.</li>
+        <li><strong>Reliability</strong>:
+          un indicatore qualitativo che prende in considerazione:
+          <ul class="info-list">
+            <li>numero di pronostici giocati (più è alto, meglio è);</li>
+            <li>quanto il winrate effettivo è sopra (o sotto) il winrate di pareggio;</li>
+            <li>stabilità del ROI nel periodo selezionato.</li>
+          </ul>
+        </li>
+        <li><strong>Campione ridotto</strong>:
+          se le picks sono poche, la reliability viene penalizzata.
+          Se i dati sono pochi, viene mostrato <em>Dati pochi (campione ridotto)</em>.</li>
+      </ul>
+    </section>
+  </main>
+
+
+
+
+  
+  <!-- Debug panel (shows if ?debug=1 or on error) -->
+  <div id="debug-panel" style="display:none;position:fixed;left:10px;right:10px;bottom:10px;z-index:99999;
+       background:rgba(2,6,23,0.92);border:1px solid rgba(148,163,184,0.35);border-radius:14px;padding:10px 12px;
+       color:#e2e8f0;font-size:12px;max-height:45vh;overflow:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <strong>Debug</strong>
+      <button id="debug-close" type="button" style="border:1px solid rgba(148,163,184,0.35);background:rgba(15,23,42,0.8);
+              color:#e2e8f0;border-radius:999px;padding:4px 10px;cursor:pointer;">Chiudi</button>
+    </div>
+    <pre id="debug-log" style="white-space:pre-wrap;word-break:break-word;margin:8px 0 0 0;"></pre>
+  </div>
+
+  <script src="/assets/storico.js"></script>
+</body>
+</html>
