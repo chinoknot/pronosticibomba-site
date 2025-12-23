@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -1964,85 +1963,104 @@ async function loadTodayPicks() {
     }
 
     async function fetchDayStatsSimple(dateStr) {
-      const picks = await sbFetch(
-        "picks",
-        `?match_date=eq.${dateStr}&select=*`
-      );
+  const picks = await sbFetch(
+    "picks",
+    `?match_date=eq.${dateStr}&select=*`
+  );
 
-      if (!Array.isArray(picks) || picks.length === 0) {
-        return {
-          date: dateStr,
-          wins: 0,
-          loses: 0,
-          stake: 0,
-          profit: 0,
-          avgOdd: null,
-        };
+  if (!Array.isArray(picks) || picks.length === 0) {
+    return { date: dateStr, wins: 0, loses: 0, stake: 0, profit: 0, avgOdd: null };
+  }
+
+  const results = await sbFetch(
+    "results",
+    `?picks_date=eq.${dateStr}&select=*`
+  );
+
+  const resultMap = new Map();
+  if (Array.isArray(results)) {
+    for (const r of results) {
+      const fid = String(r.fixture_id || "").trim();
+      const pickText = String(r.pick || "").trim();
+      if (!fid && !pickText) continue;
+      const key = fid + "__" + pickText;
+
+      const existing = resultMap.get(key);
+      if (!existing || resultRank(r) > resultRank(existing)) {
+        resultMap.set(key, r);
       }
-
-      const results = await sbFetch(
-        "results",
-        `?picks_date=eq.${dateStr}&select=*`
-      );
-
-      const resultMap = new Map();
-      if (Array.isArray(results)) {
-        for (const r of results) {
-          const fid = String(r.fixture_id || "").trim();
-          const pickText = String(r.pick || "").trim();
-          if (!fid && !pickText) continue;
-          const key = fid + "__" + pickText;
-
-          const existing = resultMap.get(key);
-          if (!existing || resultRank(r) > resultRank(existing)) {
-            resultMap.set(key, r);
-          }
-        }
-      }
-
-      let wins = 0;
-      let loses = 0;
-      let stake = 0;
-      let profit = 0;
-      let oddsSum = 0;
-      let oddsCount = 0;
-
-      for (const p of picks) {
-        const fid = String(p.fixture_id || "").trim();
-        const pickText = String(p.pick || "").trim();
-        if (!fid && !pickText) continue;
-
-        const key = fid + "__" + pickText;
-        const res = resultMap.get(key) || {};
-        const result = (res.result || "").toUpperCase();
-
-        const odd = safeOdd(p.odd);
-
-        if (result === "WIN" || result === "LOSE") {
-          stake += 1;
-          if (result === "WIN") {
-            wins += 1;
-            profit += odd - 1;
-          } else {
-            loses += 1;
-            profit -= 1;
-          }
-          oddsSum += odd;
-          oddsCount += 1;
-        }
-      }
-
-      const avgOdd = oddsCount > 0 ? oddsSum / oddsCount : null;
-
-      return {
-        date: dateStr,
-        wins,
-        loses,
-        stake,
-        profit,
-        avgOdd,
-      };
     }
+  }
+
+  function pickResult(p) {
+    const fid = String(p.fixture_id || "").trim();
+    const pickText = String(p.pick || "").trim();
+    const key = fid + "__" + pickText;
+    const res = resultMap.get(key) || {};
+    return String(res.result || "").toUpperCase();
+  }
+
+  function chooseBestResolvedPick(list) {
+    const resolved = list.filter(p => {
+      const r = pickResult(p);
+      return r === "WIN" || r === "LOSE";
+    });
+    if (!resolved.length) return null;
+
+    const wins = resolved.filter(p => pickResult(p) === "WIN");
+    const pool = wins.length ? wins : resolved;
+
+    pool.sort((a, b) => {
+      const sa = Number(a.score || 0);
+      const sb = Number(b.score || 0);
+      if (sb !== sa) return sb - sa;
+      return safeOdd(b.odd) - safeOdd(a.odd);
+    });
+    return pool[0];
+  }
+
+  // ====== QUI È LA DIFFERENZA: stake=1 PER EVENTO (fixture_id) ======
+  const byFixture = new Map();
+  for (const p of picks) {
+    const fid = String(p.fixture_id || "").trim();
+    if (!fid) continue;
+    if (!byFixture.has(fid)) byFixture.set(fid, []);
+    byFixture.get(fid).push(p);
+  }
+
+  let wins = 0;
+  let loses = 0;
+  let stake = 0;
+  let profit = 0;
+  let oddsSum = 0;
+  let oddsCount = 0;
+
+  for (const [fid, list] of byFixture.entries()) {
+    const chosen = chooseBestResolvedPick(list);
+    if (!chosen) continue;
+
+    const r = pickResult(chosen);
+    const odd = safeOdd(chosen.odd);
+
+    // solo WIN/LOSE entrano nel ROI
+    stake += 1;
+    oddsSum += odd;
+    oddsCount += 1;
+
+    if (r === "WIN") {
+      wins += 1;
+      profit += (odd - 1);
+    } else {
+      loses += 1;
+      profit -= 1;
+    }
+  }
+
+  const avgOdd = oddsCount > 0 ? oddsSum / oddsCount : null;
+
+  return { date: dateStr, wins, loses, stake, profit, avgOdd };
+}
+
 
 async function loadModelStats() {
   const statsBox = document.getElementById("model-stats-box");
