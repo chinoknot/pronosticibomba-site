@@ -1010,7 +1010,13 @@
       font-variant-numeric: tabular-nums;
     }
 
-    .model-stats-pill.positive {
+    
+.model-stats-link {
+  text-decoration: none;
+  opacity: 0.95;
+}
+.model-stats-link:hover { opacity: 1; border-color: rgba(248,250,252,0.65); }
+.model-stats-pill.positive {
       border-color: #22c55e;
       color: #bbf7d0;
     }
@@ -1190,14 +1196,14 @@
       <p class="legend-note" id="legend-note"></p>
 
 
-      <div id="model-stats-box" class="model-stats" style="display:none;">
-        <span class="model-stats-label" id="model-stats-label"></span>
-        <span class="model-stats-pill" id="model-stats-count">0 picks</span>
-        <span class="model-stats-pill" id="model-stats-winrate">Winrate: -</span>
-        <span class="model-stats-pill" id="model-stats-roi">ROI: -</span>
+      <div class="model-stats" id="roi30-box">
+        <span class="model-stats-label">Storico ROI (ultimi 30 giorni)</span>
+        <span id="roi30-roi" class="model-stats-pill">ROI: -</span>
+        <span id="roi30-profit" class="model-stats-pill">Profitto: -</span>
+        <span id="roi30-reliability" class="model-stats-pill">Reliability: -</span>
+        <span id="roi30-period" class="model-stats-pill">Periodo: -</span>
+        <a class="model-stats-pill model-stats-link" href="/storico.html">Apri storico</a>
       </div>
-
-      
 <!-- MINI GUIDA IN ACCORDION -->
 <details class="guide-accordion" id="guide-accordion">
   <summary>
@@ -2019,61 +2025,161 @@ async function loadTodayPicks() {
       };
     }
 
-async function loadModelStats() {
-  const statsBox = document.getElementById("model-stats-box");
-  if (!statsBox) return;
 
-  try {
-    const DAYS = 30;
-    const dates = getLastNDates(DAYS);
+  // ==== Storico ROI in homepage (ultimi 30 giorni) ====
+  // Allineato a storico.html: modalità "per evento" (1 stake per fixture),
+  // scegliendo la pick RISOLTA con score più alto (se c'è almeno una WIN, preferisci WIN).
+  async function loadIndexRoi30() {
+    const roiEl = document.getElementById("roi30-roi");
+    const profEl = document.getElementById("roi30-profit");
+    const relEl = document.getElementById("roi30-reliability");
+    const perEl = document.getElementById("roi30-period");
+    if (!roiEl || !profEl || !relEl || !perEl) return;
 
-    const statsListRaw = await Promise.all(
-      dates.map(d => fetchDayStatsSimple(d).catch(() => null))
-    );
-
-    const statsList = statsListRaw.filter(s => s && s.stake > 0);
-
-    if (!statsList.length) {
-      return;
+    // helper per data in formato YYYY-MM-DD (local time)
+    function ymd(dt) {
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth() + 1).padStart(2, "0");
+      const d = String(dt.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
     }
 
-    let totalWins = 0;
-    let totalLoses = 0;
-    let totalStake = 0;
-    let totalProfit = 0;
+    const today = new Date();
+    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const start = new Date(end);
+    start.setDate(start.getDate() - 29);
 
-    for (const s of statsList) {
-      totalWins += s.wins;
-      totalLoses += s.loses;
-      totalStake += s.stake;
-      totalProfit += s.profit;
-    }
+    const startStr = ymd(start);
+    const endStr = ymd(end);
 
-    const totalPlayed = totalWins + totalLoses;
+    perEl.textContent = `Periodo: ${formatDateIT(startStr)} → ${formatDateIT(endStr)}`;
+    roiEl.textContent = "ROI: -";
+    profEl.textContent = "Profitto: -";
+    relEl.textContent = "Reliability: -";
 
-    if (totalPlayed > 0 && totalStake > 0) {
-      const winrate = ((totalWins / totalPlayed) * 100).toFixed(1);
-      const roi = ((totalProfit / totalStake) * 100).toFixed(1);
+    try {
+      const picks = await sbFetch("picks", `?match_date=gte.${startStr}&match_date=lte.${endStr}&select=*`);
+      const results = await sbFetch("results", `?picks_date=gte.${startStr}&picks_date=lte.${endStr}&select=*`);
 
-      const countEl = document.getElementById("model-stats-count");
-      const wrEl = document.getElementById("model-stats-winrate");
-      const roiEl = document.getElementById("model-stats-roi");
+      if (!Array.isArray(picks) || picks.length === 0) return;
 
-      if (countEl) countEl.textContent = `${totalPlayed} ${tr("picks_word")}`;
-      if (wrEl) wrEl.textContent = `${tr("winrate_word")}: ${winrate}%`;
-      if (roiEl) {
-        roiEl.textContent = `${tr("roi_word")}: ${roi}%`;
-        roiEl.classList.add(Number(roi) >= 0 ? "positive" : "negative");
+      // risultati: key = date__fixture__pickText
+      const resultMap = new Map();
+      if (Array.isArray(results)) {
+        for (const r of results) {
+          const pd = String(r.picks_date || "").trim();
+          const fid = String(r.fixture_id || "").trim();
+          const pickText = String(r.pick || "").trim();
+          if (!pd || (!fid && !pickText)) continue;
+          const key = `${pd}__${fid}__${pickText}`;
+          const existing = resultMap.get(key);
+          if (!existing || resultRank(r) > resultRank(existing)) resultMap.set(key, r);
+        }
       }
 
-      statsBox.style.display = "inline-flex";
-    }
-  } catch (e) {
-    console.warn("Impossibile calcolare le statistiche 30 giorni:", e);
-  }
-}
+      function pickRes(p) {
+        const pd = String(p.match_date || "").trim();
+        const fid = String(p.fixture_id || "").trim();
+        const pickText = String(p.pick || "").trim();
+        const key = `${pd}__${fid}__${pickText}`;
+        const rr = resultMap.get(key) || {};
+        return String(rr.result || "").toUpperCase();
+      }
 
-  await loadModelStats();
+      function chooseBestResolvedPick(list) {
+        const resolved = list.filter(p => {
+          const r = pickRes(p);
+          return r === "WIN" || r === "LOSE";
+        });
+        if (!resolved.length) return null;
+
+        const wins = resolved.filter(p => pickRes(p) === "WIN");
+        const pool = wins.length ? wins : resolved;
+
+        pool.sort((a, b) => {
+          const sa = Number(a.score || 0);
+          const sb = Number(b.score || 0);
+          if (sb !== sa) return sb - sa;
+          return safeOdd(b.odd) - safeOdd(a.odd);
+        });
+
+        return pool[0];
+      }
+
+      // group per giorno -> per fixture
+      const byDate = new Map();
+      for (const p of picks) {
+        const d = String(p.match_date || "").trim();
+        if (!d) continue;
+        if (!byDate.has(d)) byDate.set(d, new Map());
+        const m = byDate.get(d);
+        const fid = String(p.fixture_id || "").trim();
+        if (!fid) continue;
+        if (!m.has(fid)) m.set(fid, []);
+        m.get(fid).push(p);
+      }
+
+      let wins = 0, loses = 0, stake = 0, profit = 0, oddsSum = 0, oddsCount = 0;
+
+      for (const [d, fixtures] of byDate.entries()) {
+        for (const [fid, list] of fixtures.entries()) {
+          const chosen = chooseBestResolvedPick(list);
+          if (!chosen) continue;
+          const r = pickRes(chosen);
+          if (r !== "WIN" && r !== "LOSE") continue;
+
+          const odd = safeOdd(chosen.odd);
+          stake += 1;
+          oddsSum += odd;
+          oddsCount += 1;
+
+          if (r === "WIN") {
+            wins += 1;
+            profit += odd - 1;
+          } else {
+            loses += 1;
+            profit -= 1;
+          }
+        }
+      }
+
+      const played = wins + loses;
+      if (!played || !stake) return;
+
+      const roi = (profit / stake) * 100;
+      const avgOdd = oddsCount ? (oddsSum / oddsCount) : null;
+      const winNeed = (avgOdd && avgOdd > 1) ? (100 / avgOdd) : null;
+      const winrate = (wins / played) * 100;
+
+      // ROI
+      roiEl.textContent = `ROI: ${roi.toFixed(1)}%`;
+      roiEl.className = "model-stats-pill " + (roi >= 0 ? "badge-pos" : "badge-neg");
+
+      // Profit
+      const profitStr = profit >= 0 ? `+${profit.toFixed(2)}` : profit.toFixed(2);
+      profEl.textContent = `Profitto: ${profitStr} u`;
+      profEl.className = "model-stats-pill " + (profit >= 0 ? "badge-pos" : "badge-neg");
+
+      // Reliability (senza mostrare winrate in homepage)
+      if (winNeed) {
+        const label = reliabilityLabel(played, winrate, winNeed);
+        relEl.textContent = `Reliability: ${label} (quota media ~ ${avgOdd.toFixed(2)}, BE ${winNeed.toFixed(1)}%)`;
+        let cls = "badge-neutral";
+        if (label.startsWith("Molto") || label.startsWith("Buona")) cls = "badge-pos";
+        else if (label.startsWith("Debole") || label.startsWith("Negativa")) cls = "badge-neg";
+        relEl.className = "model-stats-pill " + cls;
+      } else {
+        relEl.textContent = "Reliability: -";
+        relEl.className = "model-stats-pill badge-neutral";
+      }
+
+    } catch (e) {
+      console.error(e);
+      // lascia i "-"
+    }
+  }
+
+  await loadIndexRoi30();
 
   const container = document.getElementById("content");
   const todayStr = getTodayStr();
