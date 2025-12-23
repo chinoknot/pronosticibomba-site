@@ -31,9 +31,9 @@
 
   // ===== Supabase =====
   // Manteniamo questi valori come nel tuo index attuale (stessa istanza Supabase).
-  const SUPABASE_URL = "https://tijzxlmnhdaxsyvhjpjjhglejd.supabase.co";
+  const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
   const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1pbyIsInJlZiI6InRpanp4bG1uaGQeGF4c3l2aGpwampobGdlejQiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcwMzQ5MzM5OCwiZXhwIjoyMDc5NTg1NDk3fQ.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
 
   async function sbFetch(table, query) {
     const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
@@ -42,6 +42,7 @@
         headers: {
           apikey: SUPABASE_ANON_KEY,
           Authorization: "Bearer " + SUPABASE_ANON_KEY,
+          Accept: "application/json",
         },
       });
       if (!res.ok) {
