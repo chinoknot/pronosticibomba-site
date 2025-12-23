@@ -1,8 +1,9 @@
-/* PronosticiBomba - Storico ROI (mensile)
-   NOTE: file esterno per compatibilità CSP (niente script inline).
-*/
 (() => {
   const DEBUG_ENABLED = new URLSearchParams(location.search).get("debug") === "1";
+
+  const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
 
   function $(id) { return document.getElementById(id); }
 
@@ -14,9 +15,8 @@
     if (btn) btn.onclick = () => (panel.style.display = "none");
   }
   function logDebug(msg) {
-    const panel = $("debug-panel");
     const pre = $("debug-log");
-    if (!panel || !pre) return;
+    if (!pre) return;
     pre.textContent += (pre.textContent ? "\n" : "") + String(msg);
     if (DEBUG_ENABLED) showDebugPanel();
   }
@@ -29,12 +29,6 @@
   window.addEventListener("error", (e) => logErrorToUI("JS Error", e.error || e.message || e));
   window.addEventListener("unhandledrejection", (e) => logErrorToUI("Promise Rejection", e.reason || e));
 
-  // ===== Supabase =====
-  // Manteniamo questi valori come nel tuo index attuale (stessa istanza Supabase).
-  const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
-  const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
-
   async function sbFetch(table, query) {
     const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
     try {
@@ -42,36 +36,22 @@
         headers: {
           apikey: SUPABASE_ANON_KEY,
           Authorization: "Bearer " + SUPABASE_ANON_KEY,
-          Accept: "application/json",
         },
       });
       if (!res.ok) {
         const t = await res.text();
-        const err = new Error(`Errore dati ${res.status}: ${t}`);
-        logErrorToUI("Fetch error", err);
-        throw err;
+        throw new Error(`Supabase error ${res.status}: ${t}`);
       }
       return await res.json();
     } catch (e) {
-      logErrorToUI("Network/CORS", e);
+      logErrorToUI("Fetch error", e);
       throw e;
     }
   }
 
-  // ===== Utils =====
   function pad2(n) { return n < 10 ? "0" + n : "" + n; }
-  function safeOdd(o) {
-    const n = Number(o);
-    if (!isFinite(n) || n <= 1) return 1.0;
-    return n;
-  }
-
-  function monthNameIT(m0) {
-    return ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"][m0] || "";
-  }
 
   function formatDateIT(ymd) {
-    // ymd = YYYY-MM-DD
     if (!ymd || typeof ymd !== "string") return "-";
     const [y,m,d] = ymd.split("-");
     if (!y || !m || !d) return ymd;
@@ -83,6 +63,10 @@
     const m = pad2(dt.getUTCMonth() + 1);
     const d = pad2(dt.getUTCDate());
     return `${y}-${m}-${d}`;
+  }
+
+  function monthNameIT(m0) {
+    return ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"][m0] || "";
   }
 
   function getMonthRangeUTC(year, month0) {
@@ -106,10 +90,15 @@
     return out;
   }
 
+  function safeOdd(o) {
+    const n = Number(o);
+    if (!isFinite(n) || n <= 1) return 1.0;
+    return n;
+  }
+
   function resultRank(r) {
     const res = String((r && r.result) || "").toUpperCase();
     const st = String((r && r.status_short) || "").toUpperCase();
-    // Ordine: WIN/LOSE definiti > VOID > altri.
     if (res === "WIN") return 50;
     if (res === "LOSE") return 40;
     if (res === "VOID") return 30;
@@ -121,29 +110,38 @@
     return String(k || "").trim().toUpperCase();
   }
 
-  // Etichette category: usa le stesse del tuo sito se vuoi.
+  const CATEGORY_LABELS = {
+    BEST_TIPS_OF_DAY: "Scelte d’Élite",
+    SAFE_PICKS: "Selezioni Affidabili",
+    VALUE_PICKS: "Quote di Valore",
+    OVER_UNDER_TIPS: "Tendenze Goal",
+    BTTS_TIPS: "BTTS",
+    SINGLE_GAME: "Pick Esclusiva",
+    TOP_5_TIPS: "Pick Esclusiva",
+    DNB_ENGINE: "DNB Engine",
+    COMBO_DC_O15: "Combo Doppia Chance + Over 1.5",
+  };
+
   function getCategoryLabel(catKey) {
     const k = normalizeCatKey(catKey);
-    const map = {
-      "BEST_TIPS_OF_DAY": "ELITE PICKS",
-      "SINGLE_GAME": "EXCLUSIVE PICK",
-      "SAFE_PICKS": "RELIABLE PICKS",
-      "SAFE_GOALS": "SAFE GOALS",
-      "COMBO_DOPPIA_O15": "DOUBLE CHANCE + OVER 1.5",
-      "GG_SPECIAL": "GG SPECIAL",
-      "HT_GOAL_ENGINE": "HT GOAL ENGINE",
-      "DNB_ENGINE": "DNB ENGINE",
-      "OVER_UNDER_TIPS": "GOALS TRENDS",
-      "VALUE_PICKS": "VALUE PICKS",
-      "ALTRO": "ALTRO"
-    };
-    return map[k] || (catKey || "ALTRO");
+    return CATEGORY_LABELS[k] || (catKey || "Altro").replaceAll("_", " ");
   }
 
-  // Come derivare la categoria dalla pick (se già presente in p.category ok)
   function deriveCategoryKeyFromPick(p) {
-    const raw = String((p && p.category) || "").trim();
-    return raw ? raw : "ALTRO";
+    const cat = normalizeCatKey(p && p.category);
+    const model = normalizeCatKey(p && p.model);
+    const pickRaw = String((p && p.pick) || "").trim().toLowerCase();
+
+    const isDc =
+      pickRaw.startsWith("1x") || pickRaw.startsWith("x2") ||
+      pickRaw.includes("1x &") || pickRaw.includes("x2 &") ||
+      pickRaw.includes("1x & over") || pickRaw.includes("x2 & over");
+    const isO15 = pickRaw.includes("over 1.5");
+    const isComboByModel = model.includes("O1_5") && (model.includes("DC") || model.includes("1X") || model.includes("X2"));
+
+    if ((isDc && isO15) || isComboByModel) return "COMBO_DC_O15";
+    if (cat === "SINGLE_GAME" || cat === "TOP_5_TIPS") return "SINGLE_GAME";
+    return cat || "ALTRO";
   }
 
   function reliabilityLabel(sampleSize, winrate, winrateNeeded) {
@@ -158,21 +156,10 @@
     return "Negativa";
   }
 
-  function escapeHtml(str) {
-    return String(str || "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
-  // ===== Core monthly loader =====
   async function loadHistoryMonth(year, month0) {
     const monthPill = $("month-pill");
     const tableContainer = $("table-container");
 
-    // Reset UI
     const idsToDash = [
       "summary-period","summary-days","summary-winrate","summary-wl",
       "summary-roi","summary-profit","summary-winrate-needed","summary-reliability"
@@ -183,19 +170,16 @@
     const startStr = dateToYMD_UTC(range.start);
     const endStr = dateToYMD_UTC(range.end);
 
-    if (monthPill) {
-      monthPill.textContent = `${monthNameIT(month0)} ${year} (${formatDateIT(startStr)} → ${formatDateIT(endStr)})`;
-    }
+    if (monthPill) monthPill.textContent = `${monthNameIT(month0)} ${year} (${formatDateIT(startStr)} → ${formatDateIT(endStr)})`;
 
     if (tableContainer) {
       tableContainer.innerHTML = `
         <div class="table-wrapper">
-          <div class="empty">Carico dati di ${escapeHtml(monthNameIT(month0))} ${year}...</div>
+          <div class="empty">Carico dati di ${monthNameIT(month0)} ${year}...</div>
         </div>
       `;
     }
 
-    // Fetch picks + results in 2 calls
     const picks = await sbFetch("picks", `?match_date=gte.${startStr}&match_date=lte.${endStr}&select=*`);
     const results = await sbFetch("results", `?picks_date=gte.${startStr}&picks_date=lte.${endStr}&select=*`);
 
@@ -210,7 +194,6 @@
       return;
     }
 
-    // Map results by day+fixture+pick (keep best rank)
     const resultMap = new Map();
     if (Array.isArray(results)) {
       for (const r of results) {
@@ -240,7 +223,6 @@
       });
       if (!resolved.length) return null;
 
-      // prefer WIN picks if exist (matches your current logic)
       const wins = resolved.filter(p => pickResult(p) === "WIN");
       const pool = wins.length ? wins : resolved;
 
@@ -248,15 +230,11 @@
         const sa = Number(a.score || 0);
         const sb = Number(b.score || 0);
         if (sb !== sa) return sb - sa;
-        const oa = safeOdd(a.odd);
-        const ob = safeOdd(b.odd);
-        return ob - oa;
+        return safeOdd(b.odd) - safeOdd(a.odd);
       });
-
       return pool[0];
     }
 
-    // Group picks by date
     const picksByDate = new Map();
     for (const p of picks) {
       const d = String(p.match_date || "").trim();
@@ -266,46 +244,28 @@
     }
 
     const dates = listDatesInRangeUTC(range.start, range.end);
-
-    // Per-day aggregation
     const byDay = new Map();
     const byCategory = {};
-    const byCategorySeen = {};
-
     let totalWins = 0, totalLoses = 0, totalStake = 0, totalProfit = 0, totalOddsSum = 0, totalOddsCount = 0;
+
+    function ensureCat(k) {
+      const kk = normalizeCatKey(k) || "ALTRO";
+      if (!byCategory[kk]) byCategory[kk] = { wins:0, loses:0, stake:0, profit:0, oddsSum:0, oddsCount:0 };
+      return byCategory[kk];
+    }
 
     for (const d of dates) {
       const dayPicks = picksByDate.get(d) || [];
       if (!dayPicks.length) continue;
 
-      // group by fixture
       const byFixture = {};
       for (const p of dayPicks) {
         const fid = String(p.fixture_id || "").trim();
         if (!fid) continue;
-        if (!byFixture[fid]) byFixture[fid] = [];
-        byFixture[fid].push(p);
-      }
-
-      // seen fixtures per category (count unique fixture per category)
-      const seenByCatToday = {};
-      for (const fid of Object.keys(byFixture)) {
-        const cats = new Set();
-        for (const p of byFixture[fid]) cats.add(deriveCategoryKeyFromPick(p) || "ALTRO");
-        for (const ck of cats) seenByCatToday[ck] = (seenByCatToday[ck] || 0) + 1;
-      }
-      for (const [ck, cnt] of Object.entries(seenByCatToday)) {
-        const k = normalizeCatKey(ck) || "ALTRO";
-        byCategorySeen[k] = (byCategorySeen[k] || 0) + (cnt || 0);
+        (byFixture[fid] ||= []).push(p);
       }
 
       let wins = 0, loses = 0, stake = 0, profit = 0, oddsSum = 0, oddsCount = 0;
-
-      function ensureCat(catKey) {
-        const k = normalizeCatKey(catKey) || "ALTRO";
-        if (!byCategory[k]) byCategory[k] = { wins:0, loses:0, stake:0, profit:0, oddsSum:0, oddsCount:0 };
-        return byCategory[k];
-      }
 
       for (const fid of Object.keys(byFixture)) {
         const chosen = chooseBestResolvedPick(byFixture[fid]);
@@ -315,9 +275,7 @@
         const odd = safeOdd(chosen.odd);
         const catKey = deriveCategoryKeyFromPick(chosen);
 
-        stake += 1;
-        totalStake += 1;
-
+        stake += 1; totalStake += 1;
         const cat = ensureCat(catKey);
         cat.stake += 1;
 
@@ -337,12 +295,9 @@
       }
 
       const played = wins + loses;
-      if (played > 0) {
-        byDay.set(d, { wins, loses, stake, profit });
-      }
+      if (played > 0) byDay.set(d, { wins, loses, stake, profit });
     }
 
-    // Fill summary
     const playedTotal = totalWins + totalLoses;
     const winrateTotal = playedTotal > 0 ? ((totalWins / playedTotal) * 100).toFixed(1) : "-";
     const roiTotal = totalStake > 0 ? ((totalProfit / totalStake) * 100).toFixed(1) : "-";
@@ -351,7 +306,6 @@
 
     if ($("summary-period")) $("summary-period").textContent = `${formatDateIT(startStr)} → ${formatDateIT(endStr)}`;
     if ($("summary-days")) $("summary-days").textContent = `${byDay.size} giorni con picks giocate`;
-
     if ($("summary-winrate")) $("summary-winrate").textContent = (winrateTotal === "-" ? "-" : `${winrateTotal}%`);
     if ($("summary-wl")) $("summary-wl").textContent = playedTotal ? `${totalWins} win / ${totalLoses} lose` : "-";
 
@@ -373,9 +327,7 @@
     }
 
     const needEl = $("summary-winrate-needed");
-    if (needEl) {
-      needEl.textContent = (winNeed === "-" || !avgOdd) ? "Winrate necessaria: -" : `Winrate necessaria per break-even: ${winNeed}% (quota media ~ ${avgOdd.toFixed(2)})`;
-    }
+    if (needEl) needEl.textContent = (winNeed === "-" || !avgOdd) ? "Winrate necessaria: -" : `Winrate necessaria per break-even: ${winNeed}% (quota media ~ ${avgOdd.toFixed(2)})`;
 
     const relEl = $("summary-reliability");
     if (relEl) {
@@ -392,7 +344,7 @@
       }
     }
 
-    // Build daily table
+    // Daily table
     const sortedDays = Array.from(byDay.keys()).sort().reverse();
     let html = `
       <div class="table-wrapper">
@@ -467,10 +419,7 @@
 
         let rel = "-";
         let relClass = "badge-neutral";
-        if (played === 0) {
-          const seen = byCategorySeen[ck] || 0;
-          rel = seen > 0 ? "Solo VOID/PENDING" : "-";
-        } else if (winrate !== "-" && winNeedCat !== "-") {
+        if (played > 0 && winrate !== "-" && winNeedCat !== "-") {
           rel = reliabilityLabel(played, parseFloat(winrate), parseFloat(winNeedCat));
           if (rel.startsWith("Molto") || rel.startsWith("Buona")) relClass = "badge-pos";
           else if (rel.startsWith("Debole") || rel.startsWith("Negativa")) relClass = "badge-neg";
@@ -478,7 +427,7 @@
 
         html += `
           <tr>
-            <td data-label="Categoria">${escapeHtml(getCategoryLabel(ck))}</td>
+            <td data-label="Categoria">${getCategoryLabel(ck)}</td>
             <td data-label="Picks giocate">${played}</td>
             <td data-label="Win">${c.wins}</td>
             <td data-label="Lose">${c.loses}</td>
@@ -486,7 +435,7 @@
             <td data-label="ROI" class="${roiClass}">${roi === "-" ? "-" : roi + "%"}</td>
             <td data-label="Quota media">${avgOstr}</td>
             <td data-label="Winrate pareggio">${winNeedCat === "-" ? "-" : winNeedCat + "%"}</td>
-            <td data-label="Reliability" class="${relClass}">${escapeHtml(rel)}</td>
+            <td data-label="Reliability" class="${relClass}">${rel}</td>
           </tr>
         `;
       }
@@ -536,27 +485,12 @@
       });
 
       wrap.appendChild(btn);
-
-      if (idx === 0) {
-        // auto select current month
-        setTimeout(() => btn.click(), 0);
-      }
+      if (idx === 0) setTimeout(() => btn.click(), 0);
     });
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    if (DEBUG_ENABLED) {
-      logDebug("Debug attivo (?debug=1).");
-      showDebugPanel();
-    }
+    if (DEBUG_ENABLED) { logDebug("Debug attivo (?debug=1)."); showDebugPanel(); }
     buildMonthButtons();
-    // se dopo 3s ancora vuoto, logga hint
-    setTimeout(() => {
-      const pill = $("month-pill");
-      const roi = $("summary-roi");
-      if (pill && pill.textContent.trim() === "-" && roi && roi.textContent.trim() === "-") {
-        logDebug("Nessun dato caricato: possibile blocco CSP o fetch/CORS. Se sei su HTTPS, probabile CSP su script.");
-      }
-    }, 3000);
   });
 })();
