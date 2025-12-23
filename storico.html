@@ -229,6 +229,26 @@
         font-size: 0.78rem;
       }
     }
+  
+    /* Month selector */
+    #month-select{
+      display:none;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.35);
+      background:rgba(15, 23, 42, 0.9);
+      color:var(--text-main);
+      font-size:0.82rem;
+      outline:none;
+    }
+    #month-select:focus{
+      border-color: rgba(248,250,252,0.65);
+    }
+    @media (max-width: 560px){
+      #month-buttons{ display:none !important; }
+      #month-select{ display:inline-block; max-width: 100%; }
+    }
+
   </style>
 </head>
 <body>
@@ -250,6 +270,7 @@
         <span class="range-label">Periodo</span>
         <span id="month-pill" class="range-fixed-pill">-</span>
         <span style="opacity:.7">•</span>
+        <select id="month-select" aria-label="Seleziona mese"></select>
         <div id="month-buttons" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
       </div>
     </header>
@@ -315,6 +336,6 @@
     <pre id="debug-log" style="white-space:pre-wrap;word-break:break-word;margin:8px 0 0 0;"></pre>
   </div>
 
-  <script src="/assets/storico_v2.js?v=20251223b"></script>
+  <script src="/assets/storico_v3.js?v=20251223c"></script>
 </body>
 </html>
