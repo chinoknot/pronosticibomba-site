@@ -22,19 +22,14 @@
       --pending: #eab308;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
       background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 55%),
                   radial-gradient(circle at bottom right, rgba(249, 115, 22, 0.18), transparent 60%),
                   #020617;
       color: var(--text-main);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-        "Inter", sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
       -webkit-font-smoothing: antialiased;
     }
 
@@ -45,14 +40,9 @@
       justify-content: center;
     }
 
-    main {
-      width: 100%;
-      max-width: 1100px;
-    }
+    main { width: 100%; max-width: 1100px; }
 
-    header {
-      margin-bottom: 14px;
-    }
+    header { margin-bottom: 14px; }
 
     .title-row {
       display: flex;
@@ -62,11 +52,7 @@
       margin-bottom: 4px;
     }
 
-    h1 {
-      font-size: 1.35rem;
-      font-weight: 650;
-      letter-spacing: 0.03em;
-    }
+    h1 { font-size: 1.35rem; font-weight: 650; letter-spacing: 0.03em; }
 
     .back-link {
       font-size: 0.8rem;
@@ -109,9 +95,7 @@
       color: var(--text-main);
     }
 
-    .range-label {
-      font-weight: 500;
-    }
+    .range-label { font-weight: 500; }
 
     .summary-card {
       margin-top: 14px;
@@ -128,11 +112,7 @@
       font-size: 0.82rem;
     }
 
-    .summary-item {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
+    .summary-item { display: flex; flex-direction: column; gap: 2px; }
 
     .summary-label {
       font-size: 0.78rem;
@@ -141,27 +121,11 @@
       letter-spacing: 0.06em;
     }
 
-    .summary-value {
-      font-size: 1rem;
-      font-weight: 600;
-    }
-
-    .summary-value-small {
-      font-size: 0.86rem;
-      font-weight: 500;
-    }
-
-    .badge-pos {
-      color: #bbf7d0;
-    }
-
-    .badge-neg {
-      color: #fecaca;
-    }
-
-    .badge-neutral {
-      color: var(--text-main);
-    }
+    .summary-value { font-size: 1rem; font-weight: 600; }
+    .summary-value-small { font-size: 0.86rem; font-weight: 500; }
+    .badge-pos { color: #bbf7d0; }
+    .badge-neg { color: #fecaca; }
+    .badge-neutral { color: var(--text-main); }
 
     .section-title {
       margin-top: 24px;
@@ -188,9 +152,7 @@
       min-width: 600px;
     }
 
-    thead {
-      background: rgba(15, 23, 42, 0.9);
-    }
+    thead { background: rgba(15, 23, 42, 0.9); }
 
     th, td {
       padding: 6px 8px;
@@ -207,17 +169,9 @@
       letter-spacing: 0.06em;
     }
 
-    tbody tr:nth-child(even) {
-      background: rgba(15, 23, 42, 0.9);
-    }
-
-    tbody tr:hover {
-      background: rgba(30, 64, 175, 0.35);
-    }
-
-    td {
-      font-size: 0.8rem;
-    }
+    tbody tr:nth-child(even) { background: rgba(15, 23, 42, 0.9); }
+    tbody tr:hover { background: rgba(30, 64, 175, 0.35); }
+    td { font-size: 0.8rem; }
 
     .empty {
       font-size: 0.85rem;
@@ -235,67 +189,29 @@
       color: var(--text-soft);
     }
 
-    .info-title {
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-
-    .info-list {
-      list-style: disc;
-      padding-left: 16px;
-      margin-top: 4px;
-    }
-
-    .info-list li {
-      margin-bottom: 4px;
-    }
-
-    .info-list strong {
-      color: #e5e7eb;
-    }
+    .info-title { font-weight: 600; margin-bottom: 6px; }
+    .info-list { list-style: disc; padding-left: 16px; margin-top: 4px; }
+    .info-list li { margin-bottom: 4px; }
+    .info-list strong { color: #e5e7eb; }
 
     @media (max-width: 720px) {
-      body {
-        padding: 12px 6px 24px;
-      }
-
-      .summary-card {
-        border-radius: 14px;
-      }
-
-      .table-wrapper {
-        border-radius: 14px;
-      }
-
-      table {
-        font-size: 0.78rem;
-      }
-
-      th, td {
-        padding: 6px;
-      }
+      body { padding: 12px 6px 24px; }
+      .summary-card { border-radius: 14px; }
+      .table-wrapper { border-radius: 14px; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 6px; }
     }
 
     @media (max-width: 560px) {
-      table, thead, tbody, th, td, tr {
-        display: block;
-      }
-
-      thead {
-        display: none;
-      }
-
-      table {
-        min-width: 0;
-      }
-
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+      table { min-width: 0; }
       tr {
         margin-bottom: 10px;
         border-radius: 10px;
         border: 1px solid rgba(30, 64, 175, 0.5);
         overflow: hidden;
       }
-
       td {
         display: flex;
         justify-content: space-between;
@@ -303,7 +219,6 @@
         padding: 4px 4px;
         font-size: 0.8rem;
       }
-
       td::before {
         content: attr(data-label);
         font-weight: 500;
@@ -388,809 +303,18 @@
     </section>
   </main>
 
-<script>
-  // ===== CONFIG SUPABASE (solo lettura) =====
-  const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
-  const SUPABASE_ANON_KEY =
-     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
-
-  // ===== ROI MODE =====
-  // FISSO: SOLO "event"
-  const ROI_MODE = "event";
-
-  async function sbFetch(table, query) {
-    const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
-    const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Supabase error ${res.status}: ${text}`);
-    }
-    return await res.json();
-  }
-
-  // ===== HELPER =====
-  function pad2(n) {
-    return n < 10 ? "0" + n : "" + n;
-  }
-
-  function formatDateIT(str) {
-    if (!str) return "";
-    const parts = str.split("-");
-    if (parts.length !== 3) return str;
-    const [y, m, d] = parts;
-    return `${d}/${m}/${y}`;
-  }
-
-      return dates;
-  }
-
-  function safeOdd(o) {
-    const n = Number(o);
-    if (!isFinite(n) || n <= 1) return 1.0;
-    return n;
-  }
-
-  // ===== NOMI ELEGANTI CATEGORIE =====
-  const CATEGORY_LABELS = {
-    BEST_TIPS_OF_DAY: "Scelte d’Élite",
-    SAFE_PICKS: "Selezioni Affidabili",
-    VALUE_PICKS: "Quote di Valore",
-    OVER_UNDER_TIPS: "Tendenze Goal",
-    BTTS_TIPS: "Probabilità Entrambe",
-    DAILY_2PLUS: "Combo Selettiva",
-    DAILY_10PLUS: "Combo High Stakes",
-    SINGLE_GAME: "Pick Esclusiva",
-    TOP_5_TIPS: "Top 5 Esclusive",
-    COMBO_DC_O15: "Combo Doppia Chance + Over 1.5",
-    __PICK_ESCLUSIVA__: "Pick Esclusiva",
-    DNB_ENGINE: "DNB Engine",
-    HT_O0_5: "HT Over 0.5",
-    HT_OVER_0_5: "HT Over 0.5",
-    BTTS: "BTTS",
-    BTTS_TIPS: "BTTS",
-  };
-
-  function getCategoryLabel(cat) {
-    const k = normalizeCatKey(cat);
-    if (k === EXCLUSIVE_AGG_KEY) return "Pick Esclusiva";
-    return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
-  }
-
-  // categorie da NASCONDERE nella tabella "Rendimento per categoria di modello"
-  const HIDDEN_CATEGORY_KEYS = new Set(["DAILY_2PLUS", "DAILY_10PLUS"]);
-
-  
-  // Categoria UI: "Pick Esclusiva"
-  // In home spesso include SINGLE_GAME e (se presente) TOP_5_TIPS.
-  // Per lo storico, le aggreghiamo in un'unica riga per evitare mismatch UI ↔ storico.
-  const EXCLUSIVE_CATEGORY_KEYS = new Set(["SINGLE_GAME", "TOP_5_TIPS"]);
-  const EXCLUSIVE_AGG_KEY = "__PICK_ESCLUSIVA__";
-
-  function normalizeCatKey(cat) {
-    return (cat || "").trim().toUpperCase();
-  }
-
-
-  // Mappa categoria "visuale" -> chiave categoria usata nello storico
-  // Serve per allineare le sezioni dell'index (es. Double Chance + Over 1.5) anche se nel DB la category tecnica è diversa.
-  function deriveCategoryKeyFromPick(p) {
-    const cat = normalizeCatKey(p && p.category);
-    const model = normalizeCatKey(p && p.model);
-    const pickRaw = String((p && p.pick) || "").trim();
-    const pick = pickRaw.toLowerCase();
-
-    // Double Chance (1X/X2) + Over 1.5
-    // - UI: "Double Chance + Over 1.5" / "Combo Doppia Chance + Over 1.5"
-    // - DB: spesso arriva con category diversa (SAFE/GOALS/etc). Quindi riconosciamo dal testo pick o dal model.
-    const isDc =
-      pick.startsWith("1x") || pick.startsWith("x2") ||
-      pick.includes("1x &") || pick.includes("x2 &") ||
-      pick.includes("1x & over") || pick.includes("x2 & over");
-    const isO15 = pick.includes("over 1.5");
-    const isComboByModel = model.includes("O1_5") && (model.includes("DC") || model.includes("1X") || model.includes("X2"));
-
-    if ((isDc && isO15) || isComboByModel) {
-      return "COMBO_DC_O15";
-    }
-
-    // Aggregazione Pick Esclusiva (SINGLE_GAME + TOP_5_TIPS) gestita più sotto,
-    // qui restituiamo la chiave tecnica.
-    return cat || "ALTRO";
-  }
-
-// ranking dei risultati: preferiamo righe con esito definito e match finito
-  function resultRank(r) {
-    let score = 0;
-    const res = (r.result || "").toUpperCase();
-    const st = (r.status_short || "").toUpperCase();
-
-    if (res === "WIN" || res === "LOSE") score += 4;
-    else if (res === "PENDING") score += 1;
-
-    if (["FT", "AET", "PEN"].includes(st)) score += 4;
-    else if (["2H", "HT"].includes(st)) score += 2;
-
-    if (res === "WIN") score += 2;
-    if (res === "LOSE") score += 1;
-
-    return score;
-  }
-
-  function reliabilityLabel(totalPicks, winrate, neededWinrate) {
-    if (!totalPicks || !isFinite(winrate) || !isFinite(neededWinrate)) {
-      return "Dati insufficienti";
-    }
-    const diff = winrate - neededWinrate;
-
-    if (totalPicks < 20) {
-      if (diff >= 5) return "Buona ma campione ridotto";
-      if (diff >= 0) return "Ok ma campione ridotto";
-      return "Dati pochi (campione ridotto)";
-    }
-
-    if (totalPicks < 50) {
-      if (diff >= 5) return "Buona";
-      if (diff >= 0) return "Discreta";
-      if (diff >= -3) return "Debole";
-      return "Negativa";
-    }
-
-    if (diff >= 7) return "Molto buona";
-    if (diff >= 3) return "Buona";
-    if (diff >= 0) return "Discreta";
-    if (diff >= -3) return "Debole";
-    return "Negativa";
-  }
-
-  async function fetchDayStats(dateStr) {
-    const picks = await sbFetch(
-      "picks",
-      `?match_date=eq.${dateStr}&select=*`
-    );
-
-    if (!Array.isArray(picks) || picks.length === 0) {
-      return {
-        date: dateStr,
-        wins: 0,
-        loses: 0,
-        stake: 0,
-        profit: 0,
-        avgOdd: null,
-        categoryStats: {},
-      };
-    }
-
-    const results = await sbFetch(
-      "results",
-      `?picks_date=eq.${dateStr}&select=*`
-    );
-
-    const resultMap = new Map();
-    if (Array.isArray(results)) {
-      for (const r of results) {
-        const fid = String(r.fixture_id || "").trim();
-        const pickText = String(r.pick || "").trim();
-        if (!fid && !pickText) continue;
-        const key = fid + "__" + pickText;
-
-        const existing = resultMap.get(key);
-        if (!existing || resultRank(r) > resultRank(existing)) {
-          resultMap.set(key, r);
-        }
-      }
-    }
-
-    function pickResult(p) {
-      const fid = String(p.fixture_id || "").trim();
-      const pickText = String(p.pick || "").trim();
-      const key = fid + "__" + pickText;
-      const res = resultMap.get(key) || {};
-      return (res.result || "").toUpperCase();
-    }
-
-    function chooseBestResolvedPick(list) {
-      // Modalità "per evento": una sola pick per fixture.
-      // Regola (Opzione 1):
-      // - Considera solo pick RISOLTE (WIN/LOSE)
-      // - Se esiste almeno una WIN, la fixture è WIN e scegliamo la WIN con score più alto (tie-break: odd)
-      // - Altrimenti (solo LOSE), la fixture è LOSE e scegliamo la LOSE con score più alto (tie-break: odd)
-      const resolved = list.filter(p => {
-        const r = pickResult(p);
-        return r === "WIN" || r === "LOSE";
-      });
-      if (!resolved.length) return null;
-
-      const wins = resolved.filter(p => pickResult(p) === "WIN");
-      const pool = wins.length ? wins : resolved; // se non ci sono WIN, restano solo LOSE
-
-      pool.sort((a, b) => {
-        const sa = Number(a.score || 0);
-        const sb = Number(b.score || 0);
-        if (sb !== sa) return sb - sa;
-
-        const oa = safeOdd(a.odd);
-        const ob = safeOdd(b.odd);
-        return ob - oa;
-      });
-
-      return pool[0];
-    }
-
-    let wins = 0;
-    let loses = 0;
-    let stake = 0;
-    let profit = 0;
-    let oddsSum = 0;
-    let oddsCount = 0;
-
-    const categories = {};
-
-    function ensureCategory(key) {
-      const catKey = (key || "ALTRO").trim() || "ALTRO";
-      if (!categories[catKey]) {
-        categories[catKey] = { wins: 0, loses: 0, stake: 0, profit: 0, oddsSum: 0, oddsCount: 0 };
-      }
-      return categories[catKey];
-    }
-
-    function applyResolved(p, result) {
-      const odd = safeOdd(p.odd);
-      const c = ensureCategory(deriveCategoryKeyFromPick(p));
-
-      stake += 1;
-      c.stake += 1;
-
-      if (result === "WIN") {
-        wins += 1;
-        profit += odd - 1;
-        c.wins += 1;
-        c.profit += odd - 1;
-      } else {
-        loses += 1;
-        profit -= 1;
-        c.loses += 1;
-        c.profit -= 1;
-      }
-
-      oddsSum += odd;
-      oddsCount += 1;
-      c.oddsSum += odd;
-      c.oddsCount += 1;
-    }
-
-    // === SOLO modalità evento: 1 stake per fixture_id ===
-    const byFixture = {};
-
-    // Per mostrare categorie anche quando hanno solo VOID/PENDING (stake 0),
-    // teniamo traccia di quante fixture hanno almeno una pick per categoria.
-    const categorySeenFixtures = {};
-
-    for (const p of picks) {
-      const fid = String(p.fixture_id || "").trim();
-      if (!fid) continue;
-      if (!byFixture[fid]) byFixture[fid] = [];
-      byFixture[fid].push(p);
-    }
-
-
-// Popola presence per categoria (fixture uniche)
-for (const fid of Object.keys(byFixture)) {
-  const cats = new Set();
-  for (const p of byFixture[fid]) {
-    const ck = deriveCategoryKeyFromPick(p) || "ALTRO";
-    cats.add(ck);
-  }
-  for (const ck of cats) {
-    categorySeenFixtures[ck] = (categorySeenFixtures[ck] || 0) + 1;
-  }
-}
-
-for (const fid of Object.keys(byFixture)) {
-      const chosen = chooseBestResolvedPick(byFixture[fid]);
-      if (!chosen) continue;
-      const result = pickResult(chosen);
-      if (result === "WIN" || result === "LOSE") {
-        applyResolved(chosen, result);
-      }
-    }
-
-    const avgOdd = oddsCount > 0 ? oddsSum / oddsCount : null;
-
-    return {
-      date: dateStr,
-      wins,
-      loses,
-      stake,
-      profit,
-      avgOdd,
-      categoryStats: categories,
-      categorySeenFixtures,
-    };
-  }
-
-  
-  function monthNameIT(monthIndex0) {
-    const names = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
-    return names[monthIndex0] || "";
-  }
-
-  function getMonthRange(y, m0) {
-    const start = new Date(Date.UTC(y, m0, 1));
-    const end = new Date(Date.UTC(y, m0 + 1, 0));
-    const now = new Date();
-    const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    if (y === todayUTC.getUTCFullYear() && m0 === todayUTC.getUTCMonth() && end > todayUTC) {
-      return { start, end: todayUTC };
-    }
-    return { start, end };
-  }
-
-  function dateToYMD(dt) {
-    const y = dt.getUTCFullYear();
-    const m = pad2(dt.getUTCMonth() + 1);
-    const d = pad2(dt.getUTCDate());
-    return `${y}-${m}-${d}`;
-  }
-
-  function listDatesInRange(start, end) {
-    const out = [];
-    const cur = new Date(start);
-    while (cur <= end) {
-      out.push(dateToYMD(cur));
-      cur.setUTCDate(cur.getUTCDate() + 1);
-    }
-    return out;
-  }
-
-  async function loadHistoryMonth(year, month0) {
-    const tableContainer = document.getElementById("table-container");
-    const monthPill = document.getElementById("month-pill");
-
-    const range = getMonthRange(year, month0);
-    const startStr = dateToYMD(range.start);
-    const endStr = dateToYMD(range.end);
-
-    if (monthPill) {
-      monthPill.textContent = `${monthNameIT(month0)} ${year} (${formatDateIT(startStr)} → ${formatDateIT(endStr)})`;
-    }
-
-    tableContainer.innerHTML = `
-      <div class="table-wrapper">
-        <div class="empty">Carico dati di ${monthNameIT(month0)} ${year}...</div>
-      </div>
-    `;
-
-    try {
-      const picks = await sbFetch("picks", `?match_date=gte.${startStr}&match_date=lte.${endStr}&select=*`);
-      const results = await sbFetch("results", `?picks_date=gte.${startStr}&picks_date=lte.${endStr}&select=*`);
-
-      if (!Array.isArray(picks) || picks.length === 0) {
-        tableContainer.innerHTML = `
-          <div class="table-wrapper">
-            <div class="empty">Nessun dato disponibile per il mese selezionato.</div>
-          </div>
-        `;
-        ["summary-period","summary-days","summary-winrate","summary-wl","summary-roi","summary-profit","summary-winrate-needed","summary-reliability"]
-          .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = "-"; });
-        return;
-      }
-
-      const resultMap = new Map();
-      if (Array.isArray(results)) {
-        for (const r of results) {
-          const pd = String(r.picks_date || "").trim();
-          const fid = String(r.fixture_id || "").trim();
-          const pickText = String(r.pick || "").trim();
-          if (!pd || (!fid && !pickText)) continue;
-          const key = `${pd}__${fid}__${pickText}`;
-          const existing = resultMap.get(key);
-          if (!existing || resultRank(r) > resultRank(existing)) resultMap.set(key, r);
-        }
-      }
-
-      function pickRes(p) {
-        const pd = String(p.match_date || "").trim();
-        const fid = String(p.fixture_id || "").trim();
-        const pickText = String(p.pick || "").trim();
-        const key = `${pd}__${fid}__${pickText}`;
-        const rr = resultMap.get(key) || {};
-        return String(rr.result || "").toUpperCase();
-      }
-
-      function chooseBestResolvedPick(list) {
-        const resolved = list.filter(p => {
-          const r = pickRes(p);
-          return r === "WIN" || r === "LOSE";
-        });
-        if (!resolved.length) return null;
-
-        const wins = resolved.filter(p => pickRes(p) === "WIN");
-        const pool = wins.length ? wins : resolved;
-
-        pool.sort((a, b) => {
-          const sa = Number(a.score || 0);
-          const sb = Number(b.score || 0);
-          if (sb !== sa) return sb - sa;
-          return safeOdd(b.odd) - safeOdd(a.odd);
-        });
-        return pool[0];
-      }
-
-      const picksByDate = new Map();
-      for (const p of picks) {
-        const d = String(p.match_date || "").trim();
-        if (!d) continue;
-        if (!picksByDate.has(d)) picksByDate.set(d, []);
-        picksByDate.get(d).push(p);
-      }
-
-      const dates = listDatesInRange(range.start, range.end);
-      const statsList = [];
-
-      for (const d of dates) {
-        const dayPicks = picksByDate.get(d) || [];
-        if (!dayPicks.length) continue;
-
-        const byFixture = {};
-        const categorySeenFixtures = {};
-
-        for (const p of dayPicks) {
-          const fid = String(p.fixture_id || "").trim();
-          if (!fid) continue;
-          if (!byFixture[fid]) byFixture[fid] = [];
-          byFixture[fid].push(p);
-        }
-
-        for (const fid of Object.keys(byFixture)) {
-          const cats = new Set();
-          for (const p of byFixture[fid]) cats.add(deriveCategoryKeyFromPick(p) || "ALTRO");
-          for (const ck of cats) categorySeenFixtures[ck] = (categorySeenFixtures[ck] || 0) + 1;
-        }
-
-        let wins = 0, loses = 0, stake = 0, profit = 0, oddsSum = 0, oddsCount = 0;
-        const categories = {};
-
-        function ensureCategory(key) {
-          const catKey = (key || "ALTRO").trim() || "ALTRO";
-          if (!categories[catKey]) categories[catKey] = { wins:0, loses:0, stake:0, profit:0, oddsSum:0, oddsCount:0 };
-          return categories[catKey];
-        }
-
-        function applyResolved(p, result) {
-          const odd = safeOdd(p.odd);
-          const c = ensureCategory(deriveCategoryKeyFromPick(p));
-
-          stake += 1;
-          c.stake += 1;
-
-          if (result === "WIN") {
-            wins += 1;
-            profit += odd - 1;
-            c.wins += 1;
-            c.profit += odd - 1;
-          } else {
-            loses += 1;
-            profit -= 1;
-            c.loses += 1;
-            c.profit -= 1;
-          }
-
-          oddsSum += odd;
-          oddsCount += 1;
-          c.oddsSum += odd;
-          c.oddsCount += 1;
-        }
-
-        for (const fid of Object.keys(byFixture)) {
-          const chosen = chooseBestResolvedPick(byFixture[fid]);
-          if (!chosen) continue;
-          const r = pickRes(chosen);
-          if (r === "WIN" || r === "LOSE") applyResolved(chosen, r);
-        }
-
-        if (stake > 0) {
-          statsList.push({
-            date: d,
-            wins, loses, stake, profit,
-            avgOdd: oddsCount > 0 ? (oddsSum / oddsCount) : null,
-            categoryStats: categories,
-            categorySeenFixtures
-          });
-        }
-      }
-
-      if (!statsList.length) {
-        tableContainer.innerHTML = `
-          <div class="table-wrapper">
-            <div class="empty">Nessuna pick risolta nel mese selezionato.</div>
-          </div>
-        `;
-        return;
-      }
-
-      const byDay = new Map();
-      const byCategory = {};
-      const byCategorySeen = {};
-
-      let totalWins = 0, totalLoses = 0, totalStake = 0, totalProfit = 0, totalOddsSum = 0, totalOddsCount = 0;
-
-      for (const s of statsList) {
-        byDay.set(s.date, { wins: s.wins, loses: s.loses, stake: s.stake, profit: s.profit });
-
-        totalWins += s.wins;
-        totalLoses += s.loses;
-        totalStake += s.stake;
-        totalProfit += s.profit;
-
-        const played = s.wins + s.loses;
-        if (s.avgOdd && played) {
-          totalOddsSum += s.avgOdd * played;
-          totalOddsCount += played;
-        }
-
-        for (const [catKey, cnt] of Object.entries(s.categorySeenFixtures || {})) {
-          const k = normalizeCatKey(catKey) || "ALTRO";
-          byCategorySeen[k] = (byCategorySeen[k] || 0) + (cnt || 0);
-        }
-
-        for (const [catKey, c] of Object.entries(s.categoryStats || {})) {
-          if (!byCategory[catKey]) byCategory[catKey] = { wins:0, loses:0, stake:0, profit:0, oddsSum:0, oddsCount:0 };
-          const dest = byCategory[catKey];
-          dest.wins += c.wins || 0;
-          dest.loses += c.loses || 0;
-          dest.stake += c.stake || 0;
-          dest.profit += c.profit || 0;
-          dest.oddsSum += c.oddsSum || 0;
-          dest.oddsCount += c.oddsCount || 0;
-        }
-      }
-
-      // Exclusive aggregation (keep existing behavior)
-      function mergeIntoExclusive(catKey) {
-        const k = normalizeCatKey(catKey);
-        const src = byCategory[k];
-        if (!src) return;
-        if (!byCategory[EXCLUSIVE_AGG_KEY]) byCategory[EXCLUSIVE_AGG_KEY] = { wins:0, loses:0, stake:0, profit:0, oddsSum:0, oddsCount:0 };
-        const dest = byCategory[EXCLUSIVE_AGG_KEY];
-        dest.wins += src.wins || 0;
-        dest.loses += src.loses || 0;
-        dest.stake += src.stake || 0;
-        dest.profit += src.profit || 0;
-        dest.oddsSum += src.oddsSum || 0;
-        dest.oddsCount += src.oddsCount || 0;
-        delete byCategory[k];
-      }
-      for (const k of EXCLUSIVE_CATEGORY_KEYS) mergeIntoExclusive(k);
-
-      let exclusiveSeen = 0;
-      for (const k of EXCLUSIVE_CATEGORY_KEYS) {
-        exclusiveSeen += (byCategorySeen[normalizeCatKey(k)] || 0);
-        delete byCategorySeen[normalizeCatKey(k)];
-      }
-      if (exclusiveSeen > 0) byCategorySeen[EXCLUSIVE_AGG_KEY] = (byCategorySeen[EXCLUSIVE_AGG_KEY] || 0) + exclusiveSeen;
-
-      // summary
-      const startDate = statsList[0].date;
-      const endDate = statsList[statsList.length - 1].date;
-      document.getElementById("summary-period").textContent = `${formatDateIT(startDate)} → ${formatDateIT(endDate)}`;
-      document.getElementById("summary-days").textContent = `${statsList.length} giorni con picks giocate`;
-
-      const totalPlayed = totalWins + totalLoses;
-      const winrateTotal = totalPlayed > 0 ? ((totalWins / totalPlayed) * 100).toFixed(1) : "-";
-      const roiTotal = totalStake > 0 ? ((totalProfit / totalStake) * 100).toFixed(1) : "-";
-      const avgOddGlobal = totalOddsCount > 0 ? (totalOddsSum / totalOddsCount) : null;
-      const winrateNeededGlobal = (avgOddGlobal && avgOddGlobal > 1) ? (100 / avgOddGlobal).toFixed(1) : "-";
-
-      const roiEl = document.getElementById("summary-roi");
-      const profitEl = document.getElementById("summary-profit");
-      if (roiTotal === "-") {
-        roiEl.textContent = "-";
-        roiEl.className = "summary-value badge-neutral";
-        profitEl.textContent = "-";
-        profitEl.className = "summary-value-small badge-neutral";
-      } else {
-        roiEl.textContent = `${roiTotal}%`;
-        roiEl.className = "summary-value " + (parseFloat(roiTotal) >= 0 ? "badge-pos" : "badge-neg");
-
-        profitEl.textContent = totalProfit >= 0
-          ? `Profitto totale: +${totalProfit.toFixed(2)} unità`
-          : `Profitto totale: ${totalProfit.toFixed(2)} unità`;
-        profitEl.className = "summary-value-small " + (totalProfit >= 0 ? "badge-pos" : "badge-neg");
-      }
-
-      const wrEl = document.getElementById("summary-winrate");
-      const wlEl = document.getElementById("summary-wl");
-      if (winrateTotal === "-") {
-        wrEl.textContent = "-";
-        wrEl.className = "summary-value badge-neutral";
-        wlEl.textContent = "-";
-      } else {
-        wrEl.textContent = `${winrateTotal}%`;
-        wrEl.className = "summary-value badge-neutral";
-        wlEl.textContent = `${totalWins} win / ${totalLoses} lose (solo picks con esito definito)`;
-      }
-
-      const winNeedEl = document.getElementById("summary-winrate-needed");
-      winNeedEl.textContent = (winrateNeededGlobal === "-")
-        ? "Winrate necessaria: -"
-        : `Winrate necessaria per break-even: ${winrateNeededGlobal}% (quota media ~ ${avgOddGlobal.toFixed(2)})`;
-
-      const relEl = document.getElementById("summary-reliability");
-      if (winrateTotal === "-" || winrateNeededGlobal === "-") {
-        relEl.textContent = "-";
-        relEl.className = "summary-value-small badge-neutral";
-      } else {
-        const label = reliabilityLabel(totalPlayed, parseFloat(winrateTotal), parseFloat(winrateNeededGlobal));
-        relEl.textContent = `Reliability: ${label}`;
-        let cls = "badge-neutral";
-        if (label.startsWith("Molto") || label.startsWith("Buona")) cls = "badge-pos";
-        else if (label.startsWith("Debole") || label.startsWith("Negativa")) cls = "badge-neg";
-        relEl.className = "summary-value-small " + cls;
-      }
-
-      // daily table
-      const sortedDays = Array.from(byDay.keys()).sort().reverse();
-      let htmlOut = `
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Picks giocate</th>
-                <th>Win</th>
-                <th>Lose</th>
-                <th>ROI giornaliero</th>
-                <th>Profitto</th>
-              </tr>
-            </thead>
-            <tbody>
-      `;
-
-      for (const day of sortedDays) {
-        const s = byDay.get(day);
-        const played = s.wins + s.loses;
-        const roiDay = s.stake > 0 ? ((s.profit / s.stake) * 100).toFixed(1) : "-";
-        const profitStr = s.profit >= 0 ? `+${s.profit.toFixed(2)}` : s.profit.toFixed(2);
-        const roiClass = roiDay === "-" ? "badge-neutral" : (parseFloat(roiDay) >= 0 ? "badge-pos" : "badge-neg");
-
-        htmlOut += `
-          <tr>
-            <td data-label="Data">${formatDateIT(day)}</td>
-            <td data-label="Picks giocate">${played}</td>
-            <td data-label="Win">${s.wins}</td>
-            <td data-label="Lose">${s.loses}</td>
-            <td data-label="ROI giornaliero" class="${roiClass}">${roiDay === "-" ? "-" : roiDay + "%"}</td>
-            <td data-label="Profitto">${profitStr} u</td>
-          </tr>
-        `;
-      }
-      htmlOut += `</tbody></table></div>`;
-
-      // category table
-      const catKeysAll = Array.from(new Set([...Object.keys(byCategory), ...Object.keys(byCategorySeen)]));
-      const catKeys = catKeysAll.filter(k => !HIDDEN_CATEGORY_KEYS.has(String(k || "").toUpperCase()));
-
-      if (catKeys.length) {
-        htmlOut += `
-          <div class="table-wrapper">
-            <h2 class="section-title">Rendimento per categoria di modello</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Categoria</th>
-                  <th>Picks giocate</th>
-                  <th>Win</th>
-                  <th>Lose</th>
-                  <th>Winrate</th>
-                  <th>ROI (stake=1)</th>
-                  <th>Quota media</th>
-                  <th>Winrate pareggio</th>
-                  <th>Reliability</th>
-                </tr>
-              </thead>
-              <tbody>
-        `;
-
-        for (const catKey of catKeys) {
-          const c = byCategory[catKey] || { wins:0, loses:0, stake:0, profit:0, oddsSum:0, oddsCount:0 };
-          const playedCat = c.wins + c.loses;
-          const winrateCat = playedCat > 0 ? ((c.wins / playedCat) * 100).toFixed(1) : "-";
-          const roiCat = c.stake > 0 ? ((c.profit / c.stake) * 100).toFixed(1) : "-";
-          const avgOdd = c.oddsCount > 0 ? (c.oddsSum / c.oddsCount) : null;
-          const avgOddStr = avgOdd ? avgOdd.toFixed(2) : "-";
-          const winNeedCat = (avgOdd && avgOdd > 1) ? (100 / avgOdd).toFixed(1) : "-";
-          const roiCatClass = roiCat === "-" ? "badge-neutral" : (parseFloat(roiCat) >= 0 ? "badge-pos" : "badge-neg");
-
-          let relLabel = "-";
-          let relClass = "badge-neutral";
-          if (winrateCat !== "-" && winNeedCat !== "-") {
-            relLabel = reliabilityLabel(playedCat, parseFloat(winrateCat), parseFloat(winNeedCat));
-            if (relLabel.startsWith("Molto") || relLabel.startsWith("Buona")) relClass = "badge-pos";
-            else if (relLabel.startsWith("Debole") || relLabel.startsWith("Negativa")) relClass = "badge-neg";
-          }
-
-          htmlOut += `
-            <tr>
-              <td data-label="Categoria">${getCategoryLabel(catKey)}</td>
-              <td data-label="Picks giocate">${playedCat}</td>
-              <td data-label="Win">${c.wins}</td>
-              <td data-label="Lose">${c.loses}</td>
-              <td data-label="Winrate">${winrateCat === "-" ? "-" : winrateCat + "%"}</td>
-              <td data-label="ROI" class="${roiCatClass}">${roiCat === "-" ? "-" : roiCat + "%"}</td>
-              <td data-label="Quota media">${avgOddStr}</td>
-              <td data-label="Winrate pareggio">${winNeedCat === "-" ? "-" : winNeedCat + "%"}</td>
-              <td data-label="Reliability" class="${relClass}">${relLabel}</td>
-            </tr>
-          `;
-        }
-
-        htmlOut += `</tbody></table></div>`;
-      }
-
-      tableContainer.innerHTML = htmlOut;
-
-    } catch (err) {
-      console.error(err);
-      tableContainer.innerHTML = `
-        <div class="table-wrapper">
-          <div class="empty">Errore nel caricamento dei dati. Riprova tra qualche minuto.</div>
-        </div>
-      `;
-    }
-  }
-
-  function buildMonthButtons() {
-    const wrap = document.getElementById("month-buttons");
-    if (!wrap) return;
-
-    const now = new Date();
-    const baseY = now.getFullYear();
-    const baseM = now.getMonth();
-
-    const months = [];
-    for (let i = 0; i < 12; i++) {
-      const d = new Date(baseY, baseM - i, 1);
-      months.push({ y: d.getFullYear(), m0: d.getMonth() });
-    }
-
-    wrap.innerHTML = "";
-    months.forEach((mm, idx) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.textContent = `${monthNameIT(mm.m0)} ${mm.y}`;
-      btn.style.padding = "4px 10px";
-      btn.style.borderRadius = "999px";
-      btn.style.border = "1px solid rgba(148,163,184,0.35)";
-      btn.style.background = "rgba(15, 23, 42, 0.9)";
-      btn.style.color = "var(--text-main)";
-      btn.style.fontSize = "0.78rem";
-      btn.style.cursor = "pointer";
-      btn.style.opacity = "0.85";
-
-      btn.addEventListener("click", async () => {
-        Array.from(wrap.querySelectorAll("button")).forEach(b => {
-          b.style.borderColor = "rgba(148,163,184,0.35)";
-          b.style.opacity = "0.85";
-        });
-        btn.style.borderColor = "rgba(248,250,252,0.65)";
-        btn.style.opacity = "1";
-        await loadHistoryMonth(mm.y, mm.m0);
-      });
-
-      wrap.appendChild(btn);
-      if (idx === 0) setTimeout(() => btn.click(), 0);
-    });
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    buildMonthButtons();
-  });
-</script>
-
+  <!-- Debug panel (shows if ?debug=1 or on error) -->
+  <div id="debug-panel" style="display:none;position:fixed;left:10px;right:10px;bottom:10px;z-index:99999;
+       background:rgba(2,6,23,0.92);border:1px solid rgba(148,163,184,0.35);border-radius:14px;padding:10px 12px;
+       color:#e2e8f0;font-size:12px;max-height:45vh;overflow:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <strong>Debug</strong>
+      <button id="debug-close" type="button" style="border:1px solid rgba(148,163,184,0.35);background:rgba(15,23,42,0.8);
+              color:#e2e8f0;border-radius:999px;padding:4px 10px;cursor:pointer;">Chiudi</button>
+    </div>
+    <pre id="debug-log" style="white-space:pre-wrap;word-break:break-word;margin:8px 0 0 0;"></pre>
+  </div>
+
+  <script src="/assets/storico_v2.js?v=20251223b"></script>
 </body>
 </html>
