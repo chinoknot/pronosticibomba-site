@@ -1,17 +1,17 @@
 (() => {
+  // ====== SETTINGS ======
   const DEBUG_ENABLED = new URLSearchParams(location.search).get("debug") === "1";
 
-  // ✅ Mostra solo mesi da DICEMBRE 2025 in poi
-  const PROJECT_START = { year: 2025, month0: 11 }; // month0: 0=Gen ... 11=Dic
+  // Start showing months from Dec 2025 (month0 = 11)
+  const PROJECT_START = { y: 2025, m0: 11 };
 
   const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
   const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
 
-  function $(id) {
-    return document.getElementById(id);
-  }
+  function $(id) { return document.getElementById(id); }
 
+  // ====== DEBUG PANEL (optional) ======
   function showDebugPanel() {
     const panel = $("debug-panel");
     if (!panel) return;
@@ -19,28 +19,21 @@
     const btn = $("debug-close");
     if (btn) btn.onclick = () => (panel.style.display = "none");
   }
-
   function logDebug(msg) {
     const pre = $("debug-log");
     if (!pre) return;
     pre.textContent += (pre.textContent ? "\n" : "") + String(msg);
     if (DEBUG_ENABLED) showDebugPanel();
   }
-
   function logErrorToUI(title, err) {
-    const txt =
-      err && (err.stack || err.message) ? (err.stack || err.message) : String(err);
+    const txt = err && (err.stack || err.message) ? (err.stack || err.message) : String(err);
     logDebug("[" + title + "] " + txt);
     showDebugPanel();
   }
+  window.addEventListener("error", (e) => logErrorToUI("JS Error", e.error || e.message || e));
+  window.addEventListener("unhandledrejection", (e) => logErrorToUI("Promise Rejection", e.reason || e));
 
-  window.addEventListener("error", (e) =>
-    logErrorToUI("JS Error", e.error || e.message || e)
-  );
-  window.addEventListener("unhandledrejection", (e) =>
-    logErrorToUI("Promise Rejection", e.reason || e)
-  );
-
+  // ====== SUPABASE FETCH ======
   async function sbFetch(table, query) {
     const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
     try {
@@ -61,17 +54,12 @@
     }
   }
 
-  function pad2(n) {
-    return n < 10 ? "0" + n : "" + n;
-  }
+  // ====== HELPERS ======
+  function pad2(n) { return n < 10 ? "0" + n : "" + n; }
 
   function formatDateIT(ymd) {
     if (!ymd || typeof ymd !== "string") return "-";
-    const parts = ymd.split("-");
-    if (parts.length !== 3) return ymd;
-    const y = parts[0],
-      m = parts[1],
-      d = parts[2];
+    const [y, m, d] = ymd.split("-");
     if (!y || !m || !d) return ymd;
     return `${d}/${m}/${y}`;
   }
@@ -84,36 +72,15 @@
   }
 
   function monthNameIT(m0) {
-    return (
-      [
-        "Gennaio",
-        "Febbraio",
-        "Marzo",
-        "Aprile",
-        "Maggio",
-        "Giugno",
-        "Luglio",
-        "Agosto",
-        "Settembre",
-        "Ottobre",
-        "Novembre",
-        "Dicembre",
-      ][m0] || ""
-    );
+    return ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"][m0] || "";
   }
 
   function getMonthRangeUTC(year, month0) {
     const start = new Date(Date.UTC(year, month0, 1));
     const end = new Date(Date.UTC(year, month0 + 1, 0));
     const now = new Date();
-    const todayUTC = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-    );
-    if (
-      year === todayUTC.getUTCFullYear() &&
-      month0 === todayUTC.getUTCMonth() &&
-      end > todayUTC
-    ) {
+    const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    if (year === todayUTC.getUTCFullYear() && month0 === todayUTC.getUTCMonth() && end > todayUTC) {
       return { start, end: todayUTC };
     }
     return { start, end };
@@ -163,8 +130,7 @@
 
   function getCategoryLabel(catKey) {
     const k = normalizeCatKey(catKey);
-    const base = CATEGORY_LABELS[k] || (catKey || "Altro");
-    return base.split("_").join(" ");
+    return CATEGORY_LABELS[k] || (catKey || "Altro").replaceAll("_", " ");
   }
 
   function deriveCategoryKeyFromPick(p) {
@@ -173,16 +139,11 @@
     const pickRaw = String((p && p.pick) || "").trim().toLowerCase();
 
     const isDc =
-      pickRaw.startsWith("1x") ||
-      pickRaw.startsWith("x2") ||
-      pickRaw.includes("1x &") ||
-      pickRaw.includes("x2 &") ||
-      pickRaw.includes("1x & over") ||
-      pickRaw.includes("x2 & over");
+      pickRaw.startsWith("1x") || pickRaw.startsWith("x2") ||
+      pickRaw.includes("1x &") || pickRaw.includes("x2 &") ||
+      pickRaw.includes("1x & over") || pickRaw.includes("x2 & over");
     const isO15 = pickRaw.includes("over 1.5");
-    const isComboByModel =
-      model.includes("O1_5") &&
-      (model.includes("DC") || model.includes("1X") || model.includes("X2"));
+    const isComboByModel = model.includes("O1_5") && (model.includes("DC") || model.includes("1X") || model.includes("X2"));
 
     if ((isDc && isO15) || isComboByModel) return "COMBO_DC_O15";
     if (cat === "SINGLE_GAME" || cat === "TOP_5_TIPS") return "SINGLE_GAME";
@@ -201,33 +162,28 @@
     return "Negativa";
   }
 
+  function setSummaryDashes() {
+    const idsToDash = [
+      "summary-period","summary-days","summary-winrate","summary-wl",
+      "summary-roi","summary-profit","summary-winrate-needed","summary-reliability"
+    ];
+    idsToDash.forEach(id => { const el = $(id); if (el) el.textContent = "-"; });
+  }
+
+  // ====== CORE ======
   async function loadHistoryMonth(year, month0) {
     const monthPill = $("month-pill");
     const tableContainer = $("table-container");
 
-    const idsToDash = [
-      "summary-period",
-      "summary-days",
-      "summary-winrate",
-      "summary-wl",
-      "summary-roi",
-      "summary-profit",
-      "summary-winrate-needed",
-      "summary-reliability",
-    ];
-    idsToDash.forEach((id) => {
-      const el = $(id);
-      if (el) el.textContent = "-";
-    });
+    setSummaryDashes();
 
     const range = getMonthRangeUTC(year, month0);
     const startStr = dateToYMD_UTC(range.start);
     const endStr = dateToYMD_UTC(range.end);
 
-    if (monthPill)
-      monthPill.textContent = `${monthNameIT(month0)} ${year} (${formatDateIT(
-        startStr
-      )} → ${formatDateIT(endStr)})`;
+    if (monthPill) {
+      monthPill.textContent = `${monthNameIT(month0)} ${year} (${formatDateIT(startStr)} → ${formatDateIT(endStr)})`;
+    }
 
     if (tableContainer) {
       tableContainer.innerHTML = `
@@ -237,14 +193,8 @@
       `;
     }
 
-    const picks = await sbFetch(
-      "picks",
-      `?match_date=gte.${startStr}&match_date=lte.${endStr}&select=*`
-    );
-    const results = await sbFetch(
-      "results",
-      `?picks_date=gte.${startStr}&picks_date=lte.${endStr}&select=*`
-    );
+    const picks = await sbFetch("picks", `?match_date=gte.${startStr}&match_date=lte.${endStr}&select=*`);
+    const results = await sbFetch("results", `?picks_date=gte.${startStr}&picks_date=lte.${endStr}&select=*`);
 
     if (!Array.isArray(picks) || picks.length === 0) {
       if (tableContainer) {
@@ -280,13 +230,13 @@
     }
 
     function chooseBestResolvedPick(list) {
-      const resolved = list.filter((p) => {
+      const resolved = list.filter(p => {
         const r = pickResult(p);
         return r === "WIN" || r === "LOSE";
       });
       if (!resolved.length) return null;
 
-      const wins = resolved.filter((p) => pickResult(p) === "WIN");
+      const wins = resolved.filter(p => pickResult(p) === "WIN");
       const pool = wins.length ? wins : resolved;
 
       pool.sort((a, b) => {
@@ -307,27 +257,15 @@
     }
 
     const dates = listDatesInRangeUTC(range.start, range.end);
+
     const byDay = new Map();
     const byCategory = {};
 
-    let totalWins = 0,
-      totalLoses = 0,
-      totalStake = 0,
-      totalProfit = 0,
-      totalOddsSum = 0,
-      totalOddsCount = 0;
+    let totalWins = 0, totalLoses = 0, totalStake = 0, totalProfit = 0, totalOddsSum = 0, totalOddsCount = 0;
 
     function ensureCat(k) {
       const kk = normalizeCatKey(k) || "ALTRO";
-      if (!byCategory[kk])
-        byCategory[kk] = {
-          wins: 0,
-          loses: 0,
-          stake: 0,
-          profit: 0,
-          oddsSum: 0,
-          oddsCount: 0,
-        };
+      if (!byCategory[kk]) byCategory[kk] = { wins:0, loses:0, stake:0, profit:0, oddsSum:0, oddsCount:0 };
       return byCategory[kk];
     }
 
@@ -342,10 +280,7 @@
         (byFixture[fid] ||= []).push(p);
       }
 
-      let wins = 0,
-        loses = 0,
-        stake = 0,
-        profit = 0;
+      let wins = 0, loses = 0, stake = 0, profit = 0;
 
       for (const fid of Object.keys(byFixture)) {
         const chosen = chooseBestResolvedPick(byFixture[fid]);
@@ -355,36 +290,22 @@
         const odd = safeOdd(chosen.odd);
         const catKey = deriveCategoryKeyFromPick(chosen);
 
-        stake += 1;
-        totalStake += 1;
-
+        stake += 1; totalStake += 1;
         const cat = ensureCat(catKey);
         cat.stake += 1;
 
         if (r === "WIN") {
-          wins += 1;
-          totalWins += 1;
-
-          profit += odd - 1;
-          totalProfit += odd - 1;
-
-          cat.wins += 1;
-          cat.profit += odd - 1;
+          wins += 1; totalWins += 1;
+          profit += odd - 1; totalProfit += odd - 1;
+          cat.wins += 1; cat.profit += odd - 1;
         } else {
-          loses += 1;
-          totalLoses += 1;
-
-          profit -= 1;
-          totalProfit -= 1;
-
-          cat.loses += 1;
-          cat.profit -= 1;
+          loses += 1; totalLoses += 1;
+          profit -= 1; totalProfit -= 1;
+          cat.loses += 1; cat.profit -= 1;
         }
 
-        totalOddsSum += odd;
-        totalOddsCount += 1;
-        cat.oddsSum += odd;
-        cat.oddsCount += 1;
+        totalOddsSum += odd; totalOddsCount += 1;
+        cat.oddsSum += odd; cat.oddsCount += 1;
       }
 
       const played = wins + loses;
@@ -392,37 +313,20 @@
     }
 
     const playedTotal = totalWins + totalLoses;
-    const winrateTotal =
-      playedTotal > 0 ? ((totalWins / playedTotal) * 100).toFixed(1) : "-";
-    const roiTotal =
-      totalStake > 0 ? ((totalProfit / totalStake) * 100).toFixed(1) : "-";
-    const avgOdd = totalOddsCount > 0 ? totalOddsSum / totalOddsCount : null;
-    const winNeed = avgOdd && avgOdd > 1 ? (100 / avgOdd).toFixed(1) : "-";
+    const winrateTotal = playedTotal > 0 ? ((totalWins / playedTotal) * 100).toFixed(1) : "-";
+    const roiTotal = totalStake > 0 ? ((totalProfit / totalStake) * 100).toFixed(1) : "-";
+    const avgOdd = totalOddsCount > 0 ? (totalOddsSum / totalOddsCount) : null;
+    const winNeed = (avgOdd && avgOdd > 1) ? (100 / avgOdd).toFixed(1) : "-";
 
-    if ($("summary-period"))
-      $("summary-period").textContent = `${formatDateIT(startStr)} → ${formatDateIT(
-        endStr
-      )}`;
-    if ($("summary-days"))
-      $("summary-days").textContent = `${byDay.size} giorni con picks giocate`;
-    if ($("summary-winrate"))
-      $("summary-winrate").textContent =
-        winrateTotal === "-" ? "-" : `${winrateTotal}%`;
-    if ($("summary-wl"))
-      $("summary-wl").textContent = playedTotal
-        ? `${totalWins} win / ${totalLoses} lose`
-        : "-";
+    if ($("summary-period")) $("summary-period").textContent = `${formatDateIT(startStr)} → ${formatDateIT(endStr)}`;
+    if ($("summary-days")) $("summary-days").textContent = `${byDay.size} giorni con picks giocate`;
+    if ($("summary-winrate")) $("summary-winrate").textContent = (winrateTotal === "-" ? "-" : `${winrateTotal}%`);
+    if ($("summary-wl")) $("summary-wl").textContent = playedTotal ? `${totalWins} win / ${totalLoses} lose` : "-";
 
     const roiEl = $("summary-roi");
     if (roiEl) {
-      roiEl.textContent = roiTotal === "-" ? "-" : `${roiTotal}%`;
-      roiEl.className =
-        "summary-value " +
-        (roiTotal === "-"
-          ? "badge-neutral"
-          : parseFloat(roiTotal) >= 0
-          ? "badge-pos"
-          : "badge-neg");
+      roiEl.textContent = (roiTotal === "-" ? "-" : `${roiTotal}%`);
+      roiEl.className = "summary-value " + (roiTotal === "-" ? "badge-neutral" : (parseFloat(roiTotal) >= 0 ? "badge-pos" : "badge-neg"));
     }
 
     const profEl = $("summary-profit");
@@ -431,23 +335,13 @@
         profEl.textContent = "-";
         profEl.className = "summary-value-small badge-neutral";
       } else {
-        profEl.textContent =
-          totalProfit >= 0
-            ? `Profitto totale: +${totalProfit.toFixed(2)} unità`
-            : `Profitto totale: ${totalProfit.toFixed(2)} unità`;
-        profEl.className =
-          "summary-value-small " + (totalProfit >= 0 ? "badge-pos" : "badge-neg");
+        profEl.textContent = totalProfit >= 0 ? `Profitto totale: +${totalProfit.toFixed(2)} unità` : `Profitto totale: ${totalProfit.toFixed(2)} unità`;
+        profEl.className = "summary-value-small " + (totalProfit >= 0 ? "badge-pos" : "badge-neg");
       }
     }
 
     const needEl = $("summary-winrate-needed");
-    if (needEl)
-      needEl.textContent =
-        winNeed === "-" || !avgOdd
-          ? "Winrate necessaria: -"
-          : `Winrate necessaria per break-even: ${winNeed}% (quota media ~ ${avgOdd.toFixed(
-              2
-            )})`;
+    if (needEl) needEl.textContent = (winNeed === "-" || !avgOdd) ? "Winrate necessaria: -" : `Winrate necessaria per break-even: ${winNeed}% (quota media ~ ${avgOdd.toFixed(2)})`;
 
     const relEl = $("summary-reliability");
     if (relEl) {
@@ -455,21 +349,16 @@
         relEl.textContent = "-";
         relEl.className = "summary-value-small badge-neutral";
       } else {
-        const label = reliabilityLabel(
-          playedTotal,
-          parseFloat(winrateTotal),
-          parseFloat(winNeed)
-        );
+        const label = reliabilityLabel(playedTotal, parseFloat(winrateTotal), parseFloat(winNeed));
         relEl.textContent = `Reliability: ${label}`;
         let cls = "badge-neutral";
         if (label.startsWith("Molto") || label.startsWith("Buona")) cls = "badge-pos";
-        else if (label.startsWith("Debole") || label.startsWith("Negativa"))
-          cls = "badge-neg";
+        else if (label.startsWith("Debole") || label.startsWith("Negativa")) cls = "badge-neg";
         relEl.className = "summary-value-small " + cls;
       }
     }
 
-    // Daily table
+    // ===== TABLES =====
     const sortedDays = Array.from(byDay.keys()).sort().reverse();
     let html = `
       <div class="table-wrapper">
@@ -492,8 +381,7 @@
       const played = (s.wins || 0) + (s.loses || 0);
       const roiDay = s.stake > 0 ? ((s.profit / s.stake) * 100).toFixed(1) : "-";
       const profitStr = s.profit >= 0 ? `+${s.profit.toFixed(2)}` : s.profit.toFixed(2);
-      const roiClass =
-        roiDay === "-" ? "badge-neutral" : parseFloat(roiDay) >= 0 ? "badge-pos" : "badge-neg";
+      const roiClass = roiDay === "-" ? "badge-neutral" : (parseFloat(roiDay) >= 0 ? "badge-pos" : "badge-neg");
 
       html += `
         <tr>
@@ -501,9 +389,7 @@
           <td data-label="Picks giocate">${played}</td>
           <td data-label="Win">${s.wins}</td>
           <td data-label="Lose">${s.loses}</td>
-          <td data-label="ROI giornaliero" class="${roiClass}">${
-            roiDay === "-" ? "-" : roiDay + "%"
-          }</td>
+          <td data-label="ROI giornaliero" class="${roiClass}">${roiDay === "-" ? "-" : roiDay + "%"}</td>
           <td data-label="Profitto">${profitStr} u</td>
         </tr>
       `;
@@ -511,7 +397,6 @@
 
     html += `</tbody></table></div>`;
 
-    // Category table
     const catKeys = Object.keys(byCategory).sort((a, b) => a.localeCompare(b));
     if (catKeys.length) {
       html += `
@@ -539,20 +424,17 @@
         const played = (c.wins || 0) + (c.loses || 0);
         const winrate = played > 0 ? ((c.wins / played) * 100).toFixed(1) : "-";
         const roi = c.stake > 0 ? ((c.profit / c.stake) * 100).toFixed(1) : "-";
-        const avgO = c.oddsCount > 0 ? c.oddsSum / c.oddsCount : null;
+        const avgO = c.oddsCount > 0 ? (c.oddsSum / c.oddsCount) : null;
         const avgOstr = avgO ? avgO.toFixed(2) : "-";
-        const winNeedCat = avgO && avgO > 1 ? (100 / avgO).toFixed(1) : "-";
-
-        const roiClass =
-          roi === "-" ? "badge-neutral" : parseFloat(roi) >= 0 ? "badge-pos" : "badge-neg";
+        const winNeedCat = (avgO && avgO > 1) ? (100 / avgO).toFixed(1) : "-";
+        const roiClass = roi === "-" ? "badge-neutral" : (parseFloat(roi) >= 0 ? "badge-pos" : "badge-neg");
 
         let rel = "-";
         let relClass = "badge-neutral";
         if (played > 0 && winrate !== "-" && winNeedCat !== "-") {
           rel = reliabilityLabel(played, parseFloat(winrate), parseFloat(winNeedCat));
           if (rel.startsWith("Molto") || rel.startsWith("Buona")) relClass = "badge-pos";
-          else if (rel.startsWith("Debole") || rel.startsWith("Negativa"))
-            relClass = "badge-neg";
+          else if (rel.startsWith("Debole") || rel.startsWith("Negativa")) relClass = "badge-neg";
         }
 
         html += `
@@ -576,30 +458,57 @@
     if (tableContainer) tableContainer.innerHTML = html;
   }
 
-  // ✅ Genera bottoni mese da "oggi" indietro fino a PROJECT_START (Dicembre 2025)
+  // ====== MONTH UI ======
+  function monthKey(y, m0) { return `${y}-${pad2(m0 + 1)}`; }
+
+  function buildMonthList() {
+    const now = new Date();
+    let y = now.getFullYear();
+    let m0 = now.getMonth();
+
+    const out = [];
+    // go backwards until PROJECT_START (inclusive)
+    while (true) {
+      out.push({ y, m0 });
+      if (y === PROJECT_START.y && m0 === PROJECT_START.m0) break;
+      m0 -= 1;
+      if (m0 < 0) { m0 = 11; y -= 1; }
+      // safety stop
+      if (y < 2000) break;
+    }
+    return out; // newest -> oldest
+  }
+
+  function selectMonthUI(selected) {
+    const wrap = $("month-buttons");
+    if (wrap) {
+      Array.from(wrap.querySelectorAll("button")).forEach(b => {
+        const k = b.getAttribute("data-month-key");
+        b.style.borderColor = "rgba(148,163,184,0.35)";
+        b.style.opacity = "0.85";
+        if (k === selected) {
+          b.style.borderColor = "rgba(248,250,252,0.65)";
+          b.style.opacity = "1";
+        }
+      });
+    }
+    const sel = $("month-select");
+    if (sel) sel.value = selected;
+  }
+
   function buildMonthButtons() {
     const wrap = $("month-buttons");
     if (!wrap) return;
 
-    const now = new Date();
-    let y = now.getFullYear();
-    let m = now.getMonth();
-
-    const months = [];
-    while (y > PROJECT_START.year || (y === PROJECT_START.year && m >= PROJECT_START.month0)) {
-      months.push({ y, m0: m });
-      m--;
-      if (m < 0) {
-        m = 11;
-        y--;
-      }
-    }
-
+    const months = buildMonthList();
     wrap.innerHTML = "";
-    months.forEach((mm, idx) => {
+
+    months.forEach((mm) => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.textContent = `${monthNameIT(mm.m0)} ${mm.y}`;
+      btn.setAttribute("data-month-key", monthKey(mm.y, mm.m0));
+
       btn.style.padding = "4px 10px";
       btn.style.borderRadius = "999px";
       btn.style.border = "1px solid rgba(148,163,184,0.35)";
@@ -610,25 +519,58 @@
       btn.style.opacity = "0.85";
 
       btn.addEventListener("click", async () => {
-        Array.from(wrap.querySelectorAll("button")).forEach((b) => {
-          b.style.borderColor = "rgba(148,163,184,0.35)";
-          b.style.opacity = "0.85";
-        });
-        btn.style.borderColor = "rgba(248,250,252,0.65)";
-        btn.style.opacity = "1";
+        const key = monthKey(mm.y, mm.m0);
+        selectMonthUI(key);
         await loadHistoryMonth(mm.y, mm.m0);
       });
 
       wrap.appendChild(btn);
-      if (idx === 0) setTimeout(() => btn.click(), 0);
     });
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    if (DEBUG_ENABLED) {
-      logDebug("Debug attivo (?debug=1).");
-      showDebugPanel();
+  function buildMonthSelect() {
+    const sel = $("month-select");
+    if (!sel) return;
+
+    const months = buildMonthList();
+    sel.innerHTML = "";
+
+    months.forEach(mm => {
+      const opt = document.createElement("option");
+      opt.value = monthKey(mm.y, mm.m0);
+      opt.textContent = `${monthNameIT(mm.m0)} ${mm.y}`;
+      sel.appendChild(opt);
+    });
+
+    sel.addEventListener("change", async () => {
+      const [yStr, mStr] = sel.value.split("-");
+      const y = Number(yStr);
+      const m0 = Number(mStr) - 1;
+      selectMonthUI(sel.value);
+      await loadHistoryMonth(y, m0);
+    });
+  }
+
+  function initDefaultMonth() {
+    const now = new Date();
+    let y = now.getFullYear();
+    let m0 = now.getMonth();
+
+    // If we're before project start (shouldn't happen), clamp
+    if (y < PROJECT_START.y || (y === PROJECT_START.y && m0 < PROJECT_START.m0)) {
+      y = PROJECT_START.y;
+      m0 = PROJECT_START.m0;
     }
+
+    const key = monthKey(y, m0);
+    selectMonthUI(key);
+    loadHistoryMonth(y, m0);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (DEBUG_ENABLED) { logDebug("Debug attivo (?debug=1)."); showDebugPanel(); }
     buildMonthButtons();
+    buildMonthSelect();
+    initDefaultMonth();
   });
 })();
