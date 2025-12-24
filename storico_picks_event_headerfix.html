@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Storico Picks – Pronostici Bomba</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-soft: #0f172a;
+      --card: #020617;
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.18);
+      --border: rgba(148, 163, 184, 0.2);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --pill-bg: rgba(148, 163, 184, 0.15);
+      --shadow-soft: 0 20px 45px rgba(15, 23, 42, 0.9);
+      --win: #16a34a;
+      --lose: #dc2626;
+      --pending: #facc15;
+      --unknown: #6b7280;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text-main);
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 32px auto 40px;
+      padding: 0 16px 40px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.9rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .back-link {
+      font-size: 0.8rem;
+      text-decoration: none;
+      color: var(--text-main);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .back-link:hover {
+      border-color: var(--accent);
+      color: #fed7aa;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      max-width: 760px;
+      line-height: 1.45;
+    }
+
+    .note {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Date selector */
+    .dates-wrapper {
+      margin-top: 14px;
+    }
+
+    .dates-title {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .dates-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .date-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 0.78rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    }
+
+    .date-pill:hover {
+      border-color: var(--accent);
+      color: #fed7aa;
+    }
+
+    .date-pill.active {
+      background: var(--accent-soft);
+      border-color: rgba(249, 115, 22, 0.8);
+      color: #fed7aa;
+      font-weight: 600;
+    }
+
+    /* Day summary */
+    .day-summary {
+      margin-top: 18px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.92);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      font-size: 0.86rem;
+    }
+
+    .day-summary-title {
+      width: 100%;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .day-summary-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .day-summary-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .day-summary-value {
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .day-summary-value.win {
+      color: #bbf7d0;
+    }
+
+    .day-summary-value.lose {
+      color: #fecaca;
+    }
+
+    .day-summary-value.roi-positive {
+      color: #bbf7d0;
+    }
+
+    .day-summary-value.roi-negative {
+      color: #fecaca;
+    }
+
+    /* Picks list */
+    .section-title {
+      margin-top: 20px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .picks-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pick-card {
+      background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.9));
+      border-radius: 14px;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.83rem;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.85);
+    }
+
+    .pick-card.win {
+      border-color: var(--win);
+      box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.6);
+    }
+
+    .pick-card.lose {
+      border-color: var(--lose);
+      box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.6);
+    }
+
+    .pick-card.pending {
+      border-color: var(--pending);
+    }
+
+    .pick-card.unknown {
+      border-color: var(--unknown);
+    }
+
+    .pick-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+    }
+
+    .league-pill {
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: var(--pill-bg);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      max-width: 70%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 0.78rem;
+    }
+
+    .category-pill {
+      padding: 1px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .teams-row {
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    .pick-main-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pick-label {
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 250, 252, 0.22);
+      background: rgba(15, 23, 42, 0.9);
+      font-weight: 500;
+      font-size: 0.82rem;
+    }
+
+    .odd-label {
+      font-weight: 600;
+      font-size: 0.84rem;
+      letter-spacing: 0.03em;
+    }
+
+    .bottom-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .bottom-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .conf-text {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .score-label-strong {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .result-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 9999px;
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .result-badge.win {
+      border-color: var(--win);
+      color: #bbf7d0;
+    }
+
+    .result-badge.lose {
+      border-color: var(--lose);
+      color: #fecaca;
+    }
+
+    .result-badge.pending {
+      border-color: var(--pending);
+      color: #fef9c3;
+    }
+
+    .result-badge.unknown {
+      border-color: var(--unknown);
+      color: #e5e7eb;
+    }
+
+    .empty-state {
+      margin-top: 24px;
+      padding: 16px 14px;
+      border-radius: 14px;
+      border: 1px dashed rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.85);
+      text-align: center;
+      font-size: 0.86rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 640px) {
+      main {
+        margin-top: 20px;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      .day-summary {
+        padding: 10px 11px;
+      }
+      .pick-card {
+        padding: 8px 9px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="title-row">
+        <h1>Storico Picks</h1>
+        <a href="/index.html" class="back-link">← Torna ai pronostici di oggi</a>
+      </div>
+      <p class="subtitle">
+        In questa pagina trovi lo storico delle singole picks con il loro risultato.
+        Il calcolo è sempre fatto ipotizzando uno stake fisso di 1 unità per ogni pick, sulle quote mostrate.
+      </p>
+      <p class="note">
+        La lista delle partite viene dalle picks del giorno. Gli esiti sono agganciati dai risultati registrati.
+        Se una partita è stata ricalcolata più volte, viene mostrata la versione con risultato più aggiornato.
+      </p>
+
+      <div class="dates-wrapper">
+        <div class="dates-title">Seleziona una data</div>
+        <div id="dates-row" class="dates-row"></div>
+      </div>
+    </header>
+
+    <section id="day-summary" class="day-summary" style="display:none;"></section>
+
+    <h2 id="picks-title" class="section-title" style="display:none;"></h2>
+    <section id="picks-container" class="picks-container"></section>
+
+    <div id="empty-state" class="empty-state" style="display:none;">
+      Nessun dato disponibile per la data selezionata.
+    </div>
+  </main>
+
+  <script>
+    // ====== CONFIG (solo lettura) ======
+    const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
+
+    async function sbFetch(table, query) {
+      const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        },
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Errore dati ${res.status}: ${text}`);
+      }
+      return await res.json();
+    }
+
+    // ====== UTIL ======
+    function pad2(n) {
+      return n < 10 ? "0" + n : "" + n;
+    }
+
+    function formatDateIT(str) {
+      const parts = (str || "").split("-");
+      if (parts.length !== 3) return str || "";
+      const [y, m, d] = parts.map(Number);
+      const dt = new Date(y, m - 1, d);
+      const weekday = dt.toLocaleDateString("it-IT", { weekday: "long" });
+      const day = pad2(dt.getDate());
+      const month = dt.toLocaleDateString("it-IT", { month: "long" });
+      return `${weekday} ${day} ${month} ${y}`;
+    }
+
+    function classifyResult(resultRaw) {
+      const res = (resultRaw || "").toUpperCase();
+      if (res === "WIN") return "win";
+      if (res === "LOSE") return "lose";
+      if (res === "PENDING") return "pending";
+      if (res === "UNKNOWN") return "unknown";
+      return "";
+    }
+
+    function confidenceLabel(val) {
+      if (val > 130) return "molto alta";
+      if (val > 110) return "alta";
+      if (val > 90)  return "medio-alta";
+      if (val > 70)  return "media";
+      if (val > 50)  return "bassa";
+      return "rischiosa";
+    }
+
+    // Nomi eleganti per le famiglie di selezioni
+    const CATEGORY_LABELS = {
+      BEST_TIPS_OF_DAY: "Scelte d’Élite",
+      SAFE_PICKS: "Selezioni Affidabili",
+      VALUE_PICKS: "Quote di Valore",
+      OVER_UNDER_TIPS: "Tendenze Goal",
+      BTTS_TIPS: "Probabilità Entrambe",
+      DAILY_2PLUS: "Combo Selettiva",
+      DAILY_10PLUS: "Combo High Stakes",
+      SINGLE_GAME: "Pick Esclusiva"
+    };
+
+    function getCategoryLabel(cat) {
+      const k = (cat || "").trim().toUpperCase();
+      return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
+    }
+
+    // ranking dei risultati: preferiamo righe con esito definito e match finito
+    function resultRank(r) {
+      let score = 0;
+      const res = (r.result || "").toUpperCase();
+      const st = (r.status_short || "").toUpperCase();
+
+      if (res === "WIN" || res === "LOSE") score += 4;
+      else if (res === "PENDING") score += 1;
+
+      if (["FT", "AET", "PEN", "AWD", "WO"].includes(st)) score += 3;
+      else if (["NS", "1H", "2H"].includes(st)) score += 1;
+
+      return score;
+    }
+
+    // ====== DATE LOADING ======
+    let availableDates = [];
+    let currentDate = null;
+
+    async function loadAvailableDates() {
+      // le date le prendiamo dalle picks (sono le più "complete")
+      const rows = await sbFetch(
+        "picks",
+        "?select=match_date&order=match_date.desc&limit=200"
+      );
+
+      const seen = new Set();
+      const out = [];
+      for (const r of rows) {
+        const d = r.match_date;
+        if (d && !seen.has(d)) {
+          seen.add(d);
+          out.push(d);
+        }
+      }
+      return out;
+    }
+
+    function renderDatePills() {
+      const row = document.getElementById("dates-row");
+      row.innerHTML = "";
+
+      if (!availableDates.length) {
+        row.innerHTML = `<span style="font-size:0.8rem;color:var(--text-muted);">Nessuna data disponibile.</span>`;
+        return;
+      }
+
+      availableDates.forEach(dateStr => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "date-pill" + (dateStr === currentDate ? " active" : "");
+        btn.textContent = dateStr;
+        btn.addEventListener("click", () => {
+          if (dateStr !== currentDate) {
+            currentDate = dateStr;
+            renderDatePills();
+            loadDayPicks(dateStr);
+          }
+        });
+        row.appendChild(btn);
+      });
+    }
+
+    // ====== DAY DETAIL LOADING ======
+    async function loadDayPicks(dateStr) {
+      const daySummaryEl = document.getElementById("day-summary");
+      const picksTitleEl = document.getElementById("picks-title");
+      const container = document.getElementById("picks-container");
+      const emptyState = document.getElementById("empty-state");
+
+      daySummaryEl.style.display = "none";
+      picksTitleEl.style.display = "none";
+      container.innerHTML = "";
+      emptyState.style.display = "none";
+
+      try {
+        // 1) tutte le picks del giorno (allineato alla home: run_date OR match_date)
+        const picks = await sbFetch(
+          "picks",
+          `?or=(run_date.eq.${dateStr},match_date.eq.${dateStr})&select=*`
+        );
+
+        if (!Array.isArray(picks) || !picks.length) {
+          emptyState.style.display = "block";
+          return;
+        }
+
+        // 2) tutti i risultati di quella giornata
+        const results = await sbFetch(
+          "results",
+          `?picks_date=eq.${dateStr}&select=*`
+        );
+
+        // 2b) risultato "migliore" per fixture+pick
+        const resultMap = new Map();
+        if (Array.isArray(results)) {
+          for (const r of results) {
+            const fid = String(r.fixture_id || "").trim();
+            const pickText = String(r.pick || "").trim();
+            if (!fid && !pickText) continue;
+            const key = fid + "__" + pickText;
+
+            const current = resultMap.get(key);
+            if (!current) {
+              resultMap.set(key, r);
+            } else {
+              const oldScore = resultRank(current);
+              const newScore = resultRank(r);
+              // se il nuovo è "più completo", lo sostituiamo
+              if (newScore >= oldScore) {
+                resultMap.set(key, r);
+              }
+            }
+          }
+        }
+
+        // 3) unione pick + eventuale result migliore
+        const dayRows = picks.map(p => {
+          const fid = String(p.fixture_id || "").trim();
+          const pickText = String(p.pick || "").trim();
+          const key = fid + "__" + pickText;
+          const res = resultMap.get(key) || {};
+
+          return {
+            fixture_id: fid,
+            league: p.league || res.league || "",
+            home: p.home || res.home || "",
+            away: p.away || res.away || "",
+            category: p.category || res.category || "",
+            pick: pickText,
+            odd: p.odd || res.odd || null,
+            score_model: p.score || res.score_model || null,
+            result: (res.result || "").toUpperCase() || "",
+            final_score: res.final_score || "",
+            status_short: res.status_short || "",
+          };
+        });
+
+        // ordino per leggibilità: lega -> home -> away
+        dayRows.sort((a, b) => {
+          const la = (a.league || "").localeCompare(b.league || "");
+          if (la !== 0) return la;
+          const ha = (a.home || "").localeCompare(b.home || "");
+          if (ha !== 0) return ha;
+          return (a.away || "").localeCompare(b.away || "");
+        });
+
+        // 4) statistiche (MODALITÀ EVENTO): 1 unità per fixture_id
+const byFixture = new Map();
+for (const r of dayRows) {
+  const fid = String(r.fixture_id || "").trim();
+  if (!fid) continue;
+  if (!byFixture.has(fid)) byFixture.set(fid, []);
+  byFixture.get(fid).push(r);
+}
+
+const totalPicks = byFixture.size; // "picks" intese come eventi/partite uniche
+
+let wins = 0;
+let loses = 0;
+let pending = 0;
+let unknown = 0;
+let profit = 0; // in unità (stake 1 per fixture risolta)
+
+let loseInsideWin = 0; // quante pick LOSE sono presenti in eventi che nel complesso risultano WIN
+let mixedEvents = 0;   // quante fixture hanno sia WIN che LOSE (sui soli esiti risolti)
+
+// Seleziona la "pick rappresentativa" per la fixture:
+// - se esiste almeno una WIN: prendi la WIN con score più alto (tie-break odd)
+// - altrimenti prendi la LOSE con score più alto (tie-break odd)
+function pickBestRow(rows) {
+  const resolved = rows.filter(x => {
+    const res = (x.result || "").toUpperCase();
+    return res === "WIN" || res === "LOSE";
+  });
+
+  if (!resolved.length) return null;
+
+  const hasWin = resolved.some(x => (x.result || "").toUpperCase() === "WIN");
+  const pool = hasWin ? resolved.filter(x => (x.result || "").toUpperCase() === "WIN") : resolved;
+
+  const scoreNum = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : -Infinity;
+  };
+  const oddNum = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : -Infinity;
+  };
+
+  pool.sort((a, b) => {
+    const s = scoreNum(b.score_model) - scoreNum(a.score_model);
+    if (s !== 0) return s;
+    return oddNum(b.odd) - oddNum(a.odd);
+  });
+  return pool[0];
+}
+
+for (const [fid, rows] of byFixture.entries()) {
+  const best = pickBestRow(rows);
+
+  // Mixed outcomes inside same fixture (es. una pick WIN e un'altra LOSE)
+  const resolvedRows = rows.filter(x => {
+    const rr = (x.result || "").toUpperCase();
+    return rr === "WIN" || rr === "LOSE";
+  });
+  const hasWinAny = resolvedRows.some(x => (x.result || "").toUpperCase() === "WIN");
+  const loseCount = resolvedRows.filter(x => (x.result || "").toUpperCase() === "LOSE").length;
+  if (hasWinAny && loseCount > 0) {
+    mixedEvents++;
+    loseInsideWin += loseCount;
+  }
+
+  if (best) {
+    const res = (best.result || "").toUpperCase();
+    const odd = Number(best.odd || 0);
+
+    if (res === "WIN") {
+      wins++;
+      profit += (Number.isFinite(odd) && odd > 1) ? (odd - 1) : 0;
+    } else if (res === "LOSE") {
+      loses++;
+      profit -= 1;
+    }
+  } else {
+    // nessuna pick risolta: classifichiamo la fixture
+    const hasPending = rows.some(x => (x.result || "").toUpperCase() === "PENDING");
+    const hasUnknown = rows.some(x => {
+      const rr = (x.result || "").toUpperCase();
+      return rr === "UNKNOWN" || !rr;
+    });
+
+    if (hasPending) pending++;
+    else if (hasUnknown) unknown++;
+    else unknown++;
+  }
+}
+
+const resolved = wins + loses; // fixtures risolte
+const roi = resolved > 0 ? (profit / resolved) * 100 : 0;
+
+        // 5) riepilogo giornata
+        daySummaryEl.innerHTML = `
+          <div class="day-summary-title">
+            Riepilogo giornata – ${formatDateIT(dateStr)} (${dateStr})
+          </div>
+          <div class="day-summary-item">
+            <span class="day-summary-label">Totale picks generate</span>
+            <span class="day-summary-value">${totalPicks}</span>
+          </div>
+          <div class="day-summary-item">
+            <span class="day-summary-label">Esiti</span>
+            <span class="day-summary-value">
+              <span class="day-summary-value win">${wins}W</span> /
+              <span class="day-summary-value lose">${loses}L</span> /
+              ${pending} Pending / ${unknown} N.D.
+            </span>
+          </div>
+          <div class="day-summary-item">
+            <span class="day-summary-label">Profitto netto (stake 1 per evento risolto)</span>
+            <span class="day-summary-value ${profit >= 0 ? "roi-positive" : "roi-negative"}">
+              ${profit.toFixed(2)} unità
+            </span>
+          </div>
+          <div class="day-summary-item">
+            <span class="day-summary-label">ROI sui picks risolti</span>
+            <span class="day-summary-value ${roi >= 0 ? "roi-positive" : "roi-negative"}">
+              ${roi.toFixed(1)}%
+            </span>
+          </div>
+          <div class="day-summary-item">
+            <span class="day-summary-label">Lose dentro eventi vinti</span>
+            <span class="day-summary-value">${loseInsideWin} pick LOSE (in ${mixedEvents} eventi con esiti misti)</span>
+          </div>
+          <div class="day-summary-item">
+            <span class="day-summary-label">Stake considerato per ROI</span>
+            <span class="day-summary-value">${resolved} unità (solo eventi con esito WIN/LOSE)</span>
+          </div>
+        `;
+        daySummaryEl.style.display = "flex";
+
+        picksTitleEl.textContent = "Dettaglio picks della giornata";
+        picksTitleEl.style.display = "block";
+
+        // 6) render lista picks
+        const frag = document.createDocumentFragment();
+
+        dayRows.forEach(r => {
+          const resultClass = classifyResult(r.result);
+          const card = document.createElement("article");
+          card.className = "pick-card" + (resultClass ? " " + resultClass : "");
+
+          const catName = getCategoryLabel(r.category || "");
+
+          const oddNum = Number(r.odd || 0);
+          const oddStr = oddNum ? oddNum.toFixed(2) : "-";
+
+          const confVal = Number(r.score_model || 0) * 100;
+          const confLabel = confidenceLabel(confVal);
+
+          const resultLabel = (r.result || "").toUpperCase();
+          const finalScore = r.final_score || "";
+          let badgeText = "";
+          if (resultLabel) {
+            badgeText = finalScore ? `${resultLabel} · ${finalScore}` : resultLabel;
+          }
+
+          card.innerHTML = `
+            <div class="pick-header">
+              <span class="league-pill">${r.league || ""}</span>
+              <span class="category-pill">${catName}</span>
+            </div>
+            <div class="teams-row">
+              ${r.home || ""} – ${r.away || ""}
+            </div>
+            <div class="pick-main-row">
+              <span class="pick-label">${r.pick || ""}</span>
+              <span class="odd-label">@ ${oddStr}</span>
+            </div>
+            <div class="bottom-row">
+              <div class="bottom-left">
+                <span class="conf-text">
+                  <span class="score-label-strong">Confidenza modello:</span> ${confLabel}
+                </span>
+                ${
+                  finalScore
+                    ? `<span>Risultato: ${finalScore} ${r.status_short ? "(" + r.status_short + ")" : ""}</span>`
+                    : `<span>Risultato: ${r.status_short || "N.D."}</span>`
+                }
+              </div>
+              ${
+                badgeText
+                  ? `<span class="result-badge ${resultClass}">${badgeText}</span>`
+                  : ""
+              }
+            </div>
+          `;
+
+          frag.appendChild(card);
+        });
+
+        container.appendChild(frag);
+
+      } catch (err) {
+        console.error("Errore caricamento picks storico:", err);
+        const emptyState2 = document.getElementById("empty-state");
+        emptyState2.textContent = "Errore nel caricamento dei dati. Riprova più tardi.";
+        emptyState2.style.display = "block";
+      }
+    }
+
+    // ====== INIT ======
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        availableDates = await loadAvailableDates();
+        if (!availableDates.length) {
+          document.getElementById("empty-state").style.display = "block";
+          return;
+        }
+        currentDate = availableDates[0]; // data più recente
+        renderDatePills();
+        loadDayPicks(currentDate);
+      } catch (err) {
+        console.error("Errore inizializzazione storico picks:", err);
+        const emptyState = document.getElementById("empty-state");
+        emptyState.textContent = "Errore nel caricamento delle date. Riprova più tardi.";
+        emptyState.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>
