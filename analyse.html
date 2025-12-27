@@ -228,7 +228,7 @@
   }
 
   // compat: in alcune versioni chiamavamo setPills() (backend + contatore fixture)
-  function setPills({ backendOk, fixtureCount } = {}) {
+  window.setPills = function window.setPills({ backendOk, fixtureCount } = {}) {
     if (typeof backendOk === "boolean") setBackendStatus(backendOk);
     if (typeof fixtureCount === "number") {
       els.fixtureCount.textContent = String(fixtureCount);
@@ -342,7 +342,7 @@
 async function runAnalyze() {
   if (!selected) return;
 
-  setPills({ backend: "OK", fixture: String(selected.fixture_id || selected.id || "") });
+  window.setPills({ backend: "OK", fixture: String(selected.fixture_id || selected.id || "") });
 
   // reset outputs
   els.analyzeRaw.textContent = "Carico analisi...";
