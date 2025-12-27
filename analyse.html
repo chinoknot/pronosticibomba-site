@@ -227,6 +227,14 @@
     els.backendUrlTxt.textContent = BACKEND;
   }
 
+  // compat: in alcune versioni chiamavamo setPills() (backend + contatore fixture)
+  function setPills({ backendOk, fixtureCount } = {}) {
+    if (typeof backendOk === "boolean") setBackendStatus(backendOk);
+    if (typeof fixtureCount === "number") {
+      els.fixtureCount.textContent = String(fixtureCount);
+    }
+  }
+
   async function ping(){
     try{
       const res = await fetch(`${BACKEND}/api/health`, { method:"GET" });
