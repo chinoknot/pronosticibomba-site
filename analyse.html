@@ -462,14 +462,7 @@ function renderAnalysisCards(a) {
 
   root.innerHTML = cards.join("\n");
 }
-      const data = await res.json();
-      window.lastAnalysis = data;
-      els.analyzeRaw.textContent = JSON.stringify(data, null, 2);
-    }catch(e){
-      console.error(e);
-      els.analyzeRaw.textContent = "Errore analisi. Apri console.";
-    }
-  }
+
 
   // init
   els.dateInp.value = todayISO();
