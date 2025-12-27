@@ -6,569 +6,653 @@
   <title>PB Analyzer</title>
   <style>
     :root{
-      --bg1:#07141d; --bg2:#0b1b25; --card:rgba(255,255,255,.06);
-      --card2:rgba(255,255,255,.08); --txt:#eaf3ff; --muted:rgba(234,243,255,.65);
-      --accent:#4db7ff; --ok:#16c784; --warn:#f7c948; --bad:#ff5b5b;
-      --radius:14px;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      --bg0:#07101e;
+      --bg1:#0a1628;
+      --card:#0b1a2f;
+      --txt:#e9f0ff;
+      --muted:#a9b7d6;
+      --line:rgba(255,255,255,.08);
+      --accent:#3aa0ff;
+      --accent2:#22c55e;
+      --warn:#f59e0b;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
-    body{ margin:0; background:radial-gradient(1200px 800px at 15% 10%, #10334a 0%, transparent 60%),
-                         radial-gradient(1000px 700px at 85% 30%, #0c4a3f 0%, transparent 55%),
-                         linear-gradient(180deg,var(--bg1),var(--bg2));
-          color:var(--txt);
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--txt);
+      background: radial-gradient(1200px 700px at 20% 10%, #0d2b4f 0%, transparent 60%),
+                  radial-gradient(900px 650px at 85% 20%, #0b3a2f 0%, transparent 55%),
+                  linear-gradient(180deg, var(--bg0), var(--bg1));
+      min-height:100vh;
     }
-    .top{
-      padding:18px 22px 10px;
-      display:flex; align-items:center; justify-content:space-between;
+    header{
+      padding:22px 22px 12px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
       gap:14px;
     }
-    h1{margin:0; font-size:22px; letter-spacing:.3px}
-    .sub{margin-top:4px; font-size:13px; color:var(--muted)}
-    .chips{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .chip{padding:8px 10px; border-radius:999px; background:var(--card); border:1px solid rgba(255,255,255,.08); font-size:12px; color:var(--muted)}
-    .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:8px; background:var(--warn)}
-    .dot.ok{background:var(--ok)}
-
-    .wrap{padding: 10px 22px 22px;}
-    .grid{display:grid; grid-template-columns: 420px 1fr; gap:16px; align-items:start}
-    @media (max-width: 1100px){ .grid{grid-template-columns: 1fr;} }
-
-    .panel{background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.28)}
-    .panel .hd{padding:14px 14px 12px; display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom:1px solid rgba(255,255,255,.07)}
-    .panel .hd h2{margin:0; font-size:15px}
-    .panel .bd{padding:14px}
-
-    .row{display:flex; gap:10px; flex-wrap:wrap}
-    .field{flex:1; min-width: 170px}
-    label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
-    input[type="date"], input[type="text"], input[type="number"]{
-      width:100%; box-sizing:border-box; padding:10px 12px; border-radius:12px;
-      background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.12);
-      color:var(--txt); outline:none;
+    .brand{font-size:20px;font-weight:700;letter-spacing:.2px;}
+    .sub{margin-top:4px;color:var(--muted);font-size:12px;}
+    .status{font-size:12px;color:var(--muted);display:flex;gap:10px;align-items:center;white-space:nowrap;}
+    .pill{padding:6px 10px;border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:999px;display:inline-flex;gap:8px;align-items:center;}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--warn)}
+    .dot.ok{background:var(--accent2)}
+    main{padding:0 22px 24px;}
+    .grid{display:grid;grid-template-columns: 380px 1fr;gap:14px;}
+    @media (max-width: 980px){.grid{grid-template-columns:1fr}}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.25);
+      overflow:hidden;
     }
-
-    .checks{display:flex; gap:10px; flex-wrap:wrap}
-    .check{display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:999px; background:rgba(0,0,0,.20); border:1px solid rgba(255,255,255,.10); font-size:13px}
-    .check input{accent-color: var(--accent)}
-
-    .btn{padding:10px 14px; border-radius:12px; background:rgba(77,183,255,.12); border:1px solid rgba(77,183,255,.45); color:var(--txt); cursor:pointer; font-weight:650}
-    .btn:disabled{opacity:.45; cursor:not-allowed}
-
-    .list{margin-top:12px; display:flex; flex-direction:column; gap:10px; max-height:420px; overflow:auto; padding-right:6px}
-    .item{padding:12px 12px; border-radius:14px; background:rgba(0,0,0,.20); border:1px solid rgba(255,255,255,.08); cursor:pointer}
-    .item:hover{border-color: rgba(77,183,255,.35)}
-    .item.active{border-color: rgba(77,183,255,.70); box-shadow:0 0 0 2px rgba(77,183,255,.16) inset}
-    .item .topline{display:flex; justify-content:space-between; gap:10px; align-items:baseline}
-    .badge{font-size:11px; color:var(--muted)}
-    .title{font-size:15px; font-weight:700}
-
-    .kv{display:grid; grid-template-columns: 170px 1fr; gap:10px; margin-top:10px}
-    .k{color:var(--muted); font-size:12px}
-    .v{font-size:13px}
-
-    .sections{display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-top:14px}
-    @media (max-width: 1100px){ .sections{grid-template-columns: 1fr;} }
-
-    .box{background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px}
-    .box h3{margin:0 0 8px; font-size:14px}
-    .muted{color:var(--muted); font-size:13px}
-
-    table{width:100%; border-collapse:collapse}
-    th, td{padding:10px 10px; border-bottom:1px solid rgba(255,255,255,.08); font-size:13px; vertical-align:top}
-    th{color:var(--muted); font-weight:650; text-align:left; font-size:12px}
-
-    .pill{display:inline-flex; align-items:center; gap:8px; padding:7px 10px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); margin:6px 8px 0 0; font-size:12px}
-    .pill.ok{border-color: rgba(22,199,132,.55); background: rgba(22,199,132,.10)}
-    .pill.warn{border-color: rgba(247,201,72,.55); background: rgba(247,201,72,.10)}
-    .pill.bad{border-color: rgba(255,91,91,.55); background: rgba(255,91,91,.10)}
-
-    .hr{height:1px; background:rgba(255,255,255,.08); margin:10px 0}
-  </style>
+    .card h3{
+      margin:0;padding:14px 14px 10px;border-bottom:1px solid var(--line);
+      background:rgba(0,0,0,.08);font-size:13px;letter-spacing:.2px;font-weight:700;
+    }
+    .card .body{padding:14px;}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    label{font-size:12px;color:var(--muted)}
+    input[type="date"], input[type="text"]{
+      padding:10px 10px;border-radius:12px;border:1px solid var(--line);
+      background:rgba(0,0,0,.18);color:var(--txt);outline:none;
+    }
+    input[type="text"]{width:100%}
+    .btn{
+      padding:10px 14px;border-radius:12px;border:1px solid var(--line);
+      background:rgba(255,255,255,.06);color:var(--txt);cursor:pointer;font-weight:600;
+    }
+    .btn.primary{border-color:rgba(58,160,255,.35);background:rgba(58,160,255,.16);}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .leagues{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;}
+    .chk{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.12);user-select:none;}
+    .chk input{accent-color:var(--accent)}
+    .note{margin-top:10px;color:var(--muted);font-size:12px}
+    .list{margin-top:12px;display:flex;flex-direction:column;gap:10px;max-height:420px;overflow:auto;padding-right:4px;}
+    .item{padding:12px;border:1px solid var(--line);background:rgba(0,0,0,.14);border-radius:14px;cursor:pointer;}
+    .item:hover{border-color:rgba(58,160,255,.35)}
+    .item.active{border-color:rgba(58,160,255,.55); background:rgba(58,160,255,.10)}
+    .item .top{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;gap:10px;}
+    .item .mid{margin-top:6px;font-size:14px;font-weight:800;letter-spacing:.2px;}
+    .kv{display:grid;grid-template-columns: 140px 1fr;gap:10px;margin:0;}
+    .kv div{padding:10px 12px;border:1px solid var(--line);background:rgba(0,0,0,.12);border-radius:12px;font-size:12px;}
+    .k{color:var(--muted)}
+    .v{font-family:var(--mono);font-size:12px}
+    .muted{color:var(--muted)}
+    .box{padding:12px;border:1px solid var(--line);background:rgba(0,0,0,.12);border-radius:12px;}
+    pre{margin:0;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:12px;color:#dbe6ff;}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
+    @media (max-width:980px){.split{grid-template-columns:1fr}}
+    .badge{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.12);font-size:12px;color:var(--muted);}
+    .badge b{color:var(--txt)}
+    footer{padding:12px 22px 22px;color:var(--muted);font-size:12px;}
+  
+    /* Step 2: pretty output */
+    .hidden{ display:none; }
+    .pretty{ margin-top:12px; }
+    .prettyRow{ display:grid; grid-template-columns:1fr; gap:12px; margin-top:12px; }
+    @media(min-width: 980px){ .prettyRow{ grid-template-columns: 1fr 1fr; } }
+    .prettyCard{ background: rgba(0,0,0,0.18); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:12px; }
+    .prettyTitle{ font-weight:700; letter-spacing:.2px; margin-bottom:8px; opacity:.95; }
+    .prettyBody{ font-size:13px; line-height:1.35; color: rgba(240,250,255,0.92); }
+    .prettyBody.small{ font-size:12px; opacity:.9; }
+    .pill{ display:inline-block; padding:6px 10px; border-radius:999px; margin:6px 6px 0 0; font-size:12px;
+           border:1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.18); }
+    .pill.good{ border-color: rgba(60, 220, 130, 0.35); }
+    .pill.warn{ border-color: rgba(255, 190, 60, 0.35); }
+    .pill.bad{ border-color: rgba(255, 80, 80, 0.35); opacity:.75; }
+    .kv{ display:grid; grid-template-columns: 160px 1fr; gap:6px 10px; margin-top:8px; }
+    .kv div{ padding:2px 0; }
+    .muted{ opacity:.8; }
+</style>
 </head>
 <body>
-  <div class="top">
-    <div>
-      <h1>PB Analyzer</h1>
-      <div class="sub">Seleziona data e lega → scegli una partita → Analizza (goal/Poisson + esotiche: shots/corners/fouls/cards).</div>
-    </div>
-    <div class="chips">
-      <div class="chip" id="chipBackend"><span class="dot" id="dotBackend"></span>Backend: …</div>
-      <div class="chip" id="chipCount">Fixture: -</div>
-    </div>
+<header>
+  <div>
+    <div class="brand">PB Analyzer</div>
+    <div class="sub">Seleziona data e lega → scegli una partita → Analizza (goal/Poisson/Under-Over). Poi aggiungiamo cards/corners/shots + screenshot.</div>
   </div>
+  <div class="status">
+    <span class="pill"><span id="dot" class="dot"></span><span id="backendTxt">Backend: ...</span></span>
+    <span class="pill">Fixture: <b id="fixtureCount">-</b></span>
+  </div>
+</header>
 
-  <div class="wrap">
-    <div class="grid">
-      <div class="panel">
-        <div class="hd">
-          <h2>Fixture</h2>
-          <button class="btn" id="btnReload">Ricarica</button>
+<main>
+  <div class="grid">
+    <section class="card">
+      <h3>Fixture</h3>
+      <div class="body">
+        <div class="row" style="justify-content:space-between;align-items:flex-end;">
+          <div style="flex:1;min-width:180px;">
+            <label for="dateInp">Data</label><br/>
+            <input id="dateInp" type="date" />
+          </div>
+          <button id="btnReload" class="btn primary">Ricarica</button>
         </div>
-        <div class="bd">
-          <div class="row">
-            <div class="field">
-              <label>Data</label>
-              <input type="date" id="inpDate" />
+
+        <div style="margin-top:10px;">
+          <label for="searchInp">Ricerca</label><br/>
+          <input id="searchInp" type="text" placeholder="es: Juventus, Arsenal, Lazio..." />
+        </div>
+
+        <div style="margin-top:10px;">
+          <label>Leghe (maggiori)</label>
+          <div class="leagues">
+            <label class="chk"><input type="checkbox" class="lg" value="135" checked /> Serie A</label>
+            <label class="chk"><input type="checkbox" class="lg" value="39" checked /> Premier League</label>
+            <label class="chk"><input type="checkbox" class="lg" value="140" checked /> La Liga</label>
+            <label class="chk"><input type="checkbox" class="lg" value="78" checked /> Bundesliga</label>
+            <label class="chk"><input type="checkbox" class="lg" value="61" checked /> Ligue 1</label>
+          </div>
+          <div class="note">Nota: qui lavoriamo solo sulle leghe maggiori. Minori le aggiungiamo dopo.</div>
+        </div>
+
+        <div class="note" style="margin-top:12px;">Mostrate <b id="shownCount">0</b> partite (filtrate).</div>
+        <div id="fixturesList" class="list"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Match selezionato</h3>
+      <div class="body">
+        <div class="kv">
+          <div class="k">Competizione</div><div class="v" id="selLeague">-</div>
+          <div class="k">Kickoff (UTC)</div><div class="v" id="selKick">-</div>
+          <div class="k">Match</div><div class="v" id="selMatch">-</div>
+          <div class="k">Fixture ID</div><div class="v" id="selId">-</div>
+        </div>
+
+        <div class="row" style="justify-content:flex-end;margin-top:12px;">
+          <button id="btnAnalyze" class="btn primary" disabled>Analizza (prossimo step)</button>
+        </div>
+
+        <div class="note">
+          Endpoint usati:
+          <span class="badge"><b>GET</b> /api/fixtures</span>
+          <span class="badge"><b>POST</b> /api/analyze</span>
+        </div>
+
+        <div class="split">
+          <div class="box">
+            <div class="muted" style="margin-bottom:8px;"><b>Output analisi (raw)</b></div>
+            <pre id="analyzeRaw">Seleziona una partita e premi Analizza.</pre>
+          <div id="analyzePretty" class="pretty hidden">
+            <div class="prettyRow">
+              <div class="prettyCard">
+                <div class="prettyTitle">Goal (Poisson)</div>
+                <div id="goalSummary" class="prettyBody"></div>
+              </div>
+              <div class="prettyCard">
+                <div class="prettyTitle">Esotiche (shots/corners/cards/fouls)</div>
+                <div id="exoticTeam" class="prettyBody"></div>
+              </div>
             </div>
-            <div class="field">
-              <label>Ricerca</label>
-              <input type="text" id="inpSearch" placeholder="es: Juventus, Arsenal, Lazio…" />
+            <div class="prettyRow">
+              <div class="prettyCard">
+                <div class="prettyTitle">Player (se disponibili)</div>
+                <div id="exoticPlayers" class="prettyBody"></div>
+              </div>
+              <div class="prettyCard">
+                <div class="prettyTitle">Debug</div>
+                <div id="debugBox" class="prettyBody small"></div>
+              </div>
             </div>
           </div>
 
-          <div style="margin-top:10px">
-            <label>Leghe (maggiori)</label>
-            <div class="checks" id="leagueChecks"></div>
-            <div class="muted" style="margin-top:8px">Nota: qui lavoriamo solo sulle leghe maggiori. Minori le aggiungiamo dopo.</div>
           </div>
-
-          <div class="muted" style="margin-top:10px" id="lblShown">Mostrate 0 partite (filtrate).</div>
-
-          <div class="list" id="fixturesList"></div>
+          <div class="box">
+            <div class="muted" style="margin-bottom:8px;"><b>Note</b></div>
+            <div class="muted" style="font-size:12px;line-height:1.35">
+              - Ora stampiamo JSON. Nel prossimo step lo trasformiamo in:
+              <br/>• tabella medie gol + under/over
+              <br/>• Poisson (U/O 3.5) + confidenza 0–10
+              <br/>• suggerimento soglia value (1.5/2.5/3.5)
+              <br/><br/>Poi aggiungiamo shots/corners/cards e upload screenshot lineups.
+            </div>
+          </div>
         </div>
       </div>
-
-      <div class="panel">
-        <div class="hd">
-          <h2>Match selezionato</h2>
-          <button class="btn" id="btnAnalyze" disabled>Analizza (step 1)</button>
-        </div>
-        <div class="bd">
-          <div class="kv">
-            <div class="k">Competizione</div><div class="v" id="vLeague">-</div>
-            <div class="k">Kickoff (UTC)</div><div class="v" id="vKick">-</div>
-            <div class="k">Match</div><div class="v" id="vMatch">-</div>
-            <div class="k">Fixture ID</div><div class="v" id="vId">-</div>
-          </div>
-
-          <div class="sections">
-            <div class="box">
-              <h3>Goal & soglie</h3>
-              <div class="muted">Mostriamo la tendenza goal solo se: (1) alta tendenza e (2) la quota stimata è ≥ 1.80. Over solo se quota ≥ 1.90.</div>
-              <div id="goalOut" class="muted" style="margin-top:8px">Seleziona una partita e premi Analizza.</div>
-            </div>
-
-            <div class="box">
-              <h3>Esotiche (shots/corners/fouls/cards)</h3>
-              <div class="muted">Qui finiscono i suggerimenti “esotici” dal backend (totali + player se disponibili).</div>
-              <div id="exoticOut" class="muted" style="margin-top:8px">Seleziona una partita e premi Analizza.</div>
-            </div>
-          </div>
-
-          <div style="margin-top:14px" class="box">
-            <h3>Raw JSON (debug)</h3>
-            <div class="muted">Serve per controllare cosa arriva dal backend.</div>
-            <pre id="rawOut" style="white-space:pre-wrap; overflow:auto; max-height:240px; margin:10px 0 0; color:rgba(234,243,255,.85)"></pre>
-          </div>
-
-        </div>
-      </div>
-    </div>
+    </section>
   </div>
+</main>
 
-  <script>
-  (function(){
-    // ====== CONFIG ======
-    // Se cambi backend, cambia qui.
-    var API_BASE = "https://pb-analyzer-backend2.vercel.app";
+<footer>
+  Backend attuale: <span class="muted" id="backendUrlTxt"></span>
+</footer>
 
-    // Mappa leghe (ids API-Football)
-    var LEAGUES = [
-      { id: "135", label: "Serie A" },
-      { id: "39",  label: "Premier League" },
-      { id: "140", label: "La Liga" },
-      { id: "78",  label: "Bundesliga" },
-      { id: "61",  label: "Ligue 1" }
-    ];
+<script>
+(() => {
+  const BACKEND = "https://pb-analyzer-backend2.vercel.app";
+  const els = {
+    dot: document.getElementById("dot"),
+    backendTxt: document.getElementById("backendTxt"),
+    backendUrlTxt: document.getElementById("backendUrlTxt"),
+    fixtureCount: document.getElementById("fixtureCount"),
+    shownCount: document.getElementById("shownCount"),
+    dateInp: document.getElementById("dateInp"),
+    searchInp: document.getElementById("searchInp"),
+    btnReload: document.getElementById("btnReload"),
+    fixturesList: document.getElementById("fixturesList"),
+    selLeague: document.getElementById("selLeague"),
+    selKick: document.getElementById("selKick"),
+    selMatch: document.getElementById("selMatch"),
+    selId: document.getElementById("selId"),
+    btnAnalyze: document.getElementById("btnAnalyze"),
+    analyzeRaw: document.getElementById("analyzeRaw"),
+  };
 
-    // ====== DOM ======
-    var chipBackend = document.getElementById('chipBackend');
-    var dotBackend  = document.getElementById('dotBackend');
-    var chipCount   = document.getElementById('chipCount');
+  let allFixtures = [];
+  let selected = null;
 
-    var inpDate     = document.getElementById('inpDate');
-    var inpSearch   = document.getElementById('inpSearch');
-    var leagueChecks= document.getElementById('leagueChecks');
-    var btnReload   = document.getElementById('btnReload');
-    var fixturesList= document.getElementById('fixturesList');
-    var lblShown    = document.getElementById('lblShown');
+  function todayISO(){
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,"0");
+    const dd = String(d.getDate()).padStart(2,"0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
 
-    var btnAnalyze  = document.getElementById('btnAnalyze');
-    var vLeague     = document.getElementById('vLeague');
-    var vKick       = document.getElementById('vKick');
-    var vMatch      = document.getElementById('vMatch');
-    var vId         = document.getElementById('vId');
+  function setBackendStatus(ok){
+    els.dot.classList.toggle("ok", !!ok);
+    els.backendTxt.textContent = ok ? "Backend: OK" : "Backend: KO";
+    els.backendUrlTxt.textContent = BACKEND;
+  }
 
-    var goalOut     = document.getElementById('goalOut');
-    var exoticOut   = document.getElementById('exoticOut');
-    var rawOut      = document.getElementById('rawOut');
-
-    // ====== STATE ======
-    var state = {
-      fixtures: [],
-      filtered: [],
-      selected: null,
-      selectedLeagues: new Set(LEAGUES.map(function(x){ return x.id; }))
-    };
-
-    function todayISO(){
-      var d = new Date();
-      var mm = String(d.getMonth()+1).padStart(2,'0');
-      var dd = String(d.getDate()).padStart(2,'0');
-      return d.getFullYear() + '-' + mm + '-' + dd;
+  async function ping(){
+    try{
+      const res = await fetch(`${BACKEND}/api/health`, { method:"GET" });
+      setBackendStatus(res.ok);
+    }catch(e){
+      setBackendStatus(false);
     }
+  }
 
-    function esc(s){ return String(s||'').replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])}); }
+  function getSelectedLeagueIds(){
+    return Array.from(document.querySelectorAll("input.lg"))
+      .filter(x => x.checked)
+      .map(x => x.value);
+  }
 
-    function setBackendStatus(ok, msg){
-      chipBackend.innerHTML = '<span class="dot ' + (ok?'ok':'') + '" id="dotBackend"></span>Backend: ' + esc(msg);
-      // re-select dot after innerHTML rebuild
-      dotBackend = document.getElementById('dotBackend');
-    }
+  function clearSelection(){
+    selected = null;
+    els.selLeague.textContent = "-";
+    els.selKick.textContent = "-";
+    els.selMatch.textContent = "-";
+    els.selId.textContent = "-";
+    els.btnAnalyze.disabled = true;
+  }
 
-    function buildLeagueChecks(){
-      leagueChecks.innerHTML = '';
-      LEAGUES.forEach(function(L){
-        var wrap = document.createElement('label');
-        wrap.className = 'check';
-        var cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.checked = true;
-        cb.dataset.league = L.id;
-        cb.addEventListener('change', function(){
-          if(cb.checked) state.selectedLeagues.add(L.id);
-          else state.selectedLeagues.delete(L.id);
-          applyFilters();
-          renderList();
-        });
-        var span = document.createElement('span');
-        span.textContent = L.label;
-        wrap.appendChild(cb);
-        wrap.appendChild(span);
-        leagueChecks.appendChild(wrap);
-      });
-    }
+  function setSelection(f){
+    selected = f;
+    els.selLeague.textContent = f.league || "-";
+    els.selKick.textContent = String(f.kickoff_utc || "-").replace("T"," ").replace(":00+00:00"," UTC");
+    els.selMatch.textContent = `${f.home} vs ${f.away}`;
+    els.selId.textContent = String(f.fixture_id || "-");
+    els.btnAnalyze.disabled = !f.fixture_id;
+  }
 
-    async function apiGet(path){
-      var res = await fetch(API_BASE + path, { method:'GET' });
-      if(!res.ok){
-        var txt = await res.text().catch(function(){return ''});
-        throw new Error('HTTP ' + res.status + ' ' + txt);
-      }
-      return res.json();
-    }
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
 
-    async function apiPost(path, body){
-      var res = await fetch(API_BASE + path, {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify(body || {})
-      });
-      if(!res.ok){
-        var txt = await res.text().catch(function(){return ''});
-        throw new Error('HTTP ' + res.status + ' ' + txt);
-      }
-      return res.json();
-    }
+  function renderList(){
+    const q = (els.searchInp.value || "").trim().toLowerCase();
+    const allowed = new Set(getSelectedLeagueIds());
 
-    async function checkHealth(){
-      try{
-        var j = await apiGet('/api/health');
-        setBackendStatus(!!j.ok, j.service || 'OK');
-      }catch(e){
-        setBackendStatus(false, 'KO');
-      }
-    }
+    const filtered = allFixtures.filter(f => {
+      if (allowed.size && f.league_id && !allowed.has(String(f.league_id))) return false;
+      if (!q) return true;
+      const hay = `${f.home} ${f.away} ${f.league}`.toLowerCase();
+      return hay.includes(q);
+    });
 
-    function applyFilters(){
-      var q = (inpSearch.value || '').trim().toLowerCase();
-      state.filtered = state.fixtures.filter(function(f){
-        if(!state.selectedLeagues.has(String(f.league_id || ''))) return false;
-        if(!q) return true;
-        var hay = (f.home + ' ' + f.away + ' ' + (f.league||'')).toLowerCase();
-        return hay.indexOf(q) !== -1;
-      });
-      lblShown.textContent = 'Mostrate ' + state.filtered.length + ' partite (filtrate).';
-      chipCount.textContent = 'Fixture: ' + state.filtered.length;
-    }
+    els.shownCount.textContent = String(filtered.length);
+    els.fixturesList.innerHTML = "";
 
-    function renderList(){
-      fixturesList.innerHTML = '';
-      state.filtered.forEach(function(f){
-        var div = document.createElement('div');
-        div.className = 'item' + (state.selected && state.selected.fixture_id === f.fixture_id ? ' active':'');
-        div.addEventListener('click', function(){
-          state.selected = f;
-          btnAnalyze.disabled = false;
-          vLeague.textContent = f.league || '-';
-          vKick.textContent = (f.kickoff_utc || '-').replace('T',' ').replace('Z','') + ' UTC';
-          vMatch.textContent = (f.home||'?') + ' vs ' + (f.away||'?');
-          vId.textContent = f.fixture_id;
-          goalOut.innerHTML = '<div class="muted">Pronto. Premi Analizza.</div>';
-          exoticOut.innerHTML = '<div class="muted">Pronto. Premi Analizza.</div>';
-          rawOut.textContent = '';
-          renderList();
-        });
-
-        var top = document.createElement('div');
-        top.className = 'topline';
-        var left = document.createElement('div');
-        left.innerHTML = '<div class="badge">' + esc(f.league||'') + '</div><div class="title">' + esc(f.home||'?') + ' vs ' + esc(f.away||'?') + '</div>';
-        var right = document.createElement('div');
-        right.className = 'badge';
-        right.textContent = (f.kickoff_utc||'').replace('T',' ').replace('Z','') + ' UTC';
-        top.appendChild(left);
-        top.appendChild(right);
-        div.appendChild(top);
-        fixturesList.appendChild(div);
-      });
-    }
-
-    async function loadFixtures(){
-      btnReload.disabled = true;
-      btnAnalyze.disabled = true;
-      state.selected = null;
-      vLeague.textContent = vKick.textContent = vMatch.textContent = vId.textContent = '-';
-      goalOut.innerHTML = '<div class="muted">Seleziona una partita e premi Analizza.</div>';
-      exoticOut.innerHTML = '<div class="muted">Seleziona una partita e premi Analizza.</div>';
-      rawOut.textContent = '';
-
-      try{
-        var date = inpDate.value || todayISO();
-        var j = await apiGet('/api/fixtures?v=3&date=' + encodeURIComponent(date));
-        state.fixtures = (j.fixtures || []).map(function(x){
-          // normalizza
-          return {
-            fixture_id: x.fixture_id,
-            kickoff_utc: x.kickoff_utc,
-            league_id: String(x.league_id || ''),
-            league: x.league,
-            home: x.home,
-            away: x.away
-          };
-        });
-        applyFilters();
+    filtered.forEach(f => {
+      const div = document.createElement("div");
+      div.className = "item" + (selected && selected.fixture_id === f.fixture_id ? " active" : "");
+      const when = String(f.kickoff_utc || "").replace("T"," ").replace(":00+00:00"," UTC");
+      div.innerHTML = `
+        <div class="top">
+          <span>${escapeHtml(f.league || "")}</span>
+          <span>${escapeHtml(when)}</span>
+        </div>
+        <div class="mid">${escapeHtml(f.home || "")} vs ${escapeHtml(f.away || "")}</div>
+      `;
+      div.addEventListener("click", () => {
+        setSelection(f);
         renderList();
-      }catch(e){
-        fixturesList.innerHTML = '<div class="muted">Errore fixtures: ' + esc(e.message) + '</div>';
-        lblShown.textContent = 'Mostrate 0 partite (filtrate).';
-        chipCount.textContent = 'Fixture: -';
-      }finally{
-        btnReload.disabled = false;
-      }
+      });
+      els.fixturesList.appendChild(div);
+    });
+
+    if (filtered.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "muted";
+      empty.style.padding = "10px 2px";
+      empty.textContent = "Nessuna partita trovata per questa data/filtri.";
+      els.fixturesList.appendChild(empty);
     }
+  }
 
-    function mkPill(text, cls){
-      var d = document.createElement('span');
-      d.className = 'pill ' + (cls||'');
-      d.textContent = text;
-      return d;
+  async function loadFixtures(){
+    clearSelection();
+    els.fixturesList.innerHTML = `<div class="muted">Carico fixture...</div>`;
+    els.fixtureCount.textContent = "-";
+    els.shownCount.textContent = "0";
+
+    const date = els.dateInp.value || todayISO();
+    try{
+      const res = await fetch(`${BACKEND}/api/fixtures?v=3&date=${encodeURIComponent(date)}`, { method:"GET" });
+      if (!res.ok) throw new Error(`fixtures ${res.status}`);
+      const data = await res.json();
+      allFixtures = Array.isArray(data.fixtures) ? data.fixtures : [];
+      els.fixtureCount.textContent = String(allFixtures.length);
+      renderList();
+    }catch(e){
+      els.fixturesList.innerHTML = `<div class="muted">Errore caricamento fixture. Apri console.</div>`;
+      console.error(e);
     }
+  }
 
-    function renderGoal(goalModel){
-      // goalModel structure expected from backend analyze
-      if(!goalModel){
-        goalOut.innerHTML = '<div class="muted">Nessun dato goal_model.</div>';
-        return;
-      }
+  
+  function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+  function pct(x){ if (typeof x !== "number" || !isFinite(x)) return "-"; return (x*100).toFixed(1) + "%"; }
+  function fmt(x, d=2){ if (typeof x !== "number" || !isFinite(x)) return "-"; return x.toFixed(d); }
 
-      var html = document.createElement('div');
+  function poissonPMF(k, lambda){
+    if (lambda <= 0) return k === 0 ? 1 : 0;
+    // compute iteratively to avoid big factorial
+    let p = Math.exp(-lambda);
+    for (let i=1;i<=k;i++) p *= lambda / i;
+    return p;
+  }
+  function poissonCDF(k, lambda){
+    // P(X <= k)
+    let s = 0;
+    for (let i=0;i<=k;i++) s += poissonPMF(i, lambda);
+    return s;
+  }
+  function poissonOver(threshold, lambda){
+    // P(X > threshold) where threshold is integer like 1 => over1.5 on total goals means >1
+    return 1 - poissonCDF(threshold, lambda);
+  }
 
-      // we support both v1/v2 formats by checking a few fields
-      var conf = (goalModel.confidence_0_10 != null) ? goalModel.confidence_0_10 : (goalModel.confidence || null);
-      var label = goalModel.label || goalModel.summary || 'Tendenza goal';
-      var pOver25 = goalModel.p_over25 != null ? goalModel.p_over25 : goalModel.pOver25;
-      var pBtts  = goalModel.p_btts != null ? goalModel.p_btts : goalModel.pBTTS;
+  function pill(text, kind="good"){
+    const cls = `pill ${kind||""}`.trim();
+    return `<span class="${cls}">${text}</span>`;
+  }
 
-      var line1 = document.createElement('div');
-      line1.appendChild(mkPill(label, 'warn'));
-      if(conf != null) line1.appendChild(mkPill('Confidenza ' + conf + '/10', conf>=7?'ok': (conf>=5?'warn':'bad')));
-      html.appendChild(line1);
+  function pickIfValue(label, prob, minOdds){
+    // show only if prob is comfortably above implied probability of minOdds
+    const implied = 1 / minOdds;
+    const margin = 0.05; // conservative buffer
+    if (typeof prob !== "number" || !isFinite(prob)) return null;
+    if (prob >= implied + margin) return { label, prob, minOdds, kind:"good" };
+    if (prob >= implied) return { label, prob, minOdds, kind:"warn" };
+    return null;
+  }
 
-      var line2 = document.createElement('div');
-      if(pOver25 != null) line2.appendChild(mkPill('P(Over 2.5) ' + Math.round(pOver25*100) + '%'));
-      if(pBtts  != null) line2.appendChild(mkPill('P(BTTS) ' + Math.round(pBtts*100) + '%'));
-      html.appendChild(line2);
+  function suggestLine(avg, steps){
+    // steps: [{min, line}, ...] sorted desc
+    if (typeof avg !== "number" || !isFinite(avg)) return null;
+    for (const s of steps){
+      if (avg >= s.min) return s.line;
+    }
+    return steps[steps.length-1].line;
+  }
 
-      // Suggestions rule requested by you:
-      // - Indica solo se alta tendenza goal e c'è possibilità goal
-      // - solo se quota >= 1.80, Over solo se quota >= 1.90
-      // Non abbiamo le quote qui: quindi il backend deve restituire "odds_hint" o "min_odds".
-      // Se manca, mostriamo SOLO la nota.
+  function renderAnalysis(data){
+    const pretty = document.getElementById("analyzePretty");
+    const goalBox = document.getElementById("goalSummary");
+    const teamBox = document.getElementById("exoticTeam");
+    const playersBox = document.getElementById("exoticPlayers");
+    const debugBox = document.getElementById("debugBox");
+    if (!pretty || !goalBox || !teamBox || !playersBox) return;
 
-      var sugg = goalModel.suggestions || [];
-      var filtered = [];
-      for(var i=0;i<sugg.length;i++){
-        var s = sugg[i] || {};
-        var odds = s.odds != null ? s.odds : (s.price != null ? s.price : null);
-        var type = (s.market||s.type||'').toLowerCase();
-        var isOver = type.indexOf('over') !== -1;
-        if(odds == null){
-          // no odds => skip to respect your rule
-          continue;
+    // reset
+    goalBox.innerHTML = "";
+    teamBox.innerHTML = "";
+    playersBox.innerHTML = "";
+    if (debugBox) debugBox.innerHTML = "";
+
+    // ---- GOALS (Poisson) ----
+    const gm = data?.goals_model || {};
+    const lamH = gm.lambda_home ?? gm.home_lambda ?? gm.mu_home ?? null;
+    const lamA = gm.lambda_away ?? gm.away_lambda ?? gm.mu_away ?? null;
+    const lamT = (typeof lamH === "number" && typeof lamA === "number") ? (lamH + lamA) : (gm.lambda_total ?? gm.mu_total ?? null);
+
+    let goalHtml = "";
+    if (typeof lamT === "number" && isFinite(lamT)){
+      const pOver15 = poissonOver(1, lamT);
+      const pOver25 = poissonOver(2, lamT);
+      const pOver35 = poissonOver(3, lamT);
+
+      // high goal tendency flag
+      const highGoal = (lamT >= 2.9 && pOver25 >= 0.58) || (pOver15 >= 0.80 && lamT >= 2.6);
+      goalHtml += `<div class="muted">λ totale: <b>${fmt(lamT,2)}</b>${(typeof lamH==="number" && typeof lamA==="number") ? ` (home ${fmt(lamH,2)} / away ${fmt(lamA,2)})` : ""}</div>`;
+
+      if (highGoal){
+        goalHtml += `<div style="margin-top:8px">${pill("Alta tendenza goal", "good")}</div>`;
+        const picks = [];
+        const p1 = pickIfValue("Over 1.5", pOver15, 1.80);
+        if (p1) picks.push(p1);
+        const p2 = pickIfValue("Over 2.5", pOver25, 1.90);
+        if (p2) picks.push(p2);
+        const p3 = pickIfValue("Over 3.5", pOver35, 2.20); // esotico, soglia più alta
+        if (p3) picks.push(p3);
+
+        if (picks.length){
+          goalHtml += `<div style="margin-top:8px"><div class="muted">Mostra solo se quota ≥ soglia (min):</div>`;
+          for (const pk of picks){
+            goalHtml += pill(`${pk.label} — p ${pct(pk.prob)} — min ${pk.minOdds.toFixed(2)}`, pk.kind);
+          }
+          goalHtml += `</div>`;
+        }else{
+          goalHtml += `<div style="margin-top:8px" class="muted">Nessuna pick goal supera i filtri value (min 1.80/1.90).</div>`;
         }
-        if(odds < 1.80) continue;
-        if(isOver && odds < 1.90) continue;
-        filtered.push(s);
-      }
-
-      var box = document.createElement('div');
-      box.className = 'hr';
-      html.appendChild(box);
-
-      if(filtered.length === 0){
-        var note = document.createElement('div');
-        note.className = 'muted';
-        note.textContent = 'Per applicare le tue regole sulle quote (>=1.80 / Over>=1.90) il backend deve includere odds nelle suggestions. Al momento mostriamo solo tendenza.';
-        html.appendChild(note);
       }else{
-        var t = document.createElement('table');
-        t.innerHTML = '<thead><tr><th>Mercato</th><th>Motivo</th><th>Quota</th></tr></thead>';
-        var tb = document.createElement('tbody');
-        filtered.forEach(function(s){
-          var tr = document.createElement('tr');
-          var m = (s.market || s.type || '');
-          var why = s.reason || s.note || '';
-          var odds = s.odds != null ? s.odds : s.price;
-          tr.innerHTML = '<td>'+esc(m)+'</td><td>'+esc(why)+'</td><td>'+esc(odds)+'</td>';
-          tb.appendChild(tr);
-        });
-        t.appendChild(tb);
-        html.appendChild(t);
+        goalHtml += `<div style="margin-top:8px">${pill("Goal tendency: media/bassa", "bad")}</div>`;
+        goalHtml += `<div class="kv">
+          <div class="muted">P Over 1.5</div><div>${pct(pOver15)}</div>
+          <div class="muted">P Over 2.5</div><div>${pct(pOver25)}</div>
+          <div class="muted">P Over 3.5</div><div>${pct(pOver35)}</div>
+        </div>`;
       }
-
-      goalOut.innerHTML = '';
-      goalOut.appendChild(html);
+    }else{
+      goalHtml += `<div class="muted">Goal model non disponibile per questa partita (o schema diverso).</div>`;
     }
+    goalBox.innerHTML = goalHtml;
 
-    function renderExotics(exotics){
-      if(!exotics){
-        exoticOut.innerHTML = '<div class="muted">Nessun dato esotiche.</div>';
-        return;
+    // ---- EXOTICS TEAM ----
+    const ex = data?.exotics || {};
+    const team = ex.team || ex.team_avgs || ex.averages || ex || {};
+    // try to read averages by common names
+    const av = (x) => (typeof x === "number" && isFinite(x)) ? x : null;
+
+    // possible fields
+    const shotsT = av(team.shots_total?.match ?? team.shots_total ?? team.shots?.match ?? team.shots ?? team.match_shots_total);
+    const sotT   = av(team.shots_on_target?.match ?? team.sot?.match ?? team.shots_on_target ?? team.sot ?? team.match_sot);
+    const cornersT = av(team.corners?.match ?? team.corners_total ?? team.corners);
+    const foulsT = av(team.fouls?.match ?? team.fouls_total ?? team.fouls);
+    const cardsT = av(team.cards?.match ?? team.cards_total ?? team.cards);
+
+    // home/away splits (optional)
+    const shotsH = av(team.shots_total?.home ?? team.home_shots_total);
+    const shotsA = av(team.shots_total?.away ?? team.away_shots_total);
+    const sotH = av(team.shots_on_target?.home ?? team.home_sot);
+    const sotA = av(team.shots_on_target?.away ?? team.away_sot);
+    const cornersH = av(team.corners?.home ?? team.home_corners);
+    const cornersA = av(team.corners?.away ?? team.away_corners);
+    const foulsH = av(team.fouls?.home ?? team.home_fouls);
+    const foulsA = av(team.fouls?.away ?? team.away_fouls);
+    const cardsH = av(team.cards?.home ?? team.home_cards);
+    const cardsA = av(team.cards?.away ?? team.away_cards);
+
+    const teamLines = [];
+    // suggest conservative "Over" lines (you can tune later)
+    const lineShots = shotsT != null ? suggestLine(shotsT, [
+      {min: 28, line:"Over 25.5 shots"},
+      {min: 25, line:"Over 22.5 shots"},
+      {min: 22, line:"Over 19.5 shots"},
+      {min: 19, line:"Over 16.5 shots"},
+      {min: 0,  line:"Over 13.5 shots"},
+    ]) : null;
+
+    const lineSOT = sotT != null ? suggestLine(sotT, [
+      {min: 12, line:"Over 9.5 SOT"},
+      {min: 10, line:"Over 8.5 SOT"},
+      {min: 8,  line:"Over 6.5 SOT"},
+      {min: 6,  line:"Over 5.5 SOT"},
+      {min: 0,  line:"Over 4.5 SOT"},
+    ]) : null;
+
+    const lineCorners = cornersT != null ? suggestLine(cornersT, [
+      {min: 13, line:"Over 10.5 corners"},
+      {min: 11, line:"Over 9.5 corners"},
+      {min: 9,  line:"Over 8.5 corners"},
+      {min: 7,  line:"Over 6.5 corners"},
+      {min: 0,  line:"Over 5.5 corners"},
+    ]) : null;
+
+    const lineFouls = foulsT != null ? suggestLine(foulsT, [
+      {min: 30, line:"Over 27.5 fouls"},
+      {min: 27, line:"Over 24.5 fouls"},
+      {min: 24, line:"Over 21.5 fouls"},
+      {min: 0,  line:"Over 18.5 fouls"},
+    ]) : null;
+
+    const lineCards = cardsT != null ? suggestLine(cardsT, [
+      {min: 7, line:"Over 5.5 cards"},
+      {min: 6, line:"Over 4.5 cards"},
+      {min: 5, line:"Over 3.5 cards"},
+      {min: 0, line:"Over 2.5 cards"},
+    ]) : null;
+
+    if (lineShots) teamLines.push(pill(`${lineShots} (min 1.80)`, "good"));
+    if (lineSOT) teamLines.push(pill(`${lineSOT} (min 1.80)`, "good"));
+    if (lineCorners) teamLines.push(pill(`${lineCorners} (min 1.80)`, "good"));
+    if (lineFouls) teamLines.push(pill(`${lineFouls} (min 1.80)`, "good"));
+    if (lineCards) teamLines.push(pill(`${lineCards} (min 1.80)`, "good"));
+
+    let teamHtml = "";
+    const anyTeam = [shotsT,sotT,cornersT,foulsT,cardsT,shotsH,shotsA,sotH,sotA,cornersH,cornersA,foulsH,foulsA,cardsH,cardsA].some(v=>v!=null);
+    if (!anyTeam){
+      teamHtml = `<div class="muted">Dati esotici non presenti in risposta (per ora). Step 3 li popoliamo dal backend con /fixtures/statistics + /players + /odds.</div>`;
+    }else{
+      teamHtml += `<div class="muted">Linee suggerite (solo se trovi quota ≥ 1.80):</div>`;
+      teamHtml += `<div style="margin-top:6px">${teamLines.join("")}</div>`;
+      teamHtml += `<div class="kv" style="margin-top:10px">
+        <div class="muted">Shots (match)</div><div>${shotsT!=null?fmt(shotsT,1):"-"}</div>
+        <div class="muted">SOT (match)</div><div>${sotT!=null?fmt(sotT,1):"-"}</div>
+        <div class="muted">Corners (match)</div><div>${cornersT!=null?fmt(cornersT,1):"-"}</div>
+        <div class="muted">Fouls (match)</div><div>${foulsT!=null?fmt(foulsT,1):"-"}</div>
+        <div class="muted">Cards (match)</div><div>${cardsT!=null?fmt(cardsT,1):"-"}</div>
+      </div>`;
+      // optional split
+      const anySplit = [shotsH,shotsA,sotH,sotA,cornersH,cornersA,foulsH,foulsA,cardsH,cardsA].some(v=>v!=null);
+      if (anySplit){
+        teamHtml += `<div class="muted" style="margin-top:10px">Split home/away:</div>
+          <div class="kv">
+            <div class="muted">Shots H/A</div><div>${shotsH!=null?fmt(shotsH,1):"-"} / ${shotsA!=null?fmt(shotsA,1):"-"}</div>
+            <div class="muted">SOT H/A</div><div>${sotH!=null?fmt(sotH,1):"-"} / ${sotA!=null?fmt(sotA,1):"-"}</div>
+            <div class="muted">Corners H/A</div><div>${cornersH!=null?fmt(cornersH,1):"-"} / ${cornersA!=null?fmt(cornersA,1):"-"}</div>
+            <div class="muted">Fouls H/A</div><div>${foulsH!=null?fmt(foulsH,1):"-"} / ${foulsA!=null?fmt(foulsA,1):"-"}</div>
+            <div class="muted">Cards H/A</div><div>${cardsH!=null?fmt(cardsH,1):"-"} / ${cardsA!=null?fmt(cardsA,1):"-"}</div>
+          </div>`;
       }
+    }
+    teamBox.innerHTML = teamHtml;
 
-      // expected format:
-      // exotics = {
-      //   totals: { shots:{...}, shots_on_target:{...}, corners:{...}, fouls:{...}, cards:{...} },
-      //   team: { corners_home:{...}, corners_away:{...}, ... },
-      //   players: { shots:[{player, line, confidence, reason, odds?}, ...], cards:[...], ... }
-      // }
-
-      var root = document.createElement('div');
-
-      function renderAnyTable(title, arr){
-        var box = document.createElement('div');
-        box.style.marginTop = '10px';
-        var h = document.createElement('div');
-        h.style.fontWeight = '750';
-        h.style.marginBottom = '6px';
-        h.textContent = title;
-        box.appendChild(h);
-
-        if(!arr || !arr.length){
-          var m = document.createElement('div');
-          m.className = 'muted';
-          m.textContent = 'Nessun suggerimento.';
-          box.appendChild(m);
-          return box;
+    // ---- PLAYERS ----
+    const players = ex.players || ex.player || ex.player_avgs || [];
+    let playersHtml = "";
+    if (Array.isArray(players) && players.length){
+      // we accept generic objects and sort by a metric when available
+      const pickTop = (key, label) => {
+        const arr = players
+          .filter(p => typeof p?.[key] === "number" && isFinite(p[key]))
+          .slice()
+          .sort((a,b)=>b[key]-a[key])
+          .slice(0, 4);
+        if (!arr.length) return "";
+        let out = `<div class="muted" style="margin-top:6px">${label}:</div>`;
+        for (const p of arr){
+          const name = p.name || p.player || p.player_name || "Player";
+          const teamName = p.team || p.team_name || "";
+          out += pill(`${name}${teamName?` (${teamName})`:""} — ${key}: ${fmt(p[key],1)}`, "warn");
         }
+        return out;
+      };
+      playersHtml += pickTop("shots", "Tiri (player)");
+      playersHtml += pickTop("shots_on_target", "Tiri in porta (player)");
+      playersHtml += pickTop("fouls", "Falli fatti (player)");
+      playersHtml += pickTop("cards", "Cartellini (player)");
+      if (!playersHtml) playersHtml = `<div class="muted">Players presenti ma senza campi riconosciuti (shots/sot/fouls/cards).</div>`;
+    }else{
+      playersHtml = `<div class="muted">Player markets non disponibili ancora (Step 3: li calcoliamo da endpoint players/statistics + events).</div>`;
+    }
+    playersBox.innerHTML = playersHtml;
 
-        var t = document.createElement('table');
-        t.innerHTML = '<thead><tr><th>Mercato</th><th>Linea</th><th>Conf</th><th>Motivo</th><th>Quota</th></tr></thead>';
-        var tb = document.createElement('tbody');
-        arr.forEach(function(s){
-          var tr = document.createElement('tr');
-          var market = s.market || s.type || s.key || '';
-          var line = (s.line!=null? s.line : (s.threshold!=null? s.threshold : ''));
-          var conf = (s.confidence!=null? s.confidence : (s.confidence_0_10!=null? s.confidence_0_10 : ''));
-          var why = s.reason || s.note || '';
-          var odds = (s.odds!=null? s.odds : (s.price!=null? s.price : ''));
-          tr.innerHTML = '<td>'+esc(market)+'</td><td>'+esc(line)+'</td><td>'+esc(conf)+'</td><td>'+esc(why)+'</td><td>'+esc(odds)+'</td>';
-          tb.appendChild(tr);
-        });
-        t.appendChild(tb);
-        box.appendChild(t);
-        return box;
-      }
-
-      // Flatten some common fields
-      var totals = [];
-      if(exotics.totals && typeof exotics.totals === 'object'){
-        Object.keys(exotics.totals).forEach(function(k){
-          var s = exotics.totals[k];
-          if(!s) return;
-          s.key = k;
-          totals.push(s);
-        });
-      }
-
-      var teams = [];
-      if(exotics.team && typeof exotics.team === 'object'){
-        Object.keys(exotics.team).forEach(function(k){
-          var s = exotics.team[k];
-          if(!s) return;
-          s.key = k;
-          teams.push(s);
-        });
-      }
-
-      var playersAll = [];
-      if(exotics.players && typeof exotics.players === 'object'){
-        Object.keys(exotics.players).forEach(function(k){
-          var arr = exotics.players[k];
-          if(!Array.isArray(arr)) return;
-          arr.forEach(function(s){
-            s.key = k;
-            // include player in market label
-            if(s.player) s.market = (s.player + ' - ' + (s.market||s.type||k));
-            playersAll.push(s);
-          });
-        });
-      }
-
-      root.appendChild(renderAnyTable('Totali (shots / SOT / corners / fouls / cards)', totals));
-      root.appendChild(renderAnyTable('Squadre (home/away)', teams));
-      root.appendChild(renderAnyTable('Giocatori (player props)', playersAll));
-
-      exoticOut.innerHTML = '';
-      exoticOut.appendChild(root);
+    // ---- DEBUG ----
+    if (debugBox){
+      const v = data?.version || "-";
+      const fid = data?.fixture?.fixture_id || data?.fixture?.id || selected?.fixture_id || "-";
+      debugBox.innerHTML = `<div class="kv">
+        <div class="muted">Version</div><div>${v}</div>
+        <div class="muted">Fixture ID</div><div>${fid}</div>
+        <div class="muted">Backend</div><div>${BACKEND}</div>
+      </div><div class="muted" style="margin-top:8px">Nota: per odds reali e filtri quota, Step 3 userà endpoint /odds di API-Football.</div>`;
     }
 
-    async function runAnalyze(){
-      if(!state.selected) return;
-      btnAnalyze.disabled = true;
-      goalOut.innerHTML = '<div class="muted">Carico analisi…</div>';
-      exoticOut.innerHTML = '<div class="muted">Carico analisi…</div>';
-      rawOut.textContent = '';
+    pretty.classList.remove("hidden");
+  }
 
-      try{
-        var j = await apiPost('/api/analyze', { fixture_id: state.selected.fixture_id });
-        rawOut.textContent = JSON.stringify(j, null, 2);
-
-        // Support both formats:
-        var goalModel = j.goals_model || j.goal_model || j.goalsModel || null;
-        var exotics = j.exotics || j.exotic || null;
-
-        renderGoal(goalModel);
-        renderExotics(exotics);
-      }catch(e){
-        goalOut.innerHTML = '<div class="muted">Errore analisi: ' + esc(e.message) + '</div>';
-        exoticOut.innerHTML = '<div class="muted">Errore analisi: ' + esc(e.message) + '</div>';
-      }finally{
-        btnAnalyze.disabled = false;
+async function runAnalyze(){
+    if (!selected || !selected.fixture_id) return;
+    els.analyzeRaw.textContent = "Analisi in corso...";
+    try{
+      const res = await fetch(`${BACKEND}/api/analyze`, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ fixture_id: selected.fixture_id })
+      });
+      if (!res.ok){
+        const t = await res.text().catch(()=> "");
+        throw new Error(`analyze ${res.status} ${t}`);
       }
+      const data = await res.json();
+      window.lastAnalysis = data;
+      els.analyzeRaw.textContent = JSON.stringify(data, null, 2);
+      renderAnalysis(data);
+    }catch(e){
+      console.error(e);
+      els.analyzeRaw.textContent = "Errore analisi. Apri console.";
+      const pretty = document.getElementById("analyzePretty"); if (pretty) pretty.classList.add("hidden");
     }
+  }
 
-    // ====== EVENTS ======
-    btnReload.addEventListener('click', loadFixtures);
-    btnAnalyze.addEventListener('click', runAnalyze);
-    inpSearch.addEventListener('input', function(){ applyFilters(); renderList(); });
+  // init
+  els.dateInp.value = todayISO();
+  els.searchInp.addEventListener("input", () => renderList());
+  document.querySelectorAll("input.lg").forEach(chk => chk.addEventListener("change", () => renderList()));
+  els.btnReload.addEventListener("click", () => loadFixtures());
+  els.btnAnalyze.addEventListener("click", () => runAnalyze());
 
-    // ====== INIT ======
-    buildLeagueChecks();
-    inpDate.value = todayISO();
-    checkHealth().then(loadFixtures);
-  })();
-  </script>
+  ping().then(loadFixtures);
+})();
+</script>
 </body>
 </html>
