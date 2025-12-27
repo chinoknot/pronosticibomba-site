@@ -332,33 +332,37 @@
 
   
 async function runAnalyze() {
-  if (!state.selectedFixture) return;
-  const fixtureId = state.selectedFixture.fixture_id;
+  if (!selected) return;
 
-  // UI
-  const btn = document.getElementById("btnAnalyze");
-  btn.disabled = true;
-  btn.textContent = "Analizzo...";
+  setPills({ backend: "OK", fixture: String(selected.fixture_id || selected.id || "") });
+
+  // reset outputs
+  els.analyzeRaw.textContent = "Carico analisi...";
+  els.analysisCards.innerHTML = "";
 
   try {
-    const res = await fetch(`${BACKEND}/api/analyze`, {
+    const res = await fetch(`${API_BASE}/api/analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fixture_id: fixtureId })
+      body: JSON.stringify({ fixture_id: Number(selected.fixture_id || selected.id) })
     });
+
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`HTTP ${res.status} - ${t}`);
+    }
+
     const data = await res.json();
-    state.analysis = data;
+    window.__PB_LAST_ANALYSIS__ = data;
 
-    // Always show raw JSON for debug
-    document.getElementById("analyzeRaw").textContent = JSON.stringify(data, null, 2);
+    // RAW
+    els.analyzeRaw.textContent = JSON.stringify(data, null, 2);
 
+    // Cards UI
     renderAnalysisCards(data);
   } catch (e) {
-    document.getElementById("analysisCards").innerHTML =
-      `<div class="warn">Errore analyze: ${escapeHtml(String(e))}</div>`;
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Analizza (prossimo step)";
+    console.error(e);
+    els.analyzeRaw.textContent = "Errore analisi: " + (e?.message || String(e));
   }
 }
 
