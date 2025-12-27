@@ -1,495 +1,531 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="it">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>PB Analyzer</title>
-<style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PB Analyzer</title>
+  <style>
     :root{
-      --bg0:#07101e;
-      --bg1:#0a1628;
-      --card:#0b1a2f;
-      --txt:#e9f0ff;
-      --muted:#a9b7d6;
-      --line:rgba(255,255,255,.08);
-      --accent:#3aa0ff;
-      --accent2:#22c55e;
-      --warn:#f59e0b;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --bg:#07121a;
+      --panel:rgba(255,255,255,0.06);
+      --panel2:rgba(255,255,255,0.08);
+      --text:#e8f0ff;
+      --muted:rgba(232,240,255,0.65);
+      --line:rgba(255,255,255,0.10);
+      --accent:#58a6ff;
+      --good:#2ecc71;
+      --warn:#f39c12;
+      --bad:#ff6b6b;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family:var(--sans);
-      color:var(--txt);
-      background: radial-gradient(1200px 700px at 20% 10%, #0d2b4f 0%, transparent 60%),
-                  radial-gradient(900px 650px at 85% 20%, #0b3a2f 0%, transparent 55%),
-                  linear-gradient(180deg, var(--bg0), var(--bg1));
-      min-height:100vh;
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans",Arial;
+      background:radial-gradient(1200px 700px at 70% 20%, rgba(0,255,224,0.10), transparent 60%),
+                 radial-gradient(900px 600px at 20% 10%, rgba(88,166,255,0.14), transparent 55%),
+                 var(--bg);
+      color:var(--text);
     }
-    header{
-      padding:22px 22px 12px;
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:14px;
+    .wrap{max-width:1200px;margin:0 auto;padding:22px 16px 40px}
+    .top{
+      display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+      margin-bottom:14px
     }
-    .brand{font-size:20px;font-weight:700;letter-spacing:.2px;}
-    .sub{margin-top:4px;color:var(--muted);font-size:12px;}
-    .status{font-size:12px;color:var(--muted);display:flex;gap:10px;align-items:center;white-space:nowrap;}
-    .pill{padding:6px 10px;border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:999px;display:inline-flex;gap:8px;align-items:center;}
-    .dot{width:8px;height:8px;border-radius:50%;background:var(--warn)}
-    .dot.ok{background:var(--accent2)}
-    main{padding:0 22px 24px;}
-    .grid{display:grid;grid-template-columns: 380px 1fr;gap:14px;}
+    h1{margin:0;font-size:22px;letter-spacing:0.2px}
+    .subtitle{margin-top:4px;color:var(--muted);font-size:13px}
+    .statusRow{display:flex;gap:10px;align-items:center}
+    .pill{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(0,0,0,0.15);font-size:12px;color:var(--muted)}
+    .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;background:var(--warn)}
+    .dot.ok{background:var(--good)}
+
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:14px;align-items:start}
     @media (max-width: 980px){.grid{grid-template-columns:1fr}}
-    .card{
-      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border:1px solid var(--line);
-      border-radius:16px;
-      box-shadow: 0 8px 30px rgba(0,0,0,.25);
-      overflow:hidden;
-    }
-    .card h3{
-      margin:0;padding:14px 14px 10px;border-bottom:1px solid var(--line);
-      background:rgba(0,0,0,.08);font-size:13px;letter-spacing:.2px;font-weight:700;
-    }
-    .card .body{padding:14px;}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    label{font-size:12px;color:var(--muted)}
+
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+    .cardHd{display:flex;align-items:center;justify-content:space-between;padding:14px 14px;border-bottom:1px solid var(--line)}
+    .cardHd b{font-size:14px}
+    .cardBd{padding:14px}
+
+    label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
     input[type="date"], input[type="text"]{
-      padding:10px 10px;border-radius:12px;border:1px solid var(--line);
-      background:rgba(0,0,0,.18);color:var(--txt);outline:none;
+      width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);
+      background:rgba(0,0,0,0.18);color:var(--text);outline:none
     }
-    input[type="text"]{width:100%}
+    input::placeholder{color:rgba(232,240,255,0.35)}
+
     .btn{
-      padding:10px 14px;border-radius:12px;border:1px solid var(--line);
-      background:rgba(255,255,255,.06);color:var(--txt);cursor:pointer;font-weight:600;
+      border:1px solid rgba(88,166,255,0.35);
+      background:rgba(88,166,255,0.12);
+      color:var(--text);
+      padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:600
     }
-    .btn.primary{border-color:rgba(58,160,255,.35);background:rgba(58,160,255,.16);}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
-    .leagues{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;}
-    .chk{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.12);user-select:none;}
+    .btn:disabled{opacity:0.55;cursor:not-allowed}
+    .btnPrimary{background:rgba(88,166,255,0.22)}
+
+    .leagues{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .chk{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(0,0,0,0.12)}
     .chk input{accent-color:var(--accent)}
-    .note{margin-top:10px;color:var(--muted);font-size:12px}
-    .list{margin-top:12px;display:flex;flex-direction:column;gap:10px;max-height:420px;overflow:auto;padding-right:4px;}
-    .item{padding:12px;border:1px solid var(--line);background:rgba(0,0,0,.14);border-radius:14px;cursor:pointer;}
-    .item:hover{border-color:rgba(58,160,255,.35)}
-    .item.active{border-color:rgba(58,160,255,.55); background:rgba(58,160,255,.10)}
-    .item .top{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;gap:10px;}
-    .item .mid{margin-top:6px;font-size:14px;font-weight:800;letter-spacing:.2px;}
-    .kv{display:grid;grid-template-columns: 140px 1fr;gap:10px;margin:0;}
-    .kv div{padding:10px 12px;border:1px solid var(--line);background:rgba(0,0,0,.12);border-radius:12px;font-size:12px;}
-    .k{color:var(--muted)}
-    .v{font-family:var(--mono);font-size:12px}
+    .note{color:var(--muted);font-size:12px;margin-top:10px;line-height:1.35}
+
+    .list{margin-top:12px;border-top:1px solid var(--line)}
+    .item{padding:10px 10px;border-bottom:1px solid var(--line);cursor:pointer;border-left:3px solid transparent}
+    .item:hover{background:rgba(255,255,255,0.04)}
+    .item.sel{border-left-color:var(--accent);background:rgba(88,166,255,0.06)}
+    .item .meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:3px}
+    .item .title{font-weight:700}
+
+    .kv{display:grid;grid-template-columns:160px 1fr;gap:10px;align-items:center}
+    .kv .k{color:var(--muted);font-size:12px}
+    .kv .v{font-weight:700}
+    .kvRow{padding:8px 0;border-bottom:1px dashed rgba(255,255,255,0.10)}
+
+    .sectionTitle{margin:0 0 10px 0;font-size:14px}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+    .chip{border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted);background:rgba(0,0,0,0.10)}
+
+    .bb{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width: 980px){.bb{grid-template-columns:1fr}}
+
+    .box{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px}
+    .box h3{margin:0 0 8px 0;font-size:13px}
+
+    table{width:100%;border-collapse:collapse}
+    th,td{font-size:12px;padding:8px 8px;border-bottom:1px solid rgba(255,255,255,0.08);text-align:left}
+    th{color:var(--muted);font-weight:700}
     .muted{color:var(--muted)}
-    .box{padding:12px;border:1px solid var(--line);background:rgba(0,0,0,.12);border-radius:12px;}
-    pre{margin:0;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:12px;color:#dbe6ff;}
-    .split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
-    @media (max-width:980px){.split{grid-template-columns:1fr}}
-    .badge{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.12);font-size:12px;color:var(--muted);}
-    .badge b{color:var(--txt)}
-    footer{padding:12px 22px 22px;color:var(--muted);font-size:12px;}
-  
-/* --- PB Analyzer: analysis cards --- */
-#analysisCards .card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:12px 12px;margin:10px 0;}
-#analysisCards .cardTitle{font-weight:700;margin-bottom:8px}
-#analysisCards .row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px}
-#analysisCards .miniTable{width:100%;border-collapse:collapse;font-size:13px}
-#analysisCards .miniTable td{padding:6px 4px;border-top:1px solid rgba(255,255,255,0.06)}
-#analysisCards .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-#analysisCards .plist{margin:0;padding-left:18px}
-#analysisCards .plist li{padding:3px 0}
-.badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,0.18);font-size:12px;margin-left:6px}
-.badgeHot{border-color:rgba(255,180,80,0.6)}
-.warn{background:rgba(255,80,80,0.12);border:1px solid rgba(255,80,80,0.25);padding:10px;border-radius:12px}
-</style>
+
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;border:1px solid var(--line);background:rgba(0,0,0,0.12);color:var(--muted)}
+    .badge.good{border-color:rgba(46,204,113,0.35);color:#c9ffe0}
+    .badge.warn{border-color:rgba(243,156,18,0.35);color:#ffe6b8}
+
+    pre{white-space:pre-wrap;word-break:break-word;margin:0;color:rgba(232,240,255,0.80);font-size:12px;line-height:1.35}
+  </style>
 </head>
 <body>
-<header>
-<div>
-<div class="brand">PB Analyzer</div>
-<div class="sub">Seleziona data e lega → scegli una partita → Analizza (goal/Poisson/Under-Over). Poi aggiungiamo cards/corners/shots + screenshot.</div>
-</div>
-<div class="status">
-<span class="pill"><span class="dot" id="dot"></span><span id="backendTxt">Backend: ...</span></span>
-<span class="pill">Fixture: <b id="fixtureCount">-</b></span>
-</div>
-</header>
-<main>
-<div class="grid">
-<section class="card">
-<h3>Fixture</h3>
-<div class="body">
-<div class="row" style="justify-content:space-between;align-items:flex-end;">
-<div style="flex:1;min-width:180px;">
-<label for="dateInp">Data</label><br/>
-<input id="dateInp" type="date"/>
-</div>
-<button class="btn primary" id="btnReload">Ricarica</button>
-</div>
-<div style="margin-top:10px;">
-<label for="searchInp">Ricerca</label><br/>
-<input id="searchInp" placeholder="es: Juventus, Arsenal, Lazio..." type="text"/>
-</div>
-<div style="margin-top:10px;">
-<label>Leghe (maggiori)</label>
-<div class="leagues">
-<label class="chk"><input checked="" class="lg" type="checkbox" value="135"/> Serie A</label>
-<label class="chk"><input checked="" class="lg" type="checkbox" value="39"/> Premier League</label>
-<label class="chk"><input checked="" class="lg" type="checkbox" value="140"/> La Liga</label>
-<label class="chk"><input checked="" class="lg" type="checkbox" value="78"/> Bundesliga</label>
-<label class="chk"><input checked="" class="lg" type="checkbox" value="61"/> Ligue 1</label>
-</div>
-<div class="note">Nota: qui lavoriamo solo sulle leghe maggiori. Minori le aggiungiamo dopo.</div>
-</div>
-<div class="note" style="margin-top:12px;">Mostrate <b id="shownCount">0</b> partite (filtrate).</div>
-<div class="list" id="fixturesList"></div>
-</div>
-</section>
-<section class="card">
-<h3>Match selezionato</h3>
-<div class="body">
-<div class="kv">
-<div class="k">Competizione</div><div class="v" id="selLeague">-</div>
-<div class="k">Kickoff (UTC)</div><div class="v" id="selKick">-</div>
-<div class="k">Match</div><div class="v" id="selMatch">-</div>
-<div class="k">Fixture ID</div><div class="v" id="selId">-</div>
-</div>
-<div class="row" style="justify-content:flex-end;margin-top:12px;">
-<button class="btn primary" disabled="" id="btnAnalyze">Analizza (prossimo step)</button>
-</div>
-<div class="note">
-          Endpoint usati:
-          <span class="badge"><b>GET</b> /api/fixtures</span>
-<span class="badge"><b>POST</b> /api/analyze</span>
-</div>
-<div class="split">
-<div class="box">
-<div class="muted" style="margin-bottom:8px;"><b>Output analisi (raw)</b></div>
-<div id="analysisCards" style="margin-top:10px"></div><pre id="analyzeRaw" style="max-height: 260px; overflow:auto">Seleziona una partita e premi Analizza.</pre>
-</div>
-<div class="box">
-<div class="muted" style="margin-bottom:8px;"><b>Note</b></div>
-<div class="muted" style="font-size:12px;line-height:1.35">
-              - Ora stampiamo JSON. Nel prossimo step lo trasformiamo in:
-              <br/>• tabella medie gol + under/over
-              <br/>• Poisson (U/O 3.5) + confidenza 0–10
-              <br/>• suggerimento soglia value (1.5/2.5/3.5)
-              <br/><br/>Poi aggiungiamo shots/corners/cards e upload screenshot lineups.
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>PB Analyzer</h1>
+        <div class="subtitle">Seleziona data e lega, scegli una partita, poi Analizza. Focus: tiri, tiri in porta, corner, falli, cartellini + flag goal (solo se quota minima).</div>
+      </div>
+      <div class="statusRow">
+        <div id="pillBackend" class="pill"><span id="dotBackend" class="dot"></span>Backend: <b id="backendTxt">...</b></div>
+        <div class="pill">Fixture: <b id="fixtureCount">-</b></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="cardHd">
+          <b>Fixture</b>
+          <button id="btnReload" class="btn">Ricarica</button>
+        </div>
+        <div class="cardBd">
+          <label>Data</label>
+          <input id="inpDate" type="date" />
+
+          <label>Ricerca</label>
+          <input id="inpSearch" type="text" placeholder="es: Juventus, Arsenal, Lazio..." />
+
+          <label>Leghe (maggiori)</label>
+          <div class="leagues" id="leagueWrap"></div>
+
+          <div class="note">Nota: qui lavoriamo solo sulle leghe maggiori. Le minori le aggiungiamo dopo.</div>
+
+          <div class="note" style="margin-top:10px"><b id="shownCount">Mostrate 0</b> partite (filtrate).</div>
+
+          <div class="list" id="fixtureList"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardHd">
+          <b>Match selezionato</b>
+          <button id="btnAnalyze" class="btn btnPrimary" disabled>Analizza</button>
+        </div>
+        <div class="cardBd">
+          <div class="kv">
+            <div class="kvRow k">Competizione</div><div class="kvRow v" id="selLeague">-</div>
+            <div class="kvRow k">Kickoff (UTC)</div><div class="kvRow v" id="selKick">-</div>
+            <div class="kvRow k">Match</div><div class="kvRow v" id="selMatch">-</div>
+            <div class="kvRow k">Fixture ID</div><div class="kvRow v" id="selId">-</div>
+          </div>
+
+          <div class="chips" style="margin-top:14px">
+            <span class="chip">GET /api/fixtures</span>
+            <span class="chip">POST /api/analyze</span>
+          </div>
+
+          <div class="bb">
+            <div class="box">
+              <h3>Esotiche (suggerimenti)</h3>
+              <div class="muted" style="font-size:12px;line-height:1.35">
+                Mostriamo mercati esotici: tiri/tiri in porta (team e player), corner, falli, cartellini.
+                Per il flag goal: mostriamo solo se tendenza alta e con vincolo quota minima.
+              </div>
+              <div id="exoticOut" style="margin-top:10px"></div>
             </div>
-</div>
-</div>
-</div>
-</section>
-</div>
-</main>
-<footer>
-  Backend attuale: <span class="muted" id="backendUrlTxt"></span>
-</footer>
+
+            <div class="box">
+              <h3>Goal (solo flag, con vincoli quota)</h3>
+              <div id="goalFlag"></div>
+              <div class="muted" style="font-size:12px;line-height:1.35;margin-top:8px">
+                Regole richieste:
+                <ul style="margin:6px 0 0 18px;padding:0">
+                  <li>Segnala goal solo se quota >= 1.80</li>
+                  <li>Segnala Over solo se quota >= 1.90</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="box" style="margin-top:12px">
+            <h3>Output (raw)</h3>
+            <pre id="raw">Seleziona una partita e premi Analizza.</pre>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 <script>
-(() => {
-  const BACKEND = "https://pb-analyzer-backend2.vercel.app";
-  const els = {
-    dot: document.getElementById("dot"),
-    backendTxt: document.getElementById("backendTxt"),
-    backendUrlTxt: document.getElementById("backendUrlTxt"),
-    fixtureCount: document.getElementById("fixtureCount"),
-    shownCount: document.getElementById("shownCount"),
-    dateInp: document.getElementById("dateInp"),
-    searchInp: document.getElementById("searchInp"),
-    btnReload: document.getElementById("btnReload"),
-    fixturesList: document.getElementById("fixturesList"),
-    selLeague: document.getElementById("selLeague"),
-    selKick: document.getElementById("selKick"),
-    selMatch: document.getElementById("selMatch"),
-    selId: document.getElementById("selId"),
-    btnAnalyze: document.getElementById("btnAnalyze"),
-    analyzeRaw: document.getElementById("analyzeRaw"),
-    analysisCards: document.getElementById("analysisCards"),
-    analysisTable: document.getElementById("analysisTable"),
-    pills: document.getElementById("pills"),
-    tabRaw: document.getElementById("tabRaw"),
-    tabSummary: document.getElementById("tabSummary"),
-    tabExotics: document.getElementById("tabExotics"),
-    tabRawBtn: document.getElementById("tabRawBtn"),
-    tabSummaryBtn: document.getElementById("tabSummaryBtn"),
-    tabExoticsBtn: document.getElementById("tabExoticsBtn"),
+(function(){
+  'use strict';
+
+  // CONFIG
+  var BACKEND = 'https://pb-analyzer-backend2.vercel.app';
+
+  // DOM
+  function el(id){ return document.getElementById(id); }
+  var pillBackend = el('pillBackend');
+  var dotBackend = el('dotBackend');
+  var backendTxt = el('backendTxt');
+  var fixtureCount = el('fixtureCount');
+  var shownCount = el('shownCount');
+
+  var inpDate = el('inpDate');
+  var inpSearch = el('inpSearch');
+  var btnReload = el('btnReload');
+  var fixtureList = el('fixtureList');
+  var leagueWrap = el('leagueWrap');
+
+  var btnAnalyze = el('btnAnalyze');
+  var selLeague = el('selLeague');
+  var selKick = el('selKick');
+  var selMatch = el('selMatch');
+  var selId = el('selId');
+  var raw = el('raw');
+  var exoticOut = el('exoticOut');
+  var goalFlag = el('goalFlag');
+
+  var LEAGUES = [
+    { id:'135', label:'Serie A', key:'seriea', checked:true },
+    { id:'39',  label:'Premier League', key:'epl', checked:true },
+    { id:'140', label:'La Liga', key:'laliga', checked:true },
+    { id:'78',  label:'Bundesliga', key:'bundes', checked:true },
+    { id:'61',  label:'Ligue 1', key:'ligue1', checked:true }
+  ];
+
+  var state = {
+    fixtures: [],
+    selected: null
   };
 
-  let allFixtures = [];
-  let selected = null;
-
   function todayISO(){
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth()+1).padStart(2,"0");
-    const dd = String(d.getDate()).padStart(2,"0");
-    return `${yyyy}-${mm}-${dd}`;
+    var d = new Date();
+    var mm = String(d.getMonth()+1).padStart(2,'0');
+    var dd = String(d.getDate()).padStart(2,'0');
+    return d.getFullYear() + '-' + mm + '-' + dd;
   }
 
-  function setBackendStatus(ok){
-    els.dot.classList.toggle("ok", !!ok);
-    els.backendTxt.textContent = ok ? "Backend: OK" : "Backend: KO";
-    els.backendUrlTxt.textContent = BACKEND;
-  }
-
-  // compat: in alcune versioni chiamavamo setPills() (backend + contatore fixture)
-  window.setPills = function setPills({ backendOk, fixtureCount } = {}) {
-    if (typeof backendOk === "boolean") setBackendStatus(backendOk);
-    if (typeof fixtureCount === "number") {
-      els.fixtureCount.textContent = String(fixtureCount);
+  function setBackend(ok){
+    if(ok){
+      dotBackend.className = 'dot ok';
+      backendTxt.textContent = 'OK';
+    } else {
+      dotBackend.className = 'dot';
+      backendTxt.textContent = 'KO';
     }
   }
 
-  async function ping(){
-    try{
-      const res = await fetch(`${BACKEND}/api/health`, { method:"GET" });
-      setBackendStatus(res.ok);
-    }catch(e){
-      setBackendStatus(false);
-    }
+  function qs(){
+    return LEAGUES.filter(function(l){return l.checked;}).map(function(l){return l.id;});
   }
 
-  function getSelectedLeagueIds(){
-    return Array.from(document.querySelectorAll("input.lg"))
-      .filter(x => x.checked)
-      .map(x => x.value);
+  function renderLeagues(){
+    leagueWrap.innerHTML = '';
+    LEAGUES.forEach(function(l){
+      var lab = document.createElement('label');
+      lab.className = 'chk';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !!l.checked;
+      cb.addEventListener('change', function(){ l.checked = cb.checked; applyFilter(); });
+      var span = document.createElement('span');
+      span.textContent = l.label;
+      lab.appendChild(cb);
+      lab.appendChild(span);
+      leagueWrap.appendChild(lab);
+    });
   }
 
-  function clearSelection(){
-    selected = null;
-    els.selLeague.textContent = "-";
-    els.selKick.textContent = "-";
-    els.selMatch.textContent = "-";
-    els.selId.textContent = "-";
-    els.btnAnalyze.disabled = true;
-  }
+  function safeText(x){ return (x===null||x===undefined)?'':String(x); }
 
-  function setSelection(f){
-    selected = f;
-    els.selLeague.textContent = f.league || "-";
-    els.selKick.textContent = String(f.kickoff_utc || "-").replace("T"," ").replace(":00+00:00"," UTC");
-    els.selMatch.textContent = `${f.home} vs ${f.away}`;
-    els.selId.textContent = String(f.fixture_id || "-");
-    els.btnAnalyze.disabled = !f.fixture_id;
-  }
+  function applyFilter(){
+    var q = (inpSearch.value||'').trim().toLowerCase();
+    var allowed = qs();
 
-  function escapeHtml(str){
-    return String(str)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  function renderList(){
-    const q = (els.searchInp.value || "").trim().toLowerCase();
-    const allowed = new Set(getSelectedLeagueIds());
-
-    const filtered = allFixtures.filter(f => {
-      if (allowed.size && f.league_id && !allowed.has(String(f.league_id))) return false;
-      if (!q) return true;
-      const hay = `${f.home} ${f.away} ${f.league}`.toLowerCase();
-      return hay.includes(q);
+    var list = state.fixtures.filter(function(f){
+      var okLeague = allowed.indexOf(String(f.league_id||'')) >= 0 || allowed.indexOf(String(f.leagueId||'')) >= 0;
+      if(!okLeague) return false;
+      if(!q) return true;
+      var s = (safeText(f.home)+' '+safeText(f.away)+' '+safeText(f.league)).toLowerCase();
+      return s.indexOf(q) >= 0;
     });
 
-    els.shownCount.textContent = String(filtered.length);
-    els.fixturesList.innerHTML = "";
+    renderFixtureList(list);
+  }
 
-    filtered.forEach(f => {
-      const div = document.createElement("div");
-      div.className = "item" + (selected && selected.fixture_id === f.fixture_id ? " active" : "");
-      const when = String(f.kickoff_utc || "").replace("T"," ").replace(":00+00:00"," UTC");
-      div.innerHTML = `
-        <div class="top">
-          <span>${escapeHtml(f.league || "")}</span>
-          <span>${escapeHtml(when)}</span>
-        </div>
-        <div class="mid">${escapeHtml(f.home || "")} vs ${escapeHtml(f.away || "")}</div>
-      `;
-      div.addEventListener("click", () => {
-        setSelection(f);
-        renderList();
+  function renderFixtureList(list){
+    fixtureList.innerHTML = '';
+    shownCount.textContent = 'Mostrate ' + list.length;
+    fixtureCount.textContent = String(list.length);
+
+    list.forEach(function(f){
+      var div = document.createElement('div');
+      div.className = 'item' + (state.selected && state.selected.fixture_id === f.fixture_id ? ' sel' : '');
+
+      var meta = document.createElement('div');
+      meta.className = 'meta';
+      var left = document.createElement('span');
+      left.textContent = safeText(f.league);
+      var right = document.createElement('span');
+      right.textContent = safeText(f.kickoff_utc).replace('T',' ').replace('Z',' UTC');
+      meta.appendChild(left);
+      meta.appendChild(right);
+
+      var title = document.createElement('div');
+      title.className = 'title';
+      title.textContent = safeText(f.home) + ' vs ' + safeText(f.away);
+
+      div.appendChild(meta);
+      div.appendChild(title);
+
+      div.addEventListener('click', function(){
+        state.selected = f;
+        btnAnalyze.disabled = false;
+        selLeague.textContent = safeText(f.league);
+        selKick.textContent = safeText(f.kickoff_utc).replace('T',' ').replace('Z',' UTC');
+        selMatch.textContent = safeText(f.home) + ' vs ' + safeText(f.away);
+        selId.textContent = safeText(f.fixture_id);
+        raw.textContent = 'Pronto. Premi Analizza.';
+        exoticOut.innerHTML = '';
+        goalFlag.innerHTML = '';
+        applyFilter();
       });
-      els.fixturesList.appendChild(div);
-    });
 
-    if (filtered.length === 0){
-      const empty = document.createElement("div");
-      empty.className = "muted";
-      empty.style.padding = "10px 2px";
-      empty.textContent = "Nessuna partita trovata per questa data/filtri.";
-      els.fixturesList.appendChild(empty);
+      fixtureList.appendChild(div);
+    });
+  }
+
+  async function apiGet(path){
+    var url = BACKEND + path;
+    var res = await fetch(url, { method:'GET' });
+    var data = await res.json();
+    return data;
+  }
+
+  async function apiPost(path, body){
+    var url = BACKEND + path;
+    var res = await fetch(url, {
+      method:'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify(body||{})
+    });
+    var data = await res.json();
+    return data;
+  }
+
+  function row(label, value){
+    var tr = document.createElement('tr');
+    var td1 = document.createElement('td');
+    td1.textContent = label;
+    var td2 = document.createElement('td');
+    td2.textContent = value;
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+    return tr;
+  }
+
+  function renderExotics(exotics){
+    if(!exotics){
+      exoticOut.innerHTML = '<div class="muted">Nessun dato esotiche.</div>';
+      return;
+    }
+
+    var blocks = [];
+
+    function renderTable(title, arr){
+      if(!arr || !arr.length) return;
+      var box = document.createElement('div');
+      box.style.marginTop = '10px';
+      var h = document.createElement('div');
+      h.style.fontWeight = '800';
+      h.style.marginBottom = '8px';
+      h.textContent = title;
+      box.appendChild(h);
+
+      var tbl = document.createElement('table');
+      var thead = document.createElement('thead');
+      var thr = document.createElement('tr');
+      ['Mercato','Line','Conf 0-10','Note'].forEach(function(x){
+        var th = document.createElement('th');
+        th.textContent = x;
+        thr.appendChild(th);
+      });
+      thead.appendChild(thr);
+      tbl.appendChild(thead);
+
+      var tb = document.createElement('tbody');
+      arr.forEach(function(it){
+        var tr = document.createElement('tr');
+        var tdM = document.createElement('td'); tdM.textContent = safeText(it.market||it.label||'');
+        var tdL = document.createElement('td'); tdL.textContent = safeText(it.line||it.threshold||it.value||'');
+        var tdC = document.createElement('td'); tdC.textContent = safeText(it.confidence||it.conf||'');
+        var tdN = document.createElement('td'); tdN.textContent = safeText(it.note||it.reason||'');
+        tr.appendChild(tdM); tr.appendChild(tdL); tr.appendChild(tdC); tr.appendChild(tdN);
+        tb.appendChild(tr);
+      });
+      tbl.appendChild(tb);
+      box.appendChild(tbl);
+      blocks.push(box);
+    }
+
+    // we accept any shape; try common keys
+    renderTable('Tiri (team)', exotics.team_shots || exotics.shots_team || []);
+    renderTable('Tiri in porta (team)', exotics.team_sot || exotics.shots_on_target_team || exotics.sot_team || []);
+    renderTable('Tiri (player)', exotics.player_shots || []);
+    renderTable('Tiri in porta (player)', exotics.player_sot || exotics.player_shots_on_target || []);
+    renderTable('Corner', exotics.corners || []);
+    renderTable('Falli (player)', exotics.player_fouls || exotics.fouls_player || []);
+    renderTable('Cartellini (totali)', exotics.cards_total || []);
+    renderTable('Cartellini (player)', exotics.player_cards || exotics.cards_player || []);
+
+    if(blocks.length === 0){
+      exoticOut.innerHTML = '<div class="muted">Nessun suggerimento esotico per questa partita.</div>';
+      return;
+    }
+    exoticOut.innerHTML = '';
+    blocks.forEach(function(b){ exoticOut.appendChild(b); });
+  }
+
+  function renderGoalFlag(goals){
+    goalFlag.innerHTML = '';
+
+    if(!goals){
+      goalFlag.innerHTML = '<div class="muted">Nessun dato goal.</div>';
+      return;
+    }
+
+    var high = !!(goals.high_goal_tendency || goals.highGoalTendency || goals.is_high_goal);
+    var suggested = goals.suggested || goals.suggestions || [];
+
+    var badge = document.createElement('span');
+    badge.className = 'badge ' + (high ? 'good' : 'warn');
+    badge.textContent = high ? 'Alta tendenza goal' : 'Tendenza goal non alta';
+    goalFlag.appendChild(badge);
+
+    if(!high) return;
+
+    // Show only if it meets your minimum-odds constraints (we do not know real odds here, so we show the constraint text)
+    var box = document.createElement('div');
+    box.style.marginTop = '10px';
+    box.className = 'muted';
+    box.style.fontSize = '12px';
+    box.style.lineHeight = '1.35';
+
+    var txt = 'Possibile goal / over da considerare SOLO se quota minima rispettata (Goal>=1.80, Over>=1.90).';
+    box.textContent = txt;
+    goalFlag.appendChild(box);
+
+    if(suggested && suggested.length){
+      var ul = document.createElement('ul');
+      ul.style.margin = '8px 0 0 18px';
+      suggested.forEach(function(s){
+        var li = document.createElement('li');
+        li.textContent = safeText(s.market || s.label || s.type || '');
+        ul.appendChild(li);
+      });
+      goalFlag.appendChild(ul);
+    }
+  }
+
+  async function loadHealth(){
+    try{
+      var d = await apiGet('/api/health');
+      setBackend(!!(d && d.ok));
+    } catch(e){
+      setBackend(false);
     }
   }
 
   async function loadFixtures(){
-    clearSelection();
-    els.fixturesList.innerHTML = `<div class="muted">Carico fixture...</div>`;
-    els.fixtureCount.textContent = "-";
-    els.shownCount.textContent = "0";
+    var date = inpDate.value || todayISO();
+    var url = '/api/fixtures?v=3&date=' + encodeURIComponent(date);
 
-    const date = els.dateInp.value || todayISO();
+    raw.textContent = 'Carico fixtures...';
+
+    var data;
     try{
-      const res = await fetch(`${BACKEND}/api/fixtures?v=3&date=${encodeURIComponent(date)}`, { method:"GET" });
-      if (!res.ok) throw new Error(`fixtures ${res.status}`);
-      const data = await res.json();
-      allFixtures = Array.isArray(data.fixtures) ? data.fixtures : [];
-      els.fixtureCount.textContent = String(allFixtures.length);
-      renderList();
-    }catch(e){
-      els.fixturesList.innerHTML = `<div class="muted">Errore caricamento fixture. Apri console.</div>`;
-      console.error(e);
+      data = await apiGet(url);
+    } catch(e){
+      raw.textContent = 'Errore fetch fixtures.';
+      return;
+    }
+
+    var fixtures = data.fixtures || [];
+    state.fixtures = fixtures;
+
+    applyFilter();
+    raw.textContent = 'Fixture caricate.';
+  }
+
+  async function runAnalyze(){
+    if(!state.selected){ return; }
+
+    btnAnalyze.disabled = true;
+    raw.textContent = 'Carico analisi...';
+    exoticOut.innerHTML = '';
+    goalFlag.innerHTML = '';
+
+    try{
+      var resp = await apiPost('/api/analyze', { fixture_id: state.selected.fixture_id });
+      raw.textContent = JSON.stringify(resp, null, 2);
+
+      // expected: { ok:true, version:'analyze-v2', goals_model:{}, exotics:{} }
+      renderGoalFlag(resp.goals_model || resp.goals || null);
+      renderExotics(resp.exotics || null);
+
+    } catch(e){
+      raw.textContent = 'Errore analisi.';
+    } finally {
+      btnAnalyze.disabled = false;
     }
   }
 
-  
-async function runAnalyze() {
-  if (!selected) return;
+  // INIT
+  inpDate.value = todayISO();
+  renderLeagues();
 
-  window.setPills({ backend: "OK", fixture: String(selected.fixture_id || selected.id || "") });
+  btnReload.addEventListener('click', function(){ loadFixtures(); });
+  inpSearch.addEventListener('input', function(){ applyFilter(); });
+  btnAnalyze.addEventListener('click', function(){ runAnalyze(); });
 
-  // reset outputs
-  els.analyzeRaw.textContent = "Carico analisi...";
-  els.analysisCards.innerHTML = "";
-
-  try {
-    const res = await fetch(`${API_BASE}/api/analyze`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fixture_id: Number(selected.fixture_id || selected.id) })
-    });
-
-    if (!res.ok) {
-      const t = await res.text();
-      throw new Error(`HTTP ${res.status} - ${t}`);
-    }
-
-    const data = await res.json();
-    window.__PB_LAST_ANALYSIS__ = data;
-
-    // RAW
-    els.analyzeRaw.textContent = JSON.stringify(data, null, 2);
-
-    // Cards UI
-    renderAnalysisCards(data);
-  } catch (e) {
-    console.error(e);
-    els.analyzeRaw.textContent = "Errore analisi: " + (e?.message || String(e));
-  }
-}
-
-function fmtNum(x, digits=2) {
-  if (x === null || x === undefined || Number.isNaN(x)) return "—";
-  const n = Number(x);
-  if (!Number.isFinite(n)) return "—";
-  return n.toFixed(digits);
-}
-
-function renderMiniTable(title, rows) {
-  const trs = rows.map(r => `<tr><td>${escapeHtml(r[0])}</td><td style="text-align:right">${escapeHtml(String(r[1]))}</td></tr>`).join("");
-  return `
-    <div class="card">
-      <div class="cardTitle">${escapeHtml(title)}</div>
-      <table class="miniTable">${trs}</table>
-    </div>
-  `;
-}
-
-function renderPlayers(title, arr, colLabel) {
-  if (!arr || !arr.length) return `<div class="muted">—</div>`;
-  const lis = arr.map(p => {
-    const val = p[colLabel];
-    return `<li><b>${escapeHtml(p.name || "—")}</b> <span class="muted">(${escapeHtml(String(p.position || "-"))})</span>
-      <span style="float:right">${escapeHtml(String(val))}</span></li>`;
-  }).join("");
-  return `
-    <div class="card">
-      <div class="cardTitle">${escapeHtml(title)}</div>
-      <ul class="plist">${lis}</ul>
-      <div class="tiny muted">Valori = per partita (stagionale). Userai la linea del bookmaker.</div>
-    </div>
-  `;
-}
-
-function renderAnalysisCards(a) {
-  const root = document.getElementById("analysisCards");
-  if (!a || !a.ok) {
-    root.innerHTML = `<div class="warn">Analyze KO: ${escapeHtml(a?.error || "unknown")}</div>`;
-    return;
-  }
-
-  const gm = a.goals_model || {};
-  const gt = gm.goal_tendency || {};
-  const pct = gt.pct_over35 ?? null;
-
-  // Regola tua:
-  // - mostra "alta tendenza goal" SOLO se quota goal-market soddisfa (frontend la avrà dopo; per ora mostriamo solo la probabilità)
-  // In UI mostriamo un badge "Candidate" e ti ricordiamo i threshold.
-  const goalBadge = (pct !== null && pct >= 45)
-    ? `<span class="badge badgeHot">Goal-friendly</span>`
-    : `<span class="badge">Neutro</span>`;
-
-  const ex = a.exotics || {};
-  const exp = ex.team_expectations || {};
-
-  const cards = [];
-
-  cards.push(`
-    <div class="card">
-      <div class="cardTitle">Goal model (Poisson)</div>
-      <div class="row2">
-        <div>μ Home: <b>${fmtNum(gm.mu_home,2)}</b></div>
-        <div>μ Away: <b>${fmtNum(gm.mu_away,2)}</b></div>
-        <div>μ Totale: <b>${fmtNum(gm.mu_total,2)}</b></div>
-        <div>Over 3.5: <b>${pct === null ? "—" : pct + "%"}</b> ${goalBadge}</div>
-      </div>
-      <div class="tiny muted">Mostra etichetta solo se poi la quota è: Under >= 1.80, Over >= 1.90 (come mi hai detto).</div>
-    </div>
-  `);
-
-  cards.push(renderMiniTable("Exotic totals (suggerimento linee)", [
-    ["Tiri totali (Shots)", exp.shots_total ? `${fmtNum(exp.shots_total.expected)} | Over ${exp.shots_total.line_over}+ | Under ${exp.shots_total.line_under}-` : "—"],
-    ["Tiri in porta tot (SOT)", exp.sot_total ? `${fmtNum(exp.sot_total.expected)} | Over ${exp.sot_total.line_over}+ | Under ${exp.sot_total.line_under}-` : "—"],
-    ["Corner totali", exp.corners_total ? `${fmtNum(exp.corners_total.expected)} | Over ${exp.corners_total.line_over}+ | Under ${exp.corners_total.line_under}-` : "—"],
-    ["Falli totali", exp.fouls_total ? `${fmtNum(exp.fouls_total.expected)} | Over ${exp.fouls_total.line_over}+ | Under ${exp.fouls_total.line_under}-` : "—"],
-    ["Cartellini (gialli) tot", exp.cards_total ? `${fmtNum(exp.cards_total.expected)} | Over ${exp.cards_total.line_over}+ | Under ${exp.cards_total.line_under}-` : "—"]
-  ]));
-
-  const pc = ex.player_candidates || {};
-  const h = pc.home || {};
-  const aw = pc.away || {};
-
-  cards.push(`
-    <div class="grid2">
-      ${renderPlayers("Player shots (Home) - top", h.topShots, "shots_per_game")}
-      ${renderPlayers("Player shots (Away) - top", aw.topShots, "shots_per_game")}
-      ${renderPlayers("Player SOT (Home) - top", h.topSot, "sot_per_game")}
-      ${renderPlayers("Player SOT (Away) - top", aw.topSot, "sot_per_game")}
-      ${renderPlayers("Player fouls (Home) - top", h.topFouls, "fouls_per_game")}
-      ${renderPlayers("Player fouls (Away) - top", aw.topFouls, "fouls_per_game")}
-      ${renderPlayers("Player cards (Home) - top", h.topCards, "yellow_per_game")}
-      ${renderPlayers("Player cards (Away) - top", aw.topCards, "yellow_per_game")}
-    </div>
-  `);
-
-  root.innerHTML = cards.join("\n");
-}
-
-
-  // init
-  els.dateInp.value = todayISO();
-  els.searchInp.addEventListener("input", () => renderList());
-  document.querySelectorAll("input.lg").forEach(chk => chk.addEventListener("change", () => renderList()));
-  els.btnReload.addEventListener("click", () => loadFixtures());
-  els.btnAnalyze.addEventListener("click", () => runAnalyze());
-
-  ping().then(loadFixtures);
+  loadHealth().then(loadFixtures);
 })();
 </script>
+
 </body>
 </html>
