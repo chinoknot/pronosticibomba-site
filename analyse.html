@@ -237,7 +237,7 @@
   }
 
   // compat: in alcune versioni chiamavamo setPills() (backend + contatore fixture)
-  window.setPills = function window.setPills({ backendOk, fixtureCount } = {}) {
+  window.setPills = function setPills({ backendOk, fixtureCount } = {}) {
     if (typeof backendOk === "boolean") setBackendStatus(backendOk);
     if (typeof fixtureCount === "number") {
       els.fixtureCount.textContent = String(fixtureCount);
