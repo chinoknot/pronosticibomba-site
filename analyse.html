@@ -1,10 +1,11 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PB Analyzer</title>
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>PB Analyzer</title>
+<style>
     :root{
       --bg0:#07101e;
       --bg1:#0a1628;
@@ -91,100 +92,103 @@
     .badge{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.12);font-size:12px;color:var(--muted);}
     .badge b{color:var(--txt)}
     footer{padding:12px 22px 22px;color:var(--muted);font-size:12px;}
-  </style>
+  
+/* --- PB Analyzer: analysis cards --- */
+#analysisCards .card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:12px 12px;margin:10px 0;}
+#analysisCards .cardTitle{font-weight:700;margin-bottom:8px}
+#analysisCards .row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px}
+#analysisCards .miniTable{width:100%;border-collapse:collapse;font-size:13px}
+#analysisCards .miniTable td{padding:6px 4px;border-top:1px solid rgba(255,255,255,0.06)}
+#analysisCards .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#analysisCards .plist{margin:0;padding-left:18px}
+#analysisCards .plist li{padding:3px 0}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,0.18);font-size:12px;margin-left:6px}
+.badgeHot{border-color:rgba(255,180,80,0.6)}
+.warn{background:rgba(255,80,80,0.12);border:1px solid rgba(255,80,80,0.25);padding:10px;border-radius:12px}
+</style>
 </head>
 <body>
 <header>
-  <div>
-    <div class="brand">PB Analyzer</div>
-    <div class="sub">Seleziona data e lega → scegli una partita → Analizza (goal/Poisson/Under-Over). Poi aggiungiamo cards/corners/shots + screenshot.</div>
-  </div>
-  <div class="status">
-    <span class="pill"><span id="dot" class="dot"></span><span id="backendTxt">Backend: ...</span></span>
-    <span class="pill">Fixture: <b id="fixtureCount">-</b></span>
-  </div>
+<div>
+<div class="brand">PB Analyzer</div>
+<div class="sub">Seleziona data e lega → scegli una partita → Analizza (goal/Poisson/Under-Over). Poi aggiungiamo cards/corners/shots + screenshot.</div>
+</div>
+<div class="status">
+<span class="pill"><span class="dot" id="dot"></span><span id="backendTxt">Backend: ...</span></span>
+<span class="pill">Fixture: <b id="fixtureCount">-</b></span>
+</div>
 </header>
-
 <main>
-  <div class="grid">
-    <section class="card">
-      <h3>Fixture</h3>
-      <div class="body">
-        <div class="row" style="justify-content:space-between;align-items:flex-end;">
-          <div style="flex:1;min-width:180px;">
-            <label for="dateInp">Data</label><br/>
-            <input id="dateInp" type="date" />
-          </div>
-          <button id="btnReload" class="btn primary">Ricarica</button>
-        </div>
-
-        <div style="margin-top:10px;">
-          <label for="searchInp">Ricerca</label><br/>
-          <input id="searchInp" type="text" placeholder="es: Juventus, Arsenal, Lazio..." />
-        </div>
-
-        <div style="margin-top:10px;">
-          <label>Leghe (maggiori)</label>
-          <div class="leagues">
-            <label class="chk"><input type="checkbox" class="lg" value="135" checked /> Serie A</label>
-            <label class="chk"><input type="checkbox" class="lg" value="39" checked /> Premier League</label>
-            <label class="chk"><input type="checkbox" class="lg" value="140" checked /> La Liga</label>
-            <label class="chk"><input type="checkbox" class="lg" value="78" checked /> Bundesliga</label>
-            <label class="chk"><input type="checkbox" class="lg" value="61" checked /> Ligue 1</label>
-          </div>
-          <div class="note">Nota: qui lavoriamo solo sulle leghe maggiori. Minori le aggiungiamo dopo.</div>
-        </div>
-
-        <div class="note" style="margin-top:12px;">Mostrate <b id="shownCount">0</b> partite (filtrate).</div>
-        <div id="fixturesList" class="list"></div>
-      </div>
-    </section>
-
-    <section class="card">
-      <h3>Match selezionato</h3>
-      <div class="body">
-        <div class="kv">
-          <div class="k">Competizione</div><div class="v" id="selLeague">-</div>
-          <div class="k">Kickoff (UTC)</div><div class="v" id="selKick">-</div>
-          <div class="k">Match</div><div class="v" id="selMatch">-</div>
-          <div class="k">Fixture ID</div><div class="v" id="selId">-</div>
-        </div>
-
-        <div class="row" style="justify-content:flex-end;margin-top:12px;">
-          <button id="btnAnalyze" class="btn primary" disabled>Analizza (prossimo step)</button>
-        </div>
-
-        <div class="note">
+<div class="grid">
+<section class="card">
+<h3>Fixture</h3>
+<div class="body">
+<div class="row" style="justify-content:space-between;align-items:flex-end;">
+<div style="flex:1;min-width:180px;">
+<label for="dateInp">Data</label><br/>
+<input id="dateInp" type="date"/>
+</div>
+<button class="btn primary" id="btnReload">Ricarica</button>
+</div>
+<div style="margin-top:10px;">
+<label for="searchInp">Ricerca</label><br/>
+<input id="searchInp" placeholder="es: Juventus, Arsenal, Lazio..." type="text"/>
+</div>
+<div style="margin-top:10px;">
+<label>Leghe (maggiori)</label>
+<div class="leagues">
+<label class="chk"><input checked="" class="lg" type="checkbox" value="135"/> Serie A</label>
+<label class="chk"><input checked="" class="lg" type="checkbox" value="39"/> Premier League</label>
+<label class="chk"><input checked="" class="lg" type="checkbox" value="140"/> La Liga</label>
+<label class="chk"><input checked="" class="lg" type="checkbox" value="78"/> Bundesliga</label>
+<label class="chk"><input checked="" class="lg" type="checkbox" value="61"/> Ligue 1</label>
+</div>
+<div class="note">Nota: qui lavoriamo solo sulle leghe maggiori. Minori le aggiungiamo dopo.</div>
+</div>
+<div class="note" style="margin-top:12px;">Mostrate <b id="shownCount">0</b> partite (filtrate).</div>
+<div class="list" id="fixturesList"></div>
+</div>
+</section>
+<section class="card">
+<h3>Match selezionato</h3>
+<div class="body">
+<div class="kv">
+<div class="k">Competizione</div><div class="v" id="selLeague">-</div>
+<div class="k">Kickoff (UTC)</div><div class="v" id="selKick">-</div>
+<div class="k">Match</div><div class="v" id="selMatch">-</div>
+<div class="k">Fixture ID</div><div class="v" id="selId">-</div>
+</div>
+<div class="row" style="justify-content:flex-end;margin-top:12px;">
+<button class="btn primary" disabled="" id="btnAnalyze">Analizza (prossimo step)</button>
+</div>
+<div class="note">
           Endpoint usati:
           <span class="badge"><b>GET</b> /api/fixtures</span>
-          <span class="badge"><b>POST</b> /api/analyze</span>
-        </div>
-
-        <div class="split">
-          <div class="box">
-            <div class="muted" style="margin-bottom:8px;"><b>Output analisi (raw)</b></div>
-            <pre id="analyzeRaw">Seleziona una partita e premi Analizza.</pre>
-          </div>
-          <div class="box">
-            <div class="muted" style="margin-bottom:8px;"><b>Note</b></div>
-            <div class="muted" style="font-size:12px;line-height:1.35">
+<span class="badge"><b>POST</b> /api/analyze</span>
+</div>
+<div class="split">
+<div class="box">
+<div class="muted" style="margin-bottom:8px;"><b>Output analisi (raw)</b></div>
+<div id="analysisCards" style="margin-top:10px"></div><pre id="analyzeRaw" style="max-height: 260px; overflow:auto">Seleziona una partita e premi Analizza.</pre>
+</div>
+<div class="box">
+<div class="muted" style="margin-bottom:8px;"><b>Note</b></div>
+<div class="muted" style="font-size:12px;line-height:1.35">
               - Ora stampiamo JSON. Nel prossimo step lo trasformiamo in:
               <br/>• tabella medie gol + under/over
               <br/>• Poisson (U/O 3.5) + confidenza 0–10
               <br/>• suggerimento soglia value (1.5/2.5/3.5)
               <br/><br/>Poi aggiungiamo shots/corners/cards e upload screenshot lineups.
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
+</div>
+</div>
+</div>
+</section>
+</div>
 </main>
-
 <footer>
   Backend attuale: <span class="muted" id="backendUrlTxt"></span>
 </footer>
-
 <script>
 (() => {
   const BACKEND = "https://pb-analyzer-backend2.vercel.app";
@@ -326,19 +330,134 @@
     }
   }
 
-  async function runAnalyze(){
-    if (!selected || !selected.fixture_id) return;
-    els.analyzeRaw.textContent = "Analisi in corso...";
-    try{
-      const res = await fetch(`${BACKEND}/api/analyze`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ fixture_id: selected.fixture_id })
-      });
-      if (!res.ok){
-        const t = await res.text().catch(()=> "");
-        throw new Error(`analyze ${res.status} ${t}`);
-      }
+  
+async function runAnalyze() {
+  if (!state.selectedFixture) return;
+  const fixtureId = state.selectedFixture.fixture_id;
+
+  // UI
+  const btn = document.getElementById("btnAnalyze");
+  btn.disabled = true;
+  btn.textContent = "Analizzo...";
+
+  try {
+    const res = await fetch(`${BACKEND}/api/analyze`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fixture_id: fixtureId })
+    });
+    const data = await res.json();
+    state.analysis = data;
+
+    // Always show raw JSON for debug
+    document.getElementById("analyzeRaw").textContent = JSON.stringify(data, null, 2);
+
+    renderAnalysisCards(data);
+  } catch (e) {
+    document.getElementById("analysisCards").innerHTML =
+      `<div class="warn">Errore analyze: ${escapeHtml(String(e))}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Analizza (prossimo step)";
+  }
+}
+
+function fmtNum(x, digits=2) {
+  if (x === null || x === undefined || Number.isNaN(x)) return "—";
+  const n = Number(x);
+  if (!Number.isFinite(n)) return "—";
+  return n.toFixed(digits);
+}
+
+function renderMiniTable(title, rows) {
+  const trs = rows.map(r => `<tr><td>${escapeHtml(r[0])}</td><td style="text-align:right">${escapeHtml(String(r[1]))}</td></tr>`).join("");
+  return `
+    <div class="card">
+      <div class="cardTitle">${escapeHtml(title)}</div>
+      <table class="miniTable">${trs}</table>
+    </div>
+  `;
+}
+
+function renderPlayers(title, arr, colLabel) {
+  if (!arr || !arr.length) return `<div class="muted">—</div>`;
+  const lis = arr.map(p => {
+    const val = p[colLabel];
+    return `<li><b>${escapeHtml(p.name || "—")}</b> <span class="muted">(${escapeHtml(String(p.position || "-"))})</span>
+      <span style="float:right">${escapeHtml(String(val))}</span></li>`;
+  }).join("");
+  return `
+    <div class="card">
+      <div class="cardTitle">${escapeHtml(title)}</div>
+      <ul class="plist">${lis}</ul>
+      <div class="tiny muted">Valori = per partita (stagionale). Userai la linea del bookmaker.</div>
+    </div>
+  `;
+}
+
+function renderAnalysisCards(a) {
+  const root = document.getElementById("analysisCards");
+  if (!a || !a.ok) {
+    root.innerHTML = `<div class="warn">Analyze KO: ${escapeHtml(a?.error || "unknown")}</div>`;
+    return;
+  }
+
+  const gm = a.goals_model || {};
+  const gt = gm.goal_tendency || {};
+  const pct = gt.pct_over35 ?? null;
+
+  // Regola tua:
+  // - mostra "alta tendenza goal" SOLO se quota goal-market soddisfa (frontend la avrà dopo; per ora mostriamo solo la probabilità)
+  // In UI mostriamo un badge "Candidate" e ti ricordiamo i threshold.
+  const goalBadge = (pct !== null && pct >= 45)
+    ? `<span class="badge badgeHot">Goal-friendly</span>`
+    : `<span class="badge">Neutro</span>`;
+
+  const ex = a.exotics || {};
+  const exp = ex.team_expectations || {};
+
+  const cards = [];
+
+  cards.push(`
+    <div class="card">
+      <div class="cardTitle">Goal model (Poisson)</div>
+      <div class="row2">
+        <div>μ Home: <b>${fmtNum(gm.mu_home,2)}</b></div>
+        <div>μ Away: <b>${fmtNum(gm.mu_away,2)}</b></div>
+        <div>μ Totale: <b>${fmtNum(gm.mu_total,2)}</b></div>
+        <div>Over 3.5: <b>${pct === null ? "—" : pct + "%"}</b> ${goalBadge}</div>
+      </div>
+      <div class="tiny muted">Mostra etichetta solo se poi la quota è: Under >= 1.80, Over >= 1.90 (come mi hai detto).</div>
+    </div>
+  `);
+
+  cards.push(renderMiniTable("Exotic totals (suggerimento linee)", [
+    ["Tiri totali (Shots)", exp.shots_total ? `${fmtNum(exp.shots_total.expected)} | Over ${exp.shots_total.line_over}+ | Under ${exp.shots_total.line_under}-` : "—"],
+    ["Tiri in porta tot (SOT)", exp.sot_total ? `${fmtNum(exp.sot_total.expected)} | Over ${exp.sot_total.line_over}+ | Under ${exp.sot_total.line_under}-` : "—"],
+    ["Corner totali", exp.corners_total ? `${fmtNum(exp.corners_total.expected)} | Over ${exp.corners_total.line_over}+ | Under ${exp.corners_total.line_under}-` : "—"],
+    ["Falli totali", exp.fouls_total ? `${fmtNum(exp.fouls_total.expected)} | Over ${exp.fouls_total.line_over}+ | Under ${exp.fouls_total.line_under}-` : "—"],
+    ["Cartellini (gialli) tot", exp.cards_total ? `${fmtNum(exp.cards_total.expected)} | Over ${exp.cards_total.line_over}+ | Under ${exp.cards_total.line_under}-` : "—"]
+  ]));
+
+  const pc = ex.player_candidates || {};
+  const h = pc.home || {};
+  const aw = pc.away || {};
+
+  cards.push(`
+    <div class="grid2">
+      ${renderPlayers("Player shots (Home) - top", h.topShots, "shots_per_game")}
+      ${renderPlayers("Player shots (Away) - top", aw.topShots, "shots_per_game")}
+      ${renderPlayers("Player SOT (Home) - top", h.topSot, "sot_per_game")}
+      ${renderPlayers("Player SOT (Away) - top", aw.topSot, "sot_per_game")}
+      ${renderPlayers("Player fouls (Home) - top", h.topFouls, "fouls_per_game")}
+      ${renderPlayers("Player fouls (Away) - top", aw.topFouls, "fouls_per_game")}
+      ${renderPlayers("Player cards (Home) - top", h.topCards, "yellow_per_game")}
+      ${renderPlayers("Player cards (Away) - top", aw.topCards, "yellow_per_game")}
+    </div>
+  `);
+
+  root.innerHTML = cards.join("\n");
+}
       const data = await res.json();
       window.lastAnalysis = data;
       els.analyzeRaw.textContent = JSON.stringify(data, null, 2);
