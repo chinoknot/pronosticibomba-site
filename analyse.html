@@ -6,441 +6,357 @@
   <title>PB Analyzer</title>
   <style>
     :root{
-      --bg:#0b1220;
-      --card:#121b2e;
-      --muted:#8aa0c6;
-      --text:#e7eefc;
-      --border:#223154;
-      --accent:#4aa3ff;
-      --danger:#ff4a7a;
-      --ok:#3ddc97;
-      --warn:#ffd166;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius: 14px;
-      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --bg0:#07101e;
+      --bg1:#0a1628;
+      --card:#0b1a2f;
+      --txt:#e9f0ff;
+      --muted:#a9b7d6;
+      --line:rgba(255,255,255,.08);
+      --accent:#3aa0ff;
+      --accent2:#22c55e;
+      --warn:#f59e0b;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family:var(--font);
-      background: radial-gradient(1200px 700px at 20% -10%, rgba(74,163,255,.22), transparent 60%),
-                  radial-gradient(900px 500px at 90% 10%, rgba(61,220,151,.14), transparent 55%),
-                  var(--bg);
-      color:var(--text);
+      font-family:var(--sans);
+      color:var(--txt);
+      background: radial-gradient(1200px 700px at 20% 10%, #0d2b4f 0%, transparent 60%),
+                  radial-gradient(900px 650px at 85% 20%, #0b3a2f 0%, transparent 55%),
+                  linear-gradient(180deg, var(--bg0), var(--bg1));
+      min-height:100vh;
     }
-    a{color:var(--accent); text-decoration:none}
     header{
-      padding:22px 18px 12px;
-      border-bottom:1px solid rgba(34,49,84,.7);
-      position:sticky; top:0;
-      backdrop-filter: blur(10px);
-      background: rgba(11,18,32,.78);
-      z-index:10;
-    }
-    .wrap{max-width:1200px; margin:0 auto; padding:0 14px;}
-    .top{
-      display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
-      flex-wrap:wrap;
-    }
-    h1{font-size:18px; margin:0; letter-spacing:.2px;}
-    .sub{color:var(--muted); font-size:12px; margin-top:4px}
-    .grid{
-      display:grid;
-      grid-template-columns: 420px 1fr;
-      gap:16px;
-      padding:16px 0 28px;
-    }
-    @media (max-width: 980px){
-      .grid{grid-template-columns: 1fr; }
-    }
-    .card{
-      background: linear-gradient(180deg, rgba(18,27,46,.92), rgba(18,27,46,.78));
-      border:1px solid rgba(34,49,84,.8);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
-    .card .hd{
-      padding:14px 14px 10px;
-      border-bottom:1px solid rgba(34,49,84,.7);
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-    }
-    .card .bd{ padding:14px; }
-    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
-    label{font-size:12px; color:var(--muted)}
-    input[type="date"], input[type="text"]{
-      padding:10px 10px;
-      border-radius:10px;
-      border:1px solid rgba(34,49,84,.9);
-      background: rgba(8,13,24,.55);
-      color:var(--text);
-      outline:none;
-    }
-    input[type="text"]{min-width:220px}
-    button{
-      padding:10px 12px;
-      border-radius:10px;
-      border:1px solid rgba(34,49,84,.9);
-      background: rgba(74,163,255,.15);
-      color:var(--text);
-      cursor:pointer;
-    }
-    button:hover{background: rgba(74,163,255,.22);}
-    button:disabled{opacity:.55; cursor:not-allowed;}
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid rgba(34,49,84,.9);
-      background: rgba(8,13,24,.45);
-      font-size:12px;
-      user-select:none;
-      cursor:pointer;
-    }
-    .pill input{transform: translateY(1px);}
-    .muted{color:var(--muted)}
-    .small{font-size:12px}
-    .status{
-      font-size:12px;
-      color:var(--muted);
-    }
-    .status b{color:var(--text)}
-    .list{
+      padding:22px 22px 12px;
       display:flex;
-      flex-direction:column;
-      gap:8px;
-      max-height: 62vh;
-      overflow:auto;
-      padding-right:4px;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:14px;
     }
-    .match{
-      border:1px solid rgba(34,49,84,.8);
-      background: rgba(8,13,24,.35);
-      border-radius:12px;
-      padding:10px 10px;
-      cursor:pointer;
-      transition: all .12s ease;
-    }
-    .match:hover{ transform: translateY(-1px); background: rgba(8,13,24,.52);}
-    .match.sel{ border-color: rgba(74,163,255,.85); box-shadow: 0 0 0 2px rgba(74,163,255,.15) inset;}
-    .m-top{display:flex; justify-content:space-between; gap:8px; align-items:center;}
-    .league{font-size:12px; color:var(--muted)}
-    .time{font-size:12px; color:var(--muted)}
-    .teams{margin-top:6px; font-weight:600}
-    .kv{
-      display:grid;
-      grid-template-columns: 160px 1fr;
-      gap:10px;
-      border:1px solid rgba(34,49,84,.75);
-      border-radius:12px;
+    .brand{font-size:20px;font-weight:700;letter-spacing:.2px;}
+    .sub{margin-top:4px;color:var(--muted);font-size:12px;}
+    .status{font-size:12px;color:var(--muted);display:flex;gap:10px;align-items:center;white-space:nowrap;}
+    .pill{padding:6px 10px;border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:999px;display:inline-flex;gap:8px;align-items:center;}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--warn)}
+    .dot.ok{background:var(--accent2)}
+    main{padding:0 22px 24px;}
+    .grid{display:grid;grid-template-columns: 380px 1fr;gap:14px;}
+    @media (max-width: 980px){.grid{grid-template-columns:1fr}}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.25);
       overflow:hidden;
     }
-    .kv .k{
-      padding:10px 12px;
-      background: rgba(8,13,24,.45);
-      color:var(--muted);
-      font-size:12px;
-      border-right:1px solid rgba(34,49,84,.75);
+    .card h3{
+      margin:0;padding:14px 14px 10px;border-bottom:1px solid var(--line);
+      background:rgba(0,0,0,.08);font-size:13px;letter-spacing:.2px;font-weight:700;
     }
-    .kv .v{
-      padding:10px 12px;
-      font-size:13px;
+    .card .body{padding:14px;}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    label{font-size:12px;color:var(--muted)}
+    input[type="date"], input[type="text"]{
+      padding:10px 10px;border-radius:12px;border:1px solid var(--line);
+      background:rgba(0,0,0,.18);color:var(--txt);outline:none;
     }
-    .hr{height:1px; background: rgba(34,49,84,.75); margin:14px 0;}
-    .hint{
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px dashed rgba(34,49,84,.9);
-      color:var(--muted);
-      font-size:12px;
-      background: rgba(8,13,24,.25);
+    input[type="text"]{width:100%}
+    .btn{
+      padding:10px 14px;border-radius:12px;border:1px solid var(--line);
+      background:rgba(255,255,255,.06);color:var(--txt);cursor:pointer;font-weight:600;
     }
-    code{background: rgba(8,13,24,.55); padding:2px 6px; border-radius:8px; border:1px solid rgba(34,49,84,.8);}
+    .btn.primary{border-color:rgba(58,160,255,.35);background:rgba(58,160,255,.16);}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .leagues{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;}
+    .chk{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.12);user-select:none;}
+    .chk input{accent-color:var(--accent)}
+    .note{margin-top:10px;color:var(--muted);font-size:12px}
+    .list{margin-top:12px;display:flex;flex-direction:column;gap:10px;max-height:420px;overflow:auto;padding-right:4px;}
+    .item{padding:12px;border:1px solid var(--line);background:rgba(0,0,0,.14);border-radius:14px;cursor:pointer;}
+    .item:hover{border-color:rgba(58,160,255,.35)}
+    .item.active{border-color:rgba(58,160,255,.55); background:rgba(58,160,255,.10)}
+    .item .top{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;gap:10px;}
+    .item .mid{margin-top:6px;font-size:14px;font-weight:800;letter-spacing:.2px;}
+    .kv{display:grid;grid-template-columns: 140px 1fr;gap:10px;margin:0;}
+    .kv div{padding:10px 12px;border:1px solid var(--line);background:rgba(0,0,0,.12);border-radius:12px;font-size:12px;}
+    .k{color:var(--muted)}
+    .v{font-family:var(--mono);font-size:12px}
+    .muted{color:var(--muted)}
+    .box{padding:12px;border:1px solid var(--line);background:rgba(0,0,0,.12);border-radius:12px;}
+    pre{margin:0;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:12px;color:#dbe6ff;}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
+    @media (max-width:980px){.split{grid-template-columns:1fr}}
+    .badge{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.12);font-size:12px;color:var(--muted);}
+    .badge b{color:var(--txt)}
+    footer{padding:12px 22px 22px;color:var(--muted);font-size:12px;}
   </style>
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <div class="top">
-        <div>
-          <h1>PB Analyzer</h1>
-          <div class="sub">Seleziona data e lega → scegli una partita → (prossimo step) analisi: goal/Poisson/cards/corners/shots</div>
+<header>
+  <div>
+    <div class="brand">PB Analyzer</div>
+    <div class="sub">Seleziona data e lega → scegli una partita → Analizza (goal/Poisson/Under-Over). Poi aggiungiamo cards/corners/shots + screenshot.</div>
+  </div>
+  <div class="status">
+    <span class="pill"><span id="dot" class="dot"></span><span id="backendTxt">Backend: ...</span></span>
+    <span class="pill">Fixture: <b id="fixtureCount">-</b></span>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+    <section class="card">
+      <h3>Fixture</h3>
+      <div class="body">
+        <div class="row" style="justify-content:space-between;align-items:flex-end;">
+          <div style="flex:1;min-width:180px;">
+            <label for="dateInp">Data</label><br/>
+            <input id="dateInp" type="date" />
+          </div>
+          <button id="btnReload" class="btn primary">Ricarica</button>
         </div>
-        <div class="status" id="status">
-          Backend: <b id="be">-</b> · Fixture: <b id="fx">-</b>
+
+        <div style="margin-top:10px;">
+          <label for="searchInp">Ricerca</label><br/>
+          <input id="searchInp" type="text" placeholder="es: Juventus, Arsenal, Lazio..." />
+        </div>
+
+        <div style="margin-top:10px;">
+          <label>Leghe (maggiori)</label>
+          <div class="leagues">
+            <label class="chk"><input type="checkbox" class="lg" value="135" checked /> Serie A</label>
+            <label class="chk"><input type="checkbox" class="lg" value="39" checked /> Premier League</label>
+            <label class="chk"><input type="checkbox" class="lg" value="140" checked /> La Liga</label>
+            <label class="chk"><input type="checkbox" class="lg" value="78" checked /> Bundesliga</label>
+            <label class="chk"><input type="checkbox" class="lg" value="61" checked /> Ligue 1</label>
+          </div>
+          <div class="note">Nota: qui lavoriamo solo sulle leghe maggiori. Minori le aggiungiamo dopo.</div>
+        </div>
+
+        <div class="note" style="margin-top:12px;">Mostrate <b id="shownCount">0</b> partite (filtrate).</div>
+        <div id="fixturesList" class="list"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Match selezionato</h3>
+      <div class="body">
+        <div class="kv">
+          <div class="k">Competizione</div><div class="v" id="selLeague">-</div>
+          <div class="k">Kickoff (UTC)</div><div class="v" id="selKick">-</div>
+          <div class="k">Match</div><div class="v" id="selMatch">-</div>
+          <div class="k">Fixture ID</div><div class="v" id="selId">-</div>
+        </div>
+
+        <div class="row" style="justify-content:flex-end;margin-top:12px;">
+          <button id="btnAnalyze" class="btn primary" disabled>Analizza (prossimo step)</button>
+        </div>
+
+        <div class="note">
+          Endpoint usati:
+          <span class="badge"><b>GET</b> /api/fixtures</span>
+          <span class="badge"><b>POST</b> /api/analyze</span>
+        </div>
+
+        <div class="split">
+          <div class="box">
+            <div class="muted" style="margin-bottom:8px;"><b>Output analisi (raw)</b></div>
+            <pre id="analyzeRaw">Seleziona una partita e premi Analizza.</pre>
+          </div>
+          <div class="box">
+            <div class="muted" style="margin-bottom:8px;"><b>Note</b></div>
+            <div class="muted" style="font-size:12px;line-height:1.35">
+              - Ora stampiamo JSON. Nel prossimo step lo trasformiamo in:
+              <br/>• tabella medie gol + under/over
+              <br/>• Poisson (U/O 3.5) + confidenza 0–10
+              <br/>• suggerimento soglia value (1.5/2.5/3.5)
+              <br/><br/>Poi aggiungiamo shots/corners/cards e upload screenshot lineups.
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </header>
+    </section>
+  </div>
+</main>
 
-  <main class="wrap">
-    <div class="grid">
-      <!-- LEFT -->
-      <section class="card">
-        <div class="hd">
-          <div style="font-weight:700; font-size:13px;">Fixture</div>
-          <button id="btnReload">Ricarica</button>
+<footer>
+  Backend attuale: <span class="muted" id="backendUrlTxt"></span>
+</footer>
+
+<script>
+(() => {
+  const BACKEND = "https://pb-analyzer-backend2.vercel.app";
+  const els = {
+    dot: document.getElementById("dot"),
+    backendTxt: document.getElementById("backendTxt"),
+    backendUrlTxt: document.getElementById("backendUrlTxt"),
+    fixtureCount: document.getElementById("fixtureCount"),
+    shownCount: document.getElementById("shownCount"),
+    dateInp: document.getElementById("dateInp"),
+    searchInp: document.getElementById("searchInp"),
+    btnReload: document.getElementById("btnReload"),
+    fixturesList: document.getElementById("fixturesList"),
+    selLeague: document.getElementById("selLeague"),
+    selKick: document.getElementById("selKick"),
+    selMatch: document.getElementById("selMatch"),
+    selId: document.getElementById("selId"),
+    btnAnalyze: document.getElementById("btnAnalyze"),
+    analyzeRaw: document.getElementById("analyzeRaw"),
+  };
+
+  let allFixtures = [];
+  let selected = null;
+
+  function todayISO(){
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,"0");
+    const dd = String(d.getDate()).padStart(2,"0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function setBackendStatus(ok){
+    els.dot.classList.toggle("ok", !!ok);
+    els.backendTxt.textContent = ok ? "Backend: OK" : "Backend: KO";
+    els.backendUrlTxt.textContent = BACKEND;
+  }
+
+  async function ping(){
+    try{
+      const res = await fetch(`${BACKEND}/api/health`, { method:"GET" });
+      setBackendStatus(res.ok);
+    }catch(e){
+      setBackendStatus(false);
+    }
+  }
+
+  function getSelectedLeagueIds(){
+    return Array.from(document.querySelectorAll("input.lg"))
+      .filter(x => x.checked)
+      .map(x => x.value);
+  }
+
+  function clearSelection(){
+    selected = null;
+    els.selLeague.textContent = "-";
+    els.selKick.textContent = "-";
+    els.selMatch.textContent = "-";
+    els.selId.textContent = "-";
+    els.btnAnalyze.disabled = true;
+  }
+
+  function setSelection(f){
+    selected = f;
+    els.selLeague.textContent = f.league || "-";
+    els.selKick.textContent = String(f.kickoff_utc || "-").replace("T"," ").replace(":00+00:00"," UTC");
+    els.selMatch.textContent = `${f.home} vs ${f.away}`;
+    els.selId.textContent = String(f.fixture_id || "-");
+    els.btnAnalyze.disabled = !f.fixture_id;
+  }
+
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function renderList(){
+    const q = (els.searchInp.value || "").trim().toLowerCase();
+    const allowed = new Set(getSelectedLeagueIds());
+
+    const filtered = allFixtures.filter(f => {
+      if (allowed.size && f.league_id && !allowed.has(String(f.league_id))) return false;
+      if (!q) return true;
+      const hay = `${f.home} ${f.away} ${f.league}`.toLowerCase();
+      return hay.includes(q);
+    });
+
+    els.shownCount.textContent = String(filtered.length);
+    els.fixturesList.innerHTML = "";
+
+    filtered.forEach(f => {
+      const div = document.createElement("div");
+      div.className = "item" + (selected && selected.fixture_id === f.fixture_id ? " active" : "");
+      const when = String(f.kickoff_utc || "").replace("T"," ").replace(":00+00:00"," UTC");
+      div.innerHTML = `
+        <div class="top">
+          <span>${escapeHtml(f.league || "")}</span>
+          <span>${escapeHtml(when)}</span>
         </div>
-        <div class="bd">
-          <div class="row">
-            <div>
-              <label>Data</label><br/>
-              <input type="date" id="date" />
-            </div>
-            <div>
-              <label>Ricerca</label><br/>
-              <input type="text" id="q" placeholder="es: Juventus, Arsenal, Lazio..." />
-            </div>
-          </div>
-
-          <div style="margin-top:12px">
-            <label>Leghe</label>
-            <div class="row" style="margin-top:8px" id="leaguePills"></div>
-            <div class="small muted" style="margin-top:8px">
-              Nota: qui lavoriamo solo sulle leghe maggiori. Minori le aggiungiamo dopo.
-            </div>
-          </div>
-
-          <div class="hr"></div>
-
-          <div class="small muted" id="listInfo">Caricamento...</div>
-          <div class="list" id="list"></div>
-        </div>
-      </section>
-
-      <!-- RIGHT -->
-      <section class="card">
-        <div class="hd">
-          <div style="font-weight:700; font-size:13px;">Match selezionato</div>
-          <button id="btnAnalyze" disabled>Analizza (prossimo step)</button>
-        </div>
-        <div class="bd">
-          <div id="selEmpty" class="hint">
-            Seleziona una partita a sinistra. Poi aggiungiamo:
-            <ul style="margin:8px 0 0 18px; padding:0">
-              <li>Analisi Under/Over con Poisson</li>
-              <li>Probabilità Over/Under 3.5 + value threshold</li>
-              <li>Cards/fouls/corners/shots (Bet Builder)</li>
-              <li>Upload screenshot lineups (step successivo)</li>
-            </ul>
-          </div>
-
-          <div id="selWrap" style="display:none">
-            <div class="kv">
-              <div class="k">Competizione</div>
-              <div class="v" id="selLeague">-</div>
-              <div class="k">Kickoff (UTC)</div>
-              <div class="v" id="selKickoff">-</div>
-              <div class="k">Match</div>
-              <div class="v" id="selTeams">-</div>
-              <div class="k">Fixture ID</div>
-              <div class="v"><code id="selId">-</code></div>
-            </div>
-
-            <div class="hr"></div>
-
-            <div class="hint">
-              Prossimo endpoint: <code>/api/analyze</code> con <code>{ fixture_id }</code>.
-              Qui stamperemo:
-              medie gol, xG, Poisson, confidenza 0–10, e i suggerimenti Bet Builder.
-            </div>
-
-            <div style="margin-top:12px" class="small muted">
-              Debug: quando sarà pronto, il frontend chiamerà:
-              <br/><code id="debugCall">POST /api/analyze</code>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <script>
-    const BACKEND = "https://pb-analyzer-backend2.vercel.app";
-
-    // leghe maggiori (solo quelle richieste ora)
-    const LEAGUES = [
-      { id: "135", label: "Serie A" },
-      { id: "39",  label: "Premier League" },
-      { id: "140", label: "La Liga" },
-      { id: "78",  label: "Bundesliga" },
-      { id: "61",  label: "Ligue 1" },
-    ];
-
-    const state = {
-      fixturesAll: [],
-      selectedLeagues: new Set(LEAGUES.map(x => x.id)),
-      selected: null,
-      backendOk: false,
-    };
-
-    const $ = (id) => document.getElementById(id);
-
-    function isoTodayLocal() {
-      const d = new Date();
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      return `${y}-${m}-${day}`;
-    }
-
-    function fmtUtc(iso) {
-      try {
-        const d = new Date(iso);
-        const hh = String(d.getUTCHours()).padStart(2, "0");
-        const mm = String(d.getUTCMinutes()).padStart(2, "0");
-        return `${d.toISOString().slice(0,10)} ${hh}:${mm} UTC`;
-      } catch {
-        return String(iso || "-");
-      }
-    }
-
-    function renderLeaguePills() {
-      const box = $("leaguePills");
-      box.innerHTML = "";
-      for (const L of LEAGUES) {
-        const id = `lg_${L.id}`;
-        const pill = document.createElement("label");
-        pill.className = "pill";
-        pill.innerHTML = `
-          <input type="checkbox" id="${id}" ${state.selectedLeagues.has(L.id) ? "checked" : ""} />
-          <span>${L.label}</span>
-        `;
-        pill.querySelector("input").addEventListener("change", (e) => {
-          if (e.target.checked) state.selectedLeagues.add(L.id);
-          else state.selectedLeagues.delete(L.id);
-          renderList();
-        });
-        box.appendChild(pill);
-      }
-    }
-
-    function setStatus() {
-      $("be").textContent = state.backendOk ? "OK" : "KO";
-      $("fx").textContent = state.fixturesAll.length ? String(state.fixturesAll.length) : "-";
-    }
-
-    async function checkBackend() {
-      try {
-        const r = await fetch(`${BACKEND}/api/health?v=${Date.now()}`, { cache: "no-store" });
-        state.backendOk = r.ok;
-      } catch {
-        state.backendOk = false;
-      }
-      setStatus();
-    }
-
-    async function loadFixtures() {
-      const date = $("date").value || isoTodayLocal();
-      $("list").innerHTML = "";
-      $("listInfo").textContent = "Caricamento fixture...";
-      state.fixturesAll = [];
-      state.selected = null;
-      renderSelected();
-
-      const url = `${BACKEND}/api/fixtures?date=${encodeURIComponent(date)}&v=${Date.now()}`;
-      try {
-        const r = await fetch(url, { cache: "no-store" });
-        const json = await r.json();
-        const fixtures = (json.fixtures || json.fixtures === 0) ? json.fixtures : (json.fixtures || []);
-        // in fixtures-v3 la struttura è {fixtures:[...]} ed è ok
-        state.fixturesAll = json.fixtures || [];
-        $("listInfo").textContent = `Trovate ${state.fixturesAll.length} partite (data: ${json.date || date}).`;
-      } catch (e) {
-        $("listInfo").textContent = "Errore caricamento fixture. Controlla backend o rate limit API-Football.";
-        state.fixturesAll = [];
-      }
-
-      setStatus();
-      renderList();
-    }
-
-    function getFilteredFixtures() {
-      const q = ($("q").value || "").trim().toLowerCase();
-      const leagues = state.selectedLeagues;
-
-      return state.fixturesAll
-        .filter(f => leagues.has(String(f.league_id || "")) || leagues.has(String(f.league_id)) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || true) // fallback
-        .filter(f => {
-          // fixtures-v3 ti dà league_id come numero; normalize a string
-          const lid = String(f.league_id || "");
-          if (!leagues.has(lid)) return false;
-
-          if (!q) return true;
-          const home = String(f.home || "").toLowerCase();
-          const away = String(f.away || "").toLowerCase();
-          const league = String(f.league || "").toLowerCase();
-          return home.includes(q) || away.includes(q) || league.includes(q);
-        });
-    }
-
-    function renderList() {
-      const list = $("list");
-      list.innerHTML = "";
-
-      const items = getFilteredFixtures();
-
-      $("listInfo").textContent = `Mostrate ${items.length} partite (filtrate).`;
-
-      for (const f of items) {
-        const div = document.createElement("div");
-        div.className = "match" + (state.selected && state.selected.fixture_id === f.fixture_id ? " sel" : "");
-        div.innerHTML = `
-          <div class="m-top">
-            <div class="league">${f.league || "-"}</div>
-            <div class="time">${fmtUtc(f.kickoff_utc)}</div>
-          </div>
-          <div class="teams">${f.home || "-"} vs ${f.away || "-"}</div>
-        `;
-        div.addEventListener("click", () => {
-          state.selected = f;
-          renderList();
-          renderSelected();
-        });
-        list.appendChild(div);
-      }
-    }
-
-    function renderSelected() {
-      const s = state.selected;
-
-      $("btnAnalyze").disabled = !s;
-
-      if (!s) {
-        $("selEmpty").style.display = "";
-        $("selWrap").style.display = "none";
-        return;
-      }
-
-      $("selEmpty").style.display = "none";
-      $("selWrap").style.display = "";
-
-      $("selLeague").textContent = s.league || "-";
-      $("selKickoff").textContent = fmtUtc(s.kickoff_utc);
-      $("selTeams").textContent = `${s.home || "-"} vs ${s.away || "-"}`;
-      $("selId").textContent = String(s.fixture_id || "-");
-
-      $("debugCall").textContent = `POST ${BACKEND}/api/analyze  body: { "fixture_id": ${String(s.fixture_id || 0)} }`;
-    }
-
-    function wire() {
-      $("date").value = isoTodayLocal();
-
-      $("btnReload").addEventListener("click", loadFixtures);
-      $("q").addEventListener("input", renderList);
-
-      $("btnAnalyze").addEventListener("click", () => {
-        // placeholder: qui chiamiamo /api/analyze nel prossimo step
-        alert("Analisi non ancora implementata. Prossimo step: endpoint /api/analyze.");
+        <div class="mid">${escapeHtml(f.home || "")} vs ${escapeHtml(f.away || "")}</div>
+      `;
+      div.addEventListener("click", () => {
+        setSelection(f);
+        renderList();
       });
-    }
+      els.fixturesList.appendChild(div);
+    });
 
-    (async function init(){
-      wire();
-      renderLeaguePills();
-      await checkBackend();
-      await loadFixtures();
-    })();
-  </script>
+    if (filtered.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "muted";
+      empty.style.padding = "10px 2px";
+      empty.textContent = "Nessuna partita trovata per questa data/filtri.";
+      els.fixturesList.appendChild(empty);
+    }
+  }
+
+  async function loadFixtures(){
+    clearSelection();
+    els.fixturesList.innerHTML = `<div class="muted">Carico fixture...</div>`;
+    els.fixtureCount.textContent = "-";
+    els.shownCount.textContent = "0";
+
+    const date = els.dateInp.value || todayISO();
+    try{
+      const res = await fetch(`${BACKEND}/api/fixtures?v=3&date=${encodeURIComponent(date)}`, { method:"GET" });
+      if (!res.ok) throw new Error(`fixtures ${res.status}`);
+      const data = await res.json();
+      allFixtures = Array.isArray(data.fixtures) ? data.fixtures : [];
+      els.fixtureCount.textContent = String(allFixtures.length);
+      renderList();
+    }catch(e){
+      els.fixturesList.innerHTML = `<div class="muted">Errore caricamento fixture. Apri console.</div>`;
+      console.error(e);
+    }
+  }
+
+  async function runAnalyze(){
+    if (!selected || !selected.fixture_id) return;
+    els.analyzeRaw.textContent = "Analisi in corso...";
+    try{
+      const res = await fetch(`${BACKEND}/api/analyze`, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ fixture_id: selected.fixture_id })
+      });
+      if (!res.ok){
+        const t = await res.text().catch(()=> "");
+        throw new Error(`analyze ${res.status} ${t}`);
+      }
+      const data = await res.json();
+      window.lastAnalysis = data;
+      els.analyzeRaw.textContent = JSON.stringify(data, null, 2);
+    }catch(e){
+      console.error(e);
+      els.analyzeRaw.textContent = "Errore analisi. Apri console.";
+    }
+  }
+
+  // init
+  els.dateInp.value = todayISO();
+  els.searchInp.addEventListener("input", () => renderList());
+  document.querySelectorAll("input.lg").forEach(chk => chk.addEventListener("change", () => renderList()));
+  els.btnReload.addEventListener("click", () => loadFixtures());
+  els.btnAnalyze.addEventListener("click", () => runAnalyze());
+
+  ping().then(loadFixtures);
+})();
+</script>
 </body>
 </html>
