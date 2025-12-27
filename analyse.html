@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PB Analyzer</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#121b2e;
+      --muted:#8aa0c6;
+      --text:#e7eefc;
+      --border:#223154;
+      --accent:#4aa3ff;
+      --danger:#ff4a7a;
+      --ok:#3ddc97;
+      --warn:#ffd166;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--font);
+      background: radial-gradient(1200px 700px at 20% -10%, rgba(74,163,255,.22), transparent 60%),
+                  radial-gradient(900px 500px at 90% 10%, rgba(61,220,151,.14), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    a{color:var(--accent); text-decoration:none}
+    header{
+      padding:22px 18px 12px;
+      border-bottom:1px solid rgba(34,49,84,.7);
+      position:sticky; top:0;
+      backdrop-filter: blur(10px);
+      background: rgba(11,18,32,.78);
+      z-index:10;
+    }
+    .wrap{max-width:1200px; margin:0 auto; padding:0 14px;}
+    .top{
+      display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
+      flex-wrap:wrap;
+    }
+    h1{font-size:18px; margin:0; letter-spacing:.2px;}
+    .sub{color:var(--muted); font-size:12px; margin-top:4px}
+    .grid{
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap:16px;
+      padding:16px 0 28px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns: 1fr; }
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(18,27,46,.92), rgba(18,27,46,.78));
+      border:1px solid rgba(34,49,84,.8);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(34,49,84,.7);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .card .bd{ padding:14px; }
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+    label{font-size:12px; color:var(--muted)}
+    input[type="date"], input[type="text"]{
+      padding:10px 10px;
+      border-radius:10px;
+      border:1px solid rgba(34,49,84,.9);
+      background: rgba(8,13,24,.55);
+      color:var(--text);
+      outline:none;
+    }
+    input[type="text"]{min-width:220px}
+    button{
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid rgba(34,49,84,.9);
+      background: rgba(74,163,255,.15);
+      color:var(--text);
+      cursor:pointer;
+    }
+    button:hover{background: rgba(74,163,255,.22);}
+    button:disabled{opacity:.55; cursor:not-allowed;}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(34,49,84,.9);
+      background: rgba(8,13,24,.45);
+      font-size:12px;
+      user-select:none;
+      cursor:pointer;
+    }
+    .pill input{transform: translateY(1px);}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    .status{
+      font-size:12px;
+      color:var(--muted);
+    }
+    .status b{color:var(--text)}
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      max-height: 62vh;
+      overflow:auto;
+      padding-right:4px;
+    }
+    .match{
+      border:1px solid rgba(34,49,84,.8);
+      background: rgba(8,13,24,.35);
+      border-radius:12px;
+      padding:10px 10px;
+      cursor:pointer;
+      transition: all .12s ease;
+    }
+    .match:hover{ transform: translateY(-1px); background: rgba(8,13,24,.52);}
+    .match.sel{ border-color: rgba(74,163,255,.85); box-shadow: 0 0 0 2px rgba(74,163,255,.15) inset;}
+    .m-top{display:flex; justify-content:space-between; gap:8px; align-items:center;}
+    .league{font-size:12px; color:var(--muted)}
+    .time{font-size:12px; color:var(--muted)}
+    .teams{margin-top:6px; font-weight:600}
+    .kv{
+      display:grid;
+      grid-template-columns: 160px 1fr;
+      gap:10px;
+      border:1px solid rgba(34,49,84,.75);
+      border-radius:12px;
+      overflow:hidden;
+    }
+    .kv .k{
+      padding:10px 12px;
+      background: rgba(8,13,24,.45);
+      color:var(--muted);
+      font-size:12px;
+      border-right:1px solid rgba(34,49,84,.75);
+    }
+    .kv .v{
+      padding:10px 12px;
+      font-size:13px;
+    }
+    .hr{height:1px; background: rgba(34,49,84,.75); margin:14px 0;}
+    .hint{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px dashed rgba(34,49,84,.9);
+      color:var(--muted);
+      font-size:12px;
+      background: rgba(8,13,24,.25);
+    }
+    code{background: rgba(8,13,24,.55); padding:2px 6px; border-radius:8px; border:1px solid rgba(34,49,84,.8);}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="top">
+        <div>
+          <h1>PB Analyzer</h1>
+          <div class="sub">Seleziona data e lega → scegli una partita → (prossimo step) analisi: goal/Poisson/cards/corners/shots</div>
+        </div>
+        <div class="status" id="status">
+          Backend: <b id="be">-</b> · Fixture: <b id="fx">-</b>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid">
+      <!-- LEFT -->
+      <section class="card">
+        <div class="hd">
+          <div style="font-weight:700; font-size:13px;">Fixture</div>
+          <button id="btnReload">Ricarica</button>
+        </div>
+        <div class="bd">
+          <div class="row">
+            <div>
+              <label>Data</label><br/>
+              <input type="date" id="date" />
+            </div>
+            <div>
+              <label>Ricerca</label><br/>
+              <input type="text" id="q" placeholder="es: Juventus, Arsenal, Lazio..." />
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <label>Leghe</label>
+            <div class="row" style="margin-top:8px" id="leaguePills"></div>
+            <div class="small muted" style="margin-top:8px">
+              Nota: qui lavoriamo solo sulle leghe maggiori. Minori le aggiungiamo dopo.
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="small muted" id="listInfo">Caricamento...</div>
+          <div class="list" id="list"></div>
+        </div>
+      </section>
+
+      <!-- RIGHT -->
+      <section class="card">
+        <div class="hd">
+          <div style="font-weight:700; font-size:13px;">Match selezionato</div>
+          <button id="btnAnalyze" disabled>Analizza (prossimo step)</button>
+        </div>
+        <div class="bd">
+          <div id="selEmpty" class="hint">
+            Seleziona una partita a sinistra. Poi aggiungiamo:
+            <ul style="margin:8px 0 0 18px; padding:0">
+              <li>Analisi Under/Over con Poisson</li>
+              <li>Probabilità Over/Under 3.5 + value threshold</li>
+              <li>Cards/fouls/corners/shots (Bet Builder)</li>
+              <li>Upload screenshot lineups (step successivo)</li>
+            </ul>
+          </div>
+
+          <div id="selWrap" style="display:none">
+            <div class="kv">
+              <div class="k">Competizione</div>
+              <div class="v" id="selLeague">-</div>
+              <div class="k">Kickoff (UTC)</div>
+              <div class="v" id="selKickoff">-</div>
+              <div class="k">Match</div>
+              <div class="v" id="selTeams">-</div>
+              <div class="k">Fixture ID</div>
+              <div class="v"><code id="selId">-</code></div>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="hint">
+              Prossimo endpoint: <code>/api/analyze</code> con <code>{ fixture_id }</code>.
+              Qui stamperemo:
+              medie gol, xG, Poisson, confidenza 0–10, e i suggerimenti Bet Builder.
+            </div>
+
+            <div style="margin-top:12px" class="small muted">
+              Debug: quando sarà pronto, il frontend chiamerà:
+              <br/><code id="debugCall">POST /api/analyze</code>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const BACKEND = "https://pb-analyzer-backend2.vercel.app";
+
+    // leghe maggiori (solo quelle richieste ora)
+    const LEAGUES = [
+      { id: "135", label: "Serie A" },
+      { id: "39",  label: "Premier League" },
+      { id: "140", label: "La Liga" },
+      { id: "78",  label: "Bundesliga" },
+      { id: "61",  label: "Ligue 1" },
+    ];
+
+    const state = {
+      fixturesAll: [],
+      selectedLeagues: new Set(LEAGUES.map(x => x.id)),
+      selected: null,
+      backendOk: false,
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function isoTodayLocal() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+
+    function fmtUtc(iso) {
+      try {
+        const d = new Date(iso);
+        const hh = String(d.getUTCHours()).padStart(2, "0");
+        const mm = String(d.getUTCMinutes()).padStart(2, "0");
+        return `${d.toISOString().slice(0,10)} ${hh}:${mm} UTC`;
+      } catch {
+        return String(iso || "-");
+      }
+    }
+
+    function renderLeaguePills() {
+      const box = $("leaguePills");
+      box.innerHTML = "";
+      for (const L of LEAGUES) {
+        const id = `lg_${L.id}`;
+        const pill = document.createElement("label");
+        pill.className = "pill";
+        pill.innerHTML = `
+          <input type="checkbox" id="${id}" ${state.selectedLeagues.has(L.id) ? "checked" : ""} />
+          <span>${L.label}</span>
+        `;
+        pill.querySelector("input").addEventListener("change", (e) => {
+          if (e.target.checked) state.selectedLeagues.add(L.id);
+          else state.selectedLeagues.delete(L.id);
+          renderList();
+        });
+        box.appendChild(pill);
+      }
+    }
+
+    function setStatus() {
+      $("be").textContent = state.backendOk ? "OK" : "KO";
+      $("fx").textContent = state.fixturesAll.length ? String(state.fixturesAll.length) : "-";
+    }
+
+    async function checkBackend() {
+      try {
+        const r = await fetch(`${BACKEND}/api/health?v=${Date.now()}`, { cache: "no-store" });
+        state.backendOk = r.ok;
+      } catch {
+        state.backendOk = false;
+      }
+      setStatus();
+    }
+
+    async function loadFixtures() {
+      const date = $("date").value || isoTodayLocal();
+      $("list").innerHTML = "";
+      $("listInfo").textContent = "Caricamento fixture...";
+      state.fixturesAll = [];
+      state.selected = null;
+      renderSelected();
+
+      const url = `${BACKEND}/api/fixtures?date=${encodeURIComponent(date)}&v=${Date.now()}`;
+      try {
+        const r = await fetch(url, { cache: "no-store" });
+        const json = await r.json();
+        const fixtures = (json.fixtures || json.fixtures === 0) ? json.fixtures : (json.fixtures || []);
+        // in fixtures-v3 la struttura è {fixtures:[...]} ed è ok
+        state.fixturesAll = json.fixtures || [];
+        $("listInfo").textContent = `Trovate ${state.fixturesAll.length} partite (data: ${json.date || date}).`;
+      } catch (e) {
+        $("listInfo").textContent = "Errore caricamento fixture. Controlla backend o rate limit API-Football.";
+        state.fixturesAll = [];
+      }
+
+      setStatus();
+      renderList();
+    }
+
+    function getFilteredFixtures() {
+      const q = ($("q").value || "").trim().toLowerCase();
+      const leagues = state.selectedLeagues;
+
+      return state.fixturesAll
+        .filter(f => leagues.has(String(f.league_id || "")) || leagues.has(String(f.league_id)) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || leagues.has(String(f.league_id ?? "")) || true) // fallback
+        .filter(f => {
+          // fixtures-v3 ti dà league_id come numero; normalize a string
+          const lid = String(f.league_id || "");
+          if (!leagues.has(lid)) return false;
+
+          if (!q) return true;
+          const home = String(f.home || "").toLowerCase();
+          const away = String(f.away || "").toLowerCase();
+          const league = String(f.league || "").toLowerCase();
+          return home.includes(q) || away.includes(q) || league.includes(q);
+        });
+    }
+
+    function renderList() {
+      const list = $("list");
+      list.innerHTML = "";
+
+      const items = getFilteredFixtures();
+
+      $("listInfo").textContent = `Mostrate ${items.length} partite (filtrate).`;
+
+      for (const f of items) {
+        const div = document.createElement("div");
+        div.className = "match" + (state.selected && state.selected.fixture_id === f.fixture_id ? " sel" : "");
+        div.innerHTML = `
+          <div class="m-top">
+            <div class="league">${f.league || "-"}</div>
+            <div class="time">${fmtUtc(f.kickoff_utc)}</div>
+          </div>
+          <div class="teams">${f.home || "-"} vs ${f.away || "-"}</div>
+        `;
+        div.addEventListener("click", () => {
+          state.selected = f;
+          renderList();
+          renderSelected();
+        });
+        list.appendChild(div);
+      }
+    }
+
+    function renderSelected() {
+      const s = state.selected;
+
+      $("btnAnalyze").disabled = !s;
+
+      if (!s) {
+        $("selEmpty").style.display = "";
+        $("selWrap").style.display = "none";
+        return;
+      }
+
+      $("selEmpty").style.display = "none";
+      $("selWrap").style.display = "";
+
+      $("selLeague").textContent = s.league || "-";
+      $("selKickoff").textContent = fmtUtc(s.kickoff_utc);
+      $("selTeams").textContent = `${s.home || "-"} vs ${s.away || "-"}`;
+      $("selId").textContent = String(s.fixture_id || "-");
+
+      $("debugCall").textContent = `POST ${BACKEND}/api/analyze  body: { "fixture_id": ${String(s.fixture_id || 0)} }`;
+    }
+
+    function wire() {
+      $("date").value = isoTodayLocal();
+
+      $("btnReload").addEventListener("click", loadFixtures);
+      $("q").addEventListener("input", renderList);
+
+      $("btnAnalyze").addEventListener("click", () => {
+        // placeholder: qui chiamiamo /api/analyze nel prossimo step
+        alert("Analisi non ancora implementata. Prossimo step: endpoint /api/analyze.");
+      });
+    }
+
+    (async function init(){
+      wire();
+      renderLeaguePills();
+      await checkBackend();
+      await loadFixtures();
+    })();
+  </script>
+</body>
+</html>
