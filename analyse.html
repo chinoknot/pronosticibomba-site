@@ -388,7 +388,15 @@
     return 1 - poissonCDF(threshold, lambda);
   }
 
-  // --------- FIX: render esotiche leggendo exotics.totals + exotics.teams ----------
+  // helper: legge sia exotics.teams.*.season_avgs.* sia campo flat (compat)
+  function readTeamAvg(teamObj, key){
+    if (!teamObj) return null;
+    const sa = teamObj.season_avgs || teamObj.seasonAvgs || null;
+    if (sa && (key in sa)) return sa[key];
+    if (key in teamObj) return teamObj[key];
+    return null;
+  }
+
   function renderAnalysis(data){
     const pretty = document.getElementById("analyzePretty");
     const goalBox = document.getElementById("goalSummary");
@@ -397,7 +405,6 @@
     const debugBox = document.getElementById("debugBox");
     if (!pretty || !goalBox || !teamBox || !playersBox) return;
 
-    // reset
     goalBox.innerHTML = "";
     teamBox.innerHTML = "";
     playersBox.innerHTML = "";
@@ -426,7 +433,7 @@
       goalBox.innerHTML = `<div class="muted">Goal model non disponibile.</div>`;
     }
 
-    // ---- EXOTICS TOTALS (CORRETTO) ----
+    // ---- EXOTICS ----
     const ex = data?.exotics || {};
     const totals = ex?.totals || {};
 
@@ -438,7 +445,6 @@
       return `<div class="lbl">${label}</div><div class="val">mean ${mTxt} — line ${lTxt}</div>`;
     }
 
-    // ---- EXOTICS TEAMS AVG (CORRETTO) ----
     const th = ex?.teams?.home || {};
     const ta = ex?.teams?.away || {};
 
@@ -464,29 +470,29 @@
       <div class="muted" style="margin-top:8px">Season/Recent avgs (se disponibili):</div>
 
       <div class="kv2" style="margin-top:10px">
-        <div class="lbl">${escapeHtml(homeName)} — corners_for_pg</div><div class="val">${vNum(th?.corners_for_pg)}</div>
-        <div class="lbl">${escapeHtml(homeName)} — corners_against_pg</div><div class="val">${vNum(th?.corners_against_pg)}</div>
-        <div class="lbl">${escapeHtml(homeName)} — fouls_for_pg</div><div class="val">${vNum(th?.fouls_for_pg)}</div>
-        <div class="lbl">${escapeHtml(homeName)} — fouls_against_pg</div><div class="val">${vNum(th?.fouls_against_pg)}</div>
-        <div class="lbl">${escapeHtml(homeName)} — shots_for_pg</div><div class="val">${vNum(th?.shots_for_pg)}</div>
-        <div class="lbl">${escapeHtml(homeName)} — sot_for_pg</div><div class="val">${vNum(th?.sot_for_pg)}</div>
+        <div class="lbl">${escapeHtml(homeName)} — corners_for_pg</div><div class="val">${vNum(readTeamAvg(th,"corners_for_pg"))}</div>
+        <div class="lbl">${escapeHtml(homeName)} — corners_against_pg</div><div class="val">${vNum(readTeamAvg(th,"corners_against_pg"))}</div>
+        <div class="lbl">${escapeHtml(homeName)} — fouls_for_pg</div><div class="val">${vNum(readTeamAvg(th,"fouls_for_pg"))}</div>
+        <div class="lbl">${escapeHtml(homeName)} — fouls_against_pg</div><div class="val">${vNum(readTeamAvg(th,"fouls_against_pg"))}</div>
+        <div class="lbl">${escapeHtml(homeName)} — shots_for_pg</div><div class="val">${vNum(readTeamAvg(th,"shots_for_pg"))}</div>
+        <div class="lbl">${escapeHtml(homeName)} — sot_for_pg</div><div class="val">${vNum(readTeamAvg(th,"sot_for_pg"))}</div>
 
-        <div class="lbl">${escapeHtml(awayName)} — corners_for_pg</div><div class="val">${vNum(ta?.corners_for_pg)}</div>
-        <div class="lbl">${escapeHtml(awayName)} — corners_against_pg</div><div class="val">${vNum(ta?.corners_against_pg)}</div>
-        <div class="lbl">${escapeHtml(awayName)} — fouls_for_pg</div><div class="val">${vNum(ta?.fouls_for_pg)}</div>
-        <div class="lbl">${escapeHtml(awayName)} — fouls_against_pg</div><div class="val">${vNum(ta?.fouls_against_pg)}</div>
-        <div class="lbl">${escapeHtml(awayName)} — shots_for_pg</div><div class="val">${vNum(ta?.shots_for_pg)}</div>
-        <div class="lbl">${escapeHtml(awayName)} — sot_for_pg</div><div class="val">${vNum(ta?.sot_for_pg)}</div>
+        <div class="lbl">${escapeHtml(awayName)} — corners_for_pg</div><div class="val">${vNum(readTeamAvg(ta,"corners_for_pg"))}</div>
+        <div class="lbl">${escapeHtml(awayName)} — corners_against_pg</div><div class="val">${vNum(readTeamAvg(ta,"corners_against_pg"))}</div>
+        <div class="lbl">${escapeHtml(awayName)} — fouls_for_pg</div><div class="val">${vNum(readTeamAvg(ta,"fouls_for_pg"))}</div>
+        <div class="lbl">${escapeHtml(awayName)} — fouls_against_pg</div><div class="val">${vNum(readTeamAvg(ta,"fouls_against_pg"))}</div>
+        <div class="lbl">${escapeHtml(awayName)} — shots_for_pg</div><div class="val">${vNum(readTeamAvg(ta,"shots_for_pg"))}</div>
+        <div class="lbl">${escapeHtml(awayName)} — sot_for_pg</div><div class="val">${vNum(readTeamAvg(ta,"sot_for_pg"))}</div>
       </div>
 
       <div class="muted" style="margin-top:10px">
         Nota: se qui vedi n/d, significa che backend ha risposto con null (non “problema UI”).
-        Controlla in raw JSON: <b>exotics.totals</b> e <b>exotics.teams</b>.
+        Controlla in raw JSON: <b>exotics.totals</b>, <b>exotics.teams</b>, e ora anche <b>exotics.meta</b>.
       </div>
     `;
     teamBox.innerHTML = teamHtml;
 
-    // ---- PLAYERS (usa exotics.players.* come nel backend) ----
+    // ---- PLAYERS ----
     const pl = ex?.players || {};
     const ph = pl?.home || {};
     const pa = pl?.away || {};
@@ -542,12 +548,17 @@
     if (debugBox){
       const v = data?.version || "-";
       const fid = data?.fixture?.fixture_id || selected?.fixture_id || "-";
+      const meta = data?.exotics?.meta || null;
+
       debugBox.innerHTML = `
         <div class="kv2">
           <div class="lbl">Version</div><div class="val">${escapeHtml(v)}</div>
           <div class="lbl">Fixture ID</div><div class="val">${escapeHtml(fid)}</div>
           <div class="lbl">Backend</div><div class="val">${escapeHtml(BACKEND)}</div>
         </div>
+        <div class="hr"></div>
+        <div class="muted">exotics.meta (debug):</div>
+        <pre style="margin-top:8px">${escapeHtml(JSON.stringify(meta, null, 2))}</pre>
       `;
     }
 
