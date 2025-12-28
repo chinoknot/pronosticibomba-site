@@ -414,158 +414,49 @@
 
   
   function renderBets(bets){
-    const betsBox = document.getElementById("betsBox");
-    if (!betsBox) return;
+  // Returns HTML string (so template literals won't print "undefined")
+  if(!bets) return "";
 
-    const safe = bets?.safe || bets?.easy || null;
-    const boost = bets?.boost || bets?.medium || null;
-    const bomba = bets?.bomba || bets?.hard || null;
+  function pillHTML(txt, cls){
+    return `<span class="pill ${cls||""}">${escapeHtml(txt||"")}</span>`;
+  }
+  function fmtLine(v){ return (v===null || v===undefined) ? "n/d" : String(v); }
 
-    const blocks = [
-      { key:"SAFE Triple (quota stimata ~5–6)", b: safe, kind:"good" },
-      { key:"BOOST Triple (quota stimata ~10–12)", b: boost, kind:"warn" },
-      { key:"BOMBA Triple (quota stimata 20+)", b: bomba, kind:"bad" },
-    ].filter(x => x.b);
-
-    if (!blocks.length){
-      betsBox.innerHTML = `<div class="muted">Bets non disponibili in risposta.</div>`;
-      return;
-    }
-
-    function fmtOdds(x){ return (typeof x==="number" && isFinite(x)) ? x.toFixed(2) : "n/d"; }
-    function fmtProb(x){ return (typeof x==="number" && isFinite(x)) ? (x*100).toFixed(1)+"%" : "n/d"; }
-    function legText(leg){
-      const m = leg?.market || leg?.label || leg?.name || "Pick";
-      const ln = (leg?.line === null || leg?.line === undefined) ? "" : ` ${leg.line}`;
-      const side = leg?.side ? ` (${leg.side})` : "";
-      return `${m}${ln}${side}`;
-    }
-
-    let out = `<div class="muted" style="margin-bottom:8px">PB Triple Builder (stimata)</div>`;
-    for (const blk of blocks){
-      const b = blk.b;
-      out += `<div style="margin-top:10px">${pill(blk.key, blk.kind)} <span class="muted" style="margin-left:8px">odds stimata: <b>${fmtOdds(b?.odds_est)}</b> • prob tot: <b>${fmtProb(b?.prob_est)}</b></span></div>`;
-      const legs = Array.isArray(b?.legs) ? b.legs : [];
-      if (!legs.length){
-        out += `<div class="muted" style="margin-top:6px">Nessuna selezione.</div>`;
-        continue;
-      }
-      out += `<div class="kv2" style="margin-top:6px">`;
-      for (const leg of legs){
-        out += `<div class="muted">${escapeHtml(legText(leg))}</div><div class="muted">odds ${fmtOdds(leg?.odds_est)} • pr ${fmtProb(leg?.prob_est)}</div>`;
-      }
-      out += `</div>`;
-      if (b?.note){
-        out += `<div class="muted" style="margin-top:6px">${escapeHtml(String(b.note))}</div>`;
-      }
-    }
-    betsBox.innerHTML = out;
+  function legLine(leg){
+    const market = escapeHtml(leg?.market || "");
+    const line = fmtLine(leg?.line);
+    const note = leg?.note ? `<span class="muted2">${escapeHtml(leg.note)}</span>` : "";
+    return `<div class="betRow"><div>${market}</div><div class="betVal">Over ${line} ${note}</div></div>`;
   }
 
-
-  function renderAnalysis(data){
-    const pretty = document.getElementById("analyzePretty");
-    const goalBox = document.getElementById("goalSummary");
-    const teamBox = document.getElementById("exoticTeam");
-    const playersBox = document.getElementById("exoticPlayers");
-    const debugBox = document.getElementById("debugBox");
-    if (!pretty || !goalBox || !teamBox || !playersBox) return;
-
-    // reset
-    goalBox.innerHTML = "";
-    teamBox.innerHTML = "";
-    playersBox.innerHTML = "";
-    if (debugBox) debugBox.innerHTML = "";
-
-    // ---- GOALS (Poisson) ----
-    const gm = data?.goals_model || {};
-    const lamH = gm.lambda_home ?? gm.home_lambda ?? gm.mu_home ?? null;
-    const lamA = gm.lambda_away ?? gm.away_lambda ?? gm.mu_away ?? null;
-    const lamT = (typeof lamH === "number" && typeof lamA === "number") ? (lamH + lamA) : (gm.lambda_total ?? gm.mu_total ?? null);
-
-    if (typeof lamT === "number" && isFinite(lamT)){
-      const pOver15 = poissonOver(1, lamT);
-      const pOver25 = poissonOver(2, lamT);
-      const pOver35 = poissonOver(3, lamT);
-
-      goalBox.innerHTML = `
-        <div class="muted">λ totale: <b>${fmt(lamT,2)}</b> (home ${fmt(lamH,2)} / away ${fmt(lamA,2)})</div>
-        <div class="kv2" style="margin-top:10px">
-          <div class="lbl">P Over 1.5</div><div class="val">${pct(pOver15)}</div>
-          <div class="lbl">P Over 2.5</div><div class="val">${pct(pOver25)}</div>
-          <div class="lbl">P Over 3.5</div><div class="val">${pct(pOver35)}</div>
+  function block(titlePill, b){
+    if(!b || !Array.isArray(b.legs) || !b.legs.length) return "";
+    const name = escapeHtml(b.name || "");
+    const target = escapeHtml(b.target_odds || "");
+    const legs = b.legs.map(legLine).join("");
+    return `
+      <div class="betBlock">
+        <div class="betHead">
+          <div class="betTitle">${titlePill} <span class="muted2">${name}</span></div>
+          <div class="muted2">quota stimata: <b>${target || "n/d"}</b></div>
         </div>
-      `;
-    } else {
-      goalBox.innerHTML = `<div class="muted">Goal model non disponibile.</div>`;
-    }
-
-    // ---- EXOTICS TOTALS (CORRETTO) ----
-    const ex = data?.exotics || {};
-    const totals = ex?.totals || {};
-
-    function totRow(label, obj){
-      const m = obj?.mean;
-      const l = obj?.line;
-      const mTxt = (typeof m === "number" && isFinite(m)) ? fmt(m,2) : "n/d";
-      const lTxt = (typeof l === "number" && isFinite(l)) ? fmt(l,1) : (l != null ? String(l) : "n/d");
-      return `<div class="lbl">${label}</div><div class="val">mean ${mTxt} — line ${lTxt}</div>`;
-    }
-
-    // ---- EXOTICS TEAMS AVG (CORRETTO) ----
-    const th = ex?.teams?.home || {};
-    const ta = ex?.teams?.away || {};
-
-    function vNum(x){
-      return (typeof x === "number" && isFinite(x)) ? fmt(x,2) : "n/d";
-    }
-
-    const homeName = th?.name || data?.fixture?.home?.name || "Home";
-    const awayName = ta?.name || data?.fixture?.away?.name || "Away";
-
-    const teamHtml = `
-      <div class="muted"><b>Totali match</b> (basati su ultimi match FT + confronto home_for vs away_against)</div>
-      <div class="kv2">
-        ${totRow("Shots", totals?.shots_total)}
-        ${totRow("Shots on Target", totals?.sot_total)}
-        ${totRow("Corners", totals?.corners_total)}
-        ${totRow("Fouls", totals?.fouls_total)}
-        ${totRow("Cards (yellow)", totals?.cards_total)}
-      </div>
-
-      <div class="hr"></div>
-      <div class="muted">Home/Away: ${escapeHtml(homeName)} vs ${escapeHtml(awayName)}</div>
-      <div class="muted" style="margin-top:8px">Season/Recent avgs (se disponibili):</div>
-
-      <div class="kv2" style="margin-top:10px">
-        <div class="lbl">${escapeHtml(homeName)} — corners_for_pg</div><div class="val">${vNum(th?.corners_for_pg)}</div>
-        <div class="lbl">${escapeHtml(homeName)} — corners_against_pg</div><div class="val">${vNum(th?.corners_against_pg)}</div>
-        <div class="lbl">${escapeHtml(homeName)} — fouls_for_pg</div><div class="val">${vNum(th?.fouls_for_pg)}</div>
-        <div class="lbl">${escapeHtml(homeName)} — fouls_against_pg</div><div class="val">${vNum(th?.fouls_against_pg)}</div>
-        <div class="lbl">${escapeHtml(homeName)} — shots_for_pg</div><div class="val">${vNum(th?.shots_for_pg)}</div>
-        <div class="lbl">${escapeHtml(homeName)} — sot_for_pg</div><div class="val">${vNum(th?.sot_for_pg)}</div>
-
-        <div class="lbl">${escapeHtml(awayName)} — corners_for_pg</div><div class="val">${vNum(ta?.corners_for_pg)}</div>
-        <div class="lbl">${escapeHtml(awayName)} — corners_against_pg</div><div class="val">${vNum(ta?.corners_against_pg)}</div>
-        <div class="lbl">${escapeHtml(awayName)} — fouls_for_pg</div><div class="val">${vNum(ta?.fouls_for_pg)}</div>
-        <div class="lbl">${escapeHtml(awayName)} — fouls_against_pg</div><div class="val">${vNum(ta?.fouls_against_pg)}</div>
-        <div class="lbl">${escapeHtml(awayName)} — shots_for_pg</div><div class="val">${vNum(ta?.shots_for_pg)}</div>
-        <div class="lbl">${escapeHtml(awayName)} — sot_for_pg</div><div class="val">${vNum(ta?.sot_for_pg)}</div>
-      </div>
-
-      <div class="muted" style="margin-top:10px">
-        ${renderBets(ex?.bets)}
-
-      Nota: se qui vedi n/d, significa che backend ha risposto con null (non “problema UI”).
-        Controlla in raw JSON: <b>exotics.totals</b>, <b>exotics.teams</b>, e <b>exotics.meta</b>.
+        <div class="betLegs">${legs}</div>
       </div>
     `;
-    teamBox.innerHTML = teamHtml;
+  }
 
-    // ---- PLAYERS (usa exotics.players.* come nel backend) ----
-    const pl = ex?.players || {};
-    const ph = pl?.home || {};
-    const pa = pl?.away || {};
+  const safe = block(pillHTML("SAFE", "ok"), bets.easy);
+  const med  = block(pillHTML("BOOST", "warn"), bets.medium);
+  const hard = block(pillHTML("BOMBA", "bad"), bets.hard);
+
+  return `
+    <div style="margin-top:10px" class="muted2">PB Tripla Builder (stimata)</div>
+    ${safe}${med}${hard}
+  `;
+}
+
+
+
 
     function renderPlayerBlock(teamName, block){
       if (!block) return "";
