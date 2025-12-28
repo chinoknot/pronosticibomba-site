@@ -267,13 +267,26 @@
     els.backendUrlTxt.textContent = BACKEND;
   }
 
-  async function ping(){
-    try{
-      const res = await fetch(`${BACKEND}/api/health`, { method:"GET" });
-      setBackendStatus(res.ok);
-    }catch(e){
-      setBackendStatus(false);
-    }
+  function ping(){
+    els.backendBadge.textContent = `Backend: ${BACKEND.replace(/^https?:\/\//,'')}`;
+    els.backendBadge.title = BACKEND;
+
+    fetch(`${BACKEND}/api/health?cb=${Date.now()}`, { method:"GET" })
+      .then(r=>{
+        if(!r.ok) throw new Error(`health ${r.status}`);
+        return r.json().catch(()=> ({}));
+      })
+      .then(j=>{
+        els.backendBadge.classList.remove("warn");
+        els.backendBadge.classList.add("ok");
+        els.backendBadge.textContent = `Backend: OK`;
+        if(j?.version) els.backendBadge.title = `OK - ${j.version}`;
+      })
+      .catch(_=>{
+        els.backendBadge.classList.remove("ok");
+        els.backendBadge.classList.add("warn");
+        els.backendBadge.textContent = `Backend: OFF`;
+      });
   }
 
   function getSelectedLeagueIds(){
@@ -350,25 +363,41 @@
     }
   }
 
-  async function loadFixtures(){
+  function loadFixtures(){
     clearSelection();
     els.fixturesList.innerHTML = `<div class="muted">Carico fixture...</div>`;
     els.fixtureCount.textContent = "-";
     els.shownCount.textContent = "0";
 
     const date = els.dateInp.value || todayISO();
-    try{
-      // cache-bust to avoid stale Vercel edge responses
-      const res = await fetch(`${BACKEND}/api/fixtures?v=3&date=${encodeURIComponent(date)}&cb=${Date.now()}`, { method:"GET" });
-      if (!res.ok) throw new Error(`fixtures ${res.status}`);
-      const data = await res.json();
-      allFixtures = Array.isArray(data.fixtures) ? data.fixtures : [];
-      els.fixtureCount.textContent = String(allFixtures.length);
-      renderList();
-    }catch(e){
-      els.fixturesList.innerHTML = `<div class="muted">Errore caricamento fixture. Apri console.</div>`;
-      console.error(e);
-    }
+
+    fetch(`${BACKEND}/api/fixtures?v=3&date=${encodeURIComponent(date)}&cb=${Date.now()}`, { method:"GET" })
+      .then(res=>{
+        if(!res.ok){
+          return res.text().catch(()=> "").then(t=>{ throw new Error(`fixtures ${res.status} ${t}`); });
+        }
+        return res.json();
+      })
+      .then(j=>{
+        allFixtures = (j?.fixtures || j?.response || []).map(x=>{
+          // normalize to match our internal shape
+          const fx = x?.fixture ? x : {
+            fixture: { id: x?.fixture_id, date: x?.kickoff_utc },
+            league: { id: x?.league_id, name: x?.league, season: x?.season },
+            teams: { home: x?.home, away: x?.away }
+          };
+          return fx;
+        });
+
+        els.fixtureCount.textContent = String(allFixtures.length || 0);
+        applyFilters();
+      })
+      .catch(err=>{
+        console.error(err);
+        els.fixturesList.innerHTML = `<div class="muted">Errore fixtures. Apri console.</div>`;
+        els.fixtureCount.textContent = "0";
+        els.shownCount.textContent = "0";
+      });
   }
 
   function pct(x){ if (typeof x !== "number" || !isFinite(x)) return "n/d"; return (x*100).toFixed(1) + "%"; }
@@ -523,29 +552,33 @@
     pretty.classList.remove("hidden");
   }
 
-  async function runAnalyze(){
+  function runAnalyze(){
     if (!selected || !selected.fixture_id) return;
     els.analyzeRaw.textContent = "Analisi in corso...";
-    try{
-      const res = await fetch(`${BACKEND}/api/analyze?cb=${Date.now()}`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ fixture_id: selected.fixture_id })
-      });
+
+    fetch(`${BACKEND}/api/analyze?cb=${Date.now()}`, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ fixture_id: selected.fixture_id })
+    })
+    .then(res=>{
       if (!res.ok){
-        const t = await res.text().catch(()=> "");
-        throw new Error(`analyze ${res.status} ${t}`);
+        return res.text().catch(()=> "").then(t=>{
+          throw new Error(`analyze ${res.status} ${t}`);
+        });
       }
-      const data = await res.json();
+      return res.json();
+    })
+    .then(data=>{
       window.lastAnalysis = data;
       els.analyzeRaw.textContent = JSON.stringify(data, null, 2);
       renderAnalysis(data);
-    }catch(e){
+    })
+    .catch(e=>{
       console.error(e);
       els.analyzeRaw.textContent = "Errore analisi. Apri console.";
-      const pretty = document.getElementById("analyzePretty");
-      if (pretty) pretty.classList.add("hidden");
-    }
+    });
+  }
   }
 
   // init
