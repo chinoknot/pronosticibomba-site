@@ -92,7 +92,6 @@
     .badge b{color:var(--txt)}
     footer{padding:12px 22px 22px;color:var(--muted);font-size:12px;}
 
-    /* Step 2: pretty output */
     .hidden{ display:none; }
     .pretty{ margin-top:12px; }
     .prettyRow{ display:grid; grid-template-columns:1fr; gap:12px; margin-top:12px; }
@@ -389,9 +388,51 @@
     return 1 - poissonCDF(threshold, lambda);
   }
 
-  function pill(text, kind="good"){
-    const cls = `pill ${kind||""}`.trim();
-    return `<span class="${cls}">${text}</span>`;
+  // --- exotics helpers ---
+  const isNum = (v) => (typeof v === "number" && isFinite(v));
+  const readMeanFromTotalsObj = (obj) => {
+    if (!obj || typeof obj !== "object") return null;
+    const v = obj.mean ?? obj.avg ?? obj.average ?? obj.mu ?? obj.value ?? null;
+    return isNum(v) ? v : null;
+  };
+  const readLineFromTotalsObj = (obj) => {
+    if (!obj || typeof obj !== "object") return null;
+    const v = obj.line ?? obj.suggested_line ?? obj.recommended_line ?? obj.threshold ?? null;
+    if (isNum(v)) return String(v);
+    if (typeof v === "string" && v.trim()) return v.trim();
+    return null;
+  };
+  const readTeamAvg = (teamObj, keys) => {
+    if (!teamObj || typeof teamObj !== "object") return null;
+    for (const k of keys){
+      const v = teamObj[k];
+      if (isNum(v)) return v;
+    }
+    return null;
+  };
+
+  // mean finale: prova totals.mean, se 0 o null prova team home+away
+  function computeTotalMean(ex, totalsObj, teamKeys){
+    const tMean = readMeanFromTotalsObj(totalsObj);
+    const tLine = readLineFromTotalsObj(totalsObj);
+
+    // se backend ti manda 0.00 e non c'è line, lo consideriamo "placeholder" e facciamo fallback.
+    const treatAsMissing = (tMean == null) || (tMean === 0 && !tLine);
+
+    if (!treatAsMissing) return { mean: tMean, src: "totals" };
+
+    const teams = ex?.teams || {};
+    const h = teams?.home || {};
+    const a = teams?.away || {};
+
+    const hAvg = readTeamAvg(h, teamKeys);
+    const aAvg = readTeamAvg(a, teamKeys);
+
+    if (isNum(hAvg) && isNum(aAvg)) return { mean: hAvg + aAvg, src: "teams" };
+    if (isNum(hAvg)) return { mean: hAvg, src: "teams_home_only" };
+    if (isNum(aAvg)) return { mean: aAvg, src: "teams_away_only" };
+
+    return { mean: null, src: "missing" };
   }
 
   function renderAnalysis(data){
@@ -426,26 +467,13 @@
         <div class="muted2">P Over 3.5</div><div>${pct(pOver35)}</div>
       </div>`;
     }else{
-      goalHtml += `<div class="muted2">Goal model non disponibile per questa partita (o schema diverso).</div>`;
+      goalHtml += `<div class="muted2">Goal model non disponibile per questa partita.</div>`;
     }
     goalBox.innerHTML = goalHtml;
 
-    // ---- EXOTICS TOTALS (FIX) ----
+    // ---- EXOTICS TOTALS (con fallback teams) ----
     const ex = data?.exotics || {};
     const totals = ex?.totals || {};
-    // helper per leggere mean/line da oggetti tipo {mean, line} o campi alternativi
-    const readMean = (obj) => {
-      if (!obj || typeof obj !== "object") return null;
-      const v = obj.mean ?? obj.avg ?? obj.average ?? obj.mu ?? obj.value ?? null;
-      return (typeof v === "number" && isFinite(v)) ? v : null;
-    };
-    const readLine = (obj) => {
-      if (!obj || typeof obj !== "object") return null;
-      const v = obj.line ?? obj.suggested_line ?? obj.recommended_line ?? obj.threshold ?? null;
-      if (typeof v === "number" && isFinite(v)) return String(v);
-      if (typeof v === "string" && v.trim()) return v.trim();
-      return null;
-    };
 
     const shotsObj   = totals.shots_total   ?? totals.shots ?? totals.total_shots ?? null;
     const sotObj     = totals.sot_total     ?? totals.shots_on_target_total ?? totals.sot ?? totals.total_sot ?? null;
@@ -453,21 +481,22 @@
     const foulsObj   = totals.fouls_total   ?? totals.fouls ?? totals.total_fouls ?? null;
     const cardsObj   = totals.cards_total   ?? totals.cards ?? totals.total_cards ?? null;
 
-    const shotsMean   = readMean(shotsObj);
-    const sotMean     = readMean(sotObj);
-    const cornersMean = readMean(cornersObj);
-    const foulsMean   = readMean(foulsObj);
-    const cardsMean   = readMean(cardsObj);
+    const shotsMeanInfo   = computeTotalMean(ex, shotsObj,   ["shots_per_game", "shots_pg", "avg_shots", "mean_shots"]);
+    const sotMeanInfo     = computeTotalMean(ex, sotObj,     ["sot_per_game", "sot_pg", "shots_on_target_per_game", "avg_sot", "mean_sot"]);
+    const cornersMeanInfo = computeTotalMean(ex, cornersObj, ["corners_per_game", "corners_pg", "avg_corners", "mean_corners"]);
+    const foulsMeanInfo   = computeTotalMean(ex, foulsObj,   ["fouls_per_game", "fouls_pg", "avg_fouls", "mean_fouls"]);
+    const cardsMeanInfo   = computeTotalMean(ex, cardsObj,   ["yellow_per_game", "cards_per_game", "cards_pg", "avg_cards", "mean_cards"]);
 
-    const shotsLine   = readLine(shotsObj);
-    const sotLine     = readLine(sotObj);
-    const cornersLine = readLine(cornersObj);
-    const foulsLine   = readLine(foulsObj);
-    const cardsLine   = readLine(cardsObj);
+    const shotsLine   = readLineFromTotalsObj(shotsObj);
+    const sotLine     = readLineFromTotalsObj(sotObj);
+    const cornersLine = readLineFromTotalsObj(cornersObj);
+    const foulsLine   = readLineFromTotalsObj(foulsObj);
+    const cardsLine   = readLineFromTotalsObj(cardsObj);
 
     const anyTotals =
+      shotsMeanInfo.mean!=null || sotMeanInfo.mean!=null || cornersMeanInfo.mean!=null || foulsMeanInfo.mean!=null || cardsMeanInfo.mean!=null ||
       shotsObj || sotObj || cornersObj || foulsObj || cardsObj ||
-      shotsMean!=null || sotMean!=null || cornersMean!=null || foulsMean!=null || cardsMean!=null;
+      ex?.teams?.home || ex?.teams?.away;
 
     let teamHtml = "";
     if (!anyTotals){
@@ -477,22 +506,21 @@
       teamHtml += `<div class="hr"></div>`;
       teamHtml += `<div class="kv2 mono">
         <div class="muted2">Shots</div>
-        <div>mean ${shotsMean!=null?fmt(shotsMean,2):"n/d"} — line ${shotsLine!=null?escapeHtml(shotsLine):"n/d"}</div>
+        <div>mean ${shotsMeanInfo.mean!=null?fmt(shotsMeanInfo.mean,2):"n/d"} — line ${shotsLine!=null?escapeHtml(shotsLine):"n/d"}</div>
 
         <div class="muted2">Shots on Target</div>
-        <div>mean ${sotMean!=null?fmt(sotMean,2):"n/d"} — line ${sotLine!=null?escapeHtml(sotLine):"n/d"}</div>
+        <div>mean ${sotMeanInfo.mean!=null?fmt(sotMeanInfo.mean,2):"n/d"} — line ${sotLine!=null?escapeHtml(sotLine):"n/d"}</div>
 
         <div class="muted2">Corners</div>
-        <div>mean ${cornersMean!=null?fmt(cornersMean,2):"n/d"} — line ${cornersLine!=null?escapeHtml(cornersLine):"n/d"}</div>
+        <div>mean ${cornersMeanInfo.mean!=null?fmt(cornersMeanInfo.mean,2):"n/d"} — line ${cornersLine!=null?escapeHtml(cornersLine):"n/d"}</div>
 
         <div class="muted2">Fouls</div>
-        <div>mean ${foulsMean!=null?fmt(foulsMean,2):"n/d"} — line ${foulsLine!=null?escapeHtml(foulsLine):"n/d"}</div>
+        <div>mean ${foulsMeanInfo.mean!=null?fmt(foulsMeanInfo.mean,2):"n/d"} — line ${foulsLine!=null?escapeHtml(foulsLine):"n/d"}</div>
 
         <div class="muted2">Cards (yellow)</div>
-        <div>${cardsMean!=null?`mean ${fmt(cardsMean,2)} — line ${cardsLine!=null?escapeHtml(cardsLine):"n/d"}`:"n/d"}</div>
+        <div>${cardsMeanInfo.mean!=null?`mean ${fmt(cardsMeanInfo.mean,2)} — line ${cardsLine!=null?escapeHtml(cardsLine):"n/d"}`:"n/d"}</div>
       </div>`;
 
-      // Home/Away label se presente (solo testo)
       const fx = data?.fixture || {};
       const homeName = fx?.home?.name || fx?.teams?.home?.name || "";
       const awayName = fx?.away?.name || fx?.teams?.away?.name || "";
@@ -503,8 +531,7 @@
     }
     teamBox.innerHTML = teamHtml;
 
-    // ---- PLAYERS (già ok) ----
-    // Supporta sia schema "flat" sia schema {home:{topShots...},away:{topShots...}}
+    // ---- PLAYERS ----
     const px = ex?.players || {};
     function renderPlayerBlock(sideLabel, sideObj){
       if (!sideObj || typeof sideObj !== "object") return "";
@@ -536,8 +563,6 @@
       playersHtml += renderPlayerBlock(homeTeam, px.home);
       playersHtml += `<div class="hr"></div>`;
       playersHtml += renderPlayerBlock(awayTeam, px.away);
-    }else if (Array.isArray(ex?.players) && ex.players.length){
-      playersHtml = `<div class="muted2">Players presenti ma schema diverso (array). Debug nel raw.</div>`;
     }else{
       playersHtml = `<div class="muted2">Player non disponibili per questa partita.</div>`;
     }
@@ -551,7 +576,9 @@
         <div class="muted2">Version</div><div>${escapeHtml(v)}</div>
         <div class="muted2">Fixture ID</div><div>${escapeHtml(fid)}</div>
         <div class="muted2">Backend</div><div>${escapeHtml(BACKEND)}</div>
-      </div>`;
+      </div>
+      <div class="hr"></div>
+      <div class="muted2">Exotics totals source (auto): shots=${escapeHtml(shotsMeanInfo.src)} | sot=${escapeHtml(sotMeanInfo.src)} | corners=${escapeHtml(cornersMeanInfo.src)} | fouls=${escapeHtml(foulsMeanInfo.src)} | cards=${escapeHtml(cardsMeanInfo.src)}</div>`;
     }
 
     pretty.classList.remove("hidden");
@@ -582,7 +609,6 @@
     }
   }
 
-  // init
   els.dateInp.value = todayISO();
   els.searchInp.addEventListener("input", () => renderList());
   document.querySelectorAll("input.lg").forEach(chk => chk.addEventListener("change", () => renderList()));
