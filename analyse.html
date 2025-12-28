@@ -38,7 +38,7 @@
     .brand{font-size:20px;font-weight:700;letter-spacing:.2px;}
     .sub{margin-top:4px;color:var(--muted);font-size:12px;}
     .status{font-size:12px;color:var(--muted);display:flex;gap:10px;align-items:center;white-space:nowrap;}
-    .pill{padding:6px 10px;border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:999px;display:inline-flex;gap:8px;align-items:center;}
+    .pillWrap{padding:6px 10px;border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:999px;display:inline-flex;gap:8px;align-items:center;}
     .dot{width:8px;height:8px;border-radius:50%;background:var(--warn)}
     .dot.ok{background:var(--accent2)}
     main{padding:0 22px 24px;}
@@ -101,14 +101,16 @@
     .prettyTitle{ font-weight:700; letter-spacing:.2px; margin-bottom:8px; opacity:.95; }
     .prettyBody{ font-size:13px; line-height:1.35; color: rgba(240,250,255,0.92); }
     .prettyBody.small{ font-size:12px; opacity:.9; }
-    .pill2{ display:inline-block; padding:6px 10px; border-radius:999px; margin:6px 6px 0 0; font-size:12px;
+    .pill{ display:inline-block; padding:6px 10px; border-radius:999px; margin:6px 6px 0 0; font-size:12px;
            border:1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.18); }
-    .pill2.good{ border-color: rgba(60, 220, 130, 0.35); }
-    .pill2.warn{ border-color: rgba(255, 190, 60, 0.35); }
-    .pill2.bad{ border-color: rgba(255, 80, 80, 0.35); opacity:.75; }
-    .kv2{ display:grid; grid-template-columns: 160px 1fr; gap:6px 10px; margin-top:8px; }
+    .pill.good{ border-color: rgba(60, 220, 130, 0.35); }
+    .pill.warn{ border-color: rgba(255, 190, 60, 0.35); }
+    .pill.bad{ border-color: rgba(255, 80, 80, 0.35); opacity:.75; }
+    .kv2{ display:grid; grid-template-columns: 220px 1fr; gap:6px 10px; margin-top:8px; }
     .kv2 div{ padding:2px 0; }
     .muted2{ opacity:.8; }
+    .hr{height:1px;background:rgba(255,255,255,.08);margin:10px 0;}
+    .mono{font-family:var(--mono)}
   </style>
 </head>
 <body>
@@ -118,8 +120,8 @@
     <div class="sub">Seleziona data e lega → scegli una partita → Analizza (goal/Poisson/Under-Over). Poi aggiungiamo cards/corners/shots + screenshot.</div>
   </div>
   <div class="status">
-    <span class="pill"><span id="dot" class="dot"></span><span id="backendTxt">Backend: ...</span></span>
-    <span class="pill">Fixture: <b id="fixtureCount">-</b></span>
+    <span class="pillWrap"><span id="dot" class="dot"></span><span id="backendTxt">Backend: ...</span></span>
+    <span class="pillWrap">Fixture: <b id="fixtureCount">-</b></span>
   </div>
 </header>
 
@@ -194,6 +196,7 @@
                   <div id="exoticTeam" class="prettyBody"></div>
                 </div>
               </div>
+
               <div class="prettyRow">
                 <div class="prettyCard">
                   <div class="prettyTitle">Player (se disponibili)</div>
@@ -205,7 +208,6 @@
                 </div>
               </div>
             </div>
-
           </div>
 
           <div class="box">
@@ -300,7 +302,7 @@
   }
 
   function escapeHtml(str){
-    return String(str ?? "")
+    return String(str)
       .replaceAll("&","&amp;")
       .replaceAll("<","&lt;")
       .replaceAll(">","&gt;")
@@ -369,9 +371,9 @@
     }
   }
 
-  // --------- Helpers (Step2 UI) ----------
   function pct(x){ if (typeof x !== "number" || !isFinite(x)) return "-"; return (x*100).toFixed(1) + "%"; }
   function fmt(x, d=2){ if (typeof x !== "number" || !isFinite(x)) return "-"; return x.toFixed(d); }
+
   function poissonPMF(k, lambda){
     if (lambda <= 0) return k === 0 ? 1 : 0;
     let p = Math.exp(-lambda);
@@ -386,27 +388,10 @@
   function poissonOver(threshold, lambda){
     return 1 - poissonCDF(threshold, lambda);
   }
-  function pill2(text, kind="good"){
-    const cls = `pill2 ${kind||""}`.trim();
-    return `<span class="${cls}">${escapeHtml(text)}</span>`;
-  }
-  function fmtLine(x){
-    if (!x) return "n/d";
-    const mean = (x.mean == null) ? "n/d" : fmt(Number(x.mean), 2);
-    const line = (x.line == null) ? "n/d" : String(x.line);
-    return `mean ${mean} — line ${line}`;
-  }
-  function renderPlayerList(title, arr, metricKey){
-    if (!Array.isArray(arr) || !arr.length) return `<div class="muted2">• ${escapeHtml(title)}: n/d</div>`;
-    const rows = arr.slice(0,5).map(p => {
-      const name = p.name ?? "Player";
-      const pos = p.position ?? "";
-      const g = p.games ?? "n/d";
-      const val = p[metricKey];
-      const v = (typeof val === "number" && isFinite(val)) ? fmt(val,2) : "n/d";
-      return `<div class="muted2">• ${escapeHtml(name)} ${pos?`(${escapeHtml(pos)}) `:""}— ${escapeHtml(metricKey)} ${escapeHtml(v)} — g:${escapeHtml(g)}</div>`;
-    }).join("");
-    return `<div style="margin-top:8px"><b>${escapeHtml(title)}</b><div style="margin-top:6px">${rows}</div></div>`;
+
+  function pill(text, kind="good"){
+    const cls = `pill ${kind||""}`.trim();
+    return `<span class="${cls}">${text}</span>`;
   }
 
   function renderAnalysis(data){
@@ -434,11 +419,8 @@
       const pOver25 = poissonOver(2, lamT);
       const pOver35 = poissonOver(3, lamT);
 
-      const highGoal = (lamT >= 2.9 && pOver25 >= 0.58) || (pOver15 >= 0.80 && lamT >= 2.6);
-
       goalHtml += `<div class="muted2">λ totale: <b>${fmt(lamT,2)}</b>${(typeof lamH==="number" && typeof lamA==="number") ? ` (home ${fmt(lamH,2)} / away ${fmt(lamA,2)})` : ""}</div>`;
-      goalHtml += `<div style="margin-top:8px">${pill2(highGoal ? "Alta tendenza goal" : "Goal tendency: media/bassa", highGoal ? "good" : "bad")}</div>`;
-      goalHtml += `<div class="kv2" style="margin-top:10px">
+      goalHtml += `<div class="kv2" style="margin-top:8px">
         <div class="muted2">P Over 1.5</div><div>${pct(pOver15)}</div>
         <div class="muted2">P Over 2.5</div><div>${pct(pOver25)}</div>
         <div class="muted2">P Over 3.5</div><div>${pct(pOver35)}</div>
@@ -448,71 +430,128 @@
     }
     goalBox.innerHTML = goalHtml;
 
-    // ---- EXOTICS (NEW STRUCTURE) ----
+    // ---- EXOTICS TOTALS (FIX) ----
     const ex = data?.exotics || {};
-    const totals = ex.totals || {};
-    const teams = ex.teams || {};
-    const homeName = teams?.home?.name || "Home";
-    const awayName = teams?.away?.name || "Away";
+    const totals = ex?.totals || {};
+    // helper per leggere mean/line da oggetti tipo {mean, line} o campi alternativi
+    const readMean = (obj) => {
+      if (!obj || typeof obj !== "object") return null;
+      const v = obj.mean ?? obj.avg ?? obj.average ?? obj.mu ?? obj.value ?? null;
+      return (typeof v === "number" && isFinite(v)) ? v : null;
+    };
+    const readLine = (obj) => {
+      if (!obj || typeof obj !== "object") return null;
+      const v = obj.line ?? obj.suggested_line ?? obj.recommended_line ?? obj.threshold ?? null;
+      if (typeof v === "number" && isFinite(v)) return String(v);
+      if (typeof v === "string" && v.trim()) return v.trim();
+      return null;
+    };
 
-    // totals block
-    const anyTotals = !!(totals.shots_total || totals.sot_total || totals.corners_total || totals.fouls_total || totals.cards_total);
+    const shotsObj   = totals.shots_total   ?? totals.shots ?? totals.total_shots ?? null;
+    const sotObj     = totals.sot_total     ?? totals.shots_on_target_total ?? totals.sot ?? totals.total_sot ?? null;
+    const cornersObj = totals.corners_total ?? totals.corners ?? totals.total_corners ?? null;
+    const foulsObj   = totals.fouls_total   ?? totals.fouls ?? totals.total_fouls ?? null;
+    const cardsObj   = totals.cards_total   ?? totals.cards ?? totals.total_cards ?? null;
+
+    const shotsMean   = readMean(shotsObj);
+    const sotMean     = readMean(sotObj);
+    const cornersMean = readMean(cornersObj);
+    const foulsMean   = readMean(foulsObj);
+    const cardsMean   = readMean(cardsObj);
+
+    const shotsLine   = readLine(shotsObj);
+    const sotLine     = readLine(sotObj);
+    const cornersLine = readLine(cornersObj);
+    const foulsLine   = readLine(foulsObj);
+    const cardsLine   = readLine(cardsObj);
+
+    const anyTotals =
+      shotsObj || sotObj || cornersObj || foulsObj || cardsObj ||
+      shotsMean!=null || sotMean!=null || cornersMean!=null || foulsMean!=null || cardsMean!=null;
+
     let teamHtml = "";
     if (!anyTotals){
-      teamHtml = `<div class="muted2">Nessun dato esotico “totali” disponibile in risposta (shots/sot/corners/fouls/cards).</div>`;
+      teamHtml = `<div class="muted2">Totali match non presenti nella risposta per questa partita.</div>`;
     }else{
       teamHtml += `<div class="muted2"><b>Totali match</b> (basati su stats stagionali + confronto squadre)</div>`;
-      teamHtml += `<div class="kv2" style="margin-top:10px">
-        <div class="muted2">Shots</div><div>${escapeHtml(fmtLine(totals.shots_total))}</div>
-        <div class="muted2">Shots on Target</div><div>${escapeHtml(fmtLine(totals.sot_total))}</div>
-        <div class="muted2">Corners</div><div>${escapeHtml(fmtLine(totals.corners_total))}</div>
-        <div class="muted2">Fouls</div><div>${escapeHtml(fmtLine(totals.fouls_total))}</div>
-        <div class="muted2">Cards (yellow)</div><div>${escapeHtml(fmtLine(totals.cards_total))}</div>
+      teamHtml += `<div class="hr"></div>`;
+      teamHtml += `<div class="kv2 mono">
+        <div class="muted2">Shots</div>
+        <div>mean ${shotsMean!=null?fmt(shotsMean,2):"n/d"} — line ${shotsLine!=null?escapeHtml(shotsLine):"n/d"}</div>
+
+        <div class="muted2">Shots on Target</div>
+        <div>mean ${sotMean!=null?fmt(sotMean,2):"n/d"} — line ${sotLine!=null?escapeHtml(sotLine):"n/d"}</div>
+
+        <div class="muted2">Corners</div>
+        <div>mean ${cornersMean!=null?fmt(cornersMean,2):"n/d"} — line ${cornersLine!=null?escapeHtml(cornersLine):"n/d"}</div>
+
+        <div class="muted2">Fouls</div>
+        <div>mean ${foulsMean!=null?fmt(foulsMean,2):"n/d"} — line ${foulsLine!=null?escapeHtml(foulsLine):"n/d"}</div>
+
+        <div class="muted2">Cards (yellow)</div>
+        <div>${cardsMean!=null?`mean ${fmt(cardsMean,2)} — line ${cardsLine!=null?escapeHtml(cardsLine):"n/d"}`:"n/d"}</div>
       </div>`;
-      teamHtml += `<div class="muted2" style="margin-top:10px">Home/Away: <b>${escapeHtml(homeName)}</b> vs <b>${escapeHtml(awayName)}</b></div>`;
+
+      // Home/Away label se presente (solo testo)
+      const fx = data?.fixture || {};
+      const homeName = fx?.home?.name || fx?.teams?.home?.name || "";
+      const awayName = fx?.away?.name || fx?.teams?.away?.name || "";
+      if (homeName || awayName){
+        teamHtml += `<div class="hr"></div>`;
+        teamHtml += `<div class="muted2">Home/Away: ${escapeHtml(homeName)} vs ${escapeHtml(awayName)}</div>`;
+      }
     }
     teamBox.innerHTML = teamHtml;
 
-    // ---- PLAYERS (NEW STRUCTURE) ----
-    const pl = ex.players || {};
-    const ph = pl.home || {};
-    const pa = pl.away || {};
+    // ---- PLAYERS (già ok) ----
+    // Supporta sia schema "flat" sia schema {home:{topShots...},away:{topShots...}}
+    const px = ex?.players || {};
+    function renderPlayerBlock(sideLabel, sideObj){
+      if (!sideObj || typeof sideObj !== "object") return "";
+      const topShots = Array.isArray(sideObj.topShots) ? sideObj.topShots : [];
+      const topSoT = Array.isArray(sideObj.topSoT) ? sideObj.topSoT : [];
+      const topFouls = Array.isArray(sideObj.topFouls) ? sideObj.topFouls : [];
+      const topCards = Array.isArray(sideObj.topCards) ? sideObj.topCards : [];
 
-    const hasPlayers = (arr) => Array.isArray(arr) && arr.length > 0;
-    const anyPlayers =
-      hasPlayers(ph.topShots) || hasPlayers(ph.topSoT) || hasPlayers(ph.topFouls) || hasPlayers(ph.topCards) ||
-      hasPlayers(pa.topShots) || hasPlayers(pa.topSoT) || hasPlayers(pa.topFouls) || hasPlayers(pa.topCards);
+      const li = (arr, key) => arr.slice(0,5).map(p => {
+        const name = p?.name || "Player";
+        const pos = p?.position ? `(${p.position})` : "";
+        const g = (typeof p?.games === "number") ? `g:${p.games}` : "";
+        const v = (typeof p?.[key] === "number") ? fmt(p[key],2) : "n/d";
+        return `<div>• ${escapeHtml(name)} ${escapeHtml(pos)} — ${key}: ${v} ${g?`— ${g}`:""}</div>`;
+      }).join("");
+
+      let out = `<div class="muted2"><b>${escapeHtml(sideLabel)}</b></div>`;
+      if (topShots.length){ out += `<div class="hr"></div><div><b>Top Shots</b></div>${li(topShots,"shots_per_game")}`; }
+      if (topSoT.length){ out += `<div class="hr"></div><div><b>Top SoT</b></div>${li(topSoT,"sot_per_game")}`; }
+      if (topFouls.length){ out += `<div class="hr"></div><div><b>Top Fouls</b></div>${li(topFouls,"fouls_per_game")}`; }
+      if (topCards.length){ out += `<div class="hr"></div><div><b>Top Cards</b></div>${li(topCards,"yellow_per_game")}`; }
+      return out;
+    }
 
     let playersHtml = "";
-    if (!anyPlayers){
-      playersHtml = `<div class="muted2">Nessun dato player props disponibile (topShots/topSoT/topFouls/topCards).</div>`;
+    if (px?.home || px?.away){
+      const homeTeam = data?.fixture?.home?.name || data?.fixture?.teams?.home?.name || "Home";
+      const awayTeam = data?.fixture?.away?.name || data?.fixture?.teams?.away?.name || "Away";
+      playersHtml += renderPlayerBlock(homeTeam, px.home);
+      playersHtml += `<div class="hr"></div>`;
+      playersHtml += renderPlayerBlock(awayTeam, px.away);
+    }else if (Array.isArray(ex?.players) && ex.players.length){
+      playersHtml = `<div class="muted2">Players presenti ma schema diverso (array). Debug nel raw.</div>`;
     }else{
-      playersHtml += `<div class="muted2"><b>${escapeHtml(homeName)}</b></div>`;
-      playersHtml += renderPlayerList("Top Shots", ph.topShots, "shots_per_game");
-      playersHtml += renderPlayerList("Top SoT", ph.topSoT, "sot_per_game");
-      playersHtml += renderPlayerList("Top Fouls", ph.topFouls, "fouls_per_game");
-      playersHtml += renderPlayerList("Top Cards", ph.topCards, "yellow_per_game");
-
-      playersHtml += `<div class="muted2" style="margin-top:12px"><b>${escapeHtml(awayName)}</b></div>`;
-      playersHtml += renderPlayerList("Top Shots", pa.topShots, "shots_per_game");
-      playersHtml += renderPlayerList("Top SoT", pa.topSoT, "sot_per_game");
-      playersHtml += renderPlayerList("Top Fouls", pa.topFouls, "fouls_per_game");
-      playersHtml += renderPlayerList("Top Cards", pa.topCards, "yellow_per_game");
+      playersHtml = `<div class="muted2">Player non disponibili per questa partita.</div>`;
     }
     playersBox.innerHTML = playersHtml;
 
     // ---- DEBUG ----
     if (debugBox){
       const v = data?.version || "-";
-      const fid = data?.fixture?.fixture_id || selected?.fixture_id || "-";
+      const fid = data?.fixture?.fixture_id || data?.fixture?.id || selected?.fixture_id || "-";
       debugBox.innerHTML = `<div class="kv2">
         <div class="muted2">Version</div><div>${escapeHtml(v)}</div>
         <div class="muted2">Fixture ID</div><div>${escapeHtml(fid)}</div>
         <div class="muted2">Backend</div><div>${escapeHtml(BACKEND)}</div>
       </div>`;
-      if (Array.isArray(ex?.notes) && ex.notes.length){
-        debugBox.innerHTML += `<div class="muted2" style="margin-top:10px"><b>Notes:</b><br/>${ex.notes.map(n=>escapeHtml(n)).join("<br/>")}</div>`;
-      }
     }
 
     pretty.classList.remove("hidden");
