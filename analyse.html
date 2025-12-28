@@ -358,7 +358,8 @@
 
     const date = els.dateInp.value || todayISO();
     try{
-      const res = await fetch(`${BACKEND}/api/fixtures?v=3&date=${encodeURIComponent(date)}`, { method:"GET" });
+      // cache-bust to avoid stale Vercel edge responses
+      const res = await fetch(`${BACKEND}/api/fixtures?v=3&date=${encodeURIComponent(date)}&cb=${Date.now()}`, { method:"GET" });
       if (!res.ok) throw new Error(`fixtures ${res.status}`);
       const data = await res.json();
       allFixtures = Array.isArray(data.fixtures) ? data.fixtures : [];
@@ -377,6 +378,17 @@
   function fmtOdds(x, d=2){
     if (typeof x !== "number" || !isFinite(x)) return "n/d";
     return x.toFixed(d);
+  }
+
+  // helpers for bets UI
+  function fmtPct(p){
+    if (typeof p !== "number" || !isFinite(p)) return "n/d";
+    return (p*100).toFixed(1) + "%";
+  }
+
+  function pill(text, kind=""){
+    const cls = ("pill " + (kind||"")).trim();
+    return `<span class="${cls}">${text}</span>`;
   }
 
   function renderBets(bets){
