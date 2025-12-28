@@ -402,17 +402,64 @@
         var fx = normalizeFixturesResponse(data);
         // normalizza campi minimi attesi in UI
         allFixtures = fx.map(function(x){
+          var homeName =
+            safeGet(x, ["home","name"]) ||
+            safeGet(x, ["home_name"]) ||
+            safeGet(x, ["homeName"]) ||
+            safeGet(x, ["teams","home","name"]) ||
+            safeGet(x, ["teams","homeName"]) ||
+            safeGet(x, ["homeTeam","name"]) ||
+            safeGet(x, ["home"]) ||
+            safeGet(x, ["team_home","name"]) ||
+            "";
+
+          var awayName =
+            safeGet(x, ["away","name"]) ||
+            safeGet(x, ["away_name"]) ||
+            safeGet(x, ["awayName"]) ||
+            safeGet(x, ["teams","away","name"]) ||
+            safeGet(x, ["teams","awayName"]) ||
+            safeGet(x, ["awayTeam","name"]) ||
+            safeGet(x, ["away"]) ||
+            safeGet(x, ["team_away","name"]) ||
+            "";
+
+          if (!homeName || !awayName) {
+            var ms = String(
+              safeGet(x, ["match"]) ||
+              safeGet(x, ["title"]) ||
+              safeGet(x, ["name"]) ||
+              safeGet(x, ["fixture_title"]) ||
+              ""
+            );
+            if (ms.indexOf(" vs ") > -1) {
+              var p = ms.split(" vs ");
+              if (!homeName) homeName = p[0] || homeName;
+              if (!awayName) awayName = p[1] || awayName;
+            } else if (ms.indexOf(" v ") > -1) {
+              var p2 = ms.split(" v ");
+              if (!homeName) homeName = p2[0] || homeName;
+              if (!awayName) awayName = p2[1] || awayName;
+            } else if (ms.indexOf(" - ") > -1) {
+              var p3 = ms.split(" - ");
+              if (!homeName) homeName = p3[0] || homeName;
+              if (!awayName) awayName = p3[1] || awayName;
+            }
+          }
+
           return {
-            fixture_id: x.fixture_id || safeGet(x, ["fixture","id"]) || safeGet(x, ["fixture","fixture_id"]),
-            kickoff_utc: x.kickoff_utc || safeGet(x, ["fixture","date"]) || safeGet(x, ["fixture","kickoff_utc"]),
-            league_id: x.league_id || safeGet(x, ["league","id"]),
-            league_name: x.league || x.league_name || safeGet(x, ["league","name"]),
-            home_name: safeGet(x, ["home","name"]) || safeGet(x, ["teams","home","name"]) || (safeGet(x,["teams","home"])||""),
-            away_name: safeGet(x, ["away","name"]) || safeGet(x, ["teams","away","name"]) || (safeGet(x,["teams","away"])||"")
+            fixture_id: safeGet(x, ["fixture_id"]) || safeGet(x, ["fixture","id"]) || safeGet(x, ["fixture","fixture_id"]) || safeGet(x, ["id"]),
+            kickoff_utc: safeGet(x, ["kickoff_utc"]) || safeGet(x, ["fixture","date"]) || safeGet(x, ["kickoff"]) || safeGet(x, ["date"]),
+            league_id: safeGet(x, ["league_id"]) || safeGet(x, ["league","id"]) || null,
+            league: safeGet(x, ["league"]) || safeGet(x, ["league","name"]) || "",
+            season: safeGet(x, ["season"]) || safeGet(x, ["league","season"]) || null,
+            home_id: safeGet(x, ["home","id"]) || safeGet(x, ["teams","home","id"]) || safeGet(x, ["home_id"]) || null,
+            away_id: safeGet(x, ["away","id"]) || safeGet(x, ["teams","away","id"]) || safeGet(x, ["away_id"]) || null,
+            home_name: String(homeName || "").trim(),
+            away_name: String(awayName || "").trim()
           };
         });
-
-        applyFilters();
+applyFilters();
         reloadBtn.disabled = false;
       })
       .catch(function(err){
