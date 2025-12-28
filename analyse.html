@@ -113,14 +113,7 @@
     .kv2 .val{ font-family: var(--mono); opacity:.95; }
 
     .hr{ height:1px; background: rgba(255,255,255,0.08); margin:10px 0; }
-  
-    /* debug kv2 */
-    .kv2{ display:grid; grid-template-columns: 130px 1fr; gap:6px 10px; margin-top:8px; }
-    .kv2 .lbl{ color: rgba(190,205,230,0.85); font-size:12px; }
-    .kv2 .val{ font-family: var(--mono); font-size:12px; color: rgba(235,245,255,0.95); }
-    .muted2{ color: rgba(190,205,230,0.85); font-size:12px; line-height:1.35; }
-
-</style>
+  </style>
 </head>
 <body>
 <header>
@@ -588,15 +581,11 @@ function poissonPMF(k, lambda){
       const fid = data?.fixture?.fixture_id || selected?.fixture_id || "-";
       debugBox.innerHTML = `
         <div class="kv2">
-          <div class="lbl">Version</div><div class="val">${escapeHtml(String(data?.version || "-"))}</div>
-          <div class="lbl">Build (git)</div><div class="val">${escapeHtml(String(data?.build?.git || "-"))}</div>
-          <div class="lbl">Vercel env</div><div class="val">${escapeHtml(String(data?.build?.env || "-"))}</div>
-          <div class="lbl">DeployedAt</div><div class="val">${escapeHtml(String(data?.build?.deployedAt || "-"))}</div>
-          <div class="lbl">Fixture ID</div><div class="val">${escapeHtml(String(fid))}</div>
-          <div class="lbl">Backend</div><div class="val">${escapeHtml(String(BACKEND))}</div>
-        </div>
-        <div class="muted2" style="margin-top:10px">
-          Se <b>Build (git)</b> resta "-" o la <b>Version</b> resta <code>analyze-v3</code>, stai chiamando un deploy vecchio (o un altro progetto/branch). In quel caso controlla su Vercel che il dominio punti al <i>production</i> dell'ultimo commit.
+          <div class="lbl">Version</div><div class="val">${escapeHtml(v)}</div>
+          <div class="lbl">Fixture ID</div><div class="val">${escapeHtml(fid)}</div>
+          <div class="lbl">Backend</div><div class="val">${escapeHtml(BACKEND)}</div>
+<div class="lbl">Has meta</div><div class="val">${data?.exotics?.meta ? "yes" : "no"}</div>
+          <div class="lbl">Has bets</div><div class="val">${data?.exotics?.bets ? "yes" : "no"}</div>
         </div>
       `;
     }
