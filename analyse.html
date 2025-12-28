@@ -91,7 +91,7 @@
     .badge{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.12);font-size:12px;color:var(--muted);}
     .badge b{color:var(--txt)}
     footer{padding:12px 22px 22px;color:var(--muted);font-size:12px;}
-  
+
     /* Step 2: pretty output */
     .hidden{ display:none; }
     .pretty{ margin-top:12px; }
@@ -101,15 +101,15 @@
     .prettyTitle{ font-weight:700; letter-spacing:.2px; margin-bottom:8px; opacity:.95; }
     .prettyBody{ font-size:13px; line-height:1.35; color: rgba(240,250,255,0.92); }
     .prettyBody.small{ font-size:12px; opacity:.9; }
-    .pill{ display:inline-block; padding:6px 10px; border-radius:999px; margin:6px 6px 0 0; font-size:12px;
+    .pill2{ display:inline-block; padding:6px 10px; border-radius:999px; margin:6px 6px 0 0; font-size:12px;
            border:1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.18); }
-    .pill.good{ border-color: rgba(60, 220, 130, 0.35); }
-    .pill.warn{ border-color: rgba(255, 190, 60, 0.35); }
-    .pill.bad{ border-color: rgba(255, 80, 80, 0.35); opacity:.75; }
-    .kv{ display:grid; grid-template-columns: 160px 1fr; gap:6px 10px; margin-top:8px; }
-    .kv div{ padding:2px 0; }
-    .muted{ opacity:.8; }
-</style>
+    .pill2.good{ border-color: rgba(60, 220, 130, 0.35); }
+    .pill2.warn{ border-color: rgba(255, 190, 60, 0.35); }
+    .pill2.bad{ border-color: rgba(255, 80, 80, 0.35); opacity:.75; }
+    .kv2{ display:grid; grid-template-columns: 160px 1fr; gap:6px 10px; margin-top:8px; }
+    .kv2 div{ padding:2px 0; }
+    .muted2{ opacity:.8; }
+  </style>
 </head>
 <body>
 <header>
@@ -182,30 +182,32 @@
           <div class="box">
             <div class="muted" style="margin-bottom:8px;"><b>Output analisi (raw)</b></div>
             <pre id="analyzeRaw">Seleziona una partita e premi Analizza.</pre>
-          <div id="analyzePretty" class="pretty hidden">
-            <div class="prettyRow">
-              <div class="prettyCard">
-                <div class="prettyTitle">Goal (Poisson)</div>
-                <div id="goalSummary" class="prettyBody"></div>
+
+            <div id="analyzePretty" class="pretty hidden">
+              <div class="prettyRow">
+                <div class="prettyCard">
+                  <div class="prettyTitle">Goal (Poisson)</div>
+                  <div id="goalSummary" class="prettyBody"></div>
+                </div>
+                <div class="prettyCard">
+                  <div class="prettyTitle">Esotiche (shots/corners/cards/fouls)</div>
+                  <div id="exoticTeam" class="prettyBody"></div>
+                </div>
               </div>
-              <div class="prettyCard">
-                <div class="prettyTitle">Esotiche (shots/corners/cards/fouls)</div>
-                <div id="exoticTeam" class="prettyBody"></div>
+              <div class="prettyRow">
+                <div class="prettyCard">
+                  <div class="prettyTitle">Player (se disponibili)</div>
+                  <div id="exoticPlayers" class="prettyBody"></div>
+                </div>
+                <div class="prettyCard">
+                  <div class="prettyTitle">Debug</div>
+                  <div id="debugBox" class="prettyBody small"></div>
+                </div>
               </div>
             </div>
-            <div class="prettyRow">
-              <div class="prettyCard">
-                <div class="prettyTitle">Player (se disponibili)</div>
-                <div id="exoticPlayers" class="prettyBody"></div>
-              </div>
-              <div class="prettyCard">
-                <div class="prettyTitle">Debug</div>
-                <div id="debugBox" class="prettyBody small"></div>
-              </div>
-            </div>
-          </div>
 
           </div>
+
           <div class="box">
             <div class="muted" style="margin-bottom:8px;"><b>Note</b></div>
             <div class="muted" style="font-size:12px;line-height:1.35">
@@ -298,7 +300,7 @@
   }
 
   function escapeHtml(str){
-    return String(str)
+    return String(str ?? "")
       .replaceAll("&","&amp;")
       .replaceAll("<","&lt;")
       .replaceAll(">","&gt;")
@@ -367,51 +369,44 @@
     }
   }
 
-  
-  function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+  // --------- Helpers (Step2 UI) ----------
   function pct(x){ if (typeof x !== "number" || !isFinite(x)) return "-"; return (x*100).toFixed(1) + "%"; }
   function fmt(x, d=2){ if (typeof x !== "number" || !isFinite(x)) return "-"; return x.toFixed(d); }
-
   function poissonPMF(k, lambda){
     if (lambda <= 0) return k === 0 ? 1 : 0;
-    // compute iteratively to avoid big factorial
     let p = Math.exp(-lambda);
     for (let i=1;i<=k;i++) p *= lambda / i;
     return p;
   }
   function poissonCDF(k, lambda){
-    // P(X <= k)
     let s = 0;
     for (let i=0;i<=k;i++) s += poissonPMF(i, lambda);
     return s;
   }
   function poissonOver(threshold, lambda){
-    // P(X > threshold) where threshold is integer like 1 => over1.5 on total goals means >1
     return 1 - poissonCDF(threshold, lambda);
   }
-
-  function pill(text, kind="good"){
-    const cls = `pill ${kind||""}`.trim();
-    return `<span class="${cls}">${text}</span>`;
+  function pill2(text, kind="good"){
+    const cls = `pill2 ${kind||""}`.trim();
+    return `<span class="${cls}">${escapeHtml(text)}</span>`;
   }
-
-  function pickIfValue(label, prob, minOdds){
-    // show only if prob is comfortably above implied probability of minOdds
-    const implied = 1 / minOdds;
-    const margin = 0.05; // conservative buffer
-    if (typeof prob !== "number" || !isFinite(prob)) return null;
-    if (prob >= implied + margin) return { label, prob, minOdds, kind:"good" };
-    if (prob >= implied) return { label, prob, minOdds, kind:"warn" };
-    return null;
+  function fmtLine(x){
+    if (!x) return "n/d";
+    const mean = (x.mean == null) ? "n/d" : fmt(Number(x.mean), 2);
+    const line = (x.line == null) ? "n/d" : String(x.line);
+    return `mean ${mean} — line ${line}`;
   }
-
-  function suggestLine(avg, steps){
-    // steps: [{min, line}, ...] sorted desc
-    if (typeof avg !== "number" || !isFinite(avg)) return null;
-    for (const s of steps){
-      if (avg >= s.min) return s.line;
-    }
-    return steps[steps.length-1].line;
+  function renderPlayerList(title, arr, metricKey){
+    if (!Array.isArray(arr) || !arr.length) return `<div class="muted2">• ${escapeHtml(title)}: n/d</div>`;
+    const rows = arr.slice(0,5).map(p => {
+      const name = p.name ?? "Player";
+      const pos = p.position ?? "";
+      const g = p.games ?? "n/d";
+      const val = p[metricKey];
+      const v = (typeof val === "number" && isFinite(val)) ? fmt(val,2) : "n/d";
+      return `<div class="muted2">• ${escapeHtml(name)} ${pos?`(${escapeHtml(pos)}) `:""}— ${escapeHtml(metricKey)} ${escapeHtml(v)} — g:${escapeHtml(g)}</div>`;
+    }).join("");
+    return `<div style="margin-top:8px"><b>${escapeHtml(title)}</b><div style="margin-top:6px">${rows}</div></div>`;
   }
 
   function renderAnalysis(data){
@@ -422,7 +417,6 @@
     const debugBox = document.getElementById("debugBox");
     if (!pretty || !goalBox || !teamBox || !playersBox) return;
 
-    // reset
     goalBox.innerHTML = "";
     teamBox.innerHTML = "";
     playersBox.innerHTML = "";
@@ -440,187 +434,91 @@
       const pOver25 = poissonOver(2, lamT);
       const pOver35 = poissonOver(3, lamT);
 
-      // high goal tendency flag
       const highGoal = (lamT >= 2.9 && pOver25 >= 0.58) || (pOver15 >= 0.80 && lamT >= 2.6);
-      goalHtml += `<div class="muted">λ totale: <b>${fmt(lamT,2)}</b>${(typeof lamH==="number" && typeof lamA==="number") ? ` (home ${fmt(lamH,2)} / away ${fmt(lamA,2)})` : ""}</div>`;
 
-      if (highGoal){
-        goalHtml += `<div style="margin-top:8px">${pill("Alta tendenza goal", "good")}</div>`;
-        const picks = [];
-        const p1 = pickIfValue("Over 1.5", pOver15, 1.80);
-        if (p1) picks.push(p1);
-        const p2 = pickIfValue("Over 2.5", pOver25, 1.90);
-        if (p2) picks.push(p2);
-        const p3 = pickIfValue("Over 3.5", pOver35, 2.20); // esotico, soglia più alta
-        if (p3) picks.push(p3);
-
-        if (picks.length){
-          goalHtml += `<div style="margin-top:8px"><div class="muted">Mostra solo se quota ≥ soglia (min):</div>`;
-          for (const pk of picks){
-            goalHtml += pill(`${pk.label} — p ${pct(pk.prob)} — min ${pk.minOdds.toFixed(2)}`, pk.kind);
-          }
-          goalHtml += `</div>`;
-        }else{
-          goalHtml += `<div style="margin-top:8px" class="muted">Nessuna pick goal supera i filtri value (min 1.80/1.90).</div>`;
-        }
-      }else{
-        goalHtml += `<div style="margin-top:8px">${pill("Goal tendency: media/bassa", "bad")}</div>`;
-        goalHtml += `<div class="kv">
-          <div class="muted">P Over 1.5</div><div>${pct(pOver15)}</div>
-          <div class="muted">P Over 2.5</div><div>${pct(pOver25)}</div>
-          <div class="muted">P Over 3.5</div><div>${pct(pOver35)}</div>
-        </div>`;
-      }
+      goalHtml += `<div class="muted2">λ totale: <b>${fmt(lamT,2)}</b>${(typeof lamH==="number" && typeof lamA==="number") ? ` (home ${fmt(lamH,2)} / away ${fmt(lamA,2)})` : ""}</div>`;
+      goalHtml += `<div style="margin-top:8px">${pill2(highGoal ? "Alta tendenza goal" : "Goal tendency: media/bassa", highGoal ? "good" : "bad")}</div>`;
+      goalHtml += `<div class="kv2" style="margin-top:10px">
+        <div class="muted2">P Over 1.5</div><div>${pct(pOver15)}</div>
+        <div class="muted2">P Over 2.5</div><div>${pct(pOver25)}</div>
+        <div class="muted2">P Over 3.5</div><div>${pct(pOver35)}</div>
+      </div>`;
     }else{
-      goalHtml += `<div class="muted">Goal model non disponibile per questa partita (o schema diverso).</div>`;
+      goalHtml += `<div class="muted2">Goal model non disponibile per questa partita (o schema diverso).</div>`;
     }
     goalBox.innerHTML = goalHtml;
 
-    // ---- EXOTICS TEAM ----
+    // ---- EXOTICS (NEW STRUCTURE) ----
     const ex = data?.exotics || {};
-    const team = ex.team || ex.team_avgs || ex.averages || ex || {};
-    // try to read averages by common names
-    const av = (x) => (typeof x === "number" && isFinite(x)) ? x : null;
+    const totals = ex.totals || {};
+    const teams = ex.teams || {};
+    const homeName = teams?.home?.name || "Home";
+    const awayName = teams?.away?.name || "Away";
 
-    // possible fields
-    const shotsT = av(team.shots_total?.match ?? team.shots_total ?? team.shots?.match ?? team.shots ?? team.match_shots_total);
-    const sotT   = av(team.shots_on_target?.match ?? team.sot?.match ?? team.shots_on_target ?? team.sot ?? team.match_sot);
-    const cornersT = av(team.corners?.match ?? team.corners_total ?? team.corners);
-    const foulsT = av(team.fouls?.match ?? team.fouls_total ?? team.fouls);
-    const cardsT = av(team.cards?.match ?? team.cards_total ?? team.cards);
-
-    // home/away splits (optional)
-    const shotsH = av(team.shots_total?.home ?? team.home_shots_total);
-    const shotsA = av(team.shots_total?.away ?? team.away_shots_total);
-    const sotH = av(team.shots_on_target?.home ?? team.home_sot);
-    const sotA = av(team.shots_on_target?.away ?? team.away_sot);
-    const cornersH = av(team.corners?.home ?? team.home_corners);
-    const cornersA = av(team.corners?.away ?? team.away_corners);
-    const foulsH = av(team.fouls?.home ?? team.home_fouls);
-    const foulsA = av(team.fouls?.away ?? team.away_fouls);
-    const cardsH = av(team.cards?.home ?? team.home_cards);
-    const cardsA = av(team.cards?.away ?? team.away_cards);
-
-    const teamLines = [];
-    // suggest conservative "Over" lines (you can tune later)
-    const lineShots = shotsT != null ? suggestLine(shotsT, [
-      {min: 28, line:"Over 25.5 shots"},
-      {min: 25, line:"Over 22.5 shots"},
-      {min: 22, line:"Over 19.5 shots"},
-      {min: 19, line:"Over 16.5 shots"},
-      {min: 0,  line:"Over 13.5 shots"},
-    ]) : null;
-
-    const lineSOT = sotT != null ? suggestLine(sotT, [
-      {min: 12, line:"Over 9.5 SOT"},
-      {min: 10, line:"Over 8.5 SOT"},
-      {min: 8,  line:"Over 6.5 SOT"},
-      {min: 6,  line:"Over 5.5 SOT"},
-      {min: 0,  line:"Over 4.5 SOT"},
-    ]) : null;
-
-    const lineCorners = cornersT != null ? suggestLine(cornersT, [
-      {min: 13, line:"Over 10.5 corners"},
-      {min: 11, line:"Over 9.5 corners"},
-      {min: 9,  line:"Over 8.5 corners"},
-      {min: 7,  line:"Over 6.5 corners"},
-      {min: 0,  line:"Over 5.5 corners"},
-    ]) : null;
-
-    const lineFouls = foulsT != null ? suggestLine(foulsT, [
-      {min: 30, line:"Over 27.5 fouls"},
-      {min: 27, line:"Over 24.5 fouls"},
-      {min: 24, line:"Over 21.5 fouls"},
-      {min: 0,  line:"Over 18.5 fouls"},
-    ]) : null;
-
-    const lineCards = cardsT != null ? suggestLine(cardsT, [
-      {min: 7, line:"Over 5.5 cards"},
-      {min: 6, line:"Over 4.5 cards"},
-      {min: 5, line:"Over 3.5 cards"},
-      {min: 0, line:"Over 2.5 cards"},
-    ]) : null;
-
-    if (lineShots) teamLines.push(pill(`${lineShots} (min 1.80)`, "good"));
-    if (lineSOT) teamLines.push(pill(`${lineSOT} (min 1.80)`, "good"));
-    if (lineCorners) teamLines.push(pill(`${lineCorners} (min 1.80)`, "good"));
-    if (lineFouls) teamLines.push(pill(`${lineFouls} (min 1.80)`, "good"));
-    if (lineCards) teamLines.push(pill(`${lineCards} (min 1.80)`, "good"));
-
+    // totals block
+    const anyTotals = !!(totals.shots_total || totals.sot_total || totals.corners_total || totals.fouls_total || totals.cards_total);
     let teamHtml = "";
-    const anyTeam = [shotsT,sotT,cornersT,foulsT,cardsT,shotsH,shotsA,sotH,sotA,cornersH,cornersA,foulsH,foulsA,cardsH,cardsA].some(v=>v!=null);
-    if (!anyTeam){
-      teamHtml = `<div class="muted">Dati esotici non presenti in risposta (per ora). Step 3 li popoliamo dal backend con /fixtures/statistics + /players + /odds.</div>`;
+    if (!anyTotals){
+      teamHtml = `<div class="muted2">Nessun dato esotico “totali” disponibile in risposta (shots/sot/corners/fouls/cards).</div>`;
     }else{
-      teamHtml += `<div class="muted">Linee suggerite (solo se trovi quota ≥ 1.80):</div>`;
-      teamHtml += `<div style="margin-top:6px">${teamLines.join("")}</div>`;
-      teamHtml += `<div class="kv" style="margin-top:10px">
-        <div class="muted">Shots (match)</div><div>${shotsT!=null?fmt(shotsT,1):"-"}</div>
-        <div class="muted">SOT (match)</div><div>${sotT!=null?fmt(sotT,1):"-"}</div>
-        <div class="muted">Corners (match)</div><div>${cornersT!=null?fmt(cornersT,1):"-"}</div>
-        <div class="muted">Fouls (match)</div><div>${foulsT!=null?fmt(foulsT,1):"-"}</div>
-        <div class="muted">Cards (match)</div><div>${cardsT!=null?fmt(cardsT,1):"-"}</div>
+      teamHtml += `<div class="muted2"><b>Totali match</b> (basati su stats stagionali + confronto squadre)</div>`;
+      teamHtml += `<div class="kv2" style="margin-top:10px">
+        <div class="muted2">Shots</div><div>${escapeHtml(fmtLine(totals.shots_total))}</div>
+        <div class="muted2">Shots on Target</div><div>${escapeHtml(fmtLine(totals.sot_total))}</div>
+        <div class="muted2">Corners</div><div>${escapeHtml(fmtLine(totals.corners_total))}</div>
+        <div class="muted2">Fouls</div><div>${escapeHtml(fmtLine(totals.fouls_total))}</div>
+        <div class="muted2">Cards (yellow)</div><div>${escapeHtml(fmtLine(totals.cards_total))}</div>
       </div>`;
-      // optional split
-      const anySplit = [shotsH,shotsA,sotH,sotA,cornersH,cornersA,foulsH,foulsA,cardsH,cardsA].some(v=>v!=null);
-      if (anySplit){
-        teamHtml += `<div class="muted" style="margin-top:10px">Split home/away:</div>
-          <div class="kv">
-            <div class="muted">Shots H/A</div><div>${shotsH!=null?fmt(shotsH,1):"-"} / ${shotsA!=null?fmt(shotsA,1):"-"}</div>
-            <div class="muted">SOT H/A</div><div>${sotH!=null?fmt(sotH,1):"-"} / ${sotA!=null?fmt(sotA,1):"-"}</div>
-            <div class="muted">Corners H/A</div><div>${cornersH!=null?fmt(cornersH,1):"-"} / ${cornersA!=null?fmt(cornersA,1):"-"}</div>
-            <div class="muted">Fouls H/A</div><div>${foulsH!=null?fmt(foulsH,1):"-"} / ${foulsA!=null?fmt(foulsA,1):"-"}</div>
-            <div class="muted">Cards H/A</div><div>${cardsH!=null?fmt(cardsH,1):"-"} / ${cardsA!=null?fmt(cardsA,1):"-"}</div>
-          </div>`;
-      }
+      teamHtml += `<div class="muted2" style="margin-top:10px">Home/Away: <b>${escapeHtml(homeName)}</b> vs <b>${escapeHtml(awayName)}</b></div>`;
     }
     teamBox.innerHTML = teamHtml;
 
-    // ---- PLAYERS ----
-    const players = ex.players || ex.player || ex.player_avgs || [];
+    // ---- PLAYERS (NEW STRUCTURE) ----
+    const pl = ex.players || {};
+    const ph = pl.home || {};
+    const pa = pl.away || {};
+
+    const hasPlayers = (arr) => Array.isArray(arr) && arr.length > 0;
+    const anyPlayers =
+      hasPlayers(ph.topShots) || hasPlayers(ph.topSoT) || hasPlayers(ph.topFouls) || hasPlayers(ph.topCards) ||
+      hasPlayers(pa.topShots) || hasPlayers(pa.topSoT) || hasPlayers(pa.topFouls) || hasPlayers(pa.topCards);
+
     let playersHtml = "";
-    if (Array.isArray(players) && players.length){
-      // we accept generic objects and sort by a metric when available
-      const pickTop = (key, label) => {
-        const arr = players
-          .filter(p => typeof p?.[key] === "number" && isFinite(p[key]))
-          .slice()
-          .sort((a,b)=>b[key]-a[key])
-          .slice(0, 4);
-        if (!arr.length) return "";
-        let out = `<div class="muted" style="margin-top:6px">${label}:</div>`;
-        for (const p of arr){
-          const name = p.name || p.player || p.player_name || "Player";
-          const teamName = p.team || p.team_name || "";
-          out += pill(`${name}${teamName?` (${teamName})`:""} — ${key}: ${fmt(p[key],1)}`, "warn");
-        }
-        return out;
-      };
-      playersHtml += pickTop("shots", "Tiri (player)");
-      playersHtml += pickTop("shots_on_target", "Tiri in porta (player)");
-      playersHtml += pickTop("fouls", "Falli fatti (player)");
-      playersHtml += pickTop("cards", "Cartellini (player)");
-      if (!playersHtml) playersHtml = `<div class="muted">Players presenti ma senza campi riconosciuti (shots/sot/fouls/cards).</div>`;
+    if (!anyPlayers){
+      playersHtml = `<div class="muted2">Nessun dato player props disponibile (topShots/topSoT/topFouls/topCards).</div>`;
     }else{
-      playersHtml = `<div class="muted">Player markets non disponibili ancora (Step 3: li calcoliamo da endpoint players/statistics + events).</div>`;
+      playersHtml += `<div class="muted2"><b>${escapeHtml(homeName)}</b></div>`;
+      playersHtml += renderPlayerList("Top Shots", ph.topShots, "shots_per_game");
+      playersHtml += renderPlayerList("Top SoT", ph.topSoT, "sot_per_game");
+      playersHtml += renderPlayerList("Top Fouls", ph.topFouls, "fouls_per_game");
+      playersHtml += renderPlayerList("Top Cards", ph.topCards, "yellow_per_game");
+
+      playersHtml += `<div class="muted2" style="margin-top:12px"><b>${escapeHtml(awayName)}</b></div>`;
+      playersHtml += renderPlayerList("Top Shots", pa.topShots, "shots_per_game");
+      playersHtml += renderPlayerList("Top SoT", pa.topSoT, "sot_per_game");
+      playersHtml += renderPlayerList("Top Fouls", pa.topFouls, "fouls_per_game");
+      playersHtml += renderPlayerList("Top Cards", pa.topCards, "yellow_per_game");
     }
     playersBox.innerHTML = playersHtml;
 
     // ---- DEBUG ----
     if (debugBox){
       const v = data?.version || "-";
-      const fid = data?.fixture?.fixture_id || data?.fixture?.id || selected?.fixture_id || "-";
-      debugBox.innerHTML = `<div class="kv">
-        <div class="muted">Version</div><div>${v}</div>
-        <div class="muted">Fixture ID</div><div>${fid}</div>
-        <div class="muted">Backend</div><div>${BACKEND}</div>
-      </div><div class="muted" style="margin-top:8px">Nota: per odds reali e filtri quota, Step 3 userà endpoint /odds di API-Football.</div>`;
+      const fid = data?.fixture?.fixture_id || selected?.fixture_id || "-";
+      debugBox.innerHTML = `<div class="kv2">
+        <div class="muted2">Version</div><div>${escapeHtml(v)}</div>
+        <div class="muted2">Fixture ID</div><div>${escapeHtml(fid)}</div>
+        <div class="muted2">Backend</div><div>${escapeHtml(BACKEND)}</div>
+      </div>`;
+      if (Array.isArray(ex?.notes) && ex.notes.length){
+        debugBox.innerHTML += `<div class="muted2" style="margin-top:10px"><b>Notes:</b><br/>${ex.notes.map(n=>escapeHtml(n)).join("<br/>")}</div>`;
+      }
     }
 
     pretty.classList.remove("hidden");
   }
 
-async function runAnalyze(){
+  async function runAnalyze(){
     if (!selected || !selected.fixture_id) return;
     els.analyzeRaw.textContent = "Analisi in corso...";
     try{
@@ -640,7 +538,8 @@ async function runAnalyze(){
     }catch(e){
       console.error(e);
       els.analyzeRaw.textContent = "Errore analisi. Apri console.";
-      const pretty = document.getElementById("analyzePretty"); if (pretty) pretty.classList.add("hidden");
+      const pretty = document.getElementById("analyzePretty");
+      if (pretty) pretty.classList.add("hidden");
     }
   }
 
