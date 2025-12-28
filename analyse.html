@@ -38,7 +38,7 @@
     .brand{font-size:20px;font-weight:700;letter-spacing:.2px;}
     .sub{margin-top:4px;color:var(--muted);font-size:12px;}
     .status{font-size:12px;color:var(--muted);display:flex;gap:10px;align-items:center;white-space:nowrap;}
-    .pillWrap{padding:6px 10px;border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:999px;display:inline-flex;gap:8px;align-items:center;}
+    .pill{padding:6px 10px;border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:999px;display:inline-flex;gap:8px;align-items:center;}
     .dot{width:8px;height:8px;border-radius:50%;background:var(--warn)}
     .dot.ok{background:var(--accent2)}
     main{padding:0 22px 24px;}
@@ -92,6 +92,7 @@
     .badge b{color:var(--txt)}
     footer{padding:12px 22px 22px;color:var(--muted);font-size:12px;}
 
+    /* Step 2: pretty output */
     .hidden{ display:none; }
     .pretty{ margin-top:12px; }
     .prettyRow{ display:grid; grid-template-columns:1fr; gap:12px; margin-top:12px; }
@@ -100,16 +101,15 @@
     .prettyTitle{ font-weight:700; letter-spacing:.2px; margin-bottom:8px; opacity:.95; }
     .prettyBody{ font-size:13px; line-height:1.35; color: rgba(240,250,255,0.92); }
     .prettyBody.small{ font-size:12px; opacity:.9; }
-    .pill{ display:inline-block; padding:6px 10px; border-radius:999px; margin:6px 6px 0 0; font-size:12px;
+    .pill2{ display:inline-block; padding:6px 10px; border-radius:999px; margin:6px 6px 0 0; font-size:12px;
            border:1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.18); }
-    .pill.good{ border-color: rgba(60, 220, 130, 0.35); }
-    .pill.warn{ border-color: rgba(255, 190, 60, 0.35); }
-    .pill.bad{ border-color: rgba(255, 80, 80, 0.35); opacity:.75; }
-    .kv2{ display:grid; grid-template-columns: 220px 1fr; gap:6px 10px; margin-top:8px; }
+    .pill2.good{ border-color: rgba(60, 220, 130, 0.35); }
+    .pill2.warn{ border-color: rgba(255, 190, 60, 0.35); }
+    .pill2.bad{ border-color: rgba(255, 80, 80, 0.35); opacity:.75; }
+    .kv2{ display:grid; grid-template-columns: 210px 1fr; gap:6px 10px; margin-top:8px; }
     .kv2 div{ padding:2px 0; }
     .muted2{ opacity:.8; }
-    .hr{height:1px;background:rgba(255,255,255,.08);margin:10px 0;}
-    .mono{font-family:var(--mono)}
+    .hr{ height:1px; background:rgba(255,255,255,0.08); margin:10px 0; }
   </style>
 </head>
 <body>
@@ -119,8 +119,8 @@
     <div class="sub">Seleziona data e lega → scegli una partita → Analizza (goal/Poisson/Under-Over). Poi aggiungiamo cards/corners/shots + screenshot.</div>
   </div>
   <div class="status">
-    <span class="pillWrap"><span id="dot" class="dot"></span><span id="backendTxt">Backend: ...</span></span>
-    <span class="pillWrap">Fixture: <b id="fixtureCount">-</b></span>
+    <span class="pill"><span id="dot" class="dot"></span><span id="backendTxt">Backend: ...</span></span>
+    <span class="pill">Fixture: <b id="fixtureCount">-</b></span>
   </div>
 </header>
 
@@ -195,7 +195,6 @@
                   <div id="exoticTeam" class="prettyBody"></div>
                 </div>
               </div>
-
               <div class="prettyRow">
                 <div class="prettyCard">
                   <div class="prettyTitle">Player (se disponibili)</div>
@@ -220,6 +219,7 @@
             </div>
           </div>
         </div>
+
       </div>
     </section>
   </div>
@@ -370,6 +370,7 @@
     }
   }
 
+  function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
   function pct(x){ if (typeof x !== "number" || !isFinite(x)) return "-"; return (x*100).toFixed(1) + "%"; }
   function fmt(x, d=2){ if (typeof x !== "number" || !isFinite(x)) return "-"; return x.toFixed(d); }
 
@@ -388,51 +389,19 @@
     return 1 - poissonCDF(threshold, lambda);
   }
 
-  // --- exotics helpers ---
-  const isNum = (v) => (typeof v === "number" && isFinite(v));
-  const readMeanFromTotalsObj = (obj) => {
-    if (!obj || typeof obj !== "object") return null;
-    const v = obj.mean ?? obj.avg ?? obj.average ?? obj.mu ?? obj.value ?? null;
-    return isNum(v) ? v : null;
-  };
-  const readLineFromTotalsObj = (obj) => {
-    if (!obj || typeof obj !== "object") return null;
-    const v = obj.line ?? obj.suggested_line ?? obj.recommended_line ?? obj.threshold ?? null;
-    if (isNum(v)) return String(v);
-    if (typeof v === "string" && v.trim()) return v.trim();
-    return null;
-  };
-  const readTeamAvg = (teamObj, keys) => {
-    if (!teamObj || typeof teamObj !== "object") return null;
-    for (const k of keys){
-      const v = teamObj[k];
-      if (isNum(v)) return v;
-    }
-    return null;
-  };
+  function pill(text, kind="good"){
+    const cls = `pill2 ${kind||""}`.trim();
+    return `<span class="${cls}">${text}</span>`;
+  }
 
-  // mean finale: prova totals.mean, se 0 o null prova team home+away
-  function computeTotalMean(ex, totalsObj, teamKeys){
-    const tMean = readMeanFromTotalsObj(totalsObj);
-    const tLine = readLineFromTotalsObj(totalsObj);
-
-    // se backend ti manda 0.00 e non c'è line, lo consideriamo "placeholder" e facciamo fallback.
-    const treatAsMissing = (tMean == null) || (tMean === 0 && !tLine);
-
-    if (!treatAsMissing) return { mean: tMean, src: "totals" };
-
-    const teams = ex?.teams || {};
-    const h = teams?.home || {};
-    const a = teams?.away || {};
-
-    const hAvg = readTeamAvg(h, teamKeys);
-    const aAvg = readTeamAvg(a, teamKeys);
-
-    if (isNum(hAvg) && isNum(aAvg)) return { mean: hAvg + aAvg, src: "teams" };
-    if (isNum(hAvg)) return { mean: hAvg, src: "teams_home_only" };
-    if (isNum(aAvg)) return { mean: aAvg, src: "teams_away_only" };
-
-    return { mean: null, src: "missing" };
+  function safeMeanLine(obj){
+    // obj: { mean, line } or null
+    if (!obj || typeof obj !== "object") return { mean: null, line: null };
+    const mean = (typeof obj.mean === "number" && isFinite(obj.mean)) ? obj.mean : null;
+    const line = (obj.line === null || obj.line === undefined) ? null : obj.line;
+    // IMPORTANT: se mean è 0 e line è null, trattalo come "non disponibile" (non come valore reale)
+    if (mean === 0 && (line === null || line === "n/d")) return { mean: null, line: null };
+    return { mean, line };
   }
 
   function renderAnalysis(data){
@@ -450,9 +419,9 @@
 
     // ---- GOALS (Poisson) ----
     const gm = data?.goals_model || {};
-    const lamH = gm.lambda_home ?? gm.home_lambda ?? gm.mu_home ?? null;
-    const lamA = gm.lambda_away ?? gm.away_lambda ?? gm.mu_away ?? null;
-    const lamT = (typeof lamH === "number" && typeof lamA === "number") ? (lamH + lamA) : (gm.lambda_total ?? gm.mu_total ?? null);
+    const lamH = gm.lambda_home ?? null;
+    const lamA = gm.lambda_away ?? null;
+    const lamT = gm.lambda_total ?? ((typeof lamH === "number" && typeof lamA === "number") ? (lamH + lamA) : null);
 
     let goalHtml = "";
     if (typeof lamT === "number" && isFinite(lamT)){
@@ -460,125 +429,139 @@
       const pOver25 = poissonOver(2, lamT);
       const pOver35 = poissonOver(3, lamT);
 
-      goalHtml += `<div class="muted2">λ totale: <b>${fmt(lamT,2)}</b>${(typeof lamH==="number" && typeof lamA==="number") ? ` (home ${fmt(lamH,2)} / away ${fmt(lamA,2)})` : ""}</div>`;
-      goalHtml += `<div class="kv2" style="margin-top:8px">
+      goalHtml += `<div class="muted2">λ totale: <b>${fmt(lamT,2)}</b> (home ${fmt(lamH,2)} / away ${fmt(lamA,2)})</div>`;
+      goalHtml += `<div class="kv2" style="margin-top:10px">
         <div class="muted2">P Over 1.5</div><div>${pct(pOver15)}</div>
         <div class="muted2">P Over 2.5</div><div>${pct(pOver25)}</div>
         <div class="muted2">P Over 3.5</div><div>${pct(pOver35)}</div>
       </div>`;
     }else{
-      goalHtml += `<div class="muted2">Goal model non disponibile per questa partita.</div>`;
+      goalHtml += `<div class="muted2">Goal model non disponibile (schema diverso o dati mancanti).</div>`;
     }
     goalBox.innerHTML = goalHtml;
 
-    // ---- EXOTICS TOTALS (con fallback teams) ----
+    // ---- EXOTICS TEAM (FIX: read from exotics.totals + exotics.teams) ----
     const ex = data?.exotics || {};
-    const totals = ex?.totals || {};
+    const totals = ex.totals || {};
+    const tShots   = safeMeanLine(totals.shots_total);
+    const tSot     = safeMeanLine(totals.sot_total);
+    const tCorners = safeMeanLine(totals.corners_total);
+    const tFouls   = safeMeanLine(totals.fouls_total);
+    const tCards   = safeMeanLine(totals.cards_total);
 
-    const shotsObj   = totals.shots_total   ?? totals.shots ?? totals.total_shots ?? null;
-    const sotObj     = totals.sot_total     ?? totals.shots_on_target_total ?? totals.sot ?? totals.total_sot ?? null;
-    const cornersObj = totals.corners_total ?? totals.corners ?? totals.total_corners ?? null;
-    const foulsObj   = totals.fouls_total   ?? totals.fouls ?? totals.total_fouls ?? null;
-    const cardsObj   = totals.cards_total   ?? totals.cards ?? totals.total_cards ?? null;
+    const th = ex.teams?.home || null;
+    const ta = ex.teams?.away || null;
 
-    const shotsMeanInfo   = computeTotalMean(ex, shotsObj,   ["shots_per_game", "shots_pg", "avg_shots", "mean_shots"]);
-    const sotMeanInfo     = computeTotalMean(ex, sotObj,     ["sot_per_game", "sot_pg", "shots_on_target_per_game", "avg_sot", "mean_sot"]);
-    const cornersMeanInfo = computeTotalMean(ex, cornersObj, ["corners_per_game", "corners_pg", "avg_corners", "mean_corners"]);
-    const foulsMeanInfo   = computeTotalMean(ex, foulsObj,   ["fouls_per_game", "fouls_pg", "avg_fouls", "mean_fouls"]);
-    const cardsMeanInfo   = computeTotalMean(ex, cardsObj,   ["yellow_per_game", "cards_per_game", "cards_pg", "avg_cards", "mean_cards"]);
+    const homeName = th?.name || data?.fixture?.home?.name || data?.fixture?.teams?.home?.name || "-";
+    const awayName = ta?.name || data?.fixture?.away?.name || data?.fixture?.teams?.away?.name || "-";
 
-    const shotsLine   = readLineFromTotalsObj(shotsObj);
-    const sotLine     = readLineFromTotalsObj(sotObj);
-    const cornersLine = readLineFromTotalsObj(cornersObj);
-    const foulsLine   = readLineFromTotalsObj(foulsObj);
-    const cardsLine   = readLineFromTotalsObj(cardsObj);
-
-    const anyTotals =
-      shotsMeanInfo.mean!=null || sotMeanInfo.mean!=null || cornersMeanInfo.mean!=null || foulsMeanInfo.mean!=null || cardsMeanInfo.mean!=null ||
-      shotsObj || sotObj || cornersObj || foulsObj || cardsObj ||
-      ex?.teams?.home || ex?.teams?.away;
+    const row = (label, ml, decimals=2) => {
+      const meanTxt = (ml.mean == null) ? "n/d" : fmt(ml.mean, decimals);
+      const lineTxt = (ml.line == null) ? "n/d" : String(ml.line);
+      return `<div class="muted2">${label}</div><div><b>mean</b> ${meanTxt} — <b>line</b> ${lineTxt}</div>`;
+    };
 
     let teamHtml = "";
-    if (!anyTotals){
-      teamHtml = `<div class="muted2">Totali match non presenti nella risposta per questa partita.</div>`;
-    }else{
-      teamHtml += `<div class="muted2"><b>Totali match</b> (basati su stats stagionali + confronto squadre)</div>`;
-      teamHtml += `<div class="hr"></div>`;
-      teamHtml += `<div class="kv2 mono">
-        <div class="muted2">Shots</div>
-        <div>mean ${shotsMeanInfo.mean!=null?fmt(shotsMeanInfo.mean,2):"n/d"} — line ${shotsLine!=null?escapeHtml(shotsLine):"n/d"}</div>
+    const anyTotals =
+      (tShots.mean!=null || tShots.line!=null) ||
+      (tSot.mean!=null || tSot.line!=null) ||
+      (tCorners.mean!=null || tCorners.line!=null) ||
+      (tFouls.mean!=null || tFouls.line!=null) ||
+      (tCards.mean!=null || tCards.line!=null);
 
-        <div class="muted2">Shots on Target</div>
-        <div>mean ${sotMeanInfo.mean!=null?fmt(sotMeanInfo.mean,2):"n/d"} — line ${sotLine!=null?escapeHtml(sotLine):"n/d"}</div>
+    teamHtml += `<div class="muted2"><b>Totali match</b> (basati su stats stagionali + confronto squadre)</div>`;
+    teamHtml += `<div class="kv2" style="margin-top:10px">`;
+    teamHtml += row("Shots", tShots, 2);
+    teamHtml += row("Shots on Target", tSot, 2);
+    teamHtml += row("Corners", tCorners, 2);
+    teamHtml += row("Fouls", tFouls, 2);
+    teamHtml += row("Cards (yellow)", tCards, 2);
+    teamHtml += `</div>`;
 
-        <div class="muted2">Corners</div>
-        <div>mean ${cornersMeanInfo.mean!=null?fmt(cornersMeanInfo.mean,2):"n/d"} — line ${cornersLine!=null?escapeHtml(cornersLine):"n/d"}</div>
+    teamHtml += `<div class="hr"></div>`;
+    teamHtml += `<div class="muted2">Home/Away: ${escapeHtml(homeName)} vs ${escapeHtml(awayName)}</div>`;
 
-        <div class="muted2">Fouls</div>
-        <div>mean ${foulsMeanInfo.mean!=null?fmt(foulsMeanInfo.mean,2):"n/d"} — line ${foulsLine!=null?escapeHtml(foulsLine):"n/d"}</div>
+    // optional: show team season avgs if present
+    const hasTeamAvgs = (x) => x && typeof x === "object" && Object.keys(x).some(k => x[k] !== null && x[k] !== 0);
+    if (hasTeamAvgs(th) || hasTeamAvgs(ta)){
+      const f = (v, d=2) => (typeof v === "number" && isFinite(v) && v !== 0) ? v.toFixed(d) : "n/d";
+      teamHtml += `<div class="muted2" style="margin-top:8px">Season avgs (se disponibili):</div>`;
+      teamHtml += `<div class="kv2" style="margin-top:8px">
+        <div class="muted2">${escapeHtml(homeName)} — corners_for_pg</div><div>${f(th?.corners_for_pg)}</div>
+        <div class="muted2">${escapeHtml(homeName)} — corners_against_pg</div><div>${f(th?.corners_against_pg)}</div>
+        <div class="muted2">${escapeHtml(homeName)} — fouls_for_pg</div><div>${f(th?.fouls_for_pg)}</div>
+        <div class="muted2">${escapeHtml(homeName)} — fouls_against_pg</div><div>${f(th?.fouls_against_pg)}</div>
+        <div class="muted2">${escapeHtml(homeName)} — shots_for_pg</div><div>${f(th?.shots_for_pg)}</div>
+        <div class="muted2">${escapeHtml(homeName)} — sot_for_pg</div><div>${f(th?.sot_for_pg)}</div>
 
-        <div class="muted2">Cards (yellow)</div>
-        <div>${cardsMeanInfo.mean!=null?`mean ${fmt(cardsMeanInfo.mean,2)} — line ${cardsLine!=null?escapeHtml(cardsLine):"n/d"}`:"n/d"}</div>
+        <div class="muted2">${escapeHtml(awayName)} — corners_for_pg</div><div>${f(ta?.corners_for_pg)}</div>
+        <div class="muted2">${escapeHtml(awayName)} — corners_against_pg</div><div>${f(ta?.corners_against_pg)}</div>
+        <div class="muted2">${escapeHtml(awayName)} — fouls_for_pg</div><div>${f(ta?.fouls_for_pg)}</div>
+        <div class="muted2">${escapeHtml(awayName)} — fouls_against_pg</div><div>${f(ta?.fouls_against_pg)}</div>
+        <div class="muted2">${escapeHtml(awayName)} — shots_for_pg</div><div>${f(ta?.shots_for_pg)}</div>
+        <div class="muted2">${escapeHtml(awayName)} — sot_for_pg</div><div>${f(ta?.sot_for_pg)}</div>
       </div>`;
-
-      const fx = data?.fixture || {};
-      const homeName = fx?.home?.name || fx?.teams?.home?.name || "";
-      const awayName = fx?.away?.name || fx?.teams?.away?.name || "";
-      if (homeName || awayName){
-        teamHtml += `<div class="hr"></div>`;
-        teamHtml += `<div class="muted2">Home/Away: ${escapeHtml(homeName)} vs ${escapeHtml(awayName)}</div>`;
-      }
     }
+
+    // se backend non ha calcolato nulla, metti nota chiara invece di "0.00"
+    if (!anyTotals){
+      teamHtml += `<div class="muted2" style="margin-top:10px">
+        Nota: per questa partita il backend non sta fornendo totali esotici (o sono null/0). In console li vedi: exotics.totals.*
+      </div>`;
+    }
+
     teamBox.innerHTML = teamHtml;
 
-    // ---- PLAYERS ----
-    const px = ex?.players || {};
-    function renderPlayerBlock(sideLabel, sideObj){
-      if (!sideObj || typeof sideObj !== "object") return "";
-      const topShots = Array.isArray(sideObj.topShots) ? sideObj.topShots : [];
-      const topSoT = Array.isArray(sideObj.topSoT) ? sideObj.topSoT : [];
-      const topFouls = Array.isArray(sideObj.topFouls) ? sideObj.topFouls : [];
-      const topCards = Array.isArray(sideObj.topCards) ? sideObj.topCards : [];
+    // ---- PLAYERS (FIX: use exotics.players.home/away) ----
+    const pl = ex.players || {};
+    const renderSide = (sideName, obj) => {
+      if (!obj || typeof obj !== "object") return "";
+      const mk = (title, arr, keyLabel) => {
+        if (!Array.isArray(arr) || !arr.length) return "";
+        let out = `<div class="muted2" style="margin-top:10px"><b>${title}</b></div>`;
+        out += `<div style="margin-top:6px">`;
+        for (const p of arr){
+          const nm = p?.name || "Player";
+          const pos = p?.position ? ` (${p.position})` : "";
+          const g = (p?.games != null) ? ` — g:${p.games}` : "";
+          const val = (p?.[keyLabel] != null) ? ` — ${keyLabel}: ${p[keyLabel]}` : "";
+          // fallback: show the metric the backend actually includes (shots_per_game, sot_per_game, fouls_per_game, yellow_per_game)
+          out += `<div>• ${escapeHtml(nm)}${escapeHtml(pos)}${escapeHtml(val)}${escapeHtml(g)}</div>`;
+        }
+        out += `</div>`;
+        return out;
+      };
 
-      const li = (arr, key) => arr.slice(0,5).map(p => {
-        const name = p?.name || "Player";
-        const pos = p?.position ? `(${p.position})` : "";
-        const g = (typeof p?.games === "number") ? `g:${p.games}` : "";
-        const v = (typeof p?.[key] === "number") ? fmt(p[key],2) : "n/d";
-        return `<div>• ${escapeHtml(name)} ${escapeHtml(pos)} — ${key}: ${v} ${g?`— ${g}`:""}</div>`;
-      }).join("");
-
-      let out = `<div class="muted2"><b>${escapeHtml(sideLabel)}</b></div>`;
-      if (topShots.length){ out += `<div class="hr"></div><div><b>Top Shots</b></div>${li(topShots,"shots_per_game")}`; }
-      if (topSoT.length){ out += `<div class="hr"></div><div><b>Top SoT</b></div>${li(topSoT,"sot_per_game")}`; }
-      if (topFouls.length){ out += `<div class="hr"></div><div><b>Top Fouls</b></div>${li(topFouls,"fouls_per_game")}`; }
-      if (topCards.length){ out += `<div class="hr"></div><div><b>Top Cards</b></div>${li(topCards,"yellow_per_game")}`; }
-      return out;
-    }
+      let html = `<div class="muted2"><b>${escapeHtml(sideName)}</b></div>`;
+      html += mk("Top Shots", obj.topShots, "shots_per_game");
+      html += mk("Top SoT", obj.topSoT, "sot_per_game");
+      html += mk("Top Fouls", obj.topFouls, "fouls_per_game");
+      html += mk("Top Cards", obj.topCards, "yellow_per_game");
+      return html;
+    };
 
     let playersHtml = "";
-    if (px?.home || px?.away){
-      const homeTeam = data?.fixture?.home?.name || data?.fixture?.teams?.home?.name || "Home";
-      const awayTeam = data?.fixture?.away?.name || data?.fixture?.teams?.away?.name || "Away";
-      playersHtml += renderPlayerBlock(homeTeam, px.home);
-      playersHtml += `<div class="hr"></div>`;
-      playersHtml += renderPlayerBlock(awayTeam, px.away);
+    const homePlayers = pl.home;
+    const awayPlayers = pl.away;
+
+    if (homePlayers || awayPlayers){
+      if (homePlayers) playersHtml += renderSide(homeName, homePlayers);
+      if (awayPlayers) playersHtml += `<div class="hr"></div>` + renderSide(awayName, awayPlayers);
     }else{
-      playersHtml = `<div class="muted2">Player non disponibili per questa partita.</div>`;
+      playersHtml = `<div class="muted2">Player markets non disponibili (backend non ha exotics.players.*).</div>`;
     }
-    playersBox.innerHTML = playersHtml;
+
+    playersBox.innerHTML = playersHtml || `<div class="muted2">Nessun player suggerito.</div>`;
 
     // ---- DEBUG ----
     if (debugBox){
       const v = data?.version || "-";
-      const fid = data?.fixture?.fixture_id || data?.fixture?.id || selected?.fixture_id || "-";
+      const fid = data?.fixture?.fixture_id || selected?.fixture_id || "-";
       debugBox.innerHTML = `<div class="kv2">
         <div class="muted2">Version</div><div>${escapeHtml(v)}</div>
         <div class="muted2">Fixture ID</div><div>${escapeHtml(fid)}</div>
         <div class="muted2">Backend</div><div>${escapeHtml(BACKEND)}</div>
-      </div>
-      <div class="hr"></div>
-      <div class="muted2">Exotics totals source (auto): shots=${escapeHtml(shotsMeanInfo.src)} | sot=${escapeHtml(sotMeanInfo.src)} | corners=${escapeHtml(cornersMeanInfo.src)} | fouls=${escapeHtml(foulsMeanInfo.src)} | cards=${escapeHtml(cardsMeanInfo.src)}</div>`;
+      </div>`;
     }
 
     pretty.classList.remove("hidden");
@@ -604,11 +587,11 @@
     }catch(e){
       console.error(e);
       els.analyzeRaw.textContent = "Errore analisi. Apri console.";
-      const pretty = document.getElementById("analyzePretty");
-      if (pretty) pretty.classList.add("hidden");
+      const pretty = document.getElementById("analyzePretty"); if (pretty) pretty.classList.add("hidden");
     }
   }
 
+  // init
   els.dateInp.value = todayISO();
   els.searchInp.addEventListener("input", () => renderList());
   document.querySelectorAll("input.lg").forEach(chk => chk.addEventListener("change", () => renderList()));
