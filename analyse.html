@@ -603,59 +603,58 @@ applyFilters();
     playersBox.innerHTML = html || "n/d";
   }
 
-  function renderBets(exotics){
+    function renderBets(exotics){
     var bets = exotics && exotics.bets;
-    if (!bets){ betsBox.textContent="n/d"; return; }
+    if (!bets){ betsBox.textContent = "n/d"; return; }
 
-    function fmtOdds(x){
-      if (typeof x !== 'number' || !isFinite(x)) return "n/d";
-      return x.toFixed(2);
+    function fmtNum(x, d){
+      if (x === null || x === undefined) return "n/d";
+      if (typeof x !== "number" || !isFinite(x)) return "n/d";
+      return x.toFixed(d == null ? 2 : d);
     }
 
     function renderOne(kind, obj){
       if (!obj) return '';
-      var cls = kind === "easy" ? "safe" : (kind === "medium" ? "med" : "hard");
-      // Backend uses est_total_odds + target (string). Keep compatibility with older keys.
-      var quotaTxt = (typeof obj.est_total_odds === 'number' && isFinite(obj.est_total_odds))
-        ? fmtOdds(obj.est_total_odds)
-        : (typeof obj.target_odds === 'number' && isFinite(obj.target_odds) ? fmtOdds(obj.target_odds) : "n/d");
-      var header = pill(obj.name || kind.toUpperCase(), cls)
-        + '<span class="muted2">quota stimata <b>'+escapeHtml(quotaTxt)+'</b>'
-        + (obj.target && typeof obj.target === 'string' ? ' <span class="muted2">('+escapeHtml(obj.target)+')</span>' : '')
-        + '</span>';
-      var html = '<div style="margin-top:8px;">'+header+'</div>';
+      var cls = (kind === "easy") ? "safe" : (kind === "medium" ? "med" : "hard");
+      var title = escapeHtml(obj.name || kind.toUpperCase());
+      var tgt   = escapeHtml(obj.target || obj.target_odds || "n/d");
+      var q     = fmtNum(obj.est_total_odds, 2);
+
+      var out = '';
+      out += '<div class="betCard">';
+      out +=   '<div class="betHead">';
+      out +=     pill(title, cls);
+      out +=     '<span class="betMeta">quota stimata <b>'+q+'</b> <span class="muted2">('+tgt+')</span></span>';
+      out +=   '</div>';
+
       var legs = obj.legs || [];
       for (var i=0;i<legs.length;i++){
         var leg = legs[i] || {};
         var mkt = leg.market || leg.label || ("Leg "+(i+1));
-        if (leg.team) mkt = mkt + " — " + String(leg.team);
-        var note = leg.note || "";
+        var team = leg.team ? (' — ' + escapeHtml(leg.team)) : '';
+        var selection = escapeHtml(leg.selection || "n/d");
+        var odds = (leg.est_odds != null && typeof leg.est_odds === "number" && isFinite(leg.est_odds)) ? ('<span class="muted2">@'+leg.est_odds.toFixed(2)+'</span>') : '';
+        var pos = leg.position ? (' <span class="muted2">['+escapeHtml(leg.position)+']</span>') : '';
+        var line = (leg.line != null && typeof leg.line === "number" && isFinite(leg.line)) ? ('<span class="muted2">('+leg.line.toFixed(1)+')</span>') : '';
 
-        // Prefer showing the human selection (e.g. "Hermoso booked") for player legs.
-        var right = "n/d";
-        if (leg.selection) right = String(leg.selection);
-        else if (leg.line !== null && leg.line !== undefined) right = fmtNum(leg.line, 1);
-
-        // Append estimated odds if present.
-        if (typeof leg.est_odds === 'number' && isFinite(leg.est_odds)){
-          right += ' <span class="muted2">@'+fmtOdds(leg.est_odds)+'</span>';
-        }
-
-        // Append position context if present.
-        var ctx = [];
-        if (leg.position) ctx.push(leg.position);
-        if (ctx.length) note = (note ? (note+" ") : "") + '['+ctx.join(' • ')+']';
-
-        html += '<div class="prettyRow"><div>'+escapeHtml(mkt)+'</div><div style="text-align:right"><b>'+escapeHtml(right)+'</b> <span class="muted2">'+escapeHtml(note)+'</span></div></div>';
+        out += '<div class="prettyRow">';
+        out +=   '<div class="prTop">'+escapeHtml(mkt)+team+' '+line+'</div>';
+        out +=   '<div class="prBot">'+selection+' '+odds+pos+'</div>';
+        out += '</div>';
       }
-      return html;
+
+      if (obj.note){
+        out += '<div class="muted2" style="margin-top:6px;">'+escapeHtml(obj.note)+'</div>';
+      }
+      out += '</div>';
+      return out;
     }
 
     var html = '';
     html += renderOne("easy", bets.easy);
-    html += '<div class="hr"></div>' + renderOne("medium", bets.medium);
-    html += '<div class="hr"></div>' + renderOne("hard", bets.hard);
-    betsBox.innerHTML = html;
+    html += renderOne("medium", bets.medium);
+    html += renderOne("hard", bets.hard);
+    betsBox.innerHTML = html || "n/d";
   }
 
   function runAnalyze(){
