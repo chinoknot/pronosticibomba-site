@@ -607,18 +607,46 @@ applyFilters();
     var bets = exotics && exotics.bets;
     if (!bets){ betsBox.textContent="n/d"; return; }
 
+    function fmtOdds(x){
+      if (typeof x !== 'number' || !isFinite(x)) return "n/d";
+      return x.toFixed(2);
+    }
+
     function renderOne(kind, obj){
       if (!obj) return '';
       var cls = kind === "easy" ? "safe" : (kind === "medium" ? "med" : "hard");
-      var header = pill(obj.name || kind.toUpperCase(), cls) + '<span class="muted2">quota stimata <b>'+escapeHtml(obj.target_odds || "n/d")+'</b></span>';
+      // Backend uses est_total_odds + target (string). Keep compatibility with older keys.
+      var quotaTxt = (typeof obj.est_total_odds === 'number' && isFinite(obj.est_total_odds))
+        ? fmtOdds(obj.est_total_odds)
+        : (typeof obj.target_odds === 'number' && isFinite(obj.target_odds) ? fmtOdds(obj.target_odds) : "n/d");
+      var header = pill(obj.name || kind.toUpperCase(), cls)
+        + '<span class="muted2">quota stimata <b>'+escapeHtml(quotaTxt)+'</b>'
+        + (obj.target && typeof obj.target === 'string' ? ' <span class="muted2">('+escapeHtml(obj.target)+')</span>' : '')
+        + '</span>';
       var html = '<div style="margin-top:8px;">'+header+'</div>';
       var legs = obj.legs || [];
       for (var i=0;i<legs.length;i++){
         var leg = legs[i] || {};
         var mkt = leg.market || leg.label || ("Leg "+(i+1));
-        var line = leg.line;
+        if (leg.team) mkt = mkt + " — " + String(leg.team);
         var note = leg.note || "";
-        html += '<div class="prettyRow"><div>'+escapeHtml(mkt)+'</div><div style="text-align:right"><b>'+ (line===null||line===undefined ? 'n/d' : fmtNum(line,1)) +'</b> <span class="muted2">'+escapeHtml(note)+'</span></div></div>';
+
+        // Prefer showing the human selection (e.g. "Hermoso booked") for player legs.
+        var right = "n/d";
+        if (leg.selection) right = String(leg.selection);
+        else if (leg.line !== null && leg.line !== undefined) right = fmtNum(leg.line, 1);
+
+        // Append estimated odds if present.
+        if (typeof leg.est_odds === 'number' && isFinite(leg.est_odds)){
+          right += ' <span class="muted2">@'+fmtOdds(leg.est_odds)+'</span>';
+        }
+
+        // Append position context if present.
+        var ctx = [];
+        if (leg.position) ctx.push(leg.position);
+        if (ctx.length) note = (note ? (note+" ") : "") + '['+ctx.join(' • ')+']';
+
+        html += '<div class="prettyRow"><div>'+escapeHtml(mkt)+'</div><div style="text-align:right"><b>'+escapeHtml(right)+'</b> <span class="muted2">'+escapeHtml(note)+'</span></div></div>';
       }
       return html;
     }
