@@ -624,7 +624,11 @@ applyFilters();
       out += '<div class="betCard">';
       out +=   '<div class="betHead">';
       out +=     pill(title, cls);
-      out +=     '<span class="betMeta">quota stimata <b>'+q+'</b> <span class="muted2">('+tgt+')</span></span>';
+      var q_real = fmtNum(obj.total_odds_real, 2);
+      var hasReal = (q_real !== "n/d");
+      var q_show = hasReal ? q_real : q;
+      var label = hasReal ? "quota reale" : "quota stimata";
+      out +=     '<span class="betMeta">'+label+' <b>'+q_show+'</b> <span class="muted2">('+tgt+')</span></span>';
       out +=   '</div>';
 
       var legs = obj.legs || [];
@@ -633,7 +637,9 @@ applyFilters();
         var mkt = leg.market || leg.label || ("Leg "+(i+1));
         var team = leg.team ? (' — ' + escapeHtml(leg.team)) : '';
         var selection = escapeHtml(leg.selection || "n/d");
-        var odds = (leg.est_odds != null && typeof leg.est_odds === "number" && isFinite(leg.est_odds)) ? ('<span class="muted2">@'+leg.est_odds.toFixed(2)+'</span>') : '';
+        var oddsVal = (leg.odds_real != null && typeof leg.odds_real === "number" && isFinite(leg.odds_real)) ? leg.odds_real
+                  : ((leg.est_odds != null && typeof leg.est_odds === "number" && isFinite(leg.est_odds)) ? leg.est_odds : null);
+        var odds = (oddsVal != null) ? ('<span class="muted2">@'+oddsVal.toFixed(2)+(leg.odds_real != null ? ' (real)' : '')+'</span>') : '';
         var pos = leg.position ? (' <span class="muted2">['+escapeHtml(leg.position)+']</span>') : '';
         var line = (leg.line != null && typeof leg.line === "number" && isFinite(leg.line)) ? ('<span class="muted2">('+leg.line.toFixed(1)+')</span>') : '';
 
