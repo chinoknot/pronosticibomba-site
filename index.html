@@ -1139,6 +1139,10 @@
         align-items: flex-start;
       }
     }
+  
+    /* ROI nascosto: resta solo nello storico */
+    #model-stats-box{display:none !important;}
+
   </style>
 </head>
 <body>
@@ -2065,144 +2069,141 @@ async function loadModelStats() {
   const statsBox = document.getElementById("model-stats-box");
   if (!statsBox) return;
 
-  // ROI PER EVENTO (fixture_id) - IDENTICO allo Storico ROI:
-  // - Fonte dati: tabella "results"
-  // - 1 stake per fixture_id
-  // - per ogni fixture_id scegliamo la pick RISOLTA (WIN/LOSE) con score_model più alto
-  // - profit: WIN => odd-1, LOSE => -1
   try {
-    // ultimo giorno disponibile (serve per capire il mese "corrente" dei dati)
+    // === ROI PER EVENTO (fixture_id) - STESSA LOGICA DELLO STORICO ROI ===
+    // 1) prendiamo la data più recente presente in tabella picks
     const latestRows = await sbFetch(
-      "results",
-      "?select=picks_date&order=picks_date.desc&limit=1"
+      "picks",
+      "?select=match_date&order=match_date.desc&limit=1"
     );
 
     const latestDateStr =
-      Array.isArray(latestRows) && latestRows[0] && latestRows[0].picks_date
-        ? String(latestRows[0].picks_date)
+      Array.isArray(latestRows) && latestRows[0] && latestRows[0].match_date
+        ? String(latestRows[0].match_date)
         : null;
 
     if (!latestDateStr) return;
 
+    // 2) calcoliamo range del mese (YYYY-MM-01 -> YYYY-MM-last)
     const y = parseInt(latestDateStr.slice(0, 4), 10);
-    const mm = parseInt(latestDateStr.slice(5, 7), 10);
-    const pad2 = (n) => (n < 10 ? "0" + n : "" + n);
+    const m = parseInt(latestDateStr.slice(5, 7), 10);
+    const fromDate = `${y}-${pad2(m)}-01`;
+    const lastDay = new Date(y, m, 0).getDate(); // ultimo giorno del mese
+    const toDate = `${y}-${pad2(m)}-${pad2(lastDay)}`;
 
-    const fromDate = `${y}-${pad2(mm)}-01`;
-    const lastDay = new Date(y, mm, 0).getDate(); // ultimo giorno del mese
-    const toDate = `${y}-${pad2(mm)}-${pad2(lastDay)}`;
-
-    // Carichiamo i results del mese (come lo storico ROI)
-    const rows = await sbFetch(
-      "results",
-      `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}&select=fixture_id,pick,result,odd,score_model,status_short,final_score,run_date`
+    // 3) carichiamo tutte le picks del mese e tutti i results del mese
+    const picks = await sbFetch(
+      "picks",
+      `?match_date=gte.${fromDate}&match_date=lte.${toDate}&select=*`
     );
 
-    if (!Array.isArray(rows) || !rows.length) return;
+    if (!Array.isArray(picks) || !picks.length) return;
 
-    function safeOdd(o) {
-      const n = Number(o);
-      if (!isFinite(n) || n <= 1) return 1.0; // stessa filosofia dello storico
-      return n;
-    }
+    const results = await sbFetch(
+      "results",
+      `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}&select=*`
+    );
 
-    function safeScore(s) {
-      const n = Number(s);
-      return isFinite(n) ? n : 0;
-    }
+    // mappa: fixture_id__pick -> miglior result (più completo)
+    const resultMap = new Map();
+    if (Array.isArray(results)) {
+      for (const r of results) {
+        const fid = String(r.fixture_id || "").trim();
+        const pickText = String(r.pick || "").trim();
+        if (!fid && !pickText) continue;
+        const key = fid + "__" + pickText;
 
-    function resultRank(r) {
-      let score = 0;
-      const res = String(r.result || "").toUpperCase();
-      const st = String(r.status_short || "").toUpperCase();
-
-      if (res === "WIN" || res === "LOSE") score += 4;
-      else if (res === "PENDING") score += 1;
-
-      if (["FT", "AET", "PEN", "AWD", "WO"].includes(st)) score += 3;
-      else if (["NS", "1H", "2H", "HT"].includes(st)) score += 1;
-
-      return score;
-    }
-
-    // 1) dedup: teniamo il result "migliore" per fixture_id + pick
-    const byFixturePick = new Map();
-    for (const r of rows) {
-      const fid = String(r.fixture_id || "").trim();
-      const pickText = String(r.pick || "").trim();
-      if (!fid || !pickText) continue;
-
-      const key = fid + "__" + pickText;
-      const cur = byFixturePick.get(key);
-      if (!cur || resultRank(r) >= resultRank(cur)) {
-        byFixturePick.set(key, r);
+        const existing = resultMap.get(key);
+        if (!existing || resultRank(r) > resultRank(existing)) {
+          resultMap.set(key, r);
+        }
       }
     }
 
-    // 2) per fixture, scegli la pick risolta con score_model più alto
-    const byFixture = new Map();
-    for (const r of byFixturePick.values()) {
-      const fid = String(r.fixture_id || "").trim();
-      const res = String(r.result || "").toUpperCase();
-      if (res !== "WIN" && res !== "LOSE") continue;
-
-      if (!byFixture.has(fid)) byFixture.set(fid, []);
-      byFixture.get(fid).push(r);
+    function pickResult(p) {
+      const fid = String(p.fixture_id || "").trim();
+      const pickText = String(p.pick || "").trim();
+      const key = fid + "__" + pickText;
+      const res = resultMap.get(key) || {};
+      return String(res.result || "").toUpperCase();
     }
 
-    let stake = 0;
-    let profit = 0;
-    let wins = 0;
-    let loses = 0;
+    // raggruppo per evento (fixture_id) e scelgo la pick risolta con score più alto
+    const byFixture = new Map();
+    for (const p of picks) {
+      const fid = String(p.fixture_id || "").trim();
+      if (!fid) continue;
+      if (!byFixture.has(fid)) byFixture.set(fid, []);
+      byFixture.get(fid).push(p);
+    }
+
+    let totalWins = 0;
+    let totalLoses = 0;
+    let totalStake = 0; // = numero eventi conteggiati
+    let totalProfit = 0;
 
     for (const [fid, list] of byFixture.entries()) {
-      if (!Array.isArray(list) || !list.length) continue;
+      const resolved = list.filter(p => {
+        const r = pickResult(p);
+        return r === "WIN" || r === "LOSE";
+      });
+      if (!resolved.length) continue;
 
-      // scegliamo per score_model più alto, tie-break odd più alta
-      list.sort((a, b) => {
-        const sa = safeScore(a.score_model);
-        const sb = safeScore(b.score_model);
+      resolved.sort((a, b) => {
+        const sa = Number(a.score || 0);
+        const sb = Number(b.score || 0);
         if (sb !== sa) return sb - sa;
         return safeOdd(b.odd) - safeOdd(a.odd);
       });
 
-      const chosen = list[0];
-      const res = String(chosen.result || "").toUpperCase();
+      const chosen = resolved[0];
+      const r = pickResult(chosen);
       const odd = safeOdd(chosen.odd);
 
-      stake += 1;
+      totalStake += 1;
 
-      if (res === "WIN") {
-        wins += 1;
-        profit += (odd - 1);
+      if (r === "WIN") {
+        totalWins += 1;
+        totalProfit += (odd - 1);
       } else {
-        loses += 1;
-        profit -= 1;
+        totalLoses += 1;
+        totalProfit -= 1;
       }
     }
 
-    const roi = stake > 0 ? ((profit / stake) * 100).toFixed(1) : "0.0";
-    const totalPlayed = wins + loses;
-    const winrate = totalPlayed > 0 ? ((wins / totalPlayed) * 100).toFixed(1) : "0.0";
+    const totalPlayed = totalWins + totalLoses;
+    if (totalPlayed <= 0 || totalStake <= 0) return;
 
-    // aggiorno UI (manteniamo gli stessi id che già usi)
+    const winrate = ((totalWins / totalPlayed) * 100).toFixed(1);
+    const roi = ((totalProfit / totalStake) * 100).toFixed(1);
+
     const countEl = document.getElementById("model-stats-count");
     const wrEl = document.getElementById("model-stats-winrate");
     const roiEl = document.getElementById("model-stats-roi");
-    const titleEl = document.getElementById("model-stats-title");
+    const profEl = document.getElementById("model-stats-profit");
+    const periodEl = document.getElementById("model-stats-period");
 
-    if (titleEl) titleEl.textContent = `ROI (mese ${pad2(mm)}/${y})`;
-    if (countEl) countEl.textContent = `${stake} eventi (stake 1/evento)`;
-    if (wrEl) wrEl.textContent = `${winrate}% (${wins}W / ${loses}L)`;
+    if (countEl) countEl.textContent = `${totalStake} eventi (stake 1/evento)`;
+    if (wrEl) wrEl.textContent = `${winrate}% (${totalWins}W / ${totalLoses}L)`;
     if (roiEl) roiEl.textContent = `${roi}%`;
+    if (profEl) {
+      profEl.textContent =
+        totalProfit >= 0
+          ? `Profitto: +${totalProfit.toFixed(2)} u`
+          : `Profitto: ${totalProfit.toFixed(2)} u`;
+    }
+    if (periodEl) {
+      periodEl.textContent = `Periodo: ${formatDateIT(fromDate)} → ${formatDateIT(toDate)}`;
+    }
 
+    // mostro box (se era nascosto)
     statsBox.style.display = "";
   } catch (err) {
-    console.error("Errore loadModelStats (ROI per evento - results):", err);
+    console.error("Errore loadModelStats (ROI per evento):", err);
   }
 }
 
-await loadModelStats();
+  await loadModelStats();
 
   const container = document.getElementById("content");
   const todayStr = getTodayStr();
@@ -2848,5 +2849,14 @@ document.addEventListener("DOMContentLoaded", () => {
   </script>
 
   <button id="scroll-top-btn" class="scroll-top-btn">Torna su</button>
+
+<script>
+  // ROI nascosto su index: visibile solo nella pagina storico ROI
+  document.addEventListener("DOMContentLoaded", () => {
+    const el = document.getElementById("model-stats-box");
+    if (el) el.style.display = "none";
+  });
+</script>
+
 </body>
 </html>
