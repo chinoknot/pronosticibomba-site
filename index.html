@@ -2065,137 +2065,117 @@ async function loadModelStats() {
   const statsBox = document.getElementById("model-stats-box");
   if (!statsBox) return;
 
+  // ROI PER EVENTO (fixture_id) - ALLINEATO ALLO STORICO ROI:
+  // Fonte dati = tabella "results" (non "picks"), così usiamo lo stesso universo dello storico.
+  // 1 stake per fixture_id, scegliendo la pick risolta (WIN/LOSE) con score_model più alto.
   try {
-    // === ROI PER EVENTO (fixture_id) - STESSA LOGICA DELLO STORICO ROI ===
-    // 1) prendiamo la data più recente presente in tabella picks
     const latestRows = await sbFetch(
-      "picks",
-      "?select=match_date&order=match_date.desc&limit=1"
+      "results",
+      "?select=picks_date&order=picks_date.desc&limit=1"
     );
 
     const latestDateStr =
-      Array.isArray(latestRows) && latestRows[0] && latestRows[0].match_date
-        ? String(latestRows[0].match_date)
+      Array.isArray(latestRows) && latestRows[0] && latestRows[0].picks_date
+        ? String(latestRows[0].picks_date)
         : null;
 
     if (!latestDateStr) return;
 
-    // 2) calcoliamo range del mese (YYYY-MM-01 -> YYYY-MM-last)
     const y = parseInt(latestDateStr.slice(0, 4), 10);
     const m = parseInt(latestDateStr.slice(5, 7), 10);
     const fromDate = `${y}-${pad2(m)}-01`;
     const lastDay = new Date(y, m, 0).getDate(); // ultimo giorno del mese
     const toDate = `${y}-${pad2(m)}-${pad2(lastDay)}`;
 
-    // 3) carichiamo tutte le picks del mese e tutti i results del mese
-    const picks = await sbFetch(
-      "picks",
-      `?match_date=gte.${fromDate}&match_date=lte.${toDate}&select=*`
-    );
-
-    if (!Array.isArray(picks) || !picks.length) return;
-
-    const results = await sbFetch(
+    // Carichiamo TUTTI i results del mese (lo storico ROI lavora su questi).
+    const rows = await sbFetch(
       "results",
-      `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}&select=*`
+      `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}&select=fixture_id,result,odd,score_model`
     );
 
-    // mappa: fixture_id__pick -> miglior result (più completo)
-    const resultMap = new Map();
-    if (Array.isArray(results)) {
-      for (const r of results) {
-        const fid = String(r.fixture_id || "").trim();
-        const pickText = String(r.pick || "").trim();
-        if (!fid && !pickText) continue;
-        const key = fid + "__" + pickText;
+    if (!Array.isArray(rows) || !rows.length) return;
 
-        const existing = resultMap.get(key);
-        if (!existing || resultRank(r) > resultRank(existing)) {
-          resultMap.set(key, r);
-        }
-      }
+    function safeOdd(o) {
+      const n = Number(o);
+      return isFinite(n) && n > 1 ? n : NaN;
     }
 
-    function pickResult(p) {
-      const fid = String(p.fixture_id || "").trim();
-      const pickText = String(p.pick || "").trim();
-      const key = fid + "__" + pickText;
-      const res = resultMap.get(key) || {};
-      return String(res.result || "").toUpperCase();
+    function safeScore(s) {
+      const n = Number(s);
+      return isFinite(n) ? n : 0;
     }
 
-    // raggruppo per evento (fixture_id) e scelgo la pick risolta con score più alto
     const byFixture = new Map();
-    for (const p of picks) {
-      const fid = String(p.fixture_id || "").trim();
+    for (const r of rows) {
+      const fid = String(r.fixture_id || "").trim();
       if (!fid) continue;
       if (!byFixture.has(fid)) byFixture.set(fid, []);
-      byFixture.get(fid).push(p);
+      byFixture.get(fid).push(r);
     }
 
-    let totalWins = 0;
-    let totalLoses = 0;
-    let totalStake = 0; // = numero eventi conteggiati
-    let totalProfit = 0;
+    let wins = 0;
+    let loses = 0;
+    let stake = 0;
+    let profit = 0;
 
     for (const [fid, list] of byFixture.entries()) {
-      const resolved = list.filter(p => {
-        const r = pickResult(p);
-        return r === "WIN" || r === "LOSE";
+      const resolved = list.filter(rr => {
+        const res = String(rr.result || "").toUpperCase();
+        return res === "WIN" || res === "LOSE";
       });
+
       if (!resolved.length) continue;
 
       resolved.sort((a, b) => {
-        const sa = Number(a.score || 0);
-        const sb = Number(b.score || 0);
+        const sa = safeScore(a.score_model);
+        const sb = safeScore(b.score_model);
         if (sb !== sa) return sb - sa;
-        return safeOdd(b.odd) - safeOdd(a.odd);
+
+        const oa = safeOdd(a.odd);
+        const ob = safeOdd(b.odd);
+        // se una quota è NaN, mettila dietro
+        if (isNaN(ob) && !isNaN(oa)) return -1;
+        if (!isNaN(ob) && isNaN(oa)) return 1;
+        if (!isNaN(ob) && !isNaN(oa) && ob !== oa) return ob - oa;
+
+        return 0;
       });
 
       const chosen = resolved[0];
-      const r = pickResult(chosen);
+      const res = String(chosen.result || "").toUpperCase();
       const odd = safeOdd(chosen.odd);
 
-      totalStake += 1;
+      // Se manca la quota, non ha senso per ROI (nello storico normalmente non succede, ma evitiamo di sporcare)
+      if (!isFinite(odd)) continue;
 
-      if (r === "WIN") {
-        totalWins += 1;
-        totalProfit += (odd - 1);
+      stake += 1;
+
+      if (res === "WIN") {
+        wins += 1;
+        profit += (odd - 1);
       } else {
-        totalLoses += 1;
-        totalProfit -= 1;
+        loses += 1;
+        profit -= 1;
       }
     }
 
-    const totalPlayed = totalWins + totalLoses;
-    if (totalPlayed <= 0 || totalStake <= 0) return;
+    if (stake <= 0) return;
 
-    const winrate = ((totalWins / totalPlayed) * 100).toFixed(1);
-    const roi = ((totalProfit / totalStake) * 100).toFixed(1);
+    const roi = ((profit / stake) * 100).toFixed(1);
+    const totalPlayed = wins + loses;
+    const winrate = totalPlayed > 0 ? ((wins / totalPlayed) * 100).toFixed(1) : "0.0";
 
     const countEl = document.getElementById("model-stats-count");
     const wrEl = document.getElementById("model-stats-winrate");
     const roiEl = document.getElementById("model-stats-roi");
-    const profEl = document.getElementById("model-stats-profit");
-    const periodEl = document.getElementById("model-stats-period");
 
-    if (countEl) countEl.textContent = `${totalStake} eventi (stake 1/evento)`;
-    if (wrEl) wrEl.textContent = `${winrate}% (${totalWins}W / ${totalLoses}L)`;
+    if (countEl) countEl.textContent = `${stake} eventi (stake 1/evento)`;
+    if (wrEl) wrEl.textContent = `${winrate}% (${wins}W / ${loses}L)`;
     if (roiEl) roiEl.textContent = `${roi}%`;
-    if (profEl) {
-      profEl.textContent =
-        totalProfit >= 0
-          ? `Profitto: +${totalProfit.toFixed(2)} u`
-          : `Profitto: ${totalProfit.toFixed(2)} u`;
-    }
-    if (periodEl) {
-      periodEl.textContent = `Periodo: ${formatDateIT(fromDate)} → ${formatDateIT(toDate)}`;
-    }
 
-    // mostro box (se era nascosto)
     statsBox.style.display = "";
   } catch (err) {
-    console.error("Errore loadModelStats (ROI per evento):", err);
+    console.error("Errore loadModelStats (ROI per evento - results):", err);
   }
 }
 
