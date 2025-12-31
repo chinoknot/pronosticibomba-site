@@ -2065,10 +2065,13 @@ async function loadModelStats() {
   const statsBox = document.getElementById("model-stats-box");
   if (!statsBox) return;
 
-  // ROI PER EVENTO (fixture_id) - ALLINEATO ALLO STORICO ROI:
-  // Fonte dati = tabella "results" (non "picks"), così usiamo lo stesso universo dello storico.
-  // 1 stake per fixture_id, scegliendo la pick risolta (WIN/LOSE) con score_model più alto.
+  // ROI PER EVENTO (fixture_id) - IDENTICO allo Storico ROI:
+  // - Fonte dati: tabella "results"
+  // - 1 stake per fixture_id
+  // - per ogni fixture_id scegliamo la pick RISOLTA (WIN/LOSE) con score_model più alto
+  // - profit: WIN => odd-1, LOSE => -1
   try {
+    // ultimo giorno disponibile (serve per capire il mese "corrente" dei dati)
     const latestRows = await sbFetch(
       "results",
       "?select=picks_date&order=picks_date.desc&limit=1"
@@ -2082,22 +2085,25 @@ async function loadModelStats() {
     if (!latestDateStr) return;
 
     const y = parseInt(latestDateStr.slice(0, 4), 10);
-    const m = parseInt(latestDateStr.slice(5, 7), 10);
-    const fromDate = `${y}-${pad2(m)}-01`;
-    const lastDay = new Date(y, m, 0).getDate(); // ultimo giorno del mese
-    const toDate = `${y}-${pad2(m)}-${pad2(lastDay)}`;
+    const mm = parseInt(latestDateStr.slice(5, 7), 10);
+    const pad2 = (n) => (n < 10 ? "0" + n : "" + n);
 
-    // Carichiamo TUTTI i results del mese (lo storico ROI lavora su questi).
+    const fromDate = `${y}-${pad2(mm)}-01`;
+    const lastDay = new Date(y, mm, 0).getDate(); // ultimo giorno del mese
+    const toDate = `${y}-${pad2(mm)}-${pad2(lastDay)}`;
+
+    // Carichiamo i results del mese (come lo storico ROI)
     const rows = await sbFetch(
       "results",
-      `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}&select=fixture_id,result,odd,score_model`
+      `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}&select=fixture_id,pick,result,odd,score_model,status_short,final_score,run_date`
     );
 
     if (!Array.isArray(rows) || !rows.length) return;
 
     function safeOdd(o) {
       const n = Number(o);
-      return isFinite(n) && n > 1 ? n : NaN;
+      if (!isFinite(n) || n <= 1) return 1.0; // stessa filosofia dello storico
+      return n;
     }
 
     function safeScore(s) {
@@ -2105,48 +2111,64 @@ async function loadModelStats() {
       return isFinite(n) ? n : 0;
     }
 
-    const byFixture = new Map();
+    function resultRank(r) {
+      let score = 0;
+      const res = String(r.result || "").toUpperCase();
+      const st = String(r.status_short || "").toUpperCase();
+
+      if (res === "WIN" || res === "LOSE") score += 4;
+      else if (res === "PENDING") score += 1;
+
+      if (["FT", "AET", "PEN", "AWD", "WO"].includes(st)) score += 3;
+      else if (["NS", "1H", "2H", "HT"].includes(st)) score += 1;
+
+      return score;
+    }
+
+    // 1) dedup: teniamo il result "migliore" per fixture_id + pick
+    const byFixturePick = new Map();
     for (const r of rows) {
       const fid = String(r.fixture_id || "").trim();
-      if (!fid) continue;
+      const pickText = String(r.pick || "").trim();
+      if (!fid || !pickText) continue;
+
+      const key = fid + "__" + pickText;
+      const cur = byFixturePick.get(key);
+      if (!cur || resultRank(r) >= resultRank(cur)) {
+        byFixturePick.set(key, r);
+      }
+    }
+
+    // 2) per fixture, scegli la pick risolta con score_model più alto
+    const byFixture = new Map();
+    for (const r of byFixturePick.values()) {
+      const fid = String(r.fixture_id || "").trim();
+      const res = String(r.result || "").toUpperCase();
+      if (res !== "WIN" && res !== "LOSE") continue;
+
       if (!byFixture.has(fid)) byFixture.set(fid, []);
       byFixture.get(fid).push(r);
     }
 
-    let wins = 0;
-    let loses = 0;
     let stake = 0;
     let profit = 0;
+    let wins = 0;
+    let loses = 0;
 
     for (const [fid, list] of byFixture.entries()) {
-      const resolved = list.filter(rr => {
-        const res = String(rr.result || "").toUpperCase();
-        return res === "WIN" || res === "LOSE";
-      });
+      if (!Array.isArray(list) || !list.length) continue;
 
-      if (!resolved.length) continue;
-
-      resolved.sort((a, b) => {
+      // scegliamo per score_model più alto, tie-break odd più alta
+      list.sort((a, b) => {
         const sa = safeScore(a.score_model);
         const sb = safeScore(b.score_model);
         if (sb !== sa) return sb - sa;
-
-        const oa = safeOdd(a.odd);
-        const ob = safeOdd(b.odd);
-        // se una quota è NaN, mettila dietro
-        if (isNaN(ob) && !isNaN(oa)) return -1;
-        if (!isNaN(ob) && isNaN(oa)) return 1;
-        if (!isNaN(ob) && !isNaN(oa) && ob !== oa) return ob - oa;
-
-        return 0;
+        return safeOdd(b.odd) - safeOdd(a.odd);
       });
 
-      const chosen = resolved[0];
+      const chosen = list[0];
       const res = String(chosen.result || "").toUpperCase();
       const odd = safeOdd(chosen.odd);
-
-      // Se manca la quota, non ha senso per ROI (nello storico normalmente non succede, ma evitiamo di sporcare)
-      if (!isFinite(odd)) continue;
 
       stake += 1;
 
@@ -2159,16 +2181,17 @@ async function loadModelStats() {
       }
     }
 
-    if (stake <= 0) return;
-
-    const roi = ((profit / stake) * 100).toFixed(1);
+    const roi = stake > 0 ? ((profit / stake) * 100).toFixed(1) : "0.0";
     const totalPlayed = wins + loses;
     const winrate = totalPlayed > 0 ? ((wins / totalPlayed) * 100).toFixed(1) : "0.0";
 
+    // aggiorno UI (manteniamo gli stessi id che già usi)
     const countEl = document.getElementById("model-stats-count");
     const wrEl = document.getElementById("model-stats-winrate");
     const roiEl = document.getElementById("model-stats-roi");
+    const titleEl = document.getElementById("model-stats-title");
 
+    if (titleEl) titleEl.textContent = `ROI (mese ${pad2(mm)}/${y})`;
     if (countEl) countEl.textContent = `${stake} eventi (stake 1/evento)`;
     if (wrEl) wrEl.textContent = `${winrate}% (${wins}W / ${loses}L)`;
     if (roiEl) roiEl.textContent = `${roi}%`;
@@ -2179,7 +2202,7 @@ async function loadModelStats() {
   }
 }
 
-  await loadModelStats();
+await loadModelStats();
 
   const container = document.getElementById("content");
   const todayStr = getTodayStr();
