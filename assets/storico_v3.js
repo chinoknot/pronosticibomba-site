@@ -397,8 +397,8 @@ VALUE_PICKS: "Quote di Valore",
     html += `</tbody></table></div>`;
 
     const catKeys = Object.keys(byCategory)
-      .filter(k => k !== "SAFE_PICKS")
-      .sort((a, b) => a.localeCompare(b));
+  .filter(k => k !== "ALTRO")
+  .sort((a, b) => a.localeCompare(b));
     if (catKeys.length) {
       html += `
         <div class="table-wrapper">
