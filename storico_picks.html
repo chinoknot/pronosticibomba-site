@@ -736,67 +736,102 @@ const roi = resolved > 0 ? (profit / resolved) * 100 : 0;
         `;
         daySummaryEl.style.display = "flex";
 
-        picksTitleEl.textContent = "Dettaglio picks della giornata";
+        picksTitleEl.textContent = "Dettaglio picks valide (1 per partita)";
         picksTitleEl.style.display = "block";
 
-        // 6) render lista picks
-        const frag = document.createDocumentFragment();
+        // 6) render lista picks (SOLO picks valide per ROI: 1 per fixture)
+// Usiamo la stessa logica del riepilogo: una sola pick "rappresentativa" per partita (fixture_id).
+// - Se la partita è risolta (WIN/LOSE), mostriamo la pick scelta da pickBestRow() (quella che entra nel ROI).
+// - Se non è risolta, mostriamo comunque UNA pick per partita (la migliore per score/odd), così non appaiono i backup.
+const rowsToRender = [];
+for (const [fid, rows] of byFixture.entries()) {
+  let chosen = pickBestRow(rows);
+  if (!chosen) {
+    const pool = rows.slice();
+    const scoreNum = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : -Infinity;
+    };
+    const oddNum = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : -Infinity;
+    };
+    pool.sort((a, b) => {
+      const s = scoreNum(b.score_model) - scoreNum(a.score_model);
+      if (s !== 0) return s;
+      return oddNum(b.odd) - oddNum(a.odd);
+    });
+    chosen = pool[0] || null;
+  }
+  if (chosen) rowsToRender.push(chosen);
+}
 
-        dayRows.forEach(r => {
-          const resultClass = classifyResult(r.result);
-          const card = document.createElement("article");
-          card.className = "pick-card" + (resultClass ? " " + resultClass : "");
+// ordino per leggibilità: lega -> home -> away
+rowsToRender.sort((a, b) => {
+  const la = (a.league || "").localeCompare(b.league || "");
+  if (la !== 0) return la;
+  const ha = (a.home || "").localeCompare(b.home || "");
+  if (ha !== 0) return ha;
+  return (a.away || "").localeCompare(b.away || "");
+});
 
-          const catName = getCategoryLabel(r.category || "");
+const frag = document.createDocumentFragment();
 
-          const oddNum = Number(r.odd || 0);
-          const oddStr = oddNum ? oddNum.toFixed(2) : "-";
+rowsToRender.forEach(r => {
+  const resultClass = classifyResult(r.result);
+  const card = document.createElement("article");
+  card.className = "pick-card" + (resultClass ? " " + resultClass : "");
 
-          const confVal = Number(r.score_model || 0) * 100;
-          const confLabel = confidenceLabel(confVal);
+  const catName = getCategoryLabel(r.category || "");
 
-          const resultLabel = (r.result || "").toUpperCase();
-          const finalScore = r.final_score || "";
-          let badgeText = "";
-          if (resultLabel) {
-            badgeText = finalScore ? `${resultLabel} · ${finalScore}` : resultLabel;
-          }
+  const oddNum = Number(r.odd || 0);
+  const oddStr = oddNum ? oddNum.toFixed(2) : "-";
 
-          card.innerHTML = `
-            <div class="pick-header">
-              <span class="league-pill">${r.league || ""}</span>
-              <span class="category-pill">${catName}</span>
-            </div>
-            <div class="teams-row">
-              ${r.home || ""} – ${r.away || ""}
-            </div>
-            <div class="pick-main-row">
-              <span class="pick-label">${r.pick || ""}</span>
-              <span class="odd-label">@ ${oddStr}</span>
-            </div>
-            <div class="bottom-row">
-              <div class="bottom-left">
-                <span class="conf-text">
-                  <span class="score-label-strong">Confidenza modello:</span> ${confLabel}
-                </span>
-                ${
-                  finalScore
-                    ? `<span>Risultato: ${finalScore} ${r.status_short ? "(" + r.status_short + ")" : ""}</span>`
-                    : `<span>Risultato: ${r.status_short || "N.D."}</span>`
-                }
-              </div>
-              ${
-                badgeText
-                  ? `<span class="result-badge ${resultClass}">${badgeText}</span>`
-                  : ""
-              }
-            </div>
-          `;
+  const confVal = Number(r.score_model || 0) * 100;
+  const confLabel = confidenceLabel(confVal);
 
-          frag.appendChild(card);
-        });
+  const resultLabel = (r.result || "").toUpperCase();
+  const finalScore = r.final_score || "";
+  let badgeText = "";
+  if (resultLabel) {
+    badgeText = finalScore ? `${resultLabel} · ${finalScore}` : resultLabel;
+  }
 
-        container.appendChild(frag);
+  card.innerHTML = `
+    <div class="pick-header">
+      <span class="league-pill">${r.league || ""}</span>
+      <span class="category-pill">${catName}</span>
+    </div>
+    <div class="teams-row">
+      ${r.home || ""} – ${r.away || ""}
+    </div>
+    <div class="pick-main-row">
+      <span class="pick-label">${r.pick || ""}</span>
+      <span class="odd-label">@ ${oddStr}</span>
+    </div>
+    <div class="bottom-row">
+      <div class="bottom-left">
+        <span class="conf-text">
+          <span class="score-label-strong">Confidenza modello:</span> ${confLabel}
+        </span>
+        ${
+          finalScore
+            ? `<span>Risultato: ${finalScore} ${r.status_short ? "(" + r.status_short + ")" : ""}</span>`
+            : `<span>Risultato: ${r.status_short || "N.D."}</span>`
+        }
+      </div>
+      ${
+        badgeText
+          ? `<span class="result-badge ${resultClass}">${badgeText}</span>`
+          : ""
+      }
+    </div>
+  `;
+
+  frag.appendChild(card);
+});
+
+container.appendChild(frag);
 
       } catch (err) {
         console.error("Errore caricamento picks storico:", err);
