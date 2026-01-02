@@ -126,6 +126,11 @@
     TOP_5_TIPS: "Pick Esclusiva",
     DNB_ENGINE: "DNB Engine",
     COMBO_DC_O15: "Combo Doppia Chance + Over 1.5",
+  // Categories that should NOT appear in "Rendimento per categoria" (UI-only exclusions)
+  const EXCLUDED_CATEGORY_KEYS = new Set([
+    "SAFE_PICKS",
+  ]);
+
   };
 
   function getCategoryLabel(catKey) {
@@ -265,6 +270,7 @@
 
     function ensureCat(k) {
       const kk = normalizeCatKey(k) || "ALTRO";
+      if (EXCLUDED_CATEGORY_KEYS.has(kk)) return null;
       if (!byCategory[kk]) byCategory[kk] = { wins:0, loses:0, stake:0, profit:0, oddsSum:0, oddsCount:0 };
       return byCategory[kk];
     }
@@ -292,20 +298,20 @@
 
         stake += 1; totalStake += 1;
         const cat = ensureCat(catKey);
-        cat.stake += 1;
+        if (cat) cat.stake += 1;
 
         if (r === "WIN") {
           wins += 1; totalWins += 1;
           profit += odd - 1; totalProfit += odd - 1;
-          cat.wins += 1; cat.profit += odd - 1;
+          if (cat) { cat.wins += 1; cat.profit += odd - 1; }
         } else {
           loses += 1; totalLoses += 1;
           profit -= 1; totalProfit -= 1;
-          cat.loses += 1; cat.profit -= 1;
+          if (cat) { cat.loses += 1; cat.profit -= 1; }
         }
 
         totalOddsSum += odd; totalOddsCount += 1;
-        cat.oddsSum += odd; cat.oddsCount += 1;
+        if (cat) { cat.oddsSum += odd; cat.oddsCount += 1; }
       }
 
       const played = wins + loses;
@@ -397,7 +403,9 @@
 
     html += `</tbody></table></div>`;
 
-    const catKeys = Object.keys(byCategory).sort((a, b) => a.localeCompare(b));
+    const catKeys = Object.keys(byCategory)
+      .filter(k => !EXCLUDED_CATEGORY_KEYS.has(normalizeCatKey(k)))
+      .sort((a, b) => a.localeCompare(b));
     if (catKeys.length) {
       html += `
         <div class="table-wrapper">
