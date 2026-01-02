@@ -1,4 +1,4 @@
-(() => {
+ (() => {
   // ====== SETTINGS ======
   const DEBUG_ENABLED = new URLSearchParams(location.search).get("debug") === "1";
 
