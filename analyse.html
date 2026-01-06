@@ -206,6 +206,11 @@
         </div>
 
         <div class="card" style="flex:1; min-width:320px;">
+          <div class="prettyTitle">Chicche (alta quota)</div>
+          <div class="prettyBody" id="chiccheBox">n/d</div>
+        </div>
+
+        <div class="card" style="flex:1; min-width:320px;">
           <div class="prettyTitle">PB Triple Builder (stimata)</div>
           <div class="prettyBody" id="betsBox">n/d</div>
         </div>
@@ -249,6 +254,7 @@
   var exoBox = document.getElementById("exoBox");
   var playersBox = document.getElementById("playersBox");
   var matchupsBox = document.getElementById("matchupsBox");
+  var chiccheBox = document.getElementById("chiccheBox");
   var betsBox = document.getElementById("betsBox");
 
   function setBackend(b){
@@ -374,6 +380,7 @@
     exoBox.textContent = "n/d";
     playersBox.textContent = "n/d";
     matchupsBox.textContent = "n/d";
+    chiccheBox.textContent = "n/d";
     betsBox.textContent = "n/d";
   }
 
@@ -727,7 +734,47 @@ applyFilters();
 
 
 
-    function renderBets(exotics){
+    
+  function renderChicche(exotics){
+    var c = exotics && exotics.chicche;
+    if (!c || !c.available || !c.picks || !c.picks.length){
+      chiccheBox.textContent = "n/d";
+      return;
+    }
+
+    function badge(txt){
+      return '<span class="pill" style="margin-left:6px;">'+escapeHtml(txt)+'</span>';
+    }
+
+    var html = '';
+    for (var i=0;i<c.picks.length;i++){
+      var p = c.picks[i] || {};
+      var lineTxt = (p.line===null || p.line===undefined) ? '' : (' over ' + p.line);
+      var head = '<div style="margin-top:8px;"><b>'+escapeHtml(p.name||"n/d")+'</b> '+
+        '<span class="muted2">('+escapeHtml(p.team||"")+(p.slot?(' '+escapeHtml(p.slot)):'')+')</span>'+
+        '<span class="muted2"> — '+escapeHtml(p.market||"") + lineTxt + '</span>';
+      if (p.vs) head += ' <span class="muted2">vs</span> <b>'+escapeHtml(p.vs)+'</b>';
+      if (p.risk_tier) head += badge(p.risk_tier);
+      if (p.confidence_0_10 !== null && p.confidence_0_10 !== undefined) head += '<span class="muted2"> conf:</span> <b>'+fmtNum(p.confidence_0_10,1)+'</b>';
+      if (p.score !== null && p.score !== undefined) head += '<span class="muted2"> score:</span> <b>'+fmtNum(p.score,3)+'</b>';
+      head += '</div>';
+
+      var why = '';
+      if (p.why && p.why.length){
+        why = '<div class="muted2" style="margin-left:12px;">';
+        for (var k=0;k<p.why.length;k++){
+          why += '• '+escapeHtml(p.why[k])+'<br/>';
+        }
+        why += '</div>';
+      }
+
+      html += head + why;
+    }
+
+    chiccheBox.innerHTML = html || "n/d";
+  }
+
+function renderBets(exotics){
     var bets = exotics && exotics.bets;
     if (!bets){ betsBox.textContent = "n/d"; return; }
 
@@ -796,6 +843,7 @@ applyFilters();
     exoBox.textContent = "n/d";
     playersBox.textContent = "n/d";
     matchupsBox.textContent = "n/d";
+    chiccheBox.textContent = "n/d";
     betsBox.textContent = "n/d";
 
     var url = backend.replace(/\/$/,"") + "/api/analyze?cb=" + Date.now();
@@ -822,6 +870,7 @@ applyFilters();
       renderExotics(d.exotics, d.fixture);
       renderPlayers(d.exotics, d.fixture);
       renderMatchups(d.exotics, d.fixture);
+      renderChicche(d.exotics);
       renderBets(d.exotics);
 
       anBtn.disabled = false;
