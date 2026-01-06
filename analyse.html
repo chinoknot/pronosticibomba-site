@@ -652,6 +652,14 @@ applyFilters();
     var top = (m.top5 && m.top5.reliable) ? m.top5.reliable : null;
     var topAll = (m.top5 && m.top5.all) ? m.top5.all : null;
 
+    function hasAny(topObj){
+      if (!topObj) return false;
+      return !!((topObj.shots && topObj.shots.length) ||
+        (topObj.sot && topObj.sot.length) ||
+        (topObj.fouls && topObj.fouls.length) ||
+        (topObj.cards && topObj.cards.length));
+    }
+
     var html = '';
     var meta = safeGet(exotics, ["meta","matchups"]);
     if (meta){
@@ -661,25 +669,57 @@ applyFilters();
       html += '<div class="hr"></div>';
     }
 
-    html += '<div class="muted2">Top 5 match-specific (reliable)</div>';
-    html += sec("Top Shots (match)", top && top.shots, "shots");
-    html += sec("Top SoT (match)", top && top.sot, "sot");
-    html += sec("Top Fouls risk (match)", top && top.fouls, "fouls");
-    html += sec("Top Cards risk (match)", top && top.cards, "cards");
-
-    // Optional: show 'all' if different
-    if (topAll && top && (
-        JSON.stringify(topAll.shots||[]) !== JSON.stringify(top.shots||[]) ||
-        JSON.stringify(topAll.sot||[]) !== JSON.stringify(top.sot||[]) ||
-        JSON.stringify(topAll.fouls||[]) !== JSON.stringify(top.fouls||[]) ||
-        JSON.stringify(topAll.cards||[]) !== JSON.stringify(top.cards||[])
-      )){
-      html += '<div class="hr"></div>';
+    // Prefer reliable top5; otherwise show ALL; otherwise fallback to season-based tops.
+    if (hasAny(top)) {
+      html += '<div class="muted2">Top 5 match-specific (reliable)</div>';
+      html += sec("Top Shots (match)", top.shots, "shots");
+      html += sec("Top SoT (match)", top.sot, "sot");
+      html += sec("Top Fouls risk (match)", top.fouls, "fouls");
+      html += sec("Top Cards risk (match)", top.cards, "cards");
+    } else if (hasAny(topAll)) {
       html += '<div class="muted2">Top 5 match-specific (all, includes low-sample)</div>';
+      html += '<div class="muted2" style="margin-top:6px;">Nota: alcuni duelli sono stati rimossi dalla modalità reliable per sample basso.</div>';
       html += sec("Top Shots (all)", topAll.shots, "shots");
       html += sec("Top SoT (all)", topAll.sot, "sot");
       html += sec("Top Fouls risk (all)", topAll.fouls, "fouls");
       html += sec("Top Cards risk (all)", topAll.cards, "cards");
+    } else {
+      html += '<div class="muted2">Nessun Top 5 match-specific disponibile (lineup presente, ma stats/sample insufficienti).</div>';
+      html += '<div class="muted2" style="margin-top:6px;">Fallback: top season-based (non matchup)</div>';
+
+      var ph = safeGet(exotics, ["players","home"]) || {};
+      var pa = safeGet(exotics, ["players","away"]) || {};
+
+      function secSeason(title, arr, kind){
+        if (!arr || !arr.length) return '';
+        var out = '<div class="muted2" style="margin-top:8px;">'+escapeHtml(title)+'</div>';
+        for (var i=0;i<arr.length;i++){
+          var it = arr[i] || {};
+          var extra = '';
+          if (kind === 'shots'){
+            extra = 'shots_pg: '+fmtNum(it.shots_per_game,2)+' — p90: '+fmtNum(it.shots_per90,2);
+          } else if (kind === 'sot'){
+            extra = 'sot_pg: '+fmtNum(it.sot_per_game,2)+' — p90: '+fmtNum(it.sot_per90,2);
+          } else if (kind === 'fouls'){
+            extra = 'fouls_pg: '+fmtNum(it.fouls_per_game,2)+' — p90: '+fmtNum(it.fouls_per90,2);
+          } else if (kind === 'cards'){
+            extra = 'y_pg: '+fmtNum(it.yellow_per_game,2)+' — red_total: '+escapeHtml(String(it.red_total||0));
+          }
+          out += '<div>• '+escapeHtml(it.name||"n/d")+' <span class="muted2">('+
+            escapeHtml(it.position||"")+
+            ')</span><div class="muted2" style="margin-left:14px;">'+escapeHtml(extra)+'</div></div>';
+        }
+        return out;
+      }
+
+      html += secSeason("Home Top Shots (season)", ph.topShots, "shots");
+      html += secSeason("Away Top Shots (season)", pa.topShots, "shots");
+      html += secSeason("Home Top SoT (season)", ph.topSoT, "sot");
+      html += secSeason("Away Top SoT (season)", pa.topSoT, "sot");
+      html += secSeason("Home Top Fouls (season)", ph.topFouls, "fouls");
+      html += secSeason("Away Top Fouls (season)", pa.topFouls, "fouls");
+      html += secSeason("Home Top Cards (season)", ph.topCards, "cards");
+      html += secSeason("Away Top Cards (season)", pa.topCards, "cards");
     }
 
     matchupsBox.innerHTML = html || "n/d";
