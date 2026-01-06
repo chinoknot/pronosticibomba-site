@@ -639,8 +639,8 @@ applyFilters();
           extra = 'y_pg: '+fmtNum(it.yellow_per_game,2)+' — y_p90: '+fmtNum(it.yellow_per90,2);
         }
 
-        out += '<div>• '+escapeHtml(it.name||"n/d")+' <span class="muted2">('+
-          escapeHtml(team)+' '+escapeHtml(slot)+')</span> — vs <b>'+escapeHtml(vs)+'</b>'+
+        out += '<div>• <b>'+escapeHtml(it.name||"n/d")+'</b> <span class="muted2">('+
+          escapeHtml(team)+' '+escapeHtml(slot)+')</span> — vs '+escapeHtml(vs)+''+
           ' <span class="muted2">| score:</span> <b>'+fmtNum(score,3)+'</b>'+
           (conf===null || conf===undefined ? '' : ' <span class="muted2">| conf:</span> <b>'+fmtNum(conf,1)+'</b>')+
           '<div class="muted2" style="margin-left:14px;">'+escapeHtml(extra)+'</div>'+
@@ -705,7 +705,7 @@ applyFilters();
           } else if (kind === 'cards'){
             extra = 'y_pg: '+fmtNum(it.yellow_per_game,2)+' — red_total: '+escapeHtml(String(it.red_total||0));
           }
-          out += '<div>• '+escapeHtml(it.name||"n/d")+' <span class="muted2">('+
+          out += '<div>• <b>'+escapeHtml(it.name||"n/d")+'</b> <span class="muted2">('+
             escapeHtml(it.position||"")+
             ')</span><div class="muted2" style="margin-left:14px;">'+escapeHtml(extra)+'</div></div>';
         }
