@@ -94,7 +94,105 @@
     }
     .badge{display:inline-flex; align-items:center; gap:8px; font-size:12px; color:var(--muted)}
     .dot{width:8px; height:8px; border-radius:999px; background:var(--warn); box-shadow:0 0 12px rgba(245,158,11,.35);}
-  </style>
+  
+    /* ---- UX v2: tabs + pro mode + mobile ---- */
+    .tabs{
+      display:flex; gap:8px; flex-wrap:wrap;
+      border-bottom:1px solid var(--line);
+      padding-bottom:10px; margin:10px 0 14px;
+    }
+    .tabs.scroll{flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling:touch; padding-bottom:12px;}
+    .tabBtn{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--txt);
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:13px;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .tabBtn.active{
+      border-color: rgba(58,160,255,.45);
+      background: rgba(58,160,255,.16);
+    }
+    .tabPanel{display:none}
+    .tabPanel.active{display:block}
+    .proOnly{display:none}
+    body.pro .proOnly{display:inline}
+    body.pro .proBlock{display:block}
+    .proBlock{display:none}
+    .topActions{
+      display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .switch{
+      display:flex; align-items:center; gap:8px;
+      color:var(--muted); font-size:13px;
+      user-select:none;
+    }
+    .switch input{accent-color: var(--accent);}
+    .mini{
+      font-size:12px; color:var(--muted);
+    }
+    .listItem{
+      padding:10px 10px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      border-radius:14px;
+      margin-top:8px;
+    }
+    .listHead{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+    .listMain{font-weight:800; font-size:14px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+    .listSub{margin-top:4px; color:var(--muted); font-size:12px; line-height:1.25;}
+    .tag{
+      display:inline-flex; align-items:center;
+      padding:4px 10px; border-radius:999px; font-size:12px;
+      border:1px solid var(--line); background:rgba(255,255,255,.03);
+      white-space:nowrap;
+    }
+    .tag.spicy{border-color: rgba(245,158,11,.42); background: rgba(245,158,11,.10)}
+    .tag.high{border-color: rgba(244,63,94,.38); background: rgba(244,63,94,.10)}
+    .tag.medium{border-color: rgba(58,160,255,.35); background: rgba(58,160,255,.10)}
+    .tag.safe{border-color: rgba(34,197,94,.38); background: rgba(34,197,94,.10)}
+    details.fold{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      border-radius:14px;
+      padding:10px 10px;
+      margin-top:10px;
+    }
+    details.fold > summary{
+      cursor:pointer;
+      font-weight:800;
+      outline:none;
+      list-style:none;
+    }
+    details.fold > summary::-webkit-details-marker{display:none}
+    .stickyBar{
+      position: sticky; top: 0;
+      background: rgba(7,16,30,.75);
+      backdrop-filter: blur(10px);
+      border:1px solid var(--line);
+      border-radius: 16px;
+      padding:10px 12px;
+      z-index: 20;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 980px){
+      .wrap{margin:14px auto; padding:0 12px;}
+      .card{padding:12px; border-radius:14px;}
+      .fixtures{max-height:280px;}
+      .tabs{gap:8px;}
+      .tabs{display:none;} /* mobile: use accordions instead */
+      .tabs.scroll{display:none;}
+      .tabPanel{display:block;} /* show all in mobile, but inside accordions */
+      .tabPanel.active{display:block;}
+      .stickyBar{border-radius:14px;}
+      pre{max-height:220px;}
+    }
+
+</style>
 </head>
 
 <body>
@@ -158,67 +256,85 @@
       <div class="hr"></div>
 
       <div class="row" style="justify-content:space-between;">
-        <div class="muted2">Endpoint usati: <span class="pill">GET /api/fixtures</span> <span class="pill">POST /api/analyze</span></div>
         <button id="anBtn" disabled>Analizza (step 1)</button>
       </div>
 
+      
       <div class="hr"></div>
 
-      <div class="row" style="gap:14px; align-items:stretch; flex-wrap:wrap;">
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle">Output analisi (raw)</div>
-          <pre id="rawOut">Seleziona una partita e premi Analizza.</pre>
+      <!-- Sticky quick bar (nice on mobile too) -->
+      <div class="stickyBar">
+        <div class="topActions">
+          <div class="mini">
+            <b id="selMatchMini">-</b><br/>
+            <span id="selKickMini">-</span> • <span id="selLeagueMini">-</span> • ID <span id="selIdMini">-</span>
+          </div>
+</div>
+      </div>
+
+      <!-- Desktop tabs -->
+      <div class="tabs scroll" id="tabsBar">
+        <button class="tabBtn active" data-tab="overview">Overview</button>
+        <button class="tabBtn" data-tab="chicche">Chicche</button>
+        <button class="tabBtn" data-tab="matchups">Matchups</button>
+        <button class="tabBtn" data-tab="players">Players</button>
         </div>
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle">Note</div>
-          <div class="prettyBody">
-            <div>- Le esotiche arrivano dal backend come <b>exotics.totals</b> e <b>exotics.teams</b>.</div>
-            <div>- Le quote vengono ignorate per decidere “se mostrare” (le useremo dopo solo per costruire bet builder / fallback).</div>
+
+      <div class="tabPanel active" id="tab-overview">
+        <div class="row" style="gap:14px; align-items:stretch; flex-wrap:wrap;">
+          <div class="card" style="flex:1; min-width:320px;">
+            <div class="prettyTitle" id="titleGoal">Goal</div>
+            <div class="prettyBody" id="goalBox">n/d</div>
+          </div>
+
+          <div class="card" style="flex:1; min-width:320px;">
+            <div class="prettyTitle" id="titleOverview">Match in 10 secondi</div>
+            <div class="prettyBody" id="exoBox">n/d</div>
           </div>
         </div>
       </div>
 
-      <div class="hr"></div>
-
-      <div class="row" style="gap:14px; align-items:stretch; flex-wrap:wrap;">
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle">Goal (Poisson)</div>
-          <div class="prettyBody" id="goalBox">n/d</div>
-        </div>
-
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle">Esotiche (shots/corners/cards/fouls)</div>
-          <div class="prettyBody" id="exoBox">n/d</div>
-        </div>
-      </div>
-
-      <div class="hr"></div>
-
-      <div class="row" style="gap:14px; align-items:stretch; flex-wrap:wrap;">
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle">Player (se disponibili)</div>
-          <div class="prettyBody" id="playersBox">n/d</div>
-        </div>
-
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle">Matchups (lineup-based)</div>
-          <div class="prettyBody" id="matchupsBox">n/d</div>
-        </div>
-
+      <div class="tabPanel" id="tab-chicche">
         <div class="card" style="flex:1; min-width:320px;">
           <div class="prettyTitle" id="titleChicche">Chicche (alta quota)</div>
           <div class="prettyBody" id="chiccheBox">n/d</div>
         </div>
+      </div>
 
+      <div class="tabPanel" id="tab-matchups">
         <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle">PB Triple Builder (stimata)</div>
-          <div class="prettyBody" id="betsBox">n/d</div>
+          <div class="prettyTitle" id="titleMatchups">Matchups (solo se lineup disponibile)</div>
+          <div class="prettyBody" id="matchupsBox">n/d</div>
         </div>
       </div>
 
-      <div class="hr"></div>
+      <div class="tabPanel" id="tab-players">
+        <div class="card" style="flex:1; min-width:320px;">
+          <div class="prettyTitle" id="titlePlayers">Top season-based (contesto)</div>
+          <div class="prettyBody" id="playersBox">n/d</div>
+        </div>
+      </div>
 
+      <div class="muted2" style="margin-top:8px;">Suggerimento: Modalità Pro → ti fa vedere score/conf anche negli altri pannelli.</div>
+        </details>
+
+        <details class="fold">
+          <summary>Note</summary>
+          <div class="prettyBody" style="margin-top:10px;">
+            <div>- Le esotiche arrivano dal backend come <b>exotics.totals</b> e <b>exotics.teams</b>.</div>
+            <div>- Le quote vengono ignorate per decidere “se mostrare” (le useremo dopo solo per costruire bet builder / fallback).</div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Mobile: accordions (all visible panels become sections) -->
+      <div class="proBlock" style="margin-top:12px;">
+        <!-- placeholder, used by pro mode only if you want later -->
+      </div>
+
+      <div class="hr"></div>
       <div class="muted2"><span id="backendLabel">Backend attuale</span>: <span id="backendFoot">n/d</span></div>
+
     </div>
   </div>
 </div>
@@ -255,7 +371,25 @@
   var playersBox = document.getElementById("playersBox");
   var matchupsBox = document.getElementById("matchupsBox");
   var chiccheBox = document.getElementById("chiccheBox");
-  var betsBox = document.getElementById("betsBox");
+  var betsBox = document.getElementById("betsBox"); // (beta) may be null
+
+  // ---- UX v2 ----
+  var selLeagueMini = document.getElementById("selLeagueMini");
+  var selKickMini = document.getElementById("selKickMini");
+  var selMatchMini = document.getElementById("selMatchMini");
+  var selIdMini = document.getElementById("selIdMini");
+if (name) setTab(name);
+      }
+    });
+  }
+
+  if (proToggle){
+    proToggle.addEventListener("change", function(){
+      document.body.classList.toggle("pro", !!proToggle.checked);
+      // re-render current boxes if needed (they already contain proOnly spans)
+    });
+  }
+
 
   function setBackend(b){
     backend = b || DEFAULT_BACKEND;
@@ -371,17 +505,19 @@
   function selectFixture(fx){
     selected = fx;
     selLeague.textContent = fx.league_name || "-";
-    selKick.textContent = fx.kickoff_utc ? fx.kickoff_utc.replace("T"," ").replace("+00:00"," UTC") : "-";
+    selKick.textContent = fx.kickoff_utc ? fmtKickItaly(fx.kickoff_utc) : "-";
     selMatch.textContent = fx.home_name + " vs " + fx.away_name;
     selId.textContent = String(fx.fixture_id || "-");
     anBtn.disabled = !fx.fixture_id;
-    rawOut.textContent = "Pronto. Premi Analizza.";
+    if (rawOut) rawOut.textContent = "Pronto. Premi Analizza.";
     goalBox.textContent = "n/d";
     exoBox.textContent = "n/d";
     playersBox.textContent = "n/d";
     matchupsBox.textContent = "n/d";
     chiccheBox.textContent = "n/d";
-    betsBox.textContent = "n/d";
+    betsBox && (betsBox.textContent = "n/d");
+    setMiniFromSelected(fx);
+    setTab("overview");
   }
 
   function normalizeFixturesResponse(resp){
@@ -395,29 +531,45 @@
   }
 
   
-  // ---- Language + formatting (auto from browser) ----
-  var LANG = (navigator.language || navigator.userLanguage || "en").toLowerCase().startsWith("it") ? "it" : "en";
+  // ---- Language (query param ?lang=it|en wins, else browser) ----
+  function getQueryParam(name){
+    try{
+      var u = new URL(window.location.href);
+      return u.searchParams.get(name);
+    }catch(e){
+      return null;
+    }
+  }
+  var LANG_PARAM = (getQueryParam("lang") || "").toLowerCase();
+  var LANG = (LANG_PARAM === "it" || LANG_PARAM === "en") ? LANG_PARAM :
+             ((navigator.language || navigator.userLanguage || "en").toLowerCase().startsWith("it") ? "it" : "en");
   document.documentElement.lang = LANG;
 
   var I18N = {
     it: {
-      tab_overview: "Panoramica",
-      tab_chicche: "Chicche",
-      tab_matchups: "Duelli",
-      tab_players: "Giocatori",
-      goal: "Goal",
-      overview: "Match in 10 secondi",
-      chicche: "Chicche (alta quota)",
-      matchups: "Duelli (solo se lineup disponibile)",
-      players: "Top stagionali (contesto)",
+      tabs_overview: "Panoramica",
+      tabs_chicche: "Chicche",
+      tabs_matchups: "Duelli",
+      tabs_players: "Giocatori",
+      goal_title: "Goal",
+      overview_title: "Match in 10 secondi",
+      chicche_title: "Chicche (alta quota)",
+      matchups_title: "Duelli (solo se lineup disponibile)",
+      players_title: "Top stagionali (contesto)",
       nd: "n/d",
       lineups_missing: "Lineups non disponibili → duelli n/d",
+      pick_sot: "Tiri in porta",
+      pick_shots: "Tiri",
+      pick_fouls: "Falli",
+      pick_card: "Ammonito",
+      plus1: "1+",
+      plus2: "2+",
+      plus3: "3+",
+      safe: "Safe",
+      risk_medium: "Rischio medio",
+      risk_high: "Rischio alto",
+      spicy: "Chicca",
       team_avgs: "Medie squadra (ultime / stagione):",
-      top_shots: "Top Tiri",
-      top_sot: "Top Tiri in porta",
-      top_fouls: "Top Falli",
-      top_cards: "Top Cartellini",
-      apps: "Pres",
       corners_for_pg: "Corner fatti (pg)",
       corners_against_pg: "Corner subiti (pg)",
       fouls_for_pg: "Falli fatti (pg)",
@@ -426,34 +578,37 @@
       shots_against_pg: "Tiri subiti (pg)",
       sot_for_pg: "Tiri in porta fatti (pg)",
       sot_against_pg: "Tiri in porta subiti (pg)",
-      pick_sot: "Tiri in porta",
-      pick_shots: "Tiri",
-      pick_fouls: "Falli",
-      pick_card: "Ammonito",
-      safe: "Safe",
-      risk_medium: "Rischio medio",
-      risk_high: "Rischio alto",
-      spicy: "Chicca",
+      top_shots: "Top Tiri",
+      top_sot: "Top Tiri in porta",
+      top_fouls: "Top Falli",
+      top_cards: "Top Cartellini",
+      apps: "Pres",
       backend_now: "Backend attuale"
     },
     en: {
-      tab_overview: "Overview",
-      tab_chicche: "Spicy picks",
-      tab_matchups: "Matchups",
-      tab_players: "Players",
-      goal: "Goals",
-      overview: "Match in 10 seconds",
-      chicche: "Spicy picks (higher odds)",
-      matchups: "Matchups (only if lineups available)",
-      players: "Season tops (context)",
+      tabs_overview: "Overview",
+      tabs_chicche: "Spicy picks",
+      tabs_matchups: "Matchups",
+      tabs_players: "Players",
+      goal_title: "Goals",
+      overview_title: "Match in 10 seconds",
+      chicche_title: "Spicy picks (higher odds)",
+      matchups_title: "Matchups (only if lineups available)",
+      players_title: "Season tops (context)",
       nd: "n/a",
       lineups_missing: "No lineups → matchups n/a",
+      pick_sot: "Shots on target",
+      pick_shots: "Shots",
+      pick_fouls: "Fouls",
+      pick_card: "Booked",
+      plus1: "1+",
+      plus2: "2+",
+      plus3: "3+",
+      safe: "Safe",
+      risk_medium: "Medium risk",
+      risk_high: "High risk",
+      spicy: "Spicy",
       team_avgs: "Team averages (recent / season):",
-      top_shots: "Top Shots",
-      top_sot: "Top SoT",
-      top_fouls: "Top Fouls",
-      top_cards: "Top Cards",
-      apps: "Apps",
       corners_for_pg: "Corners for (pg)",
       corners_against_pg: "Corners against (pg)",
       fouls_for_pg: "Fouls for (pg)",
@@ -462,14 +617,11 @@
       shots_against_pg: "Shots against (pg)",
       sot_for_pg: "SoT for (pg)",
       sot_against_pg: "SoT against (pg)",
-      pick_sot: "Shots on target",
-      pick_shots: "Shots",
-      pick_fouls: "Fouls",
-      pick_card: "Booked",
-      safe: "Safe",
-      risk_medium: "Medium risk",
-      risk_high: "High risk",
-      spicy: "Spicy",
+      top_shots: "Top Shots",
+      top_sot: "Top SoT",
+      top_fouls: "Top Fouls",
+      top_cards: "Top Cards",
+      apps: "Apps",
       backend_now: "Current backend"
     }
   };
@@ -479,9 +631,8 @@
   function nf(v, d){
     if (v === null || v === undefined || isNaN(v)) return t("nd");
     try{
-      return new Intl.NumberFormat(LANG === "it" ? "it-IT" : "en-IE", {
-        maximumFractionDigits: d, minimumFractionDigits: d
-      }).format(Number(v));
+      return new Intl.NumberFormat(LANG === "it" ? "it-IT" : "en-IE", { maximumFractionDigits: d, minimumFractionDigits: d })
+        .format(Number(v));
     }catch(e){
       return String(v);
     }
@@ -506,17 +657,17 @@
 
   function localizeStaticUI(){
     var b;
-    b = document.querySelector('button[data-tab="overview"]'); if (b) b.textContent = t("tab_overview");
-    b = document.querySelector('button[data-tab="chicche"]'); if (b) b.textContent = t("tab_chicche");
-    b = document.querySelector('button[data-tab="matchups"]'); if (b) b.textContent = t("tab_matchups");
-    b = document.querySelector('button[data-tab="players"]'); if (b) b.textContent = t("tab_players");
+    b = document.querySelector('button[data-tab="overview"]'); if (b) b.textContent = t("tabs_overview");
+    b = document.querySelector('button[data-tab="chicche"]'); if (b) b.textContent = t("tabs_chicche");
+    b = document.querySelector('button[data-tab="matchups"]'); if (b) b.textContent = t("tabs_matchups");
+    b = document.querySelector('button[data-tab="players"]'); if (b) b.textContent = t("tabs_players");
 
     var el;
-    el = document.getElementById("titleGoal"); if (el) el.textContent = t("goal");
-    el = document.getElementById("titleOverview"); if (el) el.textContent = t("overview");
-    el = document.getElementById("titleChicche"); if (el) el.textContent = t("chicche");
-    el = document.getElementById("titleMatchups"); if (el) el.textContent = t("matchups");
-    el = document.getElementById("titlePlayers"); if (el) el.textContent = t("players");
+    el = document.getElementById("titleGoal"); if (el) el.textContent = t("goal_title");
+    el = document.getElementById("titleOverview"); if (el) el.textContent = t("overview_title");
+    el = document.getElementById("titleChicche"); if (el) el.textContent = t("chicche_title");
+    el = document.getElementById("titleMatchups"); if (el) el.textContent = t("matchups_title");
+    el = document.getElementById("titlePlayers"); if (el) el.textContent = t("players_title");
 
     var bl = document.getElementById("backendLabel"); if (bl) bl.textContent = t("backend_now");
   }
@@ -656,14 +807,64 @@ applyFilters();
   }
 
   function renderExotics(exotics, fixture){
-    if (!exotics || !exotics.totals){ exoBox.textContent="n/d"; return; }
-    var t = exotics.totals;
-
-    function row(label, obj){
-      var mean = obj && obj.mean !== undefined ? obj.mean : null;
-      var line = obj && obj.line !== undefined ? obj.line : null;
-      return '<div class="prettyRow"><div>'+escapeHtml(label)+'</div><div style="text-align:right"><b>mean '+fmtNum(mean,2)+'</b> — line <b>'+ (line===null||line===undefined ? 'n/d' : fmtNum(line,1)) +'</b></div></div>';
+    if (!exotics){
+      exoBox.textContent = t("nd");
+      return;
     }
+
+    try{
+      var totals = exotics.totals || {};
+      var out = '';
+      out += '<div class="muted2"><b>'+escapeHtml(t("team_avgs"))+'</b></div>';
+
+      function kv(name, val){
+        if (val === null || val === undefined) return '';
+        return '<div class="kv"><div class="muted2">'+escapeHtml(name)+'</div><div><b>'+nf(val,2)+'</b></div></div>';
+      }
+
+      var teams = exotics.teams || {};
+      var home = teams.home || {};
+      var away = teams.away || {};
+
+      function teamBlock(label, tblock){
+        if (!tblock || !tblock.season_avgs) return '';
+        var a = tblock.season_avgs;
+        var h = '';
+        h += '<div style="font-weight:800; margin-top:10px;">'+escapeHtml(label)+'</div>';
+        h += '<div class="grid2">';
+        h += kv(t("corners_for_pg"), a.corners_for_pg);
+        h += kv(t("corners_against_pg"), a.corners_against_pg);
+        h += kv(t("fouls_for_pg"), a.fouls_for_pg);
+        h += kv(t("fouls_against_pg"), a.fouls_against_pg);
+        h += kv(t("shots_for_pg"), a.shots_for_pg);
+        h += kv(t("shots_against_pg"), a.shots_against_pg);
+        h += kv(t("sot_for_pg"), a.sot_for_pg);
+        h += kv(t("sot_against_pg"), a.sot_against_pg);
+        h += '</div>';
+        return h;
+      }
+
+      out += teamBlock(home.name || "Home", home);
+      out += teamBlock(away.name || "Away", away);
+
+      if (totals && (totals.shots_total || totals.sot_total || totals.corners_total || totals.fouls_total || totals.cards_total)){
+        out += '<div class="hr"></div>';
+        out += '<div class="muted2"><b>Match totals</b></div>';
+        var g = '<div class="grid2">';
+        if (totals.shots_total) g += kv('Shots (mean)', totals.shots_total.mean);
+        if (totals.sot_total) g += kv('SoT (mean)', totals.sot_total.mean);
+        if (totals.corners_total) g += kv('Corners (mean)', totals.corners_total.mean);
+        if (totals.fouls_total) g += kv('Fouls (mean)', totals.fouls_total.mean);
+        if (totals.cards_total) g += kv('Cards (mean)', totals.cards_total.mean);
+        g += '</div>';
+        out += g;
+      }
+
+      exoBox.innerHTML = out || t("nd");
+    }catch(e){
+      exoBox.textContent = t("nd");
+    }
+  }
 
     var html = '';
     html += '<div class="muted2">Totali match (basati su ultimi match FT + confronto home_for vs away_against)</div>';
@@ -713,26 +914,52 @@ applyFilters();
     exoBox.innerHTML = html;
   }
 
-  function renderPlayers(exotics, fixture){
-    var p = exotics && exotics.players;
-    if (!p || (!p.home && !p.away)){ playersBox.textContent="n/d"; return; }
+  function renderPlayers(exotics){
+    var players = exotics && exotics.players;
+    if (!players){
+      playersBox.textContent = t("nd");
+      return;
+    }
 
-    function list(teamName, block){
+    function metricLine(label, key, it){
+      var v = it && it[key];
+      return '• '+escapeHtml(it.name)+' ('+escapeHtml(it.position||'')+') — '+escapeHtml(label)+': <b>'+nf(v,2)+'</b> — '+t("apps")+': '+escapeHtml(it.apps);
+    }
+
+    function section(teamName, block){
       if (!block) return '';
-      function one(title, arr, key){
+      var out = '<div style="font-weight:800; margin-bottom:6px;">'+escapeHtml(teamName)+'</div>';
+
+      function one(title, arr, label, key){
         if (!arr || !arr.length) return '';
-        var out = '<div class="muted2" style="margin-top:8px;">'+escapeHtml(title)+'</div>';
+        var s = '<div class="muted2" style="margin-top:8px;"><b>'+escapeHtml(title)+'</b></div>';
         for (var i=0;i<arr.length;i++){
-          var it = arr[i];
-          out += '<div>• '+escapeHtml(it.name)+' ('+escapeHtml(it.position||"")+') — '+escapeHtml(key)+': <b>'+nf(it[key],2)+'</b> — '+t("apps")+':'+escapeHtml(it.apps)+'</div>';
+          s += '<div>'+metricLine(label, key, arr[i])+'</div>';
         }
+        return s;
+      }
+
+      out += one(t("top_shots"), block.topShots, 'shots_per_game', 'shots_per_game');
+      out += one(t("top_sot"), block.topSoT, 'sot_per_game', 'sot_per_game');
+      out += one(t("top_fouls"), block.topFouls, 'fouls_per_game', 'fouls_per_game');
+      out += one(t("top_cards"), block.topCards, 'yellow_per_game', 'yellow_per_game');
+      return out;
+    }
+
+    var out = '';
+    out += section((exotics && exotics.teams && exotics.teams.home && exotics.teams.home.name) ? exotics.teams.home.name : 'Home', players.home);
+    out += '<div class="hr"></div>';
+    out += section((exotics && exotics.teams && exotics.teams.away && exotics.teams.away.name) ? exotics.teams.away.name : 'Away', players.away);
+
+    playersBox.innerHTML = out || t("nd");
+  }
         return out;
       }
       var html = '<div style="font-weight:800; margin-bottom:6px;">'+escapeHtml(teamName)+'</div>';
-      html += one("'+t("top_shots")+'", block.topShots, "shots_per_game");
-      html += one("'+t("top_sot")+'", block.topSoT, "sot_per_game");
-      html += one("'+t("top_fouls")+'", block.topFouls, "fouls_per_game");
-      html += one("'+t("top_cards")+'", block.topCards, "yellow_per_game");
+      html += one("Top Shots", block.topShots, "shots_per_game");
+      html += one("Top SoT", block.topSoT, "sot_per_game");
+      html += one("Top Fouls", block.topFouls, "fouls_per_game");
+      html += one("Top Cards", block.topCards, "yellow_per_game");
       return html;
     }
 
@@ -745,7 +972,7 @@ applyFilters();
 
   function renderMatchups(exotics, fixture){
     var m = exotics && exotics.matchups;
-    if (!m || !m.available){
+    if (!m || !m.available || !m.top5){
       matchupsBox.textContent = t("lineups_missing");
       return;
     }
@@ -769,14 +996,12 @@ applyFilters();
       return out;
     }
 
-    var top = m && m.top5;
-    if (!top){ matchupsBox.textContent = t("nd"); return; }
-
+    var top = m.top5;
     var html = '';
-    html += sec(t("top_shots"), top.reliable && top.reliable.shots, 'shots');
-    html += sec(t("top_sot"), top.reliable && top.reliable.sot, 'sot');
-    html += sec(t("top_fouls"), top.reliable && top.reliable.fouls, 'fouls');
-    html += sec(t("top_cards"), top.reliable && top.reliable.cards, 'cards');
+    html += sec(t("top_shots"), (top.reliable && top.reliable.shots) || [], 'shots');
+    html += sec(t("top_sot"), (top.reliable && top.reliable.sot) || [], 'sot');
+    html += sec(t("top_fouls"), (top.reliable && top.reliable.fouls) || [], 'fouls');
+    html += sec(t("top_cards"), (top.reliable && top.reliable.cards) || [], 'cards');
 
     matchupsBox.innerHTML = html || t("nd");
   }
@@ -803,7 +1028,19 @@ applyFilters();
           extra = 'y_pg: '+fmtNum(it.yellow_per_game,2)+' — y_p90: '+fmtNum(it.yellow_per90,2);
         }
 
-        out += '<div>• <b>'+escapeHtml(it.name||"n/d")+'</b> <span class="muted2">('+
+        out += '<div class="listItem">'+
+          '<div class="listHead">'+
+            '<div class="listMain"><b>'+escapeHtml(it.name||"n/d")+'</b> <span class="muted2">'+escapeHtml(title.replace("Top ",""))+'</span></div>'+
+          '</div>'+
+          '<div class="listSub">vs <b>'+escapeHtml(vs)+'</b>'+
+            (team||slot ? (' • '+escapeHtml(team)+' '+escapeHtml(slot)) : '')+
+          '</div>'+
+          '<div class="listSub" style="margin-top:8px;">'+escapeHtml(extra)+'</div>'+
+          '<div class="proOnly muted2" style="margin-top:8px;">'+
+            '<span>score: <b>'+fmtNum(score,3)+'</b></span>'+
+            (conf===null || conf===undefined ? '' : ' <span style="margin-left:10px;">conf: <b>'+fmtNum(conf,1)+'</b></span>')+
+          '</div>'+
+        '</div>';
           escapeHtml(team)+' '+escapeHtml(slot)+')</span> — vs '+escapeHtml(vs)+''+
           ' <span class="muted2">| score:</span> <b>'+fmtNum(score,3)+'</b>'+
           (conf===null || conf===undefined ? '' : ' <span class="muted2">| conf:</span> <b>'+fmtNum(conf,1)+'</b>')+
@@ -869,7 +1106,19 @@ applyFilters();
           } else if (kind === 'cards'){
             extra = 'y_pg: '+fmtNum(it.yellow_per_game,2)+' — red_total: '+escapeHtml(String(it.red_total||0));
           }
-          out += '<div>• <b>'+escapeHtml(it.name||"n/d")+'</b> <span class="muted2">('+
+          out += '<div class="listItem">'+
+          '<div class="listHead">'+
+            '<div class="listMain"><b>'+escapeHtml(it.name||"n/d")+'</b> <span class="muted2">'+escapeHtml(title.replace("Top ",""))+'</span></div>'+
+          '</div>'+
+          '<div class="listSub">vs <b>'+escapeHtml(vs)+'</b>'+
+            (team||slot ? (' • '+escapeHtml(team)+' '+escapeHtml(slot)) : '')+
+          '</div>'+
+          '<div class="listSub" style="margin-top:8px;">'+escapeHtml(extra)+'</div>'+
+          '<div class="proOnly muted2" style="margin-top:8px;">'+
+            '<span>score: <b>'+fmtNum(score,3)+'</b></span>'+
+            (conf===null || conf===undefined ? '' : ' <span style="margin-left:10px;">conf: <b>'+fmtNum(conf,1)+'</b></span>')+
+          '</div>'+
+        '</div>';
             escapeHtml(it.position||"")+
             ')</span><div class="muted2" style="margin-left:14px;">'+escapeHtml(extra)+'</div></div>';
         }
@@ -899,26 +1148,24 @@ applyFilters();
       return;
     }
 
-    function pickLabel(p){
-      var m = String(p.market||"").toLowerCase();
-      var line = Number(p.line);
-
-      function plus(line){
-        if (line === 0.5) return "1+";
-        if (line === 1.5) return "2+";
-        if (line === 2.5) return "3+";
-        return "";
-      }
-
-      if (m.indexOf("shots on target")>-1 || m.indexOf("sot")>-1) return t("pick_sot")+" "+plus(line);
-      if (m.indexOf("player shots")>-1 || m === "player shots") return t("pick_shots")+" "+plus(line);
-      if (m.indexOf("foul")>-1) return t("pick_fouls")+" "+plus(line);
-      if (m.indexOf("yellow")>-1 || m.indexOf("card")>-1) return t("pick_card");
-      return p.market || "Pick";
+    function plusFromLine(line){
+      if (line === 0.5) return t("plus1");
+      if (line === 1.5) return t("plus2");
+      if (line === 2.5) return t("plus3");
+      return "";
     }
 
-    function statFromWhy(p){
-      // keep only the p90 line (SoT p90 / Shots p90 / Fouls p90 / Y p90) if present in why[]
+    function pickLabel(p){
+      var m = String(p.market||"").toLowerCase();
+      var l = Number(p.line);
+      if (m.indexOf("shots on target")>-1 || m.indexOf("sot")>-1) return t("pick_sot")+" "+plusFromLine(l);
+      if (m.indexOf("player shots")>-1 || m === "player shots") return t("pick_shots")+" "+plusFromLine(l);
+      if (m.indexOf("foul")>-1) return t("pick_fouls")+" "+plusFromLine(l);
+      if (m.indexOf("yellow")>-1 || m.indexOf("card")>-1) return t("pick_card");
+      return (p.market || "Pick");
+    }
+
+    function p90Line(p){
       var why = (p && p.why) ? p.why : [];
       for (var i=0;i<why.length;i++){
         var s = String(why[i]||"");
@@ -928,9 +1175,9 @@ applyFilters();
     }
 
     function riskTag(tier){
-      var x = String(tier||"").toLowerCase();
-      var cls = (x === "spicy") ? "spicy" : (x === "high" ? "high" : (x === "medium" ? "medium" : "safe"));
-      var label = (x === "spicy") ? t("spicy") : (x === "high" ? t("risk_high") : (x === "medium" ? t("risk_medium") : t("safe")));
+      var t0 = String(tier||"").toLowerCase();
+      var cls = (t0 === "spicy") ? "spicy" : (t0 === "high" ? "high" : (t0 === "medium" ? "medium" : "safe"));
+      var label = (t0 === "spicy") ? t("spicy") : (t0 === "high" ? t("risk_high") : (t0 === "medium" ? t("risk_medium") : t("safe")));
       return '<span class="tag '+cls+'">'+escapeHtml(label)+'</span>';
     }
 
@@ -942,7 +1189,7 @@ applyFilters();
       out +=     '<div class="listMain"><b>'+escapeHtml(p.name||t("nd"))+'</b> <span class="muted2">'+escapeHtml(pickLabel(p))+'</span></div>';
       out +=     (p.risk_tier ? riskTag(p.risk_tier) : '');
       out +=   '</div>';
-      var st = statFromWhy(p);
+      var st = p90Line(p);
       if (st) out += '<div class="listSub" style="margin-top:8px;">• '+escapeHtml(st)+'</div>';
       out += '</div>';
     }
@@ -950,39 +1197,94 @@ applyFilters();
     chiccheBox.innerHTML = out || t("nd");
   }
 
-    function badge(txt){
-      return '<span class="pill" style="margin-left:6px;">'+escapeHtml(txt)+'</span>';
+    function shortLine(market, line){
+      // Normalize
+      var l = (line===null || line===undefined) ? null : Number(line);
+      var m = String(market||"").toLowerCase();
+
+      function overN(n){ return (n+1) + "+"; } // 0.5 -> 1+, 1.5 -> 2+, 2.5 -> 3+
+      if (m.indexOf("shots on target")>-1 || m.indexOf("sot")>-1){
+        if (l===0.5) return "Tiri in porta " + overN(0);
+        if (l===1.5) return "Tiri in porta " + overN(1);
+        if (l===2.5) return "Tiri in porta " + overN(2);
+        return "Tiri in porta";
+      }
+      if (m.indexOf("player shots")>-1 || m === "player shots"){
+        if (l===0.5) return "Tiri " + overN(0);
+        if (l===1.5) return "Tiri " + overN(1);
+        if (l===2.5) return "Tiri " + overN(2);
+        return "Tiri";
+      }
+      if (m.indexOf("foul")>-1){
+        if (l===0.5) return "Falli 1+";
+        if (l===1.5) return "Falli 2+";
+        if (l===2.5) return "Falli 3+";
+        return "Falli";
+      }
+      if (m.indexOf("yellow")>-1 || m.indexOf("card")>-1){
+        return "Ammonito";
+      }
+      return (market || "Pick");
+    }
+
+    function riskTag(tier){
+      var t = String(tier||"").toLowerCase();
+      var cls = (t === "spicy") ? "spicy" : (t === "high" ? "high" : (t === "medium" ? "medium" : "safe"));
+      var label = (t === "spicy") ? "Chicca" : (t === "high" ? "Rischio alto" : (t === "medium" ? "Rischio medio" : "Safe"));
+      return '<span class="tag '+cls+'">'+escapeHtml(label)+'</span>';
     }
 
     var html = '';
     for (var i=0;i<c.picks.length;i++){
       var p = c.picks[i] || {};
-      var lineTxt = (p.line===null || p.line===undefined) ? '' : (' over ' + p.line);
-      var head = '<div style="margin-top:8px;"><b>'+escapeHtml(p.name||"n/d")+'</b> '+
-        '<span class="muted2">('+escapeHtml(p.team||"")+(p.slot?(' '+escapeHtml(p.slot)):'')+')</span>'+
-        '<span class="muted2"> — '+escapeHtml(p.market||"") + lineTxt + '</span>';
-      if (p.vs) head += ' <span class="muted2">vs</span> <b>'+escapeHtml(p.vs)+'</b>';
-      if (p.risk_tier) head += badge(p.risk_tier);
-      if (p.confidence_0_10 !== null && p.confidence_0_10 !== undefined) head += '<span class="muted2"> conf:</span> <b>'+fmtNum(p.confidence_0_10,1)+'</b>';
-      if (p.score !== null && p.score !== undefined) head += '<span class="muted2"> score:</span> <b>'+fmtNum(p.score,3)+'</b>';
-      head += '</div>';
+      var label = shortLine(p.market, p.line);
 
-      var why = '';
+      html += '<div class="listItem">';
+      html +=   '<div class="listHead">';
+      html +=     '<div class="listMain"><b>'+escapeHtml(p.name||"n/d")+'</b> <span class="muted2">'+escapeHtml(label)+'</span></div>';
+      html +=     (p.risk_tier ? riskTag(p.risk_tier) : '');
+      html +=   '</div>';
+
+      var sub = '';
+      if (p.vs) sub += 'vs <b>'+escapeHtml(p.vs)+'</b>';
+      if (p.team || p.slot) sub += (sub ? ' • ' : '') + escapeHtml(p.team||"") + (p.slot ? (' ' + escapeHtml(p.slot)) : '');
+      html += '<div class="listSub">'+(sub || '—')+'</div>';
+
+      // Why: keep 2 bullets max for readability
       if (p.why && p.why.length){
-        why = '<div class="muted2" style="margin-left:12px;">';
-        for (var k=0;k<p.why.length;k++){
-          why += '• '+escapeHtml(p.why[k])+'<br/>';
+        html += '<div class="listSub" style="margin-top:8px;">';
+        for (var k=0;k<Math.min(2, p.why.length);k++){
+          html += '• '+escapeHtml(p.why[k])+'<br/>';
         }
-        why += '</div>';
+        html += '</div>';
       }
 
-      html += head + why;
+      // Pro details
+      var hasPro = (p.confidence_0_10 !== null && p.confidence_0_10 !== undefined) || (p.score !== null && p.score !== undefined) || (p.why && p.why.length>2);
+      if (hasPro){
+        html += '<details class="fold proOnly" style="margin-top:10px;">';
+        html += '<summary>Dettagli</summary>';
+        html += '<div class="muted2" style="margin-top:10px;">';
+        if (p.confidence_0_10 !== null && p.confidence_0_10 !== undefined) html += 'confidence: <b>'+fmtNum(p.confidence_0_10,1)+'</b><br/>';
+        if (p.score !== null && p.score !== undefined) html += 'score: <b>'+fmtNum(p.score,3)+'</b><br/>';
+        if (p.why && p.why.length>2){
+          html += '<div style="margin-top:8px;">';
+          for (var z=2; z<p.why.length; z++){
+            html += '• '+escapeHtml(p.why[z])+'<br/>';
+          }
+          html += '</div>';
+        }
+        html += '</div></details>';
+      }
+
+      html += '</div>';
     }
 
     chiccheBox.innerHTML = html || "n/d";
   }
 
 function renderBets(exotics){
+    if (!betsBox) return;
     var bets = exotics && exotics.bets;
     if (!bets){ betsBox.textContent = "n/d"; return; }
 
@@ -1046,13 +1348,13 @@ function renderBets(exotics){
     if (!selected || !selected.fixture_id) return;
 
     anBtn.disabled = true;
-    rawOut.textContent = "Analisi in corso...";
+    if (rawOut) rawOut.textContent = "Analisi in corso...";
     goalBox.textContent = "n/d";
     exoBox.textContent = "n/d";
     playersBox.textContent = "n/d";
     matchupsBox.textContent = "n/d";
     chiccheBox.textContent = "n/d";
-    betsBox.textContent = "n/d";
+    if (betsBox) betsBox.textContent = "n/d";
 
     var url = backend.replace(/\/$/,"") + "/api/analyze?cb=" + Date.now();
 
@@ -1066,26 +1368,28 @@ function renderBets(exotics){
     })
     .then(function(res){
       if (!res.ok){
-        rawOut.textContent = JSON.stringify(res.body, null, 2);
+        if (rawOut) rawOut.textContent = JSON.stringify(res.body, null, 2);
         throw new Error("analyze "+res.status+" "+JSON.stringify(res.body));
       }
       var d = res.body;
       window.lastAnalysis = d;
 
-      rawOut.textContent = JSON.stringify(d, null, 2);
+      if (rawOut) rawOut.textContent = JSON.stringify(d, null, 2);
 
       renderGoals(d.goals_model);
       renderExotics(d.exotics, d.fixture);
       renderPlayers(d.exotics, d.fixture);
       renderMatchups(d.exotics, d.fixture);
       renderChicche(d.exotics);
-      renderBets(d.exotics);
+      if (typeof renderBets === 'function') renderBets(d.exotics);
 
+      // UX: dopo analisi, apri subito Chicche
+      setTab('chicche');
       anBtn.disabled = false;
     })
     .catch(function(err){
       console.error(err);
-      rawOut.textContent = "Errore analisi. Apri console.";
+      if (rawOut) rawOut.textContent = "Errore analisi. Apri console.";
       anBtn.disabled = false;
     });
   }
@@ -1103,7 +1407,9 @@ function renderBets(exotics){
   // ---- init ----
   setBackend(DEFAULT_BACKEND);
   try{ localizeStaticUI(); }catch(e){}
+  if (typeof setMiniFromSelected === 'function') setMiniFromSelected(null);
   dateInp.value = todayISO();
+  setTab('overview');
   loadFixtures();
 })();
 </script>
