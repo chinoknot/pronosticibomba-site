@@ -201,6 +201,11 @@
         </div>
 
         <div class="card" style="flex:1; min-width:320px;">
+          <div class="prettyTitle">Matchups (lineup-based)</div>
+          <div class="prettyBody" id="matchupsBox">n/d</div>
+        </div>
+
+        <div class="card" style="flex:1; min-width:320px;">
           <div class="prettyTitle">PB Triple Builder (stimata)</div>
           <div class="prettyBody" id="betsBox">n/d</div>
         </div>
@@ -243,6 +248,7 @@
   var goalBox = document.getElementById("goalBox");
   var exoBox = document.getElementById("exoBox");
   var playersBox = document.getElementById("playersBox");
+  var matchupsBox = document.getElementById("matchupsBox");
   var betsBox = document.getElementById("betsBox");
 
   function setBackend(b){
@@ -367,6 +373,7 @@
     goalBox.textContent = "n/d";
     exoBox.textContent = "n/d";
     playersBox.textContent = "n/d";
+    matchupsBox.textContent = "n/d";
     betsBox.textContent = "n/d";
   }
 
@@ -584,7 +591,7 @@ applyFilters();
         var out = '<div class="muted2" style="margin-top:8px;">'+escapeHtml(title)+'</div>';
         for (var i=0;i<arr.length;i++){
           var it = arr[i];
-          out += '<div>• '+escapeHtml(it.name)+' ('+escapeHtml(it.position||"")+') — '+escapeHtml(key)+': <b>'+fmtNum(it[key],2)+'</b> — g:'+escapeHtml(it.games)+'</div>';
+          out += '<div>• '+escapeHtml(it.name)+' ('+escapeHtml(it.position||"")+') — '+escapeHtml(key)+': <b>'+fmtNum(it[key],2)+'</b> — apps:'+escapeHtml(it.apps)+'</div>';
         }
         return out;
       }
@@ -602,6 +609,83 @@ applyFilters();
 
     playersBox.innerHTML = html || "n/d";
   }
+
+  function renderMatchups(exotics, fixture){
+    var m = exotics && exotics.matchups;
+    if (!m || !m.available){
+      matchupsBox.textContent = "Lineups non disponibili → matchups n/d";
+      return;
+    }
+
+    function sec(title, arr, kind){
+      if (!arr || !arr.length) return '';
+      var out = '<div class="muted2" style="margin-top:8px;">'+escapeHtml(title)+'</div>';
+      for (var i=0;i<arr.length;i++){
+        var it = arr[i] || {};
+        var team = it.team || '';
+        var slot = it.slot || '';
+        var vs = it.vs || 'n/d';
+        var score = it.score;
+        var conf = it.confidence_0_10;
+
+        var extra = '';
+        if (kind === 'shots'){
+          extra = 'shots_pg: '+fmtNum(it.shots_per_game,2)+' — p90: '+fmtNum(it.shots_per90,2);
+        } else if (kind === 'sot'){
+          extra = 'sot_pg: '+fmtNum(it.sot_per_game,2)+' — p90: '+fmtNum(it.sot_per90,2);
+        } else if (kind === 'fouls'){
+          extra = 'fouls_pg: '+fmtNum(it.fouls_per_game,2)+' — p90: '+fmtNum(it.fouls_per90,2);
+        } else if (kind === 'cards'){
+          extra = 'y_pg: '+fmtNum(it.yellow_per_game,2)+' — y_p90: '+fmtNum(it.yellow_per90,2);
+        }
+
+        out += '<div>• '+escapeHtml(it.name||"n/d")+' <span class="muted2">('+
+          escapeHtml(team)+' '+escapeHtml(slot)+')</span> — vs <b>'+escapeHtml(vs)+'</b>'+
+          ' <span class="muted2">| score:</span> <b>'+fmtNum(score,3)+'</b>'+
+          (conf===null || conf===undefined ? '' : ' <span class="muted2">| conf:</span> <b>'+fmtNum(conf,1)+'</b>')+
+          '<div class="muted2" style="margin-left:14px;">'+escapeHtml(extra)+'</div>'+
+          '</div>';
+      }
+      return out;
+    }
+
+    var top = (m.top5 && m.top5.reliable) ? m.top5.reliable : null;
+    var topAll = (m.top5 && m.top5.all) ? m.top5.all : null;
+
+    var html = '';
+    var meta = safeGet(exotics, ["meta","matchups"]);
+    if (meta){
+      html += '<div class="muted2">matchups: <b>'+escapeHtml(String(meta.count||0))+
+        '</b> — reliable: <b>'+escapeHtml(String(meta.reliable_count||0))+
+        '</b> — removed: <b>'+escapeHtml(String(meta.removed_count||0))+'</b></div>';
+      html += '<div class="hr"></div>';
+    }
+
+    html += '<div class="muted2">Top 5 match-specific (reliable)</div>';
+    html += sec("Top Shots (match)", top && top.shots, "shots");
+    html += sec("Top SoT (match)", top && top.sot, "sot");
+    html += sec("Top Fouls risk (match)", top && top.fouls, "fouls");
+    html += sec("Top Cards risk (match)", top && top.cards, "cards");
+
+    // Optional: show 'all' if different
+    if (topAll && top && (
+        JSON.stringify(topAll.shots||[]) !== JSON.stringify(top.shots||[]) ||
+        JSON.stringify(topAll.sot||[]) !== JSON.stringify(top.sot||[]) ||
+        JSON.stringify(topAll.fouls||[]) !== JSON.stringify(top.fouls||[]) ||
+        JSON.stringify(topAll.cards||[]) !== JSON.stringify(top.cards||[])
+      )){
+      html += '<div class="hr"></div>';
+      html += '<div class="muted2">Top 5 match-specific (all, includes low-sample)</div>';
+      html += sec("Top Shots (all)", topAll.shots, "shots");
+      html += sec("Top SoT (all)", topAll.sot, "sot");
+      html += sec("Top Fouls risk (all)", topAll.fouls, "fouls");
+      html += sec("Top Cards risk (all)", topAll.cards, "cards");
+    }
+
+    matchupsBox.innerHTML = html || "n/d";
+  }
+
+
 
     function renderBets(exotics){
     var bets = exotics && exotics.bets;
@@ -671,6 +755,7 @@ applyFilters();
     goalBox.textContent = "n/d";
     exoBox.textContent = "n/d";
     playersBox.textContent = "n/d";
+    matchupsBox.textContent = "n/d";
     betsBox.textContent = "n/d";
 
     var url = backend.replace(/\/$/,"") + "/api/analyze?cb=" + Date.now();
@@ -696,6 +781,7 @@ applyFilters();
       renderGoals(d.goals_model);
       renderExotics(d.exotics, d.fixture);
       renderPlayers(d.exotics, d.fixture);
+      renderMatchups(d.exotics, d.fixture);
       renderBets(d.exotics);
 
       anBtn.disabled = false;
