@@ -94,7 +94,105 @@
     }
     .badge{display:inline-flex; align-items:center; gap:8px; font-size:12px; color:var(--muted)}
     .dot{width:8px; height:8px; border-radius:999px; background:var(--warn); box-shadow:0 0 12px rgba(245,158,11,.35);}
-  </style>
+  
+    /* ---- UX v2: tabs + pro mode + mobile ---- */
+    .tabs{
+      display:flex; gap:8px; flex-wrap:wrap;
+      border-bottom:1px solid var(--line);
+      padding-bottom:10px; margin:10px 0 14px;
+    }
+    .tabs.scroll{flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling:touch; padding-bottom:12px;}
+    .tabBtn{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--txt);
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:13px;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .tabBtn.active{
+      border-color: rgba(58,160,255,.45);
+      background: rgba(58,160,255,.16);
+    }
+    .tabPanel{display:none}
+    .tabPanel.active{display:block}
+    .proOnly{display:none}
+    body.pro .proOnly{display:inline}
+    body.pro .proBlock{display:block}
+    .proBlock{display:none}
+    .topActions{
+      display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .switch{
+      display:flex; align-items:center; gap:8px;
+      color:var(--muted); font-size:13px;
+      user-select:none;
+    }
+    .switch input{accent-color: var(--accent);}
+    .mini{
+      font-size:12px; color:var(--muted);
+    }
+    .listItem{
+      padding:10px 10px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      border-radius:14px;
+      margin-top:8px;
+    }
+    .listHead{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+    .listMain{font-weight:800; font-size:14px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+    .listSub{margin-top:4px; color:var(--muted); font-size:12px; line-height:1.25;}
+    .tag{
+      display:inline-flex; align-items:center;
+      padding:4px 10px; border-radius:999px; font-size:12px;
+      border:1px solid var(--line); background:rgba(255,255,255,.03);
+      white-space:nowrap;
+    }
+    .tag.spicy{border-color: rgba(245,158,11,.42); background: rgba(245,158,11,.10)}
+    .tag.high{border-color: rgba(244,63,94,.38); background: rgba(244,63,94,.10)}
+    .tag.medium{border-color: rgba(58,160,255,.35); background: rgba(58,160,255,.10)}
+    .tag.safe{border-color: rgba(34,197,94,.38); background: rgba(34,197,94,.10)}
+    details.fold{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      border-radius:14px;
+      padding:10px 10px;
+      margin-top:10px;
+    }
+    details.fold > summary{
+      cursor:pointer;
+      font-weight:800;
+      outline:none;
+      list-style:none;
+    }
+    details.fold > summary::-webkit-details-marker{display:none}
+    .stickyBar{
+      position: sticky; top: 0;
+      background: rgba(7,16,30,.75);
+      backdrop-filter: blur(10px);
+      border:1px solid var(--line);
+      border-radius: 16px;
+      padding:10px 12px;
+      z-index: 20;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 980px){
+      .wrap{margin:14px auto; padding:0 12px;}
+      .card{padding:12px; border-radius:14px;}
+      .fixtures{max-height:280px;}
+      .tabs{gap:8px;}
+      .tabs{display:none;} /* mobile: use accordions instead */
+      .tabs.scroll{display:none;}
+      .tabPanel{display:block;} /* show all in mobile, but inside accordions */
+      .tabPanel.active{display:block;}
+      .stickyBar{border-radius:14px;}
+      pre{max-height:220px;}
+    }
+
+</style>
 </head>
 
 <body>
@@ -162,63 +260,93 @@
         <button id="anBtn" disabled>Analizza (step 1)</button>
       </div>
 
+      
       <div class="hr"></div>
 
-      <div class="row" style="gap:14px; align-items:stretch; flex-wrap:wrap;">
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle">Output analisi (raw)</div>
-          <pre id="rawOut">Seleziona una partita e premi Analizza.</pre>
+      <!-- Sticky quick bar (nice on mobile too) -->
+      <div class="stickyBar">
+        <div class="topActions">
+          <div class="mini">
+            <b id="selMatchMini">-</b><br/>
+            <span id="selKickMini">-</span> • <span id="selLeagueMini">-</span> • ID <span id="selIdMini">-</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="proToggle" />
+            Modalità Pro
+          </label>
         </div>
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle">Note</div>
-          <div class="prettyBody">
-            <div>- Le esotiche arrivano dal backend come <b>exotics.totals</b> e <b>exotics.teams</b>.</div>
-            <div>- Le quote vengono ignorate per decidere “se mostrare” (le useremo dopo solo per costruire bet builder / fallback).</div>
+      </div>
+
+      <!-- Desktop tabs -->
+      <div class="tabs scroll" id="tabsBar">
+        <button class="tabBtn active" data-tab="overview">Overview</button>
+        <button class="tabBtn" data-tab="chicche">Chicche</button>
+        <button class="tabBtn" data-tab="matchups">Matchups</button>
+        <button class="tabBtn" data-tab="players">Players</button>
+        <button class="tabBtn" data-tab="raw">Raw</button>
+      </div>
+
+      <div class="tabPanel active" id="tab-overview">
+        <div class="row" style="gap:14px; align-items:stretch; flex-wrap:wrap;">
+          <div class="card" style="flex:1; min-width:320px;">
+            <div class="prettyTitle">Goal</div>
+            <div class="prettyBody" id="goalBox">n/d</div>
+          </div>
+
+          <div class="card" style="flex:1; min-width:320px;">
+            <div class="prettyTitle">Match in 10 secondi</div>
+            <div class="prettyBody" id="exoBox">n/d</div>
           </div>
         </div>
       </div>
 
-      <div class="hr"></div>
-
-      <div class="row" style="gap:14px; align-items:stretch; flex-wrap:wrap;">
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle">Goal (Poisson)</div>
-          <div class="prettyBody" id="goalBox">n/d</div>
-        </div>
-
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle">Esotiche (shots/corners/cards/fouls)</div>
-          <div class="prettyBody" id="exoBox">n/d</div>
-        </div>
-      </div>
-
-      <div class="hr"></div>
-
-      <div class="row" style="gap:14px; align-items:stretch; flex-wrap:wrap;">
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle">Player (se disponibili)</div>
-          <div class="prettyBody" id="playersBox">n/d</div>
-        </div>
-
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle">Matchups (lineup-based)</div>
-          <div class="prettyBody" id="matchupsBox">n/d</div>
-        </div>
-
+      <div class="tabPanel" id="tab-chicche">
         <div class="card" style="flex:1; min-width:320px;">
           <div class="prettyTitle">Chicche (alta quota)</div>
           <div class="prettyBody" id="chiccheBox">n/d</div>
         </div>
+      </div>
 
+      <div class="tabPanel" id="tab-matchups">
         <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle">PB Triple Builder (stimata)</div>
-          <div class="prettyBody" id="betsBox">n/d</div>
+          <div class="prettyTitle">Matchups (solo se lineup disponibile)</div>
+          <div class="prettyBody" id="matchupsBox">n/d</div>
         </div>
       </div>
 
-      <div class="hr"></div>
+      <div class="tabPanel" id="tab-players">
+        <div class="card" style="flex:1; min-width:320px;">
+          <div class="prettyTitle">Top season-based (contesto)</div>
+          <div class="prettyBody" id="playersBox">n/d</div>
+        </div>
+      </div>
 
+      <div class="tabPanel" id="tab-raw">
+        <details class="fold" open>
+          <summary>Output analisi (raw JSON)</summary>
+          <div style="margin-top:10px;">
+            <pre id="rawOut">Seleziona una partita e premi Analizza.</pre>
+          </div>
+          <div class="muted2" style="margin-top:8px;">Suggerimento: Modalità Pro → ti fa vedere score/conf anche negli altri pannelli.</div>
+        </details>
+
+        <details class="fold">
+          <summary>Note</summary>
+          <div class="prettyBody" style="margin-top:10px;">
+            <div>- Le esotiche arrivano dal backend come <b>exotics.totals</b> e <b>exotics.teams</b>.</div>
+            <div>- Le quote vengono ignorate per decidere “se mostrare” (le useremo dopo solo per costruire bet builder / fallback).</div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Mobile: accordions (all visible panels become sections) -->
+      <div class="proBlock" style="margin-top:12px;">
+        <!-- placeholder, used by pro mode only if you want later -->
+      </div>
+
+      <div class="hr"></div>
       <div class="muted2">Backend attuale: <span id="backendFoot">n/d</span></div>
+
     </div>
   </div>
 </div>
@@ -255,7 +383,59 @@
   var playersBox = document.getElementById("playersBox");
   var matchupsBox = document.getElementById("matchupsBox");
   var chiccheBox = document.getElementById("chiccheBox");
-  var betsBox = document.getElementById("betsBox");
+  var betsBox = document.getElementById("betsBox"); // (beta) may be null
+
+  // ---- UX v2 ----
+  var selLeagueMini = document.getElementById("selLeagueMini");
+  var selKickMini = document.getElementById("selKickMini");
+  var selMatchMini = document.getElementById("selMatchMini");
+  var selIdMini = document.getElementById("selIdMini");
+  var proToggle = document.getElementById("proToggle");
+  var tabsBar = document.getElementById("tabsBar");
+
+  function setMiniFromSelected(fx){
+    if (!fx){
+      selLeagueMini.textContent = "-";
+      selKickMini.textContent = "-";
+      selMatchMini.textContent = "-";
+      selIdMini.textContent = "-";
+      return;
+    }
+    selLeagueMini.textContent = fx.league_name || "-";
+    selKickMini.textContent = fx.kickoff_utc ? fx.kickoff_utc.replace("T"," ").replace("+00:00"," UTC") : "-";
+    selMatchMini.textContent = (fx.home_name || "") + " vs " + (fx.away_name || "");
+    selIdMini.textContent = String(fx.fixture_id || "-");
+  }
+
+  function setTab(name){
+    if (!tabsBar) return;
+    var btns = tabsBar.querySelectorAll(".tabBtn");
+    for (var i=0;i<btns.length;i++){
+      btns[i].classList.toggle("active", btns[i].getAttribute("data-tab") === name);
+    }
+    var panels = document.querySelectorAll(".tabPanel");
+    for (var j=0;j<panels.length;j++){
+      panels[j].classList.toggle("active", panels[j].id === ("tab-"+name));
+    }
+  }
+
+  if (tabsBar){
+    tabsBar.addEventListener("click", function(e){
+      var t = e.target;
+      if (t && t.classList && t.classList.contains("tabBtn")){
+        var name = t.getAttribute("data-tab");
+        if (name) setTab(name);
+      }
+    });
+  }
+
+  if (proToggle){
+    proToggle.addEventListener("change", function(){
+      document.body.classList.toggle("pro", !!proToggle.checked);
+      // re-render current boxes if needed (they already contain proOnly spans)
+    });
+  }
+
 
   function setBackend(b){
     backend = b || DEFAULT_BACKEND;
@@ -381,7 +561,9 @@
     playersBox.textContent = "n/d";
     matchupsBox.textContent = "n/d";
     chiccheBox.textContent = "n/d";
-    betsBox.textContent = "n/d";
+    betsBox && (betsBox.textContent = "n/d");
+    setMiniFromSelected(fx);
+    setTab("overview");
   }
 
   function normalizeFixturesResponse(resp){
@@ -646,7 +828,19 @@ applyFilters();
           extra = 'y_pg: '+fmtNum(it.yellow_per_game,2)+' — y_p90: '+fmtNum(it.yellow_per90,2);
         }
 
-        out += '<div>• <b>'+escapeHtml(it.name||"n/d")+'</b> <span class="muted2">('+
+        out += '<div class="listItem">'+
+          '<div class="listHead">'+
+            '<div class="listMain"><b>'+escapeHtml(it.name||"n/d")+'</b> <span class="muted2">'+escapeHtml(title.replace("Top ",""))+'</span></div>'+
+          '</div>'+
+          '<div class="listSub">vs <b>'+escapeHtml(vs)+'</b>'+
+            (team||slot ? (' • '+escapeHtml(team)+' '+escapeHtml(slot)) : '')+
+          '</div>'+
+          '<div class="listSub" style="margin-top:8px;">'+escapeHtml(extra)+'</div>'+
+          '<div class="proOnly muted2" style="margin-top:8px;">'+
+            '<span>score: <b>'+fmtNum(score,3)+'</b></span>'+
+            (conf===null || conf===undefined ? '' : ' <span style="margin-left:10px;">conf: <b>'+fmtNum(conf,1)+'</b></span>')+
+          '</div>'+
+        '</div>';
           escapeHtml(team)+' '+escapeHtml(slot)+')</span> — vs '+escapeHtml(vs)+''+
           ' <span class="muted2">| score:</span> <b>'+fmtNum(score,3)+'</b>'+
           (conf===null || conf===undefined ? '' : ' <span class="muted2">| conf:</span> <b>'+fmtNum(conf,1)+'</b>')+
@@ -712,7 +906,19 @@ applyFilters();
           } else if (kind === 'cards'){
             extra = 'y_pg: '+fmtNum(it.yellow_per_game,2)+' — red_total: '+escapeHtml(String(it.red_total||0));
           }
-          out += '<div>• <b>'+escapeHtml(it.name||"n/d")+'</b> <span class="muted2">('+
+          out += '<div class="listItem">'+
+          '<div class="listHead">'+
+            '<div class="listMain"><b>'+escapeHtml(it.name||"n/d")+'</b> <span class="muted2">'+escapeHtml(title.replace("Top ",""))+'</span></div>'+
+          '</div>'+
+          '<div class="listSub">vs <b>'+escapeHtml(vs)+'</b>'+
+            (team||slot ? (' • '+escapeHtml(team)+' '+escapeHtml(slot)) : '')+
+          '</div>'+
+          '<div class="listSub" style="margin-top:8px;">'+escapeHtml(extra)+'</div>'+
+          '<div class="proOnly muted2" style="margin-top:8px;">'+
+            '<span>score: <b>'+fmtNum(score,3)+'</b></span>'+
+            (conf===null || conf===undefined ? '' : ' <span style="margin-left:10px;">conf: <b>'+fmtNum(conf,1)+'</b></span>')+
+          '</div>'+
+        '</div>';
             escapeHtml(it.position||"")+
             ')</span><div class="muted2" style="margin-left:14px;">'+escapeHtml(extra)+'</div></div>';
         }
@@ -742,39 +948,94 @@ applyFilters();
       return;
     }
 
-    function badge(txt){
-      return '<span class="pill" style="margin-left:6px;">'+escapeHtml(txt)+'</span>';
+    function shortLine(market, line){
+      // Normalize
+      var l = (line===null || line===undefined) ? null : Number(line);
+      var m = String(market||"").toLowerCase();
+
+      function overN(n){ return (n+1) + "+"; } // 0.5 -> 1+, 1.5 -> 2+, 2.5 -> 3+
+      if (m.indexOf("shots on target")>-1 || m.indexOf("sot")>-1){
+        if (l===0.5) return "Tiri in porta " + overN(0);
+        if (l===1.5) return "Tiri in porta " + overN(1);
+        if (l===2.5) return "Tiri in porta " + overN(2);
+        return "Tiri in porta";
+      }
+      if (m.indexOf("player shots")>-1 || m === "player shots"){
+        if (l===0.5) return "Tiri " + overN(0);
+        if (l===1.5) return "Tiri " + overN(1);
+        if (l===2.5) return "Tiri " + overN(2);
+        return "Tiri";
+      }
+      if (m.indexOf("foul")>-1){
+        if (l===0.5) return "Falli 1+";
+        if (l===1.5) return "Falli 2+";
+        if (l===2.5) return "Falli 3+";
+        return "Falli";
+      }
+      if (m.indexOf("yellow")>-1 || m.indexOf("card")>-1){
+        return "Ammonito";
+      }
+      return (market || "Pick");
+    }
+
+    function riskTag(tier){
+      var t = String(tier||"").toLowerCase();
+      var cls = (t === "spicy") ? "spicy" : (t === "high" ? "high" : (t === "medium" ? "medium" : "safe"));
+      var label = (t === "spicy") ? "Chicca" : (t === "high" ? "Rischio alto" : (t === "medium" ? "Rischio medio" : "Safe"));
+      return '<span class="tag '+cls+'">'+escapeHtml(label)+'</span>';
     }
 
     var html = '';
     for (var i=0;i<c.picks.length;i++){
       var p = c.picks[i] || {};
-      var lineTxt = (p.line===null || p.line===undefined) ? '' : (' over ' + p.line);
-      var head = '<div style="margin-top:8px;"><b>'+escapeHtml(p.name||"n/d")+'</b> '+
-        '<span class="muted2">('+escapeHtml(p.team||"")+(p.slot?(' '+escapeHtml(p.slot)):'')+')</span>'+
-        '<span class="muted2"> — '+escapeHtml(p.market||"") + lineTxt + '</span>';
-      if (p.vs) head += ' <span class="muted2">vs</span> <b>'+escapeHtml(p.vs)+'</b>';
-      if (p.risk_tier) head += badge(p.risk_tier);
-      if (p.confidence_0_10 !== null && p.confidence_0_10 !== undefined) head += '<span class="muted2"> conf:</span> <b>'+fmtNum(p.confidence_0_10,1)+'</b>';
-      if (p.score !== null && p.score !== undefined) head += '<span class="muted2"> score:</span> <b>'+fmtNum(p.score,3)+'</b>';
-      head += '</div>';
+      var label = shortLine(p.market, p.line);
 
-      var why = '';
+      html += '<div class="listItem">';
+      html +=   '<div class="listHead">';
+      html +=     '<div class="listMain"><b>'+escapeHtml(p.name||"n/d")+'</b> <span class="muted2">'+escapeHtml(label)+'</span></div>';
+      html +=     (p.risk_tier ? riskTag(p.risk_tier) : '');
+      html +=   '</div>';
+
+      var sub = '';
+      if (p.vs) sub += 'vs <b>'+escapeHtml(p.vs)+'</b>';
+      if (p.team || p.slot) sub += (sub ? ' • ' : '') + escapeHtml(p.team||"") + (p.slot ? (' ' + escapeHtml(p.slot)) : '');
+      html += '<div class="listSub">'+(sub || '—')+'</div>';
+
+      // Why: keep 2 bullets max for readability
       if (p.why && p.why.length){
-        why = '<div class="muted2" style="margin-left:12px;">';
-        for (var k=0;k<p.why.length;k++){
-          why += '• '+escapeHtml(p.why[k])+'<br/>';
+        html += '<div class="listSub" style="margin-top:8px;">';
+        for (var k=0;k<Math.min(2, p.why.length);k++){
+          html += '• '+escapeHtml(p.why[k])+'<br/>';
         }
-        why += '</div>';
+        html += '</div>';
       }
 
-      html += head + why;
+      // Pro details
+      var hasPro = (p.confidence_0_10 !== null && p.confidence_0_10 !== undefined) || (p.score !== null && p.score !== undefined) || (p.why && p.why.length>2);
+      if (hasPro){
+        html += '<details class="fold proOnly" style="margin-top:10px;">';
+        html += '<summary>Dettagli</summary>';
+        html += '<div class="muted2" style="margin-top:10px;">';
+        if (p.confidence_0_10 !== null && p.confidence_0_10 !== undefined) html += 'confidence: <b>'+fmtNum(p.confidence_0_10,1)+'</b><br/>';
+        if (p.score !== null && p.score !== undefined) html += 'score: <b>'+fmtNum(p.score,3)+'</b><br/>';
+        if (p.why && p.why.length>2){
+          html += '<div style="margin-top:8px;">';
+          for (var z=2; z<p.why.length; z++){
+            html += '• '+escapeHtml(p.why[z])+'<br/>';
+          }
+          html += '</div>';
+        }
+        html += '</div></details>';
+      }
+
+      html += '</div>';
     }
 
     chiccheBox.innerHTML = html || "n/d";
   }
 
 function renderBets(exotics){
+    if (!betsBox) return;
     var bets = exotics && exotics.bets;
     if (!bets){ betsBox.textContent = "n/d"; return; }
 
@@ -844,7 +1105,7 @@ function renderBets(exotics){
     playersBox.textContent = "n/d";
     matchupsBox.textContent = "n/d";
     chiccheBox.textContent = "n/d";
-    betsBox.textContent = "n/d";
+    if (betsBox) betsBox.textContent = "n/d";
 
     var url = backend.replace(/\/$/,"") + "/api/analyze?cb=" + Date.now();
 
@@ -871,8 +1132,10 @@ function renderBets(exotics){
       renderPlayers(d.exotics, d.fixture);
       renderMatchups(d.exotics, d.fixture);
       renderChicche(d.exotics);
-      renderBets(d.exotics);
+      if (typeof renderBets === 'function') renderBets(d.exotics);
 
+      // UX: dopo analisi, apri subito Chicche
+      setTab('chicche');
       anBtn.disabled = false;
     })
     .catch(function(err){
@@ -894,7 +1157,9 @@ function renderBets(exotics){
 
   // ---- init ----
   setBackend(DEFAULT_BACKEND);
+  if (typeof setMiniFromSelected === 'function') setMiniFromSelected(null);
   dateInp.value = todayISO();
+  setTab('overview');
   loadFixtures();
 })();
 </script>
