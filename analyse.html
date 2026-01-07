@@ -189,6 +189,25 @@
       pre{max-height:220px;}
     }
 
+
+    /* --- Header actions (index-like) --- */
+    .langSwitch{display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; background:rgba(255,255,255,.03)}
+    .langBtn{display:inline-flex; align-items:center; justify-content:center; padding:6px 10px; font-size:12px; color:var(--txt); text-decoration:none; border-right:1px solid var(--line)}
+    .langBtn:last-child{border-right:none}
+    .langBtn.active{background: rgba(58,160,255,.18); border-color: rgba(58,160,255,.45)}
+    .donateBtn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:8px 12px; border-radius:999px; text-decoration:none; font-size:12px; font-weight:800;
+      border:1px solid rgba(245,158,11,.45); background: rgba(245,158,11,.12); color: var(--txt);
+      white-space:nowrap;
+    }
+    .donateBtn:hover{background: rgba(245,158,11,.18)}
+    /* modern scrollbar */
+    .fixtures{scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.25) rgba(255,255,255,.06);}
+    .fixtures::-webkit-scrollbar{width:10px}
+    .fixtures::-webkit-scrollbar-track{background: rgba(255,255,255,.06); border-radius:999px}
+    .fixtures::-webkit-scrollbar-thumb{background: rgba(255,255,255,.22); border-radius:999px; border:2px solid rgba(255,255,255,.06)}
+
 </style>
 </head>
 
@@ -196,58 +215,54 @@
 <div class="wrap">
   <div class="top">
     <div>
-      <h1>PB Analyzer</h1>
-      <div class="sub">Seleziona data e lega → scegli una partita → Analizza (goal/Poisson + esotiche: shots/corners/fouls/cards).</div>
+      <h1 id="brandTitle">PRONOSTICI BOMBA</h1>
+      <div class="sub" id="brandSub">I pronostici non sono copiati: vengono generati giorno per giorno da modelli che analizzano statistiche e dati storici.</div>
     </div>
-    <div class="badge"><span class="dot"></span><span id="backendLbl">Backend: n/d</span></div>
+
+    <div class="row" style="gap:10px; align-items:center; justify-content:flex-end;">
+      <span class="pill" id="dayPill">—</span>
+
+      <div class="langSwitch" role="group" aria-label="Language">
+        <a id="langIt" class="langBtn" href="?lang=it">IT</a>
+        <a id="langEn" class="langBtn" href="?lang=en">EN</a>
+      </div>
+
+      <a class="donateBtn" href="https://www.pronosticibomba.com" target="_blank" rel="noopener">
+        REGALA UNO SNACK A RALPH
+      </a>
+    </div>
   </div>
 
   <div class="grid">
     <!-- LEFT -->
     <div class="card">
-      <div style="font-weight:800; margin-bottom:10px;">Fixture</div>
+      <div style="font-weight:800; margin-bottom:10px;" id="fixturesTitle">Partite</div>
 
       <div class="row">
         <div style="flex:1">
-          <label>Data</label>
+          <label id="lblDate">Data</label>
           <input id="dateInp" type="date" />
         </div>
         <div style="width:120px; align-self:flex-end;">
           <button id="reloadBtn" style="width:100%;">Ricarica</button>
         </div>
       </div>
+</div>
 
-      <div style="margin-top:10px;">
-        <label>Ricerca</label>
-        <input id="qInp" type="text" placeholder="es: Juventus, Arsenal, Lazio..." />
-      </div>
-
-      <div style="margin-top:10px;">
-        <label>Leghe (maggiori)</label>
-        <div class="checks">
-          <label class="chk"><input type="checkbox" class="lg" value="135" checked> Serie A</label>
-          <label class="chk"><input type="checkbox" class="lg" value="39" checked> Premier League</label>
-          <label class="chk"><input type="checkbox" class="lg" value="140" checked> La Liga</label>
-          <label class="chk"><input type="checkbox" class="lg" value="78" checked> Bundesliga</label>
-          <label class="chk"><input type="checkbox" class="lg" value="61" checked> Ligue 1</label>
-        </div>
-        <div class="muted2" style="margin-top:6px;">Nota: qui lavoriamo solo sulle leghe maggiori. Minori le aggiungiamo dopo.</div>
-      </div>
-
-      <div class="muted2" style="margin-top:10px;">Mostrate <span id="countLbl">0</span> partite (filtrate).</div>
+      <div class="muted2" style="margin-top:10px;" id="countText">—</div>
 
       <div id="fixtures" class="fixtures"></div>
     </div>
 
     <!-- RIGHT -->
     <div class="card">
-      <div style="font-weight:800; margin-bottom:10px;">Match selezionato</div>
+      <div style="font-weight:800; margin-bottom:10px;" id="selTitle">Partita selezionata</div>
 
       <div class="kv">
-        <div class="k">Competizione</div><div class="v" id="selLeague">-</div>
-        <div class="k">Kickoff (UTC)</div><div class="v" id="selKick">-</div>
-        <div class="k">Match</div><div class="v" id="selMatch">-</div>
-        <div class="k">Fixture ID</div><div class="v" id="selId">-</div>
+        <div class="k" id="lblCompetition">Competizione</div><div class="v" id="selLeague">-</div>
+        <div class="k" id="lblKickoff">Kickoff</div><div class="v" id="selKick">-</div>
+        <div class="k" id="lblMatch">Match</div><div class="v" id="selMatch">-</div>
+        <div class="k" id="lblFixtureId">Fixture ID</div><div class="v" id="selId">-</div>
       </div>
 
       <div class="hr"></div>
@@ -281,12 +296,12 @@
         <div class="row" style="gap:14px; align-items:stretch; flex-wrap:wrap;">
           <div class="card" style="flex:1; min-width:320px;">
             <div class="prettyTitle" id="titleGoal">Goal</div>
-            <div class="prettyBody" id="goalBox">n/d</div>
+            <div class="prettyBody" id="goalBox">—</div>
           </div>
 
           <div class="card" style="flex:1; min-width:320px;">
             <div class="prettyTitle" id="titleOverview">Match in 10 secondi</div>
-            <div class="prettyBody" id="exoBox">n/d</div>
+            <div class="prettyBody" id="exoBox">—</div>
           </div>
         </div>
       </div>
@@ -294,34 +309,24 @@
       <div class="tabPanel" id="tab-chicche">
         <div class="card" style="flex:1; min-width:320px;">
           <div class="prettyTitle" id="titleChicche">Chicche (alta quota)</div>
-          <div class="prettyBody" id="chiccheBox">n/d</div>
+          <div class="prettyBody" id="chiccheBox">—</div>
         </div>
       </div>
 
       <div class="tabPanel" id="tab-matchups">
         <div class="card" style="flex:1; min-width:320px;">
           <div class="prettyTitle" id="titleMatchups">Matchups (solo se lineup disponibile)</div>
-          <div class="prettyBody" id="matchupsBox">n/d</div>
+          <div class="prettyBody" id="matchupsBox">—</div>
         </div>
       </div>
 
       <div class="tabPanel" id="tab-players">
         <div class="card" style="flex:1; min-width:320px;">
           <div class="prettyTitle" id="titlePlayers">Top season-based (contesto)</div>
-          <div class="prettyBody" id="playersBox">n/d</div>
+          <div class="prettyBody" id="playersBox">—</div>
         </div>
       </div>
-<div class="muted2" style="margin-top:8px;">Suggerimento: Modalità Pro → ti fa vedere score/conf anche negli altri pannelli.</div>
-        </details>
-
-        <details class="fold">
-          <summary>Note</summary>
-          <div class="prettyBody" style="margin-top:10px;">
-            <div>- Le esotiche arrivano dal backend come <b>exotics.totals</b> e <b>exotics.teams</b>.</div>
-            <div>- Le quote vengono ignorate per decidere “se mostrare” (le useremo dopo solo per costruire bet builder / fallback).</div>
-          </div>
-        </details>
-      </div>
+</div>
 
       <!-- Mobile: accordions (all visible panels become sections) -->
       <div class="proBlock" style="margin-top:12px;">
@@ -329,14 +334,14 @@
       </div>
 
       <div class="hr"></div>
-      <div class="muted2"><span id="backendLabel">Backend attuale</span>: <span id="backendFoot">n/d</span></div>
-
-    </div>
+</div>
   </div>
 </div>
 
 <script>
 (function(){
+
+
   // ---- config ----
   var DEFAULT_BACKEND = "https://pb-analyzer-backend2.vercel.app";
   var backend = DEFAULT_BACKEND;
@@ -360,15 +365,29 @@
       tab_chicche: "Chicche",
       tab_matchups: "Duelli",
       tab_players: "Giocatori",
+      fixtures_title: "Partite",
+      date_label: "Data",
+      reload_btn: "Ricarica",
+      matches_shown: "Partite: {n}",
+      no_matches: "Nessuna partita trovata.",
+      selected_match: "Partita selezionata",
+      competition: "Competizione",
+      kickoff_local: "Orario (Italia)",
+      match_label: "Match",
+      fixture_id_label: "Fixture ID",
+      chicche_title: "Chicche (alta quota)",
+      matchups_title: "Duelli (formazioni)",
+      brand_sub: "I pronostici non sono copiati da altri siti: vengono generati giorno per giorno da modelli che analizzano statistiche e dati storici.",
+      donate: "REGALA UNO SNACK A RALPH",
+
       goal_title: "Goal",
       overview_title: "Match in 10 secondi",
       chicche_title: "Chicche (alta quota)",
       matchups_title: "Duelli (solo se formazioni disponibili)",
       players_title: "Top stagionali (contesto)",
-      backend_now: "Backend attuale",
       loading: "Caricamento...",
-      nd: "n/d",
-      lineups_missing: "Formazioni non disponibili → duelli n/d",
+      nd: "—",
+      lineups_missing: "Come back 30 minutes before kick-off to see matchups and spicy picks for this game.",
       team_avgs: "Medie squadra (ultime / stagione)",
       match_totals: "Totali match (stima)",
       corners_for_pg: "Corner fatti (pg)",
@@ -405,14 +424,28 @@
       tab_chicche: "Spicy picks",
       tab_matchups: "Matchups",
       tab_players: "Players",
+      fixtures_title: "Matches",
+      date_label: "Date",
+      reload_btn: "Reload",
+      matches_shown: "Matches: {n}",
+      no_matches: "No matches found.",
+      selected_match: "Selected match",
+      competition: "Competition",
+      kickoff_local: "Kick-off (Italy)",
+      match_label: "Match",
+      fixture_id_label: "Fixture ID",
+      chicche_title: "Spicy picks (higher odds)",
+      matchups_title: "Matchups (lineups)",
+      brand_sub: "Predictions are not copied from other sites: they are generated day by day by models that analyze stats and historical data.",
+      donate: "GIFT A SNACK TO RALPH",
+
       goal_title: "Goals",
       overview_title: "Match in 10 seconds",
       chicche_title: "Spicy picks (higher odds)",
       matchups_title: "Matchups (only if lineups available)",
       players_title: "Season tops (context)",
-      backend_now: "Current backend",
       loading: "Loading...",
-      nd: "n/a",
+      nd: "—",
       lineups_missing: "No lineups → matchups n/a",
       team_avgs: "Team averages (recent / season)",
       match_totals: "Match totals (estimate)",
@@ -491,9 +524,28 @@
     el = document.getElementById("titleChicche"); if (el) el.textContent = t("chicche_title");
     el = document.getElementById("titleMatchups"); if (el) el.textContent = t("matchups_title");
     el = document.getElementById("titlePlayers"); if (el) el.textContent = t("players_title");
+  
+    var el;
+    el = document.getElementById("brandTitle"); if (el) el.textContent = "PRONOSTICI BOMBA";
+    el = document.getElementById("brandSub"); if (el) el.textContent = t("brand_sub");
+    el = document.querySelector(".donateBtn"); if (el) el.textContent = t("donate");
 
-    var bl = document.getElementById("backendLabel"); if (bl) bl.textContent = t("backend_now");
-  }
+    el = document.getElementById("fixturesTitle"); if (el) el.textContent = t("fixtures_title");
+    el = document.getElementById("lblDate"); if (el) el.textContent = t("date_label");
+    el = document.getElementById("reloadBtn"); if (el) el.textContent = t("reload_btn");
+
+    el = document.getElementById("selTitle"); if (el) el.textContent = t("selected_match");
+    el = document.getElementById("lblCompetition"); if (el) el.textContent = t("competition");
+    el = document.getElementById("lblKickoff"); if (el) el.textContent = t("kickoff_local");
+    el = document.getElementById("lblMatch"); if (el) el.textContent = t("match_label");
+    el = document.getElementById("lblFixtureId"); if (el) el.textContent = t("fixture_id_label");
+
+    el = document.getElementById("titleChicche"); if (el) el.textContent = t("chicche_title");
+    el = document.getElementById("titleMatchups"); if (el) el.textContent = t("matchups_title");
+
+    updateDayPill();
+    setupLangUI();
+}
 
   // ---- state ----
   var allFixtures = [];
@@ -502,16 +554,15 @@
 
   // ---- dom ----
   var dateInp = document.getElementById("dateInp");
-  var qInp = document.getElementById("qInp");
-  var reloadBtn = document.getElementById("reloadBtn");
+  var qInp = null;
+var reloadBtn = document.getElementById("reloadBtn");
   var fixturesEl = document.getElementById("fixtures");
-  var countLbl = document.getElementById("countLbl");
-  var anBtn = document.getElementById("anBtn");
+  var countText = document.getElementById("countText");
+var anBtn = document.getElementById("anBtn");
   var rawOut = document.getElementById("rawOut");
-  var backendLbl = document.getElementById("backendLbl");
-  var backendFoot = document.getElementById("backendFoot");
-
-  var selLeague = document.getElementById("selLeague");
+  var backendLbl = null;
+var backendFoot = null;
+var selLeague = document.getElementById("selLeague");
   var selKick = document.getElementById("selKick");
   var selMatch = document.getElementById("selMatch");
   var selId = document.getElementById("selId");
@@ -539,7 +590,7 @@
       selIdMini.textContent = "-";
       return;
     }
-    selLeagueMini.textContent = fx.league_name || "-";
+    selLeagueMini.textContent = fx.league_name || fx.league || "-";
     selKickMini.textContent = fx.kickoff_utc ? fmtKickItaly(fx.kickoff_utc) : "-";
     selMatchMini.textContent = (fx.home_name || "") + " vs " + (fx.away_name || "");
     selIdMini.textContent = String(fx.fixture_id || "-");
@@ -566,11 +617,8 @@
       }
     });
   }
-  function setBackend(b){
-    backend = b || DEFAULT_BACKEND;
-    backendLbl.textContent = "Backend: " + backend;
-    backendFoot.textContent = backend;
-  }
+  function setBackend(b){ backend = b || DEFAULT_BACKEND; }
+
 
   function pad2(n){ n = String(n||""); return n.length<2 ? ("0"+n) : n; }
 
@@ -584,17 +632,17 @@
 
   function fmtNum(x, d){
     if (d === undefined) d = 2;
-    if (x === null || x === undefined) return "n/d";
+    if (x === null || x === undefined) return "—";
     var n = Number(x);
-    if (!isFinite(n)) return "n/d";
+    if (!isFinite(n)) return "—";
     return n.toFixed(d);
   }
 
   function pct(x, d){
     if (d === undefined) d = 1;
-    if (x === null || x === undefined) return "n/d";
+    if (x === null || x === undefined) return "—";
     var n = Number(x);
-    if (!isFinite(n)) return "n/d";
+    if (!isFinite(n)) return "—";
     return (n*100).toFixed(d) + "%";
   }
 
@@ -608,11 +656,8 @@
   }
 
   function getCheckedLeagueIds(){
-    var boxes = document.querySelectorAll("input.lg");
-    var out = [];
-    for (var i=0;i<boxes.length;i++){
-      if (boxes[i].checked) out.push(boxes[i].value);
-    }
+    return [];
+  }
     return out;
   }
 
@@ -627,10 +672,10 @@
 
   function renderFixtures(){
     fixturesEl.innerHTML = "";
-    countLbl.textContent = String(filteredFixtures.length || 0);
+    if (countText) countText.innerHTML = t("matches_shown").replace("{n}", String(filteredFixtures.length || 0));
 
     if (!filteredFixtures.length){
-      fixturesEl.innerHTML = '<div class="muted2">Nessuna partita trovata.</div>';
+      fixturesEl.innerHTML = '<div class="muted2">'+escapeHtml(t("no_matches"))+'</div>';
       return;
     }
 
@@ -645,7 +690,7 @@
         t.textContent = (fx.home_name + " vs " + fx.away_name);
         var m = document.createElement("div");
         m.className = "m";
-        m.textContent = fx.league_name || "n/d";
+        m.textContent = fx.league_name ? fx.league_name : "—";
         left.appendChild(t); left.appendChild(m);
 
         var right = document.createElement("div");
@@ -664,22 +709,12 @@
   }
 
   function applyFilters(){
-    var q = (qInp.value || "").toLowerCase().trim();
-    var leagues = getCheckedLeagueIds();
-
-    filteredFixtures = allFixtures.filter(function(fx){
-      if (leagues.length && leagues.indexOf(String(fx.league_id)) === -1) return false;
-      if (!q) return true;
-      var s = (fx.home_name + " " + fx.away_name + " " + (fx.league_name||"")).toLowerCase();
-      return s.indexOf(q) !== -1;
-    });
-
-    renderFixtures();
+    filteredFixtures = allFixtures.slice();
   }
 
   function selectFixture(fx){
     selected = fx;
-    selLeague.textContent = fx.league_name || "-";
+    selLeague.textContent = fx.league_name || fx.league || "-";
     selKick.textContent = fx.kickoff_utc ? fmtKickItaly(fx.kickoff_utc) : "-";
     selMatch.textContent = fx.home_name + " vs " + fx.away_name;
     selId.textContent = String(fx.fixture_id || "-");
@@ -689,8 +724,9 @@
     exoBox.textContent = t("nd");
     playersBox.textContent = t("nd");
     matchupsBox.textContent = t("nd");
-    chiccheBox.textContent = t("nd");
-    betsBox && (betsBox.textContent = "n/d");
+    var noLineups = exotics && exotics.meta && exotics.meta.lineups && exotics.meta.lineups.available === false;
+      chiccheBox.textContent = noLineups ? t("lineups_missing") : t("nd");
+    betsBox && (betsBox.textContent = "—");
     setMiniFromSelected(fx);
     setTab("overview");
   }
@@ -776,6 +812,7 @@
             fixture_id: safeGet(x, ["fixture_id"]) || safeGet(x, ["fixture","id"]) || safeGet(x, ["fixture","fixture_id"]) || safeGet(x, ["id"]),
             kickoff_utc: safeGet(x, ["kickoff_utc"]) || safeGet(x, ["fixture","date"]) || safeGet(x, ["kickoff"]) || safeGet(x, ["date"]),
             league_id: safeGet(x, ["league_id"]) || safeGet(x, ["league","id"]) || null,
+            league_name: safeGet(x, ["league_name"]) || safeGet(x, ["league","name"]) || safeGet(x, ["league"]) || "",
             league: safeGet(x, ["league"]) || safeGet(x, ["league","name"]) || "",
             season: safeGet(x, ["season"]) || safeGet(x, ["league","season"]) || null,
             home_id: safeGet(x, ["home","id"]) || safeGet(x, ["teams","home","id"]) || safeGet(x, ["home_id"]) || null,
@@ -1040,11 +1077,11 @@ applyFilters();
 function renderBets(exotics){
     if (!betsBox) return;
     var bets = exotics && exotics.bets;
-    if (!bets){ betsBox.textContent = "n/d"; return; }
+    if (!bets){ betsBox.textContent = "—"; return; }
 
     function fmtNum(x, d){
-      if (x === null || x === undefined) return "n/d";
-      if (typeof x !== "number" || !isFinite(x)) return "n/d";
+      if (x === null || x === undefined) return "—";
+      if (typeof x !== "number" || !isFinite(x)) return "—";
       return x.toFixed(d == null ? 2 : d);
     }
 
@@ -1052,7 +1089,7 @@ function renderBets(exotics){
       if (!obj) return '';
       var cls = (kind === "easy") ? "safe" : (kind === "medium" ? "med" : "hard");
       var title = escapeHtml(obj.name || kind.toUpperCase());
-      var tgt   = escapeHtml(obj.target || obj.target_odds || "n/d");
+      var tgt   = escapeHtml(obj.target || obj.target_odds || "—");
       var q     = fmtNum(obj.est_total_odds, 2);
 
       var out = '';
@@ -1060,7 +1097,7 @@ function renderBets(exotics){
       out +=   '<div class="betHead">';
       out +=     pill(title, cls);
       var q_real = fmtNum(obj.total_odds_real, 2);
-      var hasReal = (q_real !== "n/d");
+      var hasReal = (q_real !== "—");
       var q_show = hasReal ? q_real : q;
       var label = hasReal ? "quota reale" : "quota stimata";
       out +=     '<span class="betMeta">'+label+' <b>'+q_show+'</b> <span class="muted2">('+tgt+')</span></span>';
@@ -1071,7 +1108,7 @@ function renderBets(exotics){
         var leg = legs[i] || {};
         var mkt = leg.market || leg.label || ("Leg "+(i+1));
         var team = leg.team ? (' — ' + escapeHtml(leg.team)) : '';
-        var selection = escapeHtml(leg.selection || "n/d");
+        var selection = escapeHtml(leg.selection || "—");
         var oddsVal = (leg.odds_real != null && typeof leg.odds_real === "number" && isFinite(leg.odds_real)) ? leg.odds_real
                   : ((leg.est_odds != null && typeof leg.est_odds === "number" && isFinite(leg.est_odds)) ? leg.est_odds : null);
         var odds = (oddsVal != null) ? ('<span class="muted2">@'+oddsVal.toFixed(2)+(leg.odds_real != null ? ' (real)' : '')+'</span>') : '';
@@ -1095,7 +1132,7 @@ function renderBets(exotics){
     html += renderOne("easy", bets.easy);
     html += renderOne("medium", bets.medium);
     html += renderOne("hard", bets.hard);
-    betsBox.innerHTML = html || "n/d";
+    betsBox.innerHTML = html || "—";
   }
 
   function runAnalyze(){
@@ -1108,7 +1145,7 @@ function renderBets(exotics){
     playersBox.textContent = t("nd");
     matchupsBox.textContent = t("nd");
     chiccheBox.textContent = t("nd");
-    if (betsBox) betsBox.textContent = "n/d";
+    if (betsBox) betsBox.textContent = "—";
 
     var url = backend.replace(/\/$/,"") + "/api/analyze?cb=" + Date.now();
 
@@ -1150,7 +1187,7 @@ function renderBets(exotics){
 
   // ---- events ----
   reloadBtn.addEventListener("click", function(){ loadFixtures(); });
-  qInp.addEventListener("input", function(){ applyFilters(); });
+});
   var leagueBoxes = document.querySelectorAll("input.lg");
   for (var i=0;i<leagueBoxes.length;i++){
     leagueBoxes[i].addEventListener("change", function(){ loadFixtures(); });
@@ -1165,6 +1202,41 @@ function renderBets(exotics){
   dateInp.value = todayISO();
   setTab('overview');
   loadFixtures();
+  function setupLangUI(){
+    var it = document.getElementById("langIt");
+    var en = document.getElementById("langEn");
+    if (!it || !en) return;
+
+    it.classList.toggle("active", LANG === "it");
+    en.classList.toggle("active", LANG === "en");
+
+    function buildHref(lang){
+      try{
+        var u = new URL(window.location.href);
+        u.searchParams.set("lang", lang);
+        return u.pathname + "?" + u.searchParams.toString() + u.hash;
+      }catch(e){
+        return "?lang=" + lang;
+      }
+    }
+    it.setAttribute("href", buildHref("it"));
+    en.setAttribute("href", buildHref("en"));
+  }
+
+  function updateDayPill(){
+    var pill = document.getElementById("dayPill");
+    if (!pill) return;
+    var d = (dateInp && dateInp.value) ? dateInp.value : todayISO();
+    try{
+      var dt = new Date(d + "T12:00:00");
+      var opt = { weekday:"long", year:"numeric", month:"long", day:"2-digit", timeZone:"Europe/Rome" };
+      var loc = (LANG === "en") ? "en-GB" : "it-IT";
+      pill.textContent = dt.toLocaleDateString(loc, opt).toUpperCase();
+    }catch(e){
+      pill.textContent = d;
+    }
+  }
+
 })();
 </script>
 </body>
