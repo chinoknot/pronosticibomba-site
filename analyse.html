@@ -378,160 +378,33 @@
   var selKickMini = document.getElementById("selKickMini");
   var selMatchMini = document.getElementById("selMatchMini");
   var selIdMini = document.getElementById("selIdMini");
-if (name) setTab(name);
-      }
+
+  // ---- Tabs ----
+  var tabBtns = Array.prototype.slice.call(document.querySelectorAll(".tabBtn"));
+  var tabPanels = Array.prototype.slice.call(document.querySelectorAll(".tabPanel"));
+
+  function setTab(name){
+    tabBtns.forEach(function(b){
+      b.classList.toggle("active", b.getAttribute("data-tab") === name);
     });
-  }
-
-  if (proToggle){
-    proToggle.addEventListener("change", function(){
-      document.body.classList.toggle("pro", !!proToggle.checked);
-      // re-render current boxes if needed (they already contain proOnly spans)
+    tabPanels.forEach(function(p){
+      p.classList.toggle("active", p.id === ("tab-" + name));
     });
+    try{ history.replaceState(null, "", "#" + name); }catch(e){}
   }
 
-
-  function setBackend(b){
-    backend = b || DEFAULT_BACKEND;
-    backendLbl.textContent = "Backend: " + backend;
-    backendFoot.textContent = backend;
-  }
-
-  function pad2(n){ n = String(n||""); return n.length<2 ? ("0"+n) : n; }
-
-  function todayISO(){
-    var d = new Date();
-    var y = d.getUTCFullYear();
-    var m = pad2(d.getUTCMonth()+1);
-    var da = pad2(d.getUTCDate());
-    return y + "-" + m + "-" + da;
-  }
-
-  function fmtNum(x, d){
-    if (d === undefined) d = 2;
-    if (x === null || x === undefined) return "n/d";
-    var n = Number(x);
-    if (!isFinite(n)) return "n/d";
-    return n.toFixed(d);
-  }
-
-  function pct(x, d){
-    if (d === undefined) d = 1;
-    if (x === null || x === undefined) return "n/d";
-    var n = Number(x);
-    if (!isFinite(n)) return "n/d";
-    return (n*100).toFixed(d) + "%";
-  }
-
-  function safeGet(obj, pathArr){
-    var cur = obj;
-    for (var i=0;i<pathArr.length;i++){
-      if (!cur) return undefined;
-      cur = cur[pathArr[i]];
-    }
-    return cur;
-  }
-
-  function getCheckedLeagueIds(){
-    var boxes = document.querySelectorAll("input.lg");
-    var out = [];
-    for (var i=0;i<boxes.length;i++){
-      if (boxes[i].checked) out.push(boxes[i].value);
-    }
-    return out;
-  }
-
-  function pill(text, cls){
-    var c = cls ? ("pill "+cls) : "pill";
-    return '<span class="'+c+'">'+escapeHtml(text)+'</span>';
-  }
-
-  function escapeHtml(s){
-    return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-  }
-
-  function renderFixtures(){
-    fixturesEl.innerHTML = "";
-    countLbl.textContent = String(filteredFixtures.length || 0);
-
-    if (!filteredFixtures.length){
-      fixturesEl.innerHTML = '<div class="muted2">Nessuna partita trovata.</div>';
-      return;
-    }
-
-    for (var i=0;i<filteredFixtures.length;i++){
-      (function(fx){
-        var div = document.createElement("div");
-        div.className = "fx";
-        var left = document.createElement("div");
-        left.className = "l";
-        var t = document.createElement("div");
-        t.className = "t";
-        t.textContent = (fx.home_name + " vs " + fx.away_name);
-        var m = document.createElement("div");
-        m.className = "m";
-        m.textContent = fx.league_name || "n/d";
-        left.appendChild(t); left.appendChild(m);
-
-        var right = document.createElement("div");
-        right.className = "r";
-        right.textContent = fx.kickoff_utc ? fx.kickoff_utc.replace("T"," ").replace("+00:00"," UTC") : "n/d";
-
-        div.appendChild(left); div.appendChild(right);
-
-        div.addEventListener("click", function(){
-          selectFixture(fx);
-        });
-
-        fixturesEl.appendChild(div);
-      })(filteredFixtures[i]);
-    }
-  }
-
-  function applyFilters(){
-    var q = (qInp.value || "").toLowerCase().trim();
-    var leagues = getCheckedLeagueIds();
-
-    filteredFixtures = allFixtures.filter(function(fx){
-      if (leagues.length && leagues.indexOf(String(fx.league_id)) === -1) return false;
-      if (!q) return true;
-      var s = (fx.home_name + " " + fx.away_name + " " + (fx.league_name||"")).toLowerCase();
-      return s.indexOf(q) !== -1;
+  tabBtns.forEach(function(b){
+    b.addEventListener("click", function(){
+      var name = b.getAttribute("data-tab");
+      if (name) setTab(name);
     });
+  });
 
-    renderFixtures();
-  }
+  var initialTab = (location.hash || "").replace("#","").trim();
+  if (!initialTab) initialTab = "overview";
+  setTab(initialTab);
 
-  function selectFixture(fx){
-    selected = fx;
-    selLeague.textContent = fx.league_name || "-";
-    selKick.textContent = fx.kickoff_utc ? fmtKickItaly(fx.kickoff_utc) : "-";
-    selMatch.textContent = fx.home_name + " vs " + fx.away_name;
-    selId.textContent = String(fx.fixture_id || "-");
-    anBtn.disabled = !fx.fixture_id;
-    if (rawOut) rawOut.textContent = "Pronto. Premi Analizza.";
-    goalBox.textContent = "n/d";
-    exoBox.textContent = "n/d";
-    playersBox.textContent = "n/d";
-    matchupsBox.textContent = "n/d";
-    chiccheBox.textContent = "n/d";
-    betsBox && (betsBox.textContent = "n/d");
-    setMiniFromSelected(fx);
-    setTab("overview");
-  }
-
-  function normalizeFixturesResponse(resp){
-    // backend /api/fixtures dovrebbe tornare array di fixture.
-    // Gestiamo alcuni formati possibili.
-    if (!resp) return [];
-    if (Array.isArray(resp)) return resp;
-    if (Array.isArray(resp.response)) return resp.response;
-    if (Array.isArray(resp.fixtures)) return resp.fixtures;
-    return [];
-  }
-
-  
-  // ---- Language (query param ?lang=it|en wins, else browser) ----
+// ---- Language (query param ?lang=it|en wins, else browser) ----
   function getQueryParam(name){
     try{
       var u = new URL(window.location.href);
