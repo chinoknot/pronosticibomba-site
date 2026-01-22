@@ -1,1171 +1,2951 @@
- <!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PB Analyzer</title>
+  <meta charset="UTF-8" />
+  <title>Pronostici Bomba – Pronostici calcio + Bet Builder esclusivo in app</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO base -->
+  <meta name="description"
+        content="Pronostici Bomba genera pronostici calcio con modelli statistici e dati reali, mostra uno storico ROI trasparente e aggiornato, e sull’app offre il Bet Builder esclusivo.">
+  <meta name="keywords"
+        content="pronostici calcio, pronostici oggi, scommesse sportive, over 1.5, over 2.5, betting tips, quote di valore, pronostici statistiche, pronostici bomba, bet builder, betbuilder">
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://pronosticibomba.com/" />
+
+  <!-- hreflang alternates (same page, different language via query param) -->
+  <link rel="alternate" hreflang="it" href="https://pronosticibomba.com/?lang=it" />
+  <link rel="alternate" hreflang="en" href="https://pronosticibomba.com/?lang=en" />
+  <link rel="alternate" hreflang="x-default" href="https://pronosticibomba.com/" />
+
+  <!-- Favicon / Icone -->
+  <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="/favicon.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="/favicon.png" />
+  <meta name="theme-color" content="#050816" />
+
+  <!-- Open Graph (Facebook / WhatsApp) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Pronostici Bomba">
+  <meta property="og:title" content="Pronostici Bomba – Pronostici calcio con ROI reale">
+  <meta property="og:description"
+        content="Pronostici automatici da modelli su statistiche e quote, filtrati per qualità e rischio. Storico ROI pubblico. Nell’app Android trovi anche il Bet Builder esclusivo (solo app).">
+  <meta property="og:url" content="https://pronosticibomba.com/">
+  <meta property="og:image" content="https://pronosticibomba.com/favicon.png">
+  <meta property="og:locale" content="it_IT">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Pronostici Bomba – Pronostici calcio con ROI reale">
+  <meta name="twitter:description"
+        content="Modelli statistici, analisi quote e pronostici giornalieri con storico ROI consultabile. Su app Android trovi anche il Bet Builder esclusivo.">
+  <meta name="twitter:image" content="https://pronosticibomba.com/favicon.png">
+
+  <!-- Structured Data (JSON-LD) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Pronostici Bomba",
+  "url": "https://pronosticibomba.com/",
+  "description": "Pronostici calcio generati da modelli statistici su dati reali, con storico ROI pubblico e aggiornato.",
+  "inLanguage": "it-IT",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://pronosticibomba.com/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "MobileApplication",
+  "name": "Pronostici Bomba",
+  "operatingSystem": "ANDROID",
+  "applicationCategory": "SportsApplication",
+  "description": "Pronostici giornalieri, storico ROI pubblico e Bet Builder esclusivo disponibile solo nell’app.",
+  "featureList": [
+    "Pronostici giornalieri generati da modelli",
+    "Storico ROI trasparente",
+    "Notifiche quando escono nuove selezioni",
+    "Bet Builder esclusivo (solo app)"
+  ],
+  "downloadUrl": "https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba",
+  "url": "https://pronosticibomba.com/",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "EUR"
+  }
+}
+</script>
+
+
+  <!-- STILI -->
   <style>
-    :root{
-      --bg0:#07101e; --bg1:#0a1628; --card:#0b1a2f; --txt:#e9f0ff; --muted:#a9b7d6;
-      --line:rgba(255,255,255,.08); --accent:#3aa0ff; --accent2:#22c55e; --warn:#f59e0b;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    :root {
+      --bg: #050816;
+      --bg-soft: #0f172a;
+      --card: #020617;
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.18);
+      --border: rgba(148, 163, 184, 0.2);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --pill-bg: rgba(148, 163, 184, 0.15);
+      --shadow-soft: 0 20px 45px rgba(15, 23, 42, 0.9);
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0; font-family:var(--sans); color:var(--txt);
-      background: radial-gradient(1200px 900px at 85% 20%, rgba(58,160,255,.10) 0%, transparent 55%),
-                  radial-gradient(900px 650px at 55% 25%, rgba(34,197,94,.10) 0%, transparent 55%),
-                  linear-gradient(180deg, var(--bg0), var(--bg1));
-      min-height:100vh;
+
+    * {
+      box-sizing: border-box;
     }
-    .wrap{max-width:1200px; margin:26px auto; padding:0 16px;}
-    .top{display:flex; align-items:center; justify-content:space-between; gap:12px;}
-    h1{margin:0; font-size:22px; letter-spacing:.2px;}
-    .sub{color:var(--muted); font-size:13px; margin-top:4px;}
-    .grid{display:grid; grid-template-columns: 380px 1fr; gap:14px; margin-top:14px;}
-    @media (max-width: 980px){ .grid{grid-template-columns:1fr;} }
-    .card{
-      background: rgba(11,26,47,.75);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px;
-      box-shadow: 0 8px 26px rgba(0,0,0,.35);
-      backdrop-filter: blur(10px);
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text-main);
+      position: relative;
+      overflow-x: hidden;
     }
-    .row{display:flex; gap:10px; align-items:center;}
-    label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px;}
-    input[type="date"], input[type="text"]{
-      width:100%; padding:10px 11px; border-radius:12px;
-      border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--txt);
-      outline:none;
+
+    /* Watermark sullo sfondo, soft e sfocato */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: url("/favicon.png") center 140px no-repeat;
+      background-size: 520px;
+      opacity: 0.09;
+      filter: blur(4px);
+      z-index: -1;
     }
-    input[type="text"]::placeholder{color:rgba(169,183,214,.6)}
-    button{
-      background: rgba(58,160,255,.16);
-      color: var(--txt);
-      border:1px solid rgba(58,160,255,.35);
-      padding:10px 12px; border-radius:12px;
-      cursor:pointer;
+
+    main {
+      max-width: 1100px;
+      margin: 32px auto 40px;
+      padding: 0 16px 40px;
     }
-    button:hover{background: rgba(58,160,255,.22)}
-    button:disabled{opacity:.55; cursor:not-allowed}
-    .checks{display:flex; flex-wrap:wrap; gap:10px; margin-top:10px}
-    .chk{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted);}
-    .chk input{accent-color: var(--accent);}
-    .fixtures{margin-top:12px; max-height:360px; overflow:auto; padding-right:6px;}
-    .fx{
-      display:flex; justify-content:space-between; gap:10px;
-      padding:10px 10px; border-radius:14px;
-      border:1px solid var(--line); background:rgba(255,255,255,.02);
-      margin-bottom:8px;
-      cursor:pointer;
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
     }
-    .fx:hover{background:rgba(255,255,255,.04)}
-    .fx .l{min-width:0}
-    .fx .t{font-weight:700; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-    .fx .m{font-size:12px; color:var(--muted); margin-top:2px;}
-    .fx .r{font-family:var(--mono); font-size:12px; color:rgba(240,250,255,.86); white-space:nowrap;}
-    .kv{display:grid; grid-template-columns: 160px 1fr; gap:8px; margin-top:10px;}
-    .k{color:var(--muted); font-size:12px}
-    .v{font-family:var(--mono); font-size:12px}
-    .hr{height:1px; background:var(--line); margin:12px 0;}
-    .prettyRow{display:grid; grid-template-columns: 1fr 220px; gap:10px; align-items:center; padding:6px 0;}
-    .prettyTitle{font-weight:800; margin-bottom:6px;}
-    .prettyBody{font-size:13px; line-height:1.35; color: rgba(240,250,255,.92);}
-    .muted2{color:var(--muted); font-size:12px}
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:4px 10px; border-radius:999px; font-size:12px;
-      border:1px solid var(--line); background:rgba(255,255,255,.03);
-      margin-right:8px;
-      white-space:nowrap;
+
+    .title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
     }
-    .pill.safe{border-color: rgba(34,197,94,.38); background: rgba(34,197,94,.10)}
-    .pill.med{border-color: rgba(245,158,11,.42); background: rgba(245,158,11,.10)}
-    .pill.hard{border-color: rgba(244,63,94,.38); background: rgba(244,63,94,.10)}
-    pre{
-      margin:0; padding:12px; border-radius:14px;
-      background: rgba(0,0,0,.25);
-      border:1px solid var(--line);
-      color: rgba(240,250,255,.9);
-      overflow:auto; max-height:260px;
-      font-size:12px;
+
+    .title-left {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 10px;
     }
-    .badge{display:inline-flex; align-items:center; gap:8px; font-size:12px; color:var(--muted)}
-    .dot{width:8px; height:8px; border-radius:999px; background:var(--warn); box-shadow:0 0 12px rgba(245,158,11,.35);}
+
+    h1 {
+      margin: 0;
+      font-size: 2.1rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      position: relative;
+    }
+
+    h1::after {
+      content: "";
+      display: block;
+      margin-top: 4px;
+      width: 72px;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(to right, #f97316, #fed7aa, transparent);
+      opacity: 0.9;
+    }
+
+    .badge-day {
+      font-size: 0.85rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      color: #fed7aa;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* Buy me a coffee */
+    .coffee-button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+
+      background: radial-gradient(circle at top left,
+        rgba(249, 115, 22, 0.35),
+        rgba(15, 23, 42, 1)
+      );
+      border: 1px solid rgba(249, 115, 22, 0.85);
+      color: #ffedd5;
+
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 14px 30px rgba(15, 23, 42, 0.9),
+        0 0 22px rgba(249, 115, 22, 0.22);
+
+      cursor: pointer;
+      overflow: hidden;
+      transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        background 0.16s ease,
+        border-color 0.16s ease,
+        color 0.16s ease;
+    }
+    /* App header button (Google Play) */
+    .app-header-button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(249, 115, 22, 0.65);
+      color: #ffedd5;
+
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 14px 30px rgba(15, 23, 42, 0.9);
+
+      cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+      white-space: nowrap;
+    }
+
+    .app-header-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(249, 115, 22, 0.95);
+      color: #ffffff;
+    }
+
+
+    .coffee-button::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(248, 250, 252, 0.16),
+        transparent
+      );
+      transform: translateX(-130%);
+      transition: transform 0.45s ease;
+      pointer-events: none;
+    }
+
+    .coffee-button:hover {
+      transform: translateY(-1px);
+      background: radial-gradient(circle at top left,
+        rgba(249, 115, 22, 0.45),
+        rgba(15, 23, 42, 1)
+      );
+      border-color: #f97316;
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 16px 36px rgba(15, 23, 42, 1),
+        0 0 26px rgba(249, 115, 22, 0.3);
+      color: #fff7ed;
+    }
+
+    .coffee-button:hover::after {
+      transform: translateX(130%);
+    }
+
+    .coffee-main {
+      line-height: 1.2;
+    }
+
+    .coffee-sub {
+      font-size: 0.7rem;
+      text-transform: none;
+      letter-spacing: 0.02em;
+      color: #fed7aa;
+      opacity: 0.8;
+    }
+
+
+    .header-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .lang-switch {
+      display: inline-flex;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      background: rgba(15, 23, 42, 0.92);
+      overflow: hidden;
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.8);
+    }
+
+    .lang-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .lang-btn:hover {
+      color: #fed7aa;
+    }
+
+    .lang-btn.active {
+      color: #0b1220;
+      background: rgba(249, 115, 22, 0.95);
+    }
+
+.categories-nav {
+  margin-top: 14px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.78rem;
+}
+
+.categories-nav a {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: rgba(15, 23, 42, 0.96);
+  color: var(--text-main);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.categories-nav a:hover {
+  border-color: var(--accent);
+  color: #fed7aa;
+}
+
+.scroll-top-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 18px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.96);
+  color: var(--text-main);
+  font-size: 0.78rem;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.95);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  transform: translateY(8px);
+  z-index: 40;
+}
+
+.scroll-top-btn.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+      .coffee-button {
+        padding: 7px 14px;
+        font-size: 0.78rem;
+      }
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      line-height: 1.45;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .history-link {
+      color: var(--text-main);
+      text-decoration: none;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 0.78rem;
+    }
+
+    .history-link:hover {
+      border-color: var(--accent);
+      color: #fed7aa;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+    }
+
+    .legend-dot.win { background: #16a34a; }
+    .legend-dot.lose { background: #dc2626; }
+    .legend-dot.pending { background: #facc15; }
+    .legend-dot.unknown { background: #6b7280; }
+
+    .legend-note {
+      margin: 4px 0 0;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      max-width: 780px;
+    }
+
+    /* ACCORDION guida */
+    .guide-accordion {
+      margin-top: 8px;
+      max-width: 780px;
+    }
+
+    .guide-accordion > summary {
+      list-style: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: var(--text-main);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.95);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .guide-accordion > summary::marker {
+      display: none;
+    }
+
+    .guide-accordion-icon {
+      display: inline-block;
+      transition: transform 0.15s ease;
+      font-size: 0.9rem;
+    }
+
+    .guide-accordion[open] .guide-accordion-icon {
+      transform: rotate(90deg);
+    }
+
+    .guide-block {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .guide-title {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+
+    .guide-text {
+      margin: 4px 0 6px;
+      line-height: 1.45;
+    }
+
+    .guide-list {
+      margin: 4px 0 6px 16px;
+      padding: 0;
+    }
+
+    .guide-list li {
+      margin-bottom: 3px;
+    }
+
+    .guide-subtitle {
+      margin-top: 8px;
+      font-weight: 600;
+      color: var(--text-main);
+      font-size: 0.83rem;
+    }
+
+    .guide-examples-list {
+      margin: 4px 0 0 16px;
+      padding: 0;
+    }
+
+    .categories-container {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-top: 20px;
+    }
+
+    /* CATEGORY BLOCK + ACCORDION */
+
+    .category-block {
+      background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.86));
+      border-radius: 18px;
+      border: 1px solid rgba(30, 64, 175, 0.45);
+      box-shadow: var(--shadow-soft);
+      padding: 0; /* il padding lo gestiamo dentro per non tagliare il summary */
+      overflow: hidden;
+    }
+
+    .category-block[open] {
+      border-color: rgba(59, 130, 246, 0.8);
+    }
+
+    .category-block > summary {
+      list-style: none;
+      cursor: pointer;
+      margin: 0;
+      padding: 14px 16px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.5);
+    }
+
+    .category-block > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .category-header-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .category-title {
+      margin: 0;
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .category-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .category-chevron {
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      transition: transform 0.15s ease;
+      color: var(--text-muted);
+    }
+
+    .category-block[open] .category-chevron {
+      transform: rotate(90deg);
+      color: #e5e7eb;
+    }
+
+    .category-body {
+      padding: 10px 16px 10px;
+    }
+
+    .picks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+    }
+
+        /* NASCONDE SOLO IL WINRATE NEL MODEL STATS */
+      #model-stats-winrate {
+      display: none !important;
+    }
+
+
+
+    .category-winrate {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* NASCONDE COMPLETAMENTE IL WINRATE (solo UI, nessuna logica toccata) */
+    .winrate,
+    .winrate-value,
+    .winrate-label,
+    [data-field="winrate"],
+    [data-label="Winrate"],
+    th.winrate,
+    td.winrate {
+    display: none !important;
+    }
+
+    .summary-winrate,
+    #summary-winrate,
+  .winrate-summary {
+    display: none !important;
+    }
+
+
+   /* ==== SCHEDINE PRONTE (COMBO TICKETS) ==== */
+
+.combo-section {
+  margin: 28px 0 8px;
+  padding: 18px 16px 20px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.22), transparent 55%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98));
+  border: 1px solid rgba(248, 250, 252, 0.05);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.9);
+}
+
+.combo-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.combo-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.combo-subtitle {
+  font-size: 0.86rem;
+  opacity: 0.85;
+  max-width: 640px;
+}
+
+.combo-accordions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* Ogni schedina è un <details> tipo accordion */
+.combo-accordion {
+  border-radius: 14px;
+  overflow: hidden;
+  background: radial-gradient(circle at top right, rgba(148, 163, 184, 0.16), transparent 60%),
+              linear-gradient(145deg, #020617, #020617);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.9);
+}
+
+/* Colore bordo in base allo stato */
+.combo-accordion.win {
+  border-color: rgba(34, 197, 94, 0.7);
+}
+.combo-accordion.lose {
+  border-color: rgba(248, 113, 113, 0.9);
+}
+.combo-accordion.unknown {
+  border-color: rgba(148, 163, 184, 0.55);
+}
+
+.combo-accordion > summary {
+  list-style: none;
+  cursor: pointer;
+  margin: 0;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid rgba(30, 64, 175, 0.5);
+}
+
+.combo-accordion > summary::-webkit-details-marker {
+  display: none;
+}
+
+.combo-summary-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.combo-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.combo-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.combo-type-pill {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  opacity: 0.9;
+}
+
+.combo-summary-meta {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.combo-summary-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.combo-total-odd {
+  font-weight: 600;
+}
+
+.combo-chevron {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.combo-accordion[open] .combo-chevron {
+  transform: rotate(90deg);
+  color: #e5e7eb;
+}
+
+.combo-body {
+  padding: 9px 10px 10px;
+  background: rgba(15, 23, 42, 0.96);
+}
+
+.combo-legs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Singola partita dentro la schedina */
+.combo-leg {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px 2px 6px;
+  border-bottom: 1px dashed rgba(30, 64, 175, 0.6);
+}
+
+.combo-leg:last-child {
+  border-bottom: none;
+}
+
+.combo-leg-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+.combo-leg-teams {
+  font-weight: 500;
+}
+
+.combo-leg-pick {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.combo-leg-extra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 0.72rem;
+  opacity: 0.95;
+}
+
+.combo-pill {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.combo-legs .result-badge {
+  font-size: 0.7rem;
+  padding: 1px 6px;
+}
+
+@media (max-width: 640px) {
+  .combo-section {
+    margin-inline: -4px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .combo-leg-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .combo-leg-pick {
+    white-space: normal;
+  }
+}
+
+
+
+    .pick-card {
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.18), var(--card));
+      border-radius: 14px;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+      position: relative;
+    }
+
+    .pick-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 32px rgba(15, 23, 42, 0.85);
+      border-color: rgba(148, 163, 184, 0.6);
+    }
+
+    .pick-card.win {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.7);
+    }
+
+    .pick-card.lose {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.7);
+    }
+
+    .pick-card.pending { border-color: #facc15; }
+    .pick-card.unknown { border-color: #6b7280; }
+
+    .pick-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .league-pill {
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: var(--pill-bg);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      max-width: 70%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .match-time {
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+    }
+
+    .roi-badge {
+      font-size: 0.68rem;
+      padding: 1px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      letter-spacing: 0.05em;
+      line-height: 1.2;
+      text-transform: uppercase;
+      opacity: 0.95;
+    }
+
+    .roi-badge.main {
+      border-color: var(--accent);
+      color: #fed7aa;
+    }
+
+    .roi-badge.backup {
+      opacity: 0.60;
+    }
+
+    .teams {
+      font-size: 0.9rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pick-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+    }
+
+    .pick-label {
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 250, 252, 0.22);
+      background: rgba(15, 23, 42, 0.9);
+      font-weight: 500;
+    }
+
+    .odd-label {
+      font-weight: 600;
+      font-size: 0.86rem;
+      letter-spacing: 0.04em;
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+    }
+
+    .score-text {
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.78rem;
+    }
+
+    .score-label-strong {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .result-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 9999px;
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .result-badge.win {
+      border-color: #16a34a;
+      color: #bbf7d0;
+    }
+
+    .result-badge.lose {
+      border-color: #dc2626;
+      color: #fecaca;
+    }
+
+    .result-badge.pending {
+      border-color: #facc15;
+      color: #fef9c3;
+    }
+
+    .result-badge.unknown {
+      border-color: #6b7280;
+      color: #e5e7eb;
+    }
+
+    /* Feedback like / dislike */
+    .feedback-row {
+      margin-top: 4px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      font-size: 0.75rem;
+      align-items: center;
+    }
+
+    .vote-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-muted);
+      padding: 2px 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+    }
+
+    .vote-btn:hover {
+      border-color: var(--accent);
+      color: #fed7aa;
+    }
+
+    .vote-btn.selected {
+      border-color: var(--accent);
+      background: rgba(249, 115, 22, 0.12);
+      color: #fed7aa;
+    }
+
+    .vote-count {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
+    .empty-state {
+      margin-top: 40px;
+      padding: 18px 16px;
+      border-radius: 14px;
+      border: 1px dashed rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.8);
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    
+    /* Box statistiche modello (ultimi 30 giorni) */
+    .model-stats {
+      margin-top: 12px;
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      font-size: 0.8rem;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: radial-gradient(circle at top left, rgba(34,197,94,0.18), rgba(15,23,42,0.95));
+      box-shadow: 0 10px 24px rgba(15,23,42,0.8);
+    }
+
+    .model-stats-label {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    .model-stats-pill {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      background: rgba(15,23,42,0.95);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .model-stats-pill.positive {
+      border-color: #22c55e;
+      color: #bbf7d0;
+    }
+
+    .model-stats-pill.negative {
+      border-color: #f97316;
+      color: #fed7aa;
+    }
+
+    /* CTA app */
+    .app-cta {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      max-width: 640px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .app-cta-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 250, 252, 0.16);
+      background: radial-gradient(circle at top left, rgba(59,130,246,0.35), rgba(15,23,42,1));
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: #e5e7eb;
+      box-shadow: 0 10px 24px rgba(15,23,42,0.9);
+    }
+
+    .app-cta-button.disabled {
+      cursor: default;
+      opacity: 0.7;
+    }
+
+    /* Bottoni espandi / riduci tutto */
+    .categories-toolbar {
+      margin-top: 10px;
+      margin-bottom: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.78rem;
+    }
+
+    .categories-toolbar button {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      background: rgba(15,23,42,0.96);
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .categories-toolbar button:hover {
+      border-color: var(--accent);
+      color: #fed7aa;
+    }
+
+    /* Animazione apertura accordion */
+    @keyframes fadeInBody {
+      from { opacity: 0; transform: translateY(-2px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .category-block[open] .category-body,
+    .combo-accordion[open] .combo-body {
+      animation: fadeInBody 0.18s ease-out;
+    }
+
+    /* Stato LIVE */
+    .result-badge.live {
+      border-color: #38bdf8;
+      color: #e0f2fe;
+    }
+
+    /* Ridurre densità combo legs */
+    .combo-leg {
+      padding: 3px 1px 5px;
+    }
+@media (max-width: 640px) {
+      main {
+        margin-top: 20px;
+      }
+      h1 {
+        font-size: 1.7rem;
+      }
+      body::before {
+        background-size: 380px;
+        background-position: center 120px;
+      }
+      .title-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
   
-    /* ---- UX v2: tabs + pro mode + mobile ---- */
-    .tabs{
-      display:flex; gap:8px; flex-wrap:wrap;
-      border-bottom:1px solid var(--line);
-      padding-bottom:10px; margin:10px 0 14px;
-    }
-    .tabs.scroll{flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling:touch; padding-bottom:12px;}
-    .tabBtn{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
-      color:var(--txt);
-      padding:8px 10px;
-      border-radius:999px;
-      font-size:13px;
-      cursor:pointer;
-      white-space:nowrap;
-    }
-    .tabBtn.active{
-      border-color: rgba(58,160,255,.45);
-      background: rgba(58,160,255,.16);
-    }
-    .tabPanel{display:none}
-    .tabPanel.active{display:block}
-.proBlock{display:none}
-    .topActions{
-      display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;
-      margin-top:10px;
-    }
-    .switch{
-      display:flex; align-items:center; gap:8px;
-      color:var(--muted); font-size:13px;
-      user-select:none;
-    }
-    .switch input{accent-color: var(--accent);}
-    .mini{
-      font-size:12px; color:var(--muted);
-    }
-    .listItem{
-      padding:10px 10px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.02);
-      border-radius:14px;
-      margin-top:8px;
-    }
-    .listHead{display:flex; align-items:center; justify-content:space-between; gap:10px;}
-    .listMain{font-weight:800; font-size:14px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-    .listSub{margin-top:4px; color:var(--muted); font-size:12px; line-height:1.25;}
-    .tag{
-      display:inline-flex; align-items:center;
-      padding:4px 10px; border-radius:999px; font-size:12px;
-      border:1px solid var(--line); background:rgba(255,255,255,.03);
-      white-space:nowrap;
-    }
-    .tag.spicy{border-color: rgba(245,158,11,.42); background: rgba(245,158,11,.10)}
-    .tag.high{border-color: rgba(244,63,94,.38); background: rgba(244,63,94,.10)}
-    .tag.medium{border-color: rgba(58,160,255,.35); background: rgba(58,160,255,.10)}
-    .tag.safe{border-color: rgba(34,197,94,.38); background: rgba(34,197,94,.10)}
-    details.fold{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.02);
-      border-radius:14px;
-      padding:10px 10px;
-      margin-top:10px;
-    }
-    details.fold > summary{
-      cursor:pointer;
-      font-weight:800;
-      outline:none;
-      list-style:none;
-    }
-    details.fold > summary::-webkit-details-marker{display:none}
-    .stickyBar{
-      position: sticky; top: 0;
-      background: rgba(7,16,30,.75);
-      backdrop-filter: blur(10px);
-      border:1px solid var(--line);
-      border-radius: 16px;
-      padding:10px 12px;
-      z-index: 20;
-      margin-bottom: 12px;
-    }
-    @media (max-width: 980px){
-      .wrap{margin:14px auto; padding:0 12px;}
-      .card{padding:12px; border-radius:14px;}
-      .fixtures{max-height:280px;}
-      .tabs{gap:8px;}
-      .tabs{display:none;} /* mobile: use accordions instead */
-      .tabs.scroll{display:none;}
-      .tabPanel{display:block;} /* show all in mobile, but inside accordions */
-      .tabPanel.active{display:block;}
-      .stickyBar{border-radius:14px;}
-      pre{max-height:220px;}
-    }
+    /* ROI nascosto: resta solo nello storico */
+    #model-stats-box{display:none !important;}
 
-</style>
+  </style>
 </head>
-
 <body>
-<div class="wrap">
-  <div class="top">
-    <div>
-      <h1>PB Analyzer</h1>
-      <div class="sub">Seleziona data e lega → scegli una partita → Analizza (goal/Poisson + esotiche: shots/corners/fouls/cards).</div>
-    </div>
-    <div class="badge"><span class="dot"></span><span id="backendLbl">Backend: n/d</span></div>
-  </div>
 
-  <div class="grid">
-    <!-- LEFT -->
-    <div class="card">
-      <div style="font-weight:800; margin-bottom:10px;">Fixture</div>
+  <script>
+  (function () {
+    // Language resolution order:
+    // 1) ?lang=it|en (explicit)
+    // 2) localStorage pb_lang
+    // 3) browser language (navigator.language)
+    const params = new URLSearchParams(window.location.search);
+    const qLang = (params.get("lang") || "").toLowerCase();
 
-      <div class="row">
-        <div style="flex:1">
-          <label>Data</label>
-          <input id="dateInp" type="date" />
+    let lang = (qLang === "it" || qLang === "en") ? qLang : (localStorage.getItem("pb_lang") || "");
+
+    if (!lang) {
+      const browserLang = (navigator.language || navigator.userLanguage || "en").toLowerCase();
+      lang = browserLang.startsWith("it") ? "it" : "en";
+    }
+
+    localStorage.setItem("pb_lang", lang);
+    document.documentElement.lang = lang;
+    document.documentElement.setAttribute("data-lang", lang);
+    document.body && document.body.setAttribute("data-lang", lang);
+
+    // Clean URL (optional): keep ?lang=... only if user explicitly set it
+    // If qLang was set, we keep it. If not, we don't touch the URL.
+  })();
+  </script>
+  <main>
+    <header>
+      <div class="title-row">
+        <div class="title-left">
+          <h1>Pronostici Bomba</h1>
+          <span id="day-badge" class="badge-day"></span>
         </div>
-        <div style="width:120px; align-self:flex-end;">
-          <button id="reloadBtn" style="width:100%;">Ricarica</button>
+        <div class="header-actions">
+          <div class="lang-switch" role="group" aria-label="Language">
+            <button type="button" class="lang-btn" id="lang-it">IT</button>
+            <button type="button" class="lang-btn" id="lang-en">EN</button>
+          </div>
+          <a
+            href="https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba"
+            target="_blank"
+            rel="noopener"
+            class="app-header-button"
+            id="app-header-button"
+          ></a>
+
+          <a
+          href="https://www.buymeacoffee.com/pronosticibomba"
+          target="_blank"
+          rel="noopener"
+          class="coffee-button"
+        >
+          <span id="coffee-cta"></span>
+        </a>
         </div>
       </div>
 
-      <div style="margin-top:10px;">
-        <label>Ricerca</label>
-        <input id="qInp" type="text" placeholder="es: Juventus, Arsenal, Lazio..." />
-      </div>
+      <p class="subtitle" id="subtitle"></p>
 
-      <div style="margin-top:10px;">
-        <label>Leghe (maggiori)</label>
-        <div class="checks">
-          <label class="chk"><input type="checkbox" class="lg" value="135" checked> Serie A</label>
-          <label class="chk"><input type="checkbox" class="lg" value="39" checked> Premier League</label>
-          <label class="chk"><input type="checkbox" class="lg" value="140" checked> La Liga</label>
-          <label class="chk"><input type="checkbox" class="lg" value="78" checked> Bundesliga</label>
-          <label class="chk"><input type="checkbox" class="lg" value="61" checked> Ligue 1</label>
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-dot win"></span> <span id="legend-win"></span>
         </div>
-        <div class="muted2" style="margin-top:6px;">Nota: qui lavoriamo solo sulle leghe maggiori. Minori le aggiungiamo dopo.</div>
-      </div>
+        <div class="legend-item">
+          <span class="legend-dot lose"></span> <span id="legend-lose"></span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot pending"></span> <span id="legend-pending"></span>
+        </div>
+        <div class="legend-item">
+          <a href="/storico.html" class="history-link" id="legend-history"></a>
+        </div>
+        <div class="legend-item">
+          <a href="/storico_picks.html" class="history-link" id="legend-history-picks"></a>
+        </div>
+      
+       
+</div>
 
-      <div class="muted2" style="margin-top:10px;">Mostrate <span id="countLbl">0</span> partite (filtrate).</div>
+      <p class="legend-note" id="legend-note"></p>
 
-      <div id="fixtures" class="fixtures"></div>
-    </div>
 
-    <!-- RIGHT -->
-    <div class="card">
-      <div style="font-weight:800; margin-bottom:10px;">Match selezionato</div>
-
-      <div class="kv">
-        <div class="k">Competizione</div><div class="v" id="selLeague">-</div>
-        <div class="k">Kickoff (UTC)</div><div class="v" id="selKick">-</div>
-        <div class="k">Match</div><div class="v" id="selMatch">-</div>
-        <div class="k">Fixture ID</div><div class="v" id="selId">-</div>
-      </div>
-
-      <div class="hr"></div>
-
-      <div class="row" style="justify-content:space-between;">
-<button id="anBtn" disabled>Analizza (step 1)</button>
+      <div id="model-stats-box" class="model-stats" style="display:none;">
+        <span class="model-stats-label" id="model-stats-label"></span>
+        <span class="model-stats-pill" id="model-stats-count">0 picks</span>
+        <span class="model-stats-pill" id="model-stats-winrate">Winrate: -</span>
+        <span class="model-stats-pill" id="model-stats-roi">ROI: -</span>
       </div>
 
       
-      <div class="hr"></div>
+<!-- MINI GUIDA IN ACCORDION -->
+<details class="guide-accordion" id="guide-accordion">
+  <summary>
+    <span class="guide-accordion-icon">▶</span>
+    <span id="guide-summary"></span>
+  </summary>
+  <div class="guide-block" id="guide-block"></div>
+</details>
+    </header>
 
-      <!-- Sticky quick bar (nice on mobile too) -->
-      <div class="stickyBar">
-        <div class="topActions">
-          <div class="mini">
-            <b id="selMatchMini">-</b><br/>
-            <span id="selKickMini">-</span> • <span id="selLeagueMini">-</span> • ID <span id="selIdMini">-</span>
-          </div>
-</div>
-      </div>
+    <section id="content"></section>
 
-      <!-- Desktop tabs -->
-      <div class="tabs scroll" id="tabsBar">
-        <button class="tabBtn active" data-tab="overview">Overview</button>
-        <button class="tabBtn" data-tab="chicche">Chicche</button>
-        <button class="tabBtn" data-tab="matchups">Matchups</button>
-        <button class="tabBtn" data-tab="players">Players</button>
-</div>
-
-      <div class="tabPanel active" id="tab-overview">
-        <div class="row" style="gap:14px; align-items:stretch; flex-wrap:wrap;">
-          <div class="card" style="flex:1; min-width:320px;">
-            <div class="prettyTitle" id="titleGoal">Goal</div>
-            <div class="prettyBody" id="goalBox">n/d</div>
-          </div>
-
-          <div class="card" style="flex:1; min-width:320px;">
-            <div class="prettyTitle" id="titleOverview">Match in 10 secondi</div>
-            <div class="prettyBody" id="exoBox">n/d</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="tabPanel" id="tab-chicche">
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle" id="titleChicche">Chicche (alta quota)</div>
-          <div class="prettyBody" id="chiccheBox">n/d</div>
-        </div>
-      </div>
-
-      <div class="tabPanel" id="tab-matchups">
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle" id="titleMatchups">Matchups (solo se lineup disponibile)</div>
-          <div class="prettyBody" id="matchupsBox">n/d</div>
-        </div>
-      </div>
-
-      <div class="tabPanel" id="tab-players">
-        <div class="card" style="flex:1; min-width:320px;">
-          <div class="prettyTitle" id="titlePlayers">Top season-based (contesto)</div>
-          <div class="prettyBody" id="playersBox">n/d</div>
-        </div>
-      </div>
-<div class="muted2" style="margin-top:8px;">Suggerimento: Modalità Pro → ti fa vedere score/conf anche negli altri pannelli.</div>
-        </details>
-
-        <details class="fold">
-          <summary>Note</summary>
-          <div class="prettyBody" style="margin-top:10px;">
-            <div>- Le esotiche arrivano dal backend come <b>exotics.totals</b> e <b>exotics.teams</b>.</div>
-            <div>- Le quote vengono ignorate per decidere “se mostrare” (le useremo dopo solo per costruire bet builder / fallback).</div>
-          </div>
-        </details>
-      </div>
-
-      <!-- Mobile: accordions (all visible panels become sections) -->
-      <div class="proBlock" style="margin-top:12px;">
-        <!-- placeholder, used by pro mode only if you want later -->
-      </div>
-
-      <div class="hr"></div>
-      <div class="muted2"><span id="backendLabel">Backend attuale</span>: <span id="backendFoot">n/d</span></div>
-
+    <div class="app-cta">
+      <span id="app-cta-text"></span>
+      <a class="app-cta-button" href="https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba" target="_blank" rel="noopener" id="app-cta-button"></a>
     </div>
-  </div>
-</div>
+  </main>
 
-<script>
-(function(){
-  // ---- config ----
-  var DEFAULT_BACKEND = "https://pb-analyzer-backend2.vercel.app";
-  var backend = DEFAULT_BACKEND;
 
-  // ---- language: ?lang=it|en wins, else browser ----
-  function getQueryParam(name){
-    try{
-      var u = new URL(window.location.href);
-      return u.searchParams.get(name);
-    }catch(e){ return null; }
-  }
-  var LANG_PARAM = (getQueryParam("lang") || "").toLowerCase();
-  var LANG = (LANG_PARAM === "it" || LANG_PARAM === "en")
-    ? LANG_PARAM
-    : ((navigator.language || "en").toLowerCase().startsWith("it") ? "it" : "en");
-  document.documentElement.lang = LANG;
-
-  var I18N = {
-    it: {
-      tab_overview: "Panoramica",
-      tab_chicche: "Chicche",
-      tab_matchups: "Duelli",
-      tab_players: "Giocatori",
-      goal_title: "Goal",
-      overview_title: "Match in 10 secondi",
-      chicche_title: "Chicche (alta quota)",
-      matchups_title: "Duelli (solo se formazioni disponibili)",
-      players_title: "Top stagionali (contesto)",
-      backend_now: "Backend attuale",
-      loading: "Caricamento...",
-      nd: "n/d",
-      lineups_missing: "Formazioni non disponibili → duelli n/d",
-      team_avgs: "Medie squadra (ultime / stagione)",
-      match_totals: "Totali match (stima)",
-      corners_for_pg: "Corner fatti (pg)",
-      corners_against_pg: "Corner subiti (pg)",
-      fouls_for_pg: "Falli fatti (pg)",
-      fouls_against_pg: "Falli subiti (pg)",
-      shots_for_pg: "Tiri fatti (pg)",
-      shots_against_pg: "Tiri subiti (pg)",
-      sot_for_pg: "Tiri in porta fatti (pg)",
-      sot_against_pg: "Tiri in porta subiti (pg)",
-      top_shots: "Top Tiri",
-      top_sot: "Top Tiri in porta",
-      top_fouls: "Top Falli",
-      top_cards: "Top Cartellini",
-      shots_pg_lbl: "Tiri (pg)",
-      sot_pg_lbl: "Tiri in porta (pg)",
-      fouls_pg_lbl: "Falli (pg)",
-      yellow_pg_lbl: "Gialli (pg)",
-      apps: "Pres.",
-      pick_sot: "Tiri in porta",
-      pick_shots: "Tiri",
-      pick_fouls: "Falli",
-      pick_card: "Ammonito",
-      plus1: "1+",
-      plus2: "2+",
-      plus3: "3+",
-      safe: "Safe",
-      risk_medium: "Rischio medio",
-      risk_high: "Rischio alto",
-      spicy: "Chicca"
-    },
-    en: {
-      tab_overview: "Overview",
-      tab_chicche: "Spicy picks",
-      tab_matchups: "Matchups",
-      tab_players: "Players",
-      goal_title: "Goals",
-      overview_title: "Match in 10 seconds",
-      chicche_title: "Spicy picks (higher odds)",
-      matchups_title: "Matchups (only if lineups available)",
-      players_title: "Season tops (context)",
-      backend_now: "Current backend",
-      loading: "Loading...",
-      nd: "n/a",
-      lineups_missing: "No lineups → matchups n/a",
-      team_avgs: "Team averages (recent / season)",
-      match_totals: "Match totals (estimate)",
-      corners_for_pg: "Corners for (pg)",
-      corners_against_pg: "Corners against (pg)",
-      fouls_for_pg: "Fouls for (pg)",
-      fouls_against_pg: "Fouls against (pg)",
-      shots_for_pg: "Shots for (pg)",
-      shots_against_pg: "Shots against (pg)",
-      sot_for_pg: "SoT for (pg)",
-      sot_against_pg: "SoT against (pg)",
-      top_shots: "Top Shots",
-      top_sot: "Top SoT",
-      top_fouls: "Top Fouls",
-      top_cards: "Top Cards",
-      shots_pg_lbl: "Shots (pg)",
-      sot_pg_lbl: "SoT (pg)",
-      fouls_pg_lbl: "Fouls (pg)",
-      yellow_pg_lbl: "Yellows (pg)",
-      apps: "Apps",
-      pick_sot: "Shots on target",
-      pick_shots: "Shots",
-      pick_fouls: "Fouls",
-      pick_card: "Booked",
-      plus1: "1+",
-      plus2: "2+",
-      plus3: "3+",
-      safe: "Safe",
-      risk_medium: "Medium risk",
-      risk_high: "High risk",
-      spicy: "Spicy"
+  <script>
+    function getLang() {
+      return (document.documentElement.getAttribute("data-lang") || document.documentElement.lang || "it").toLowerCase().startsWith("it") ? "it" : "en";
     }
-  };
 
-  function t(k){ return (I18N[LANG] && I18N[LANG][k]) ? I18N[LANG][k] : k; }
+    const I18N = {
+      it: {
+        coffee_cta: "Regala uno snack a Ralph",
 
-  function nf(v, d){
-    if (v === null || v === undefined || v === "" || isNaN(v)) return t("nd");
-    try{
-      var loc = (LANG === "it") ? "it-IT" : "en-GB";
-      return new Intl.NumberFormat(loc, { maximumFractionDigits: d, minimumFractionDigits: d })
-        .format(Number(v));
-    }catch(e){
-      return String(v);
-    }
-  }
+        subtitle: `I pronostici non sono copiati da altri siti: vengono generati giorno per giorno da modelli che analizzano quote,
+        statistiche e dati storici. Vedi solo partite che superano determinati filtri di qualità e sono organizzate per
+        famiglia di selezioni, rischio e valore.
 
-  function fmtKickItaly(iso){
-    if (!iso) return t("nd");
-    try{
-      var dt = new Date(iso);
-      var loc = (LANG === "it") ? "it-IT" : "en-GB";
-      return new Intl.DateTimeFormat(loc, {
-        timeZone: "Europe/Rome",
-        weekday: "short",
-        day: "2-digit",
-        month: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit"
-      }).format(dt);
-    }catch(e){
-      return iso;
-    }
-  }
+In app trovi anche il Bet Builder, esclusivo (solo app).
+`,
 
-  function localizeStaticUI(){
-    var b;
-    b = document.querySelector('button[data-tab="overview"]'); if (b) b.textContent = t("tab_overview");
-    b = document.querySelector('button[data-tab="chicche"]'); if (b) b.textContent = t("tab_chicche");
-    b = document.querySelector('button[data-tab="matchups"]'); if (b) b.textContent = t("tab_matchups");
-    b = document.querySelector('button[data-tab="players"]'); if (b) b.textContent = t("tab_players");
+        legend_win: "Presa",
+        legend_lose: "Persa",
+        legend_pending: "In corso / non ancora iniziata",
+        legend_note: "“Confidenza modello” indica quanto il sistema gradisce il pick rispetto alla quota del bookmaker, non una vittoria sicura.",
 
-    var el;
-    el = document.getElementById("titleGoal"); if (el) el.textContent = t("goal_title");
-    el = document.getElementById("titleOverview"); if (el) el.textContent = t("overview_title");
-    el = document.getElementById("titleChicche"); if (el) el.textContent = t("chicche_title");
-    el = document.getElementById("titleMatchups"); if (el) el.textContent = t("matchups_title");
-    el = document.getElementById("titlePlayers"); if (el) el.textContent = t("players_title");
 
-    var bl = document.getElementById("backendLabel"); if (bl) bl.textContent = t("backend_now");
-  }
+model_stats_label: "Ultimi 30 giorni del modello",
+picks_word: "picks",
+winrate_word: "Winrate",
+roi_word: "ROI",
 
-  // ---- state ----
-  var allFixtures = [];
-  var filteredFixtures = [];
-  var selected = null;
+guide_summary: "Come usare le selezioni e la confidenza modello",
+guide_html: `
+  <div class="guide-title">Come leggere le selezioni di oggi</div>
+  <p class="guide-text">
+    Ogni blocco raccoglie una famiglia di pronostici con un ruolo diverso nel bankroll. Qui sotto trovi la spiegazione di
+    tutte le categorie che possono comparire nella pagina di oggi.
+  </p>
+  <ul class="guide-list">
+    <li><strong>Scelte d’Élite</strong>: selezione unica o quasi unica del giorno, scelta dal modello come pick con miglior
+      combinazione fra valore statistico e quota bookmaker. È sempre una singola e viene proposta solo quando i numeri sono
+      davvero forti.</li>
+    <li><strong>Selezioni Affidabili</strong>: pronostici più prudenti, pensati per dare stabilità al rendimento. Quote in
+      genere medio–basse, ma supportate da dati solidi. Sono la base “sicura” del bankroll rispetto ad altre categorie più
+      aggressive.</li>
+    <li><strong>Safe Goals (Over 2.5 o BTTS)</strong>: partite in cui il modello vede una forte tendenza ai gol, sia come
+      Over 2.5 che come entrambe segnano (BTTS). Ideali per schedine di 2–3 eventi quando vuoi puntare solo sui gol.</li>
+    <li><strong>Quote di Valore</strong>: situazioni in cui la quota del bookmaker sembra pagare troppo rispetto al rischio
+      stimato dal modello. Non sono per forza “facili”, ma nel lungo periodo hanno valore atteso positivo.</li>
+    <li><strong>Tendenze Goal</strong>: match con forte propensione ai gol emersa da attacco/difesa, xG e andamento recente.
+      Non sono per forza pick “safe”, ma seguono un trend chiaro nei numeri.</li>
+    <li><strong>Combo Selettiva</strong>: multipla di 2–3 eventi scelti fra i migliori trend della giornata. Mantiene un
+      rischio relativamente contenuto rispetto alle combo più grosse, ma resta una giocata extra rispetto alle singole.</li>
+    <li><strong>Combo High Stakes</strong>: multipla più aggressiva, con più eventi e rischio più alto. Il potenziale payout
+      è elevato, ma la variabilità pure. Va trattata sempre come extra e con stake molto più piccolo rispetto alle giocate
+      principali.</li>
+    <li><strong>Pick Esclusiva</strong>: pick particolare che il modello genera solo quando trova una situazione rara o
+      non perfettamente inquadrata nelle altre categorie (es. incroci statistici particolari o mercati meno standard).</li>
+    <li><strong>Top 5 Tips</strong>: le 5 selezioni che il modello ritiene complessivamente migliori per la giornata, tenendo
+      conto di valore, solidità dei numeri e quota. Se hai poco tempo, partire da qui è il modo più semplice per costruire
+      il piano di gioco.</li>
+  </ul>
 
-  // ---- dom ----
-  var dateInp = document.getElementById("dateInp");
-  var qInp = document.getElementById("qInp");
-  var reloadBtn = document.getElementById("reloadBtn");
-  var fixturesEl = document.getElementById("fixtures");
-  var countLbl = document.getElementById("countLbl");
-  var anBtn = document.getElementById("anBtn");
-  var rawOut = document.getElementById("rawOut");
-  var backendLbl = document.getElementById("backendLbl");
-  var backendFoot = document.getElementById("backendFoot");
+  <div class="guide-subtitle">Come usare la “confidenza”</div>
+  <p class="guide-text">
+    La confidenza non significa che il pick è “sicuro”, ma indica quanto il modello vede i numeri dalla nostra parte
+    rispetto alla quota proposta dal bookmaker.
+  </p>
+  <ul class="guide-list">
+    <li><strong>Confidenza molto alta / alta</strong>: buone per le singole, dove vuoi costruire rendimento nel tempo.</li>
+    <li><strong>Confidenza media</strong>: adatte per completare una schedina da 2–3 eventi o per variare un po’ le giocate.</li>
+    <li><strong>Confidenza bassa</strong>: giocate dove il modello vede potenziale, ma il rischio è alto. Da usare solo con importi piccoli.</li>
+    <li><strong>Confidenza molto bassa / rischiosa</strong>: idee ad alto rischio. Se le usi, trattale come extra e non come base del bankroll.</li>
+  </ul>
 
-  var selLeague = document.getElementById("selLeague");
-  var selKick = document.getElementById("selKick");
-  var selMatch = document.getElementById("selMatch");
-  var selId = document.getElementById("selId");
+  <div class="guide-subtitle">Esempi di utilizzo pratico</div>
+  <ul class="guide-examples-list">
+    <li>
+      <strong>Approccio prudente</strong>: stake fisso (es. 1 unità) su 3–5
+      <em>Selezioni Affidabili</em> o <em>Scelte d’Élite</em> con confidenza medio–alta.
+      Evita le confidenze basse e le combo più pesanti.
+    </li>
+    <li>
+      <strong>Approccio bilanciato</strong>: singole su 2–3 <em>Scelte d’Élite</em> con confidenza alta +
+      una <em>Combo Selettiva</em> con stake ridotto rispetto alle singole.
+    </li>
+    <li>
+      <strong>Approccio speculativo controllato</strong>: stessa base prudente (singole con confidenza alta)
+      e, in più, una sola giocata con confidenza bassa (o una <em>Combo High Stakes</em>)
+      con stake molto più piccolo rispetto alle giocate principali.
+    </li>
+  </ul>
 
-  var goalBox = document.getElementById("goalBox");
-  var exoBox = document.getElementById("exoBox");
-  var playersBox = document.getElementById("playersBox");
-  var matchupsBox = document.getElementById("matchupsBox");
-  var chiccheBox = document.getElementById("chiccheBox");
-  var betsBox = document.getElementById("betsBox"); // (beta) may be null
+  <p class="guide-text">
+    Lo storico del sito è calcolato con stake fisso di 1 unità per pick: se mantieni una logica simile è più semplice
+    confrontare i tuoi risultati con quelli mostrati nella pagina storico.
+  </p>
+`,
+        history: "Storico risultati",
+        history_picks: "Storico dettagliato picks",
 
-  // ---- UX v2 ----
-  var selLeagueMini = document.getElementById("selLeagueMini");
-  var selKickMini = document.getElementById("selKickMini");
-  var selMatchMini = document.getElementById("selMatchMini");
-  var selIdMini = document.getElementById("selIdMini");
-  var proToggle = null;
-  var tabsBar = document.getElementById("tabsBar");
+        
+        betbuilder: "Bet Builder (solo app)",
+        expand_all: "Espandi tutte",
+        collapse_all: "Chiudi tutte",
 
-  function setMiniFromSelected(fx){
-    if (!fx){
-      selLeagueMini.textContent = "-";
-      selKickMini.textContent = "-";
-      selMatchMini.textContent = "-";
-      selIdMini.textContent = "-";
-      return;
-    }
-    selLeagueMini.textContent = fx.league_name || "-";
-    selKickMini.textContent = fx.kickoff_utc ? fmtKickItaly(fx.kickoff_utc) : "-";
-    selMatchMini.textContent = (fx.home_name || "") + " vs " + (fx.away_name || "");
-    selIdMini.textContent = String(fx.fixture_id || "-");
-  }
+        empty_today: `Nessun pick disponibile per oggi.<br />Torna più tardi quando i modelli avranno generato nuovi pronostici.`,
 
-  function setTab(name){
-    if (!tabsBar) return;
-    var btns = tabsBar.querySelectorAll(".tabBtn");
-    for (var i=0;i<btns.length;i++){
-      btns[i].classList.toggle("active", btns[i].getAttribute("data-tab") === name);
-    }
-    var panels = document.querySelectorAll(".tabPanel");
-    for (var j=0;j<panels.length;j++){
-      panels[j].classList.toggle("active", panels[j].id === ("tab-"+name));
-    }
-  }
+        app_cta: "App ufficiale Android disponibile su Google Play: stesse picks del sito, con notifiche quando escono le nuove selezioni, e Bet Builder esclusivo (solo app).",
+        app_soon: "Scarica su Google Play",
 
-  if (tabsBar){
-    tabsBar.addEventListener("click", function(e){
-      var t = e.target;
-      if (t && t.classList && t.classList.contains("tabBtn")){
-        var name = t.getAttribute("data-tab");
-        if (name) setTab(name);
+        app_header: "App Android",
+
+        // Results / badges
+        WIN: "WIN",
+        LOSE: "LOSE",
+        PENDING: "PENDING",
+        LIVE: "LIVE",
+        UNKNOWN: "UNKNOWN",
+        VOID: "VOID",
+        waiting: "In attesa",
+        preparing: "In preparazione / dati incompleti",
+
+        // Confidence labels
+        conf_very_high: "molto alta",
+        conf_high: "alta",
+        conf_mid_high: "medio-alta",
+        conf_medium: "media",
+        conf_low: "bassa",
+        conf_risky: "rischiosa",
+
+        // Combo section
+        combo_title: "Schedine pronte del giorno",
+        combo_subtitle: `Quattro combinazioni generate automaticamente dai modelli (raddoppio, quota 5/6, 10/12 e over 20).
+        Sono pensate come extra e <strong>non rientrano nel ROI globale</strong>: se le giochi tieni sempre uno stake più piccolo rispetto alle singole.`,
+
+        // Ticket labels
+        ticket_X2: "Raddoppio di giornata",
+        ticket_X5: "Quota 5/6",
+        ticket_X10: "Quota 10/12",
+        ticket_X20: "Quota over 20",
+
+        // Categories
+        categories: {
+          BEST_TIPS_OF_DAY: "Scelte d’Élite",
+          SINGLE_GAME: "Pick Esclusiva",
+          SAFE_PICKS: "Selezioni Affidabili",
+          SAFE_GOALS: "SAFE GOALS",
+          OVER_UNDER_TIPS: "Tendenze Goal",
+          VALUE_PICKS: "Quote di Valore",
+          GG_SPECIAL: "GG Special",
+          DNB_ENGINE: "DNB Engine",
+          HT_GOAL_ENGINE: "HT Goal Engine",
+          COMBO_DOPPIA_O15: "Combo Doppia Chance + Over 1.5"
+        },
+        category_descriptions: {
+          BEST_TIPS_OF_DAY: "La scelta singola più forte della giornata: miglior mix fra valore statistico e quota.",
+          SINGLE_GAME: "Pick particolare su una singola partita, quando appare un pattern statistico raro (quota in range controllato).",
+          SAFE_PICKS: "Selezioni più prudenti pensate per stabilità (di solito quote medio–basse).",
+          SAFE_GOALS: "Match dove i numeri indicano forte tendenza ai gol (Over 2.5 o BTTS).",
+          COMBO_DOPPIA_O15: "Combo 1X/X2 + Over 1.5: pensata per multipla, max 6 selezioni al giorno.",
+          GG_SPECIAL: "Selezioni BTTS (Entrambe segnano) costruite su profilo e contesto, con quote target controllate.",
+          HT_GOAL_ENGINE: "Team to score 1st Half: volume controllato su mercati 1° tempo.",
+          DNB_ENGINE: "Draw No Bet: selezioni conservative basate su probabilità e forma (quota stimata se non presente).",
+          OVER_UNDER_TIPS: "Tendenze goal (Over/Under) e spot con valore, filtrate per qualità.",
+          VALUE_PICKS: "Giocate dove la quota sembra pagare più del rischio stimato dal modello."
+        }
+      },
+
+      en: {
+        coffee_cta: "Buy Ralph a snack",
+
+        subtitle: `These tips are not copied from other websites: they are generated daily by models that analyze odds,
+        statistics and historical data. You only see matches that pass strict quality filters and are grouped
+        by selection type, risk and value.
+
+On the Android app you also get the exclusive Bet Builder (app only).
+`,
+
+        legend_win: "Win",
+        legend_lose: "Lose",
+        legend_pending: "Live / Not started",
+        legend_note: "“Model confidence” shows how much the system likes the pick versus the bookmaker odds, not a guaranteed win.",
+
+
+model_stats_label: "Last 30 days (model)",
+picks_word: "picks",
+winrate_word: "Winrate",
+roi_word: "ROI",
+
+guide_summary: "How to use selections and model confidence",
+guide_html: `
+  <div class="guide-title">How to read today’s selections</div>
+  <p class="guide-text">
+    Each block groups a family of tips with a different role in bankroll management. Below you’ll find a quick explanation
+    of all categories that can appear on today’s page.
+  </p>
+  <ul class="guide-list">
+    <li><strong>Elite picks</strong>: the (almost) unique strongest pick of the day, chosen as the best mix of statistical edge
+      and bookmaker odds. Always a single and shown only when numbers are really strong.</li>
+    <li><strong>Reliable picks</strong>: more cautious tips designed to add stability. Usually mid–low odds but backed by solid data.
+      This is the “safe base” compared to more aggressive categories.</li>
+    <li><strong>Safe Goals (Over 2.5 or BTTS)</strong>: matches where the model sees a strong goal tendency, either Over 2.5
+      or Both Teams To Score (BTTS). Good for 2–3 legs tickets when you want to focus on goals only.</li>
+    <li><strong>Value picks</strong>: situations where odds look too generous compared to the model risk estimate. Not always “easy”,
+      but positive expected value in the long run.</li>
+    <li><strong>Goals trends</strong>: games with clear goal tendency from attack/defence profile, xG and recent trend.
+      Not necessarily “safe”, but they follow a clear numbers pattern.</li>
+    <li><strong>Selective combo</strong>: a 2–3 legs accumulator built from the best trends of the day. Lower risk than bigger combos,
+      but still an extra play compared to singles.</li>
+    <li><strong>High-stakes combo</strong>: more aggressive accumulator with more legs and higher variance. High payout potential, high risk too.
+      Treat it as extra and use much smaller stake than your main plays.</li>
+    <li><strong>Exclusive pick</strong>: a special pick when the model finds a rare setup not fitting other categories (e.g. unusual statistical cross).</li>
+    <li><strong>Top 5 Tips</strong>: the 5 selections the model considers the best overall, balancing value, solidity and odds.
+      If you have little time, starting here is the easiest way to build your plan.</li>
+  </ul>
+
+  <div class="guide-subtitle">How to use “confidence”</div>
+  <p class="guide-text">
+    Confidence does not mean the pick is “sure”. It tells how much the model sees numbers on our side versus the bookmaker odds.
+  </p>
+  <ul class="guide-list">
+    <li><strong>Very high / high</strong>: good for singles if you want to build steady results over time.</li>
+    <li><strong>Medium</strong>: good to complete 2–3 legs tickets or to vary your plays a bit.</li>
+    <li><strong>Low</strong>: higher risk spots. Use small amounts only.</li>
+    <li><strong>Very low / risky</strong>: high variance ideas. If you play them, treat as extra and not as bankroll base.</li>
+  </ul>
+
+  <div class="guide-subtitle">Practical examples</div>
+  <ul class="guide-examples-list">
+    <li>
+      <strong>Conservative</strong>: fixed stake (e.g. 1 unit) on 3–5 <em>Reliable picks</em> or <em>Elite picks</em> with mid–high confidence.
+      Avoid low confidence and heavy combos.
+    </li>
+    <li>
+      <strong>Balanced</strong>: singles on 2–3 <em>Elite picks</em> with high confidence + one <em>Selective combo</em> with reduced stake versus singles.
+    </li>
+    <li>
+      <strong>Controlled speculative</strong>: same conservative base (high-confidence singles) and, additionally, only one low-confidence play
+      (or one <em>High-stakes combo</em>) with much smaller stake than main plays.
+    </li>
+  </ul>
+
+  <p class="guide-text">
+    The site history is calculated with a fixed stake of 1 unit per pick. If you keep a similar approach, it’s easier to compare your results
+    with the public history page.
+  </p>
+`,
+        history: "Results history",
+        history_picks: "Detailed picks history",
+
+        
+        betbuilder: "Bet Builder (app only)",
+        expand_all: "Expand all",
+        collapse_all: "Collapse all",
+
+        empty_today: `No picks available for today.<br />Come back later when new selections are generated.`,
+
+        app_cta: "Official Android app is live on Google Play: same picks as the website, with notifications when new selections drop, plus the exclusive Bet Builder (app only).",
+        app_soon: "Get it on Google Play",
+        app_header: "Android app",
+
+        WIN: "WIN",
+        LOSE: "LOSE",
+        PENDING: "PENDING",
+        LIVE: "LIVE",
+        UNKNOWN: "UNKNOWN",
+        VOID: "VOID",
+        waiting: "Waiting",
+        preparing: "Preparing / incomplete data",
+
+        conf_very_high: "very high",
+        conf_high: "high",
+        conf_mid_high: "mid-high",
+        conf_medium: "medium",
+        conf_low: "low",
+        conf_risky: "risky",
+
+        combo_title: "Today ready-made tickets",
+        combo_subtitle: `Four combinations generated by the models (double, 5/6, 10/12 and 20+).
+        They are meant as extra plays and <strong>are not included in the global ROI</strong>: if you play them, use a smaller stake than singles.`,
+
+        ticket_X2: "Daily double",
+        ticket_X5: "Odds 5/6",
+        ticket_X10: "Odds 10/12",
+        ticket_X20: "Odds 20+",
+
+        categories: {
+          BEST_TIPS_OF_DAY: "Elite picks",
+          SINGLE_GAME: "Exclusive pick",
+          SAFE_PICKS: "Reliable picks",
+          SAFE_GOALS: "SAFE GOALS",
+          OVER_UNDER_TIPS: "Goals trends",
+          VALUE_PICKS: "Value picks",
+          GG_SPECIAL: "BTTS Special",
+          DNB_ENGINE: "DNB Engine",
+          HT_GOAL_ENGINE: "HT Goal Engine",
+          COMBO_DOPPIA_O15: "Double Chance + Over 1.5"
+        },
+        category_descriptions: {
+          BEST_TIPS_OF_DAY: "Strongest single pick of the day: best balance between model edge and bookmaker odds.",
+          SINGLE_GAME: "A special single match spot when a rare statistical pattern appears (odds kept in a controlled range).",
+          SAFE_PICKS: "More conservative selections for stability (usually mid/low odds).",
+          SAFE_GOALS: "Matches where the numbers show a strong goal tendency (Over 2.5 or BTTS).",
+          COMBO_DOPPIA_O15: "1X/X2 + Over 1.5 combos: built for accumulators, max 6 selections per day.",
+          GG_SPECIAL: "BTTS selections built on profile/context with controlled target odds.",
+          HT_GOAL_ENGINE: "Team to score 1st Half: controlled volume on 1st-half markets.",
+          DNB_ENGINE: "Draw No Bet: conservative picks based on probability and form (estimated odds if missing).",
+          OVER_UNDER_TIPS: "Over/Under trends and value spots, filtered for quality.",
+          VALUE_PICKS: "Situations where the odds seem to pay more than the model estimated risk."
+        }
       }
-    });
-  }
-  function setBackend(b){
-    backend = b || DEFAULT_BACKEND;
-    backendLbl.textContent = "Backend: " + backend;
-    backendFoot.textContent = backend;
-  }
+    };
 
-  function pad2(n){ n = String(n||""); return n.length<2 ? ("0"+n) : n; }
-
-  function todayISO(){
-    var d = new Date();
-    var y = d.getUTCFullYear();
-    var m = pad2(d.getUTCMonth()+1);
-    var da = pad2(d.getUTCDate());
-    return y + "-" + m + "-" + da;
-  }
-
-  function fmtNum(x, d){
-    if (d === undefined) d = 2;
-    if (x === null || x === undefined) return "n/d";
-    var n = Number(x);
-    if (!isFinite(n)) return "n/d";
-    return n.toFixed(d);
-  }
-
-  function pct(x, d){
-    if (d === undefined) d = 1;
-    if (x === null || x === undefined) return "n/d";
-    var n = Number(x);
-    if (!isFinite(n)) return "n/d";
-    return (n*100).toFixed(d) + "%";
-  }
-
-  function safeGet(obj, pathArr){
-    var cur = obj;
-    for (var i=0;i<pathArr.length;i++){
-      if (!cur) return undefined;
-      cur = cur[pathArr[i]];
-    }
-    return cur;
-  }
-
-  function getCheckedLeagueIds(){
-    var boxes = document.querySelectorAll("input.lg");
-    var out = [];
-    for (var i=0;i<boxes.length;i++){
-      if (boxes[i].checked) out.push(boxes[i].value);
-    }
-    return out;
-  }
-
-  function pill(text, cls){
-    var c = cls ? ("pill "+cls) : "pill";
-    return '<span class="'+c+'">'+escapeHtml(text)+'</span>';
-  }
-
-  function escapeHtml(s){
-    return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-  }
-
-  function renderFixtures(){
-    fixturesEl.innerHTML = "";
-    countLbl.textContent = String(filteredFixtures.length || 0);
-
-    if (!filteredFixtures.length){
-      fixturesEl.innerHTML = '<div class="muted2">Nessuna partita trovata.</div>';
-      return;
+    function tr(key) {
+      const lang = getLang();
+      return (I18N[lang] && I18N[lang][key]) || (I18N.it && I18N.it[key]) || "";
     }
 
-    for (var i=0;i<filteredFixtures.length;i++){
-      (function(fx){
-        var div = document.createElement("div");
-        div.className = "fx";
-        var left = document.createElement("div");
-        left.className = "l";
-        var t = document.createElement("div");
-        t.className = "t";
-        t.textContent = (fx.home_name + " vs " + fx.away_name);
-        var m = document.createElement("div");
-        m.className = "m";
-        m.textContent = fx.league_name || "n/d";
-        left.appendChild(t); left.appendChild(m);
+    function trCat(catKey) {
+      const lang = getLang();
+      const k = (catKey || "").toString().trim().toUpperCase();
+      return (I18N[lang]?.categories?.[k]) || (I18N.it?.categories?.[k]) || (catKey || "Other").replace(/_/g, " ");
+    }
 
-        var right = document.createElement("div");
-        right.className = "r";
-        right.textContent = fx.kickoff_utc ? fmtKickItaly(fx.kickoff_utc) : t("nd");
+    function trCatDesc(catKey) {
+      const lang = getLang();
+      const k = (catKey || "").toString().trim().toUpperCase();
+      return (I18N[lang]?.category_descriptions?.[k]) || (I18N.it?.category_descriptions?.[k]) || "";
+    }
+  </script>
 
-        div.appendChild(left); div.appendChild(right);
+  <script>
+    // ====== CONFIG SUPABASE (solo lettura) ======
+    const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
 
-        div.addEventListener("click", function(){
-          selectFixture(fx);
+    async function sbFetch(table, query) {
+      const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        },
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Errore dati ${res.status}: ${text}`);
+      }
+      return await res.json();
+    }
+
+    // ====== UTIL ======
+    function pad2(n) {
+      return n < 10 ? "0" + n : "" + n;
+    }
+
+    function getTodayStr() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = pad2(now.getMonth() + 1);
+      const d = pad2(now.getDate());
+      return `${y}-${m}-${d}`;
+    }
+
+    
+function formatDateLocalized(str) {
+  const parts = str.split("-");
+  if (parts.length !== 3) return str;
+  const [y, m, d] = parts.map(Number);
+  const dt = new Date(y, m - 1, d);
+  const lang = getLang();
+  if (lang === "en") {
+    const weekday = dt.toLocaleDateString("en-GB", { weekday: "long" });
+    const day = pad2(dt.getDate());
+    const month = dt.toLocaleDateString("en-GB", { month: "long" });
+    return `${weekday} ${day} ${month} ${y}`;
+  }
+  const weekday = dt.toLocaleDateString("it-IT", { weekday: "long" });
+  const day = pad2(dt.getDate());
+  const month = dt.toLocaleDateString("it-IT", { month: "long" });
+  return `${weekday} ${day} ${month} ${y}`;
+}
+
+    function getTimeZoneOffsetMinutes(timeZone, dateUtc) {
+      // dateUtc: Date object representing a UTC timestamp
+      // returns offset minutes such that: localTime = utcTime + offset
+      const dtf = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        hour12: false,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+      const parts = dtf.formatToParts(dateUtc);
+      const map = {};
+      for (const p of parts) {
+        if (p.type !== "literal") map[p.type] = p.value;
+      }
+      const asUTC = Date.UTC(
+        Number(map.year),
+        Number(map.month) - 1,
+        Number(map.day),
+        Number(map.hour),
+        Number(map.minute),
+        Number(map.second)
+      );
+      return (asUTC - dateUtc.getTime()) / 60000;
+    }
+
+    function parseMatchDateTime(row) {
+      const d = row.match_date;
+      const t = row.match_time;
+      if (!d || !t) return null;
+
+      const [h, m] = t.split(":").map(x => parseInt(x, 10));
+      const [yy, mm, dd] = d.split("-").map(x => parseInt(x, 10));
+      if (!yy || !mm || !dd || isNaN(h) || isNaN(m)) return null;
+
+      // DB orari in Europe/Dublin: convertiamo in timestamp UTC corretto,
+      // poi mostriamo SEMPRE in Europe/Rome (Italia), anche se l'utente è in un altro fuso.
+      const SOURCE_TZ = "Europe/Dublin";
+      const TARGET_TZ = "Europe/Rome";
+
+      // 1) ipotesi iniziale: quei numeri sono UTC
+      const utcGuess = new Date(Date.UTC(yy, mm - 1, dd, h, m, 0));
+
+      // 2) calcoliamo offset del SOURCE_TZ a quell'istante e risaliamo all'UTC reale
+      const sourceOffsetMin = getTimeZoneOffsetMinutes(SOURCE_TZ, utcGuess);
+      const utcRealMs = utcGuess.getTime() - sourceOffsetMin * 60000;
+
+      return new Date(utcRealMs);
+    }
+
+
+    function normalizeCategory(rawCat) {
+      const raw = (rawCat || "").toString().trim();
+      const up = raw.toUpperCase();
+
+      if (!up) return "OTHER";
+
+      // categorie "canoniche" già OK
+      const canonical = new Set([
+        "BEST_TIPS_OF_DAY",
+        "SAFE_PICKS",
+        "SAFE_GOALS",
+        "OVER_UNDER_TIPS",
+        "VALUE_PICKS",
+        "SINGLE_GAME",
+        "DNB_ENGINE",
+        "HT_GOAL_ENGINE"
+      ]);
+      if (canonical.has(up)) return up;
+
+      // alias / naming umano
+      if (up === "GG SPECIAL" || up === "GG_SPECIAL" || up === "BTTS" || up === "BTTS_TIPS") return "GG_SPECIAL";
+      if (up.includes("COMBODOPPIA") || up.includes("DOPPIA") && up.includes("O1.5")) return "COMBO_DOPPIA_O15";
+      if (up === "COMBO_DOPPIA_O15") return "COMBO_DOPPIA_O15";
+
+      return up.replace(/\s+/g, "_");
+    }
+
+    
+    function groupByCategory(picks) {
+      const map = new Map();
+      for (const p of picks) {
+        const cat = normalizeCategory(p.category);
+        if (!map.has(cat)) {
+          map.set(cat, []);
+        }
+        map.get(cat).push(p);
+      }
+      return map;
+    }
+
+    function sortCategoriesOrder(categories) {
+      const preferred = [
+        "BEST_TIPS_OF_DAY",    // Scelte d’Élite
+        "SINGLE_GAME",         // Pick Esclusiva
+        "SAFE_PICKS",          // Selezioni Affidabili
+        "SAFE_GOALS",          // SAFE GOALS
+        "COMBO_DOPPIA_O15",    // ComboDoppia+O1.5
+        "GG_SPECIAL",          // GG Special (BTTS)
+        "HT_GOAL_ENGINE",      // HT Goal Engine
+        "DNB_ENGINE",          // DNB Engine
+        "OVER_UNDER_TIPS",     // Tendenze Goal
+        "VALUE_PICKS"          // Quote di Valore
+      ];
+
+      return categories.sort((a, b) => {
+        const ia = preferred.indexOf(a);
+        const ib = preferred.indexOf(b);
+        if (ia === -1 && ib === -1) return a.localeCompare(b);
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
+    }
+
+    
+function translateResultLabel(label) {
+  const up = (label || "").toUpperCase();
+  // Keep WIN/LOSE/PENDING/LIVE labels as-is (short), but allow future extension.
+  // For EN/IT they are the same here, except helper kept for consistency.
+  if (up === "WIN") return tr("WIN");
+  if (up === "LOSE") return tr("LOSE");
+  if (up === "PENDING") return tr("PENDING");
+  if (up === "LIVE") return tr("LIVE");
+  if (up === "VOID") return tr("VOID");
+  if (up === "UNKNOWN") return tr("UNKNOWN");
+  return up || "";
+}
+
+function classifyResult(resultRaw) {
+      const res = (resultRaw || "").toUpperCase();
+      if (res === "WIN") return "win";
+      if (res === "LOSE") return "lose";
+      if (res === "PENDING") return "pending";
+      if (res === "VOID") return "unknown";   // stile neutro per match void
+      if (res === "UNKNOWN") return "unknown";
+      return "";
+    }
+
+    
+function confidenceLabel(val) {
+  if (val > 130) return tr("conf_very_high");
+  if (val > 110) return tr("conf_high");
+  if (val > 90)  return tr("conf_mid_high");
+  if (val > 70)  return tr("conf_medium");
+  if (val > 50)  return tr("conf_low");
+  return tr("conf_risky");
+}
+
+    
+
+    
+function getCategoryLabel(cat) {
+  const k = (cat || "").toString().trim().toUpperCase();
+  return trCat(k);
+}
+
+    // ====== FEEDBACK LIKE / DISLIKE ======
+
+    async function loadFeedbackMap(picksDate) {
+      try {
+        const rows = await sbFetch(
+          "feedback",
+          `?picks_date=eq.${picksDate}&select=fixture_id,pick,vote`
+        );
+        const map = new Map();
+        if (Array.isArray(rows)) {
+          for (const r of rows) {
+            if (!r.fixture_id || !r.pick) continue;
+            const key = String(r.fixture_id) + "__" + String(r.pick).trim();
+            let obj = map.get(key);
+            if (!obj) {
+              obj = { like: 0, dislike: 0 };
+              map.set(key, obj);
+            }
+            const v = (r.vote || "").toLowerCase();
+            if (v === "like") obj.like++;
+            if (v === "dislike") obj.dislike++;
+          }
+        }
+        return map;
+      } catch (e) {
+        console.warn("Impossibile caricare feedback, procedo senza:", e);
+        return new Map();
+      }
+    }
+
+    async function sendVoteToSupabase(picksDate, dataKey, vote) {
+      try {
+        const [fixtureId, ...rest] = dataKey.split("__");
+        const pick = rest.join("__");
+        const clientId = getClientId();
+
+        const url = `${SUPABASE_URL}/rest/v1/feedback?on_conflict=client_id,picks_date,fixture_id,pick`;
+
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: "Bearer " + SUPABASE_ANON_KEY,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal,resolution=merge-duplicates"
+          },
+          body: JSON.stringify({
+            client_id: clientId,
+            picks_date: picksDate,
+            fixture_id: fixtureId,
+            pick: pick,
+            vote: vote
+          })
         });
 
-        fixturesEl.appendChild(div);
-      })(filteredFixtures[i]);
+        if (!res.ok) {
+          const txt = await res.text();
+          console.warn("Errore salvataggio feedback:", res.status, txt);
+        }
+      } catch (e) {
+        console.warn("Eccezione salvataggio feedback:", e);
+      }
+    }
+
+    function getClientId() {
+      const key = "pb_client_id";
+      let cid = localStorage.getItem(key);
+      if (!cid) {
+        if (window.crypto && crypto.randomUUID) {
+          cid = crypto.randomUUID();
+        } else {
+          cid = Date.now().toString(36) + Math.random().toString(36).slice(2);
+        }
+        localStorage.setItem(key, cid);
+      }
+      return cid;
+    }
+
+    function setupVoteHandlers(feedbackMap, picksDate) {
+      const rows = document.querySelectorAll(".feedback-row");
+      rows.forEach(row => {
+        const dataKey = row.getAttribute("data-key");
+        if (!dataKey) return;
+
+        const storageKey = "pb_vote_" + dataKey;
+        const existingVote = localStorage.getItem(storageKey);
+
+        const buttons = row.querySelectorAll(".vote-btn");
+        buttons.forEach(btn => {
+          const voteType = btn.getAttribute("data-vote");
+          const countSpan = btn.querySelector(".vote-count");
+
+          if (existingVote && existingVote === voteType) {
+            btn.classList.add("selected");
+          }
+
+          btn.addEventListener("click", () => {
+            const currentSelected = row.querySelector(".vote-btn.selected");
+            const currentVote = currentSelected ? currentSelected.getAttribute("data-vote") : null;
+
+            if (currentVote === voteType) {
+              return;
+            }
+
+            const fb = feedbackMap.get(dataKey) || { like: 0, dislike: 0 };
+
+            if (currentVote) {
+              const prevBtn = row.querySelector(`.vote-btn[data-vote="${currentVote}"]`);
+              const prevSpan = prevBtn ? prevBtn.querySelector(".vote-count") : null;
+              if (prevSpan) {
+                if (currentVote === "like" && fb.like > 0) {
+                  fb.like--;
+                  prevSpan.textContent = fb.like;
+                }
+                if (currentVote === "dislike" && fb.dislike > 0) {
+                  fb.dislike--;
+                  prevSpan.textContent = fb.dislike;
+                }
+              }
+            }
+
+            if (voteType === "like") {
+              fb.like++;
+            } else if (voteType === "dislike") {
+              fb.dislike++;
+            }
+            feedbackMap.set(dataKey, fb);
+
+            const likeBtn = row.querySelector('.vote-btn[data-vote="like"]');
+            const dislikeBtn = row.querySelector('.vote-btn[data-vote="dislike"]');
+            if (likeBtn) {
+              const s = likeBtn.querySelector(".vote-count");
+              if (s) s.textContent = fb.like;
+            }
+            if (dislikeBtn) {
+              const s = dislikeBtn.querySelector(".vote-count");
+              if (s) s.textContent = fb.dislike;
+            }
+
+            buttons.forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+
+            localStorage.setItem(storageKey, voteType);
+
+            sendVoteToSupabase(picksDate, dataKey, voteType);
+          });
+        });
+      });
+    }
+
+// ====== MAIN LOAD ======
+async function loadTodayPicks() {
+
+
+    function safeOdd(o) {
+      const n = Number(o);
+      if (!isFinite(n) || n <= 1) return 1.0;
+      return n;
+    }
+
+    function getLastNDates(n) {
+      const dates = [];
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+
+      for (let i = 0; i < n; i++) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
+        const y = d.getFullYear();
+        const m = pad2(d.getMonth() + 1);
+        const day = pad2(d.getDate());
+        dates.push(`${y}-${m}-${day}`);
+      }
+      return dates;
+    }
+
+    function resultRank(r) {
+      let score = 0;
+      const res = (r.result || "").toUpperCase();
+      const st = (r.status_short || "").toUpperCase();
+
+      if (res === "WIN" || res === "LOSE") score += 4;
+      else if (res === "PENDING") score += 1;
+
+      if (["FT", "AET", "PEN"].includes(st)) score += 4;
+      else if (["2H", "HT"].includes(st)) score += 2;
+
+      if (res === "WIN") score += 2;
+      if (res === "LOSE") score += 1;
+
+      return score;
+    }
+
+    async function fetchDayStatsSimple(dateStr) {
+  const picks = await sbFetch(
+    "picks",
+    `?match_date=eq.${dateStr}&select=*`
+  );
+
+  if (!Array.isArray(picks) || picks.length === 0) {
+    return { date: dateStr, wins: 0, loses: 0, stake: 0, profit: 0, avgOdd: null };
+  }
+
+  const results = await sbFetch(
+    "results",
+    `?picks_date=eq.${dateStr}&select=*`
+  );
+
+  const resultMap = new Map();
+  if (Array.isArray(results)) {
+    for (const r of results) {
+      const fid = String(r.fixture_id || "").trim();
+      const pickText = String(r.pick || "").trim();
+      if (!fid && !pickText) continue;
+      const key = fid + "__" + pickText;
+
+      const existing = resultMap.get(key);
+      if (!existing || resultRank(r) > resultRank(existing)) {
+        resultMap.set(key, r);
+      }
     }
   }
 
-  function applyFilters(){
-    var q = (qInp.value || "").toLowerCase().trim();
-    var leagues = getCheckedLeagueIds();
+  function pickResult(p) {
+    const fid = String(p.fixture_id || "").trim();
+    const pickText = String(p.pick || "").trim();
+    const key = fid + "__" + pickText;
+    const res = resultMap.get(key) || {};
+    return String(res.result || "").toUpperCase();
+  }
 
-    filteredFixtures = allFixtures.filter(function(fx){
-      if (leagues.length && leagues.indexOf(String(fx.league_id)) === -1) return false;
-      if (!q) return true;
-      var s = (fx.home_name + " " + fx.away_name + " " + (fx.league_name||"")).toLowerCase();
-      return s.indexOf(q) !== -1;
+  function chooseBestResolvedPick(list) {
+    const resolved = list.filter(p => {
+      const r = pickResult(p);
+      return r === "WIN" || r === "LOSE";
+    });
+    if (!resolved.length) return null;
+
+    // Allineato allo storico ROI: scegliamo la pick risolta con score più alto,
+    // senza "preferire" le WIN.
+    resolved.sort((a, b) => {
+      const sa = Number(a.score || 0);
+      const sb = Number(b.score || 0);
+      if (sb !== sa) return sb - sa;
+      return safeOdd(b.odd) - safeOdd(a.odd);
+    });
+    return resolved[0];
+  }
+
+  // ====== QUI È LA DIFFERENZA: stake=1 PER EVENTO (fixture_id) ======
+  const byFixture = new Map();
+  for (const p of picks) {
+    const fid = String(p.fixture_id || "").trim();
+    if (!fid) continue;
+    if (!byFixture.has(fid)) byFixture.set(fid, []);
+    byFixture.get(fid).push(p);
+  }
+
+  let wins = 0;
+  let loses = 0;
+  let stake = 0;
+  let profit = 0;
+  let oddsSum = 0;
+  let oddsCount = 0;
+
+  for (const [fid, list] of byFixture.entries()) {
+    const chosen = chooseBestResolvedPick(list);
+    if (!chosen) continue;
+
+    const r = pickResult(chosen);
+    const odd = safeOdd(chosen.odd);
+
+    // solo WIN/LOSE entrano nel ROI
+    stake += 1;
+    oddsSum += odd;
+    oddsCount += 1;
+
+    if (r === "WIN") {
+      wins += 1;
+      profit += (odd - 1);
+    } else {
+      loses += 1;
+      profit -= 1;
+    }
+  }
+
+  const avgOdd = oddsCount > 0 ? oddsSum / oddsCount : null;
+
+  return { date: dateStr, wins, loses, stake, profit, avgOdd };
+}
+
+
+async function loadModelStats() {
+  const statsBox = document.getElementById("model-stats-box");
+  if (!statsBox) return;
+
+  try {
+    // === ROI PER EVENTO (fixture_id) - STESSA LOGICA DELLO STORICO ROI ===
+    // 1) prendiamo la data più recente presente in tabella picks
+    const latestRows = await sbFetch(
+      "picks",
+      "?select=match_date&order=match_date.desc&limit=1"
+    );
+
+    const latestDateStr =
+      Array.isArray(latestRows) && latestRows[0] && latestRows[0].match_date
+        ? String(latestRows[0].match_date)
+        : null;
+
+    if (!latestDateStr) return;
+
+    // 2) calcoliamo range del mese (YYYY-MM-01 -> YYYY-MM-last)
+    const y = parseInt(latestDateStr.slice(0, 4), 10);
+    const m = parseInt(latestDateStr.slice(5, 7), 10);
+    const fromDate = `${y}-${pad2(m)}-01`;
+    const lastDay = new Date(y, m, 0).getDate(); // ultimo giorno del mese
+    const toDate = `${y}-${pad2(m)}-${pad2(lastDay)}`;
+
+    // 3) carichiamo tutte le picks del mese e tutti i results del mese
+    const picks = await sbFetch(
+      "picks",
+      `?match_date=gte.${fromDate}&match_date=lte.${toDate}&select=*`
+    );
+
+    if (!Array.isArray(picks) || !picks.length) return;
+
+    const results = await sbFetch(
+      "results",
+      `?picks_date=gte.${fromDate}&picks_date=lte.${toDate}&select=*`
+    );
+
+    // mappa: fixture_id__pick -> miglior result (più completo)
+    const resultMap = new Map();
+    if (Array.isArray(results)) {
+      for (const r of results) {
+        const fid = String(r.fixture_id || "").trim();
+        const pickText = String(r.pick || "").trim();
+        if (!fid && !pickText) continue;
+        const key = fid + "__" + pickText;
+
+        const existing = resultMap.get(key);
+        if (!existing || resultRank(r) > resultRank(existing)) {
+          resultMap.set(key, r);
+        }
+      }
+    }
+
+    function pickResult(p) {
+      const fid = String(p.fixture_id || "").trim();
+      const pickText = String(p.pick || "").trim();
+      const key = fid + "__" + pickText;
+      const res = resultMap.get(key) || {};
+      return String(res.result || "").toUpperCase();
+    }
+
+    // raggruppo per evento (fixture_id) e scelgo la pick risolta con score più alto
+    const byFixture = new Map();
+    for (const p of picks) {
+      const fid = String(p.fixture_id || "").trim();
+      if (!fid) continue;
+      if (!byFixture.has(fid)) byFixture.set(fid, []);
+      byFixture.get(fid).push(p);
+    }
+
+    let totalWins = 0;
+    let totalLoses = 0;
+    let totalStake = 0; // = numero eventi conteggiati
+    let totalProfit = 0;
+
+    for (const [fid, list] of byFixture.entries()) {
+      const resolved = list.filter(p => {
+        const r = pickResult(p);
+        return r === "WIN" || r === "LOSE";
+      });
+      if (!resolved.length) continue;
+
+      resolved.sort((a, b) => {
+        const sa = Number(a.score || 0);
+        const sb = Number(b.score || 0);
+        if (sb !== sa) return sb - sa;
+        return safeOdd(b.odd) - safeOdd(a.odd);
+      });
+
+      const chosen = resolved[0];
+      const r = pickResult(chosen);
+      const odd = safeOdd(chosen.odd);
+
+      totalStake += 1;
+
+      if (r === "WIN") {
+        totalWins += 1;
+        totalProfit += (odd - 1);
+      } else {
+        totalLoses += 1;
+        totalProfit -= 1;
+      }
+    }
+
+    const totalPlayed = totalWins + totalLoses;
+    if (totalPlayed <= 0 || totalStake <= 0) return;
+
+    const winrate = ((totalWins / totalPlayed) * 100).toFixed(1);
+    const roi = ((totalProfit / totalStake) * 100).toFixed(1);
+
+    const countEl = document.getElementById("model-stats-count");
+    const wrEl = document.getElementById("model-stats-winrate");
+    const roiEl = document.getElementById("model-stats-roi");
+    const profEl = document.getElementById("model-stats-profit");
+    const periodEl = document.getElementById("model-stats-period");
+
+    if (countEl) countEl.textContent = `${totalStake} eventi (stake 1/evento)`;
+    if (wrEl) wrEl.textContent = `${winrate}% (${totalWins}W / ${totalLoses}L)`;
+    if (roiEl) roiEl.textContent = `${roi}%`;
+    if (profEl) {
+      profEl.textContent =
+        totalProfit >= 0
+          ? `Profitto: +${totalProfit.toFixed(2)} u`
+          : `Profitto: ${totalProfit.toFixed(2)} u`;
+    }
+    if (periodEl) {
+      periodEl.textContent = `Periodo: ${formatDateIT(fromDate)} → ${formatDateIT(toDate)}`;
+    }
+
+    // mostro box (se era nascosto)
+    statsBox.style.display = "";
+  } catch (err) {
+    console.error("Errore loadModelStats (ROI per evento):", err);
+  }
+}
+
+  await loadModelStats();
+
+  const container = document.getElementById("content");
+  const todayStr = getTodayStr();
+  const dayBadge = document.getElementById("day-badge");
+  dayBadge.textContent = formatDateLocalized(todayStr);
+
+  try {
+    const picks = await sbFetch(
+      "picks",
+      `?run_date=eq.${todayStr}&match_date=eq.${todayStr}&select=*`
+    );
+
+    if (!Array.isArray(picks) || !picks.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          ${tr("empty_today")}
+        </div>
+      `;
+      return;
+    }
+
+    // risultati singole
+    const results = await sbFetch(
+      "results",
+      `?picks_date=eq.${todayStr}&select=*`
+    );
+
+    const feedbackMap = await loadFeedbackMap(todayStr);
+
+    const resultMap = new Map();
+const fixtureResultMap = new Map();
+
+if (Array.isArray(results)) {
+  for (const r of results) {
+    if (!r.fixture_id || !r.pick) continue;
+
+    const fidStr = String(r.fixture_id).trim();
+    const pickText = String(r.pick).trim();
+    const key = fidStr + "__" + pickText;
+
+    // scegliamo sempre il "miglior" risultato per fixture+pick
+    const existing = resultMap.get(key);
+    if (!existing || resultRank(r) > resultRank(existing)) {
+      resultMap.set(key, r);
+    }
+
+    // accumuliamo tutti i risultati per fixture_id
+    const arr = fixtureResultMap.get(fidStr) || [];
+    arr.push(r);
+    fixtureResultMap.set(fidStr, arr);
+  }
+
+  // ordiniamo per qualità: il primo elemento sarà il più aggiornato
+  for (const [fid, arr] of fixtureResultMap.entries()) {
+    arr.sort((a, b) => resultRank(b) - resultRank(a));
+    fixtureResultMap.set(fid, arr);
+  }
+}
+
+
+
+    // ================== EXCLUSIVE PICK RULE (SINGLE_GAME) ==================
+    // La Pick Esclusiva deve comparire SOLO nella categoria "SINGLE_GAME".
+    // Se esiste almeno una SINGLE_GAME per una fixture, rimuoviamo TUTTE le altre picks di quella stessa fixture
+    // dalle altre categorie (UI-only, nessun dato viene modificato nel DB).
+    const exclusiveList = picks.filter(p => normalizeCategory(p.category) === "SINGLE_GAME");
+    const exclusiveFixtureIds = new Set(
+      exclusiveList
+        .map(p => String(p.fixture_id || "").trim())
+        .filter(Boolean)
+    );
+
+    const picksForDisplay = picks.filter(p => {
+      const fid = String(p.fixture_id || "").trim();
+      const cat = normalizeCategory(p.category);
+      if (cat === "SINGLE_GAME") return true;
+      if (!fid) return true;
+      return !exclusiveFixtureIds.has(fid);
     });
 
-    renderFixtures();
-  }
+    // ================== ROI PICK TAGGING ==================
+    // Se escono più picks per lo stesso evento (fixture_id), per il ROI consideriamo SOLO la pick con score più alto.
+    // Le altre diventano BACKUP (non entrano nel conteggio ROI).
+    const roiPickByFixture = new Map();
+    if (Array.isArray(picksForDisplay)) {
+      for (const p of picksForDisplay) {
+        const fid = String(p.fixture_id || "").trim();
+        if (!fid) continue;
 
-  function selectFixture(fx){
-    selected = fx;
-    selLeague.textContent = fx.league_name || "-";
-    selKick.textContent = fx.kickoff_utc ? fmtKickItaly(fx.kickoff_utc) : "-";
-    selMatch.textContent = fx.home_name + " vs " + fx.away_name;
-    selId.textContent = String(fx.fixture_id || "-");
-    anBtn.disabled = !fx.fixture_id;
-    if (rawOut) rawOut.textContent = "Pronto. Premi Analizza.";
-    goalBox.textContent = t("nd");
-    exoBox.textContent = t("nd");
-    playersBox.textContent = t("nd");
-    matchupsBox.textContent = t("nd");
-    chiccheBox.textContent = t("nd");
-    betsBox && (betsBox.textContent = "n/d");
-    setMiniFromSelected(fx);
-    setTab("overview");
-  }
+        const score = Number(p.score || 0);
+        const current = roiPickByFixture.get(fid);
+        if (!current || score > current.score) {
+          roiPickByFixture.set(fid, { score, ref: p });
+        }
+      }
 
-  function normalizeFixturesResponse(resp){
-    // backend /api/fixtures dovrebbe tornare array di fixture.
-    // Gestiamo alcuni formati possibili.
-    if (!resp) return [];
-    if (Array.isArray(resp)) return resp;
-    if (Array.isArray(resp.response)) return resp.response;
-    if (Array.isArray(resp.fixtures)) return resp.fixtures;
-    return [];
-  }
+      for (const p of picksForDisplay) {
+        const fid = String(p.fixture_id || "").trim();
+        if (!fid) { p.roi_tag = ""; continue; }
 
-  function loadFixtures(){
-    var date = dateInp.value || todayISO();
-    dateInp.value = date;
-
-    var leagueIds = getCheckedLeagueIds();
-    var url = backend.replace(/\/$/,"") + "/api/fixtures?date=" + encodeURIComponent(date);
-    if (leagueIds.length){
-      url += "&league_ids=" + encodeURIComponent(leagueIds.join(","));
+        const best = roiPickByFixture.get(fid);
+        if (best && best.ref === p) p.roi_tag = "ROI_PICK";
+        else if (best) p.roi_tag = "BACKUP";
+        else p.roi_tag = "";
+      }
     }
-    url += "&cb=" + Date.now();
 
-    reloadBtn.disabled = true;
-    fixturesEl.innerHTML = '<div class="muted2">'+t("loading")+'</div>';
+const byCategory = groupByCategory(picksForDisplay);
+    // lookup rapido fixture_id -> pick (per recuperare match_date/match_time e mostrare orario Italia anche nelle schedine)
+    const fixturePickLookup = new Map();
+    if (Array.isArray(picks)) {
+      for (const p of picks) {
+        if (p && p.fixture_id != null) {
+          const k = String(p.fixture_id).trim();
+          if (k && !fixturePickLookup.has(k)) fixturePickLookup.set(k, p);
+        }
+      }
+    }
 
-    fetch(url, { method:"GET" })
-      .then(function(r){
-        return r.json();
-      })
-      .then(function(data){
-        var fx = normalizeFixturesResponse(data);
-        // normalizza campi minimi attesi in UI
-        allFixtures = fx.map(function(x){
-          var homeName =
-            safeGet(x, ["home","name"]) ||
-            safeGet(x, ["home_name"]) ||
-            safeGet(x, ["homeName"]) ||
-            safeGet(x, ["teams","home","name"]) ||
-            safeGet(x, ["teams","homeName"]) ||
-            safeGet(x, ["homeTeam","name"]) ||
-            safeGet(x, ["home"]) ||
-            safeGet(x, ["team_home","name"]) ||
-            "";
 
-          var awayName =
-            safeGet(x, ["away","name"]) ||
-            safeGet(x, ["away_name"]) ||
-            safeGet(x, ["awayName"]) ||
-            safeGet(x, ["teams","away","name"]) ||
-            safeGet(x, ["teams","awayName"]) ||
-            safeGet(x, ["awayTeam","name"]) ||
-            safeGet(x, ["away"]) ||
-            safeGet(x, ["team_away","name"]) ||
-            "";
+    const categories = sortCategoriesOrder(Array.from(byCategory.keys()));
 
-          if (!homeName || !awayName) {
-            var ms = String(
-              safeGet(x, ["match"]) ||
-              safeGet(x, ["title"]) ||
-              safeGet(x, ["name"]) ||
-              safeGet(x, ["fixture_title"]) ||
-              ""
-            );
-            if (ms.indexOf(" vs ") > -1) {
-              var p = ms.split(" vs ");
-              if (!homeName) homeName = p[0] || homeName;
-              if (!awayName) awayName = p[1] || awayName;
-            } else if (ms.indexOf(" v ") > -1) {
-              var p2 = ms.split(" v ");
-              if (!homeName) homeName = p2[0] || homeName;
-              if (!awayName) awayName = p2[1] || awayName;
-            } else if (ms.indexOf(" - ") > -1) {
-              var p3 = ms.split(" - ");
-              if (!homeName) homeName = p3[0] || homeName;
-              if (!awayName) awayName = p3[1] || awayName;
+    // ================== HTML PICKS CLASSICI ==================
+    let html = `
+      <div class="categories-toolbar">
+        <button type="button" id="btn-expand-all">${tr("expand_all")}</button>
+        <button type="button" id="btn-collapse-all">${tr("collapse_all")}</button>
+      </div>
+      <div class="categories-container">`;
+
+    for (const cat of categories) {
+      const list = byCategory.get(cat) || [];
+
+      list.sort((a, b) => {
+        const da = parseMatchDateTime(a);
+        const db = parseMatchDateTime(b);
+        if (da && db) return da - db;
+        if (da) return -1;
+        if (db) return 1;
+        return 0;
+      });
+
+      const total = list.length;
+      let wins = 0;
+      let loses = 0;
+
+      for (const p of list) {
+        const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
+        const res = resultMap.get(key);
+        const rLabel = (res && res.result) ? res.result.toUpperCase() : "";
+        if (rLabel === "WIN") wins++;
+        if (rLabel === "LOSE") loses++;
+      }
+
+      const totalPlayed = wins + loses;
+      const winrate =
+        totalPlayed > 0 ? ((wins / totalPlayed) * 100).toFixed(1) : "-";
+
+      const niceCatName = getCategoryLabel(cat);
+
+      html += `
+        <details class="category-block">
+          <summary class="category-header">
+            <div class="category-header-main">
+              <h2 class="category-title">${niceCatName}</h2>
+              <div class="category-meta">
+                ${total} picks · ${wins} win / ${loses} lose
+              </div>
+            </div>
+            <span class="category-chevron">▶</span>
+          </summary>
+          <div class="category-body">
+            ${
+              trCatDesc(cat)
+                ? `<p class="category-winrate">${trCatDesc(cat)}</p>`
+                : ""
+            }
+            <div class="picks-grid">
+      `;
+
+      for (const p of list) {
+        const dt = parseMatchDateTime(p);
+        const timeStr = dt
+          ? dt.toLocaleTimeString("it-IT", { timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit" })
+          : (p.match_time || "-");
+
+        const oddNum = Number(p.odd || 0);
+        const oddStr = oddNum ? oddNum.toFixed(2) : "-";
+        const roiBadgeHtml =
+          (p.roi_tag === "ROI_PICK")
+            ? '<span class="roi-badge main">ROI PICK</span>'
+            : (p.roi_tag === "BACKUP")
+              ? '<span class="roi-badge backup">BACKUP</span>'
+              : "";
+
+
+        const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
+        const res = resultMap.get(key);
+        const resResult = res ? res.result : "";
+        const resScore = res ? res.final_score : "";
+        const statusShort = res && res.status_short ? String(res.status_short).toUpperCase() : "";
+
+        let resultLabel = (resResult || "").toUpperCase();
+        let resultClass = classifyResult(resResult);
+
+        const liveStatuses = ["1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"];
+        if (resultLabel === "PENDING" && liveStatuses.includes(statusShort)) {
+          resultLabel = "LIVE";
+          resultClass = "live";
+        }
+
+        const cardExtraClass = resultClass ? ` ${resultClass}` : "";
+
+        const finalScore = resScore || "";
+        let badgeText = "";
+        if (resultLabel) {
+          badgeText = finalScore
+            ? `${translateResultLabel(resultLabel)} · ${finalScore}`
+            : translateResultLabel(resultLabel);
+        }
+        const badgeClass = resultClass ? ` ${resultClass}` : "";
+
+        const confValue = Number(p.score || 0) * 100;
+        const confLabel = confidenceLabel(confValue);
+
+        // Testo ruolo/confidenza
+        let scoreHtml;
+        if (cat === "DAILY_2PLUS") {
+          scoreHtml = `
+            <span class="score-label-strong">Ruolo nel bankroll:</span>
+            combo selettiva su eventi filtrati dal modello, da usare solo in multipla.
+          `;
+        } else {
+          scoreHtml = `
+            <span class="score-label-strong">Confidenza modello:</span> ${confLabel}
+          `;
+        }
+
+        const fb = feedbackMap.get(key) || { like: 0, dislike: 0 };
+
+        html += `
+          <div class="pick-card${cardExtraClass}">
+            <div class="pick-header">
+              <span class="league-pill">${p.league || ""} (${p.country || ""})</span>
+              ${roiBadgeHtml}
+              <span class="match-time">${timeStr}</span>
+            </div>
+            <div class="teams">
+              ${p.home || ""} – ${p.away || ""}
+            </div>
+            <div class="pick-main">
+              <span class="pick-label">${p.pick || ""}</span>
+              <span class="odd-label">@ ${oddStr}</span>
+            </div>
+            <div class="meta-row">
+              <span class="score-text">
+                ${scoreHtml}
+              </span>
+              ${
+                badgeText
+                  ? `<span class="result-badge${badgeClass}">${badgeText}</span>`
+                  : ""
+              }
+            </div>
+            <div class="feedback-row" data-key="${key}">
+              <button class="vote-btn" data-vote="like">
+                👍 <span class="vote-count">${fb.like || 0}</span>
+              </button>
+              <button class="vote-btn" data-vote="dislike">
+                👎 <span class="vote-count">${fb.dislike || 0}</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      html += `
+            </div>
+          </div>
+        </details>
+      `;
+    }
+
+    html += `</div>`; // chiusura categories-container
+
+              // ================== SCHEDINE PRONTE (COMBO_TICKETS) ==================
+
+    // ordiniamo in modo fisso X2, X5, X10, X20
+    const TICKET_ORDER = ["X2", "X5", "X10", "X20"];
+    
+const TICKET_LABELS = {
+  X2: tr("ticket_X2"),
+  X5: tr("ticket_X5"),
+  X10: tr("ticket_X10"),
+  X20: tr("ticket_X20")
+};
+
+    let comboTickets = [];
+    try {
+      comboTickets = await sbFetch(
+        "combo_tickets",
+        `?run_date=eq.${todayStr}&select=*`
+      );
+    } catch (e) {
+      console.warn("Errore caricamento combo_tickets:", e);
+    }
+
+    if (Array.isArray(comboTickets) && comboTickets.length) {
+      comboTickets.sort((a, b) => {
+        const ta = (a.ticket_type || "").toUpperCase();
+        const tb = (b.ticket_type || "").toUpperCase();
+        const ia = TICKET_ORDER.indexOf(ta);
+        const ib = TICKET_ORDER.indexOf(tb);
+        if (ia === -1 && ib === -1) return 0;
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
+
+      html += `
+        <section class="combo-section">
+          <div class="combo-header-row">
+            <div class="combo-title">${tr("combo_title")}</div>
+            <p class="combo-subtitle">${tr("combo_subtitle")}</p>
+          </div>
+          <div class="combo-accordions">
+      `;
+
+      for (const t of comboTickets) {
+        const type = (t.ticket_type || "").toUpperCase();
+        const label = TICKET_LABELS[type] || t.label || type;
+        const storedOdd = Number(t.total_odd || 0);
+
+        const legs = Array.isArray(t.legs) ? t.legs : [];
+
+        let hasLose = false;
+        let hasPending = false;
+        let hasUnknown = false;
+        let hasVoid = false;
+        const legViews = [];
+        const nonVoidLegs = [];
+
+        for (const leg of legs) {
+          const fid = String(leg.fixture_id || "").trim();
+          const pickText = String(leg.pick || "").trim();
+          const key = fid && pickText ? `${fid}__${pickText}` : null;
+          let r = key ? resultMap.get(key) : null;
+          // Fallback 1: se non troviamo match per (fixture_id + pick),
+          // usiamo comunque il primo risultato disponibile per quel fixture.
+          // Le schedine pronte NON entrano nel ROI globale, quindi questo
+          // compromesso è accettabile per mostrare correttamente il punteggio.
+          if (!r && fid) {
+            const arr = fixtureResultMap.get(fid);
+            if (arr && arr.length >= 1) {
+              r = arr[0];
+            }
+          }
+          // Fallback 2: se ancora niente, proviamo a matchare per nome squadra
+          if (!r && Array.isArray(results)) {
+            const homeName = (leg.home || "").toLowerCase().trim();
+            const awayName = (leg.away || "").toLowerCase().trim();
+            if (homeName && awayName) {
+              r = results.find(rr => {
+                const rh = String(rr.home || "").toLowerCase().trim();
+                const ra = String(rr.away || "").toLowerCase().trim();
+                return rh.includes(homeName) && ra.includes(awayName);
+              }) || null;
             }
           }
 
-          return {
-            fixture_id: safeGet(x, ["fixture_id"]) || safeGet(x, ["fixture","id"]) || safeGet(x, ["fixture","fixture_id"]) || safeGet(x, ["id"]),
-            kickoff_utc: safeGet(x, ["kickoff_utc"]) || safeGet(x, ["fixture","date"]) || safeGet(x, ["kickoff"]) || safeGet(x, ["date"]),
-            league_id: safeGet(x, ["league_id"]) || safeGet(x, ["league","id"]) || null,
-            league: safeGet(x, ["league"]) || safeGet(x, ["league","name"]) || "",
-            season: safeGet(x, ["season"]) || safeGet(x, ["league","season"]) || null,
-            home_id: safeGet(x, ["home","id"]) || safeGet(x, ["teams","home","id"]) || safeGet(x, ["home_id"]) || null,
-            away_id: safeGet(x, ["away","id"]) || safeGet(x, ["teams","away","id"]) || safeGet(x, ["away_id"]) || null,
-            home_name: String(homeName || "").trim(),
-            away_name: String(awayName || "").trim()
-          };
-        });
-applyFilters();
-        reloadBtn.disabled = false;
-      })
-      .catch(function(err){
-        reloadBtn.disabled = false;
-        fixturesEl.innerHTML = '<div class="muted2">Errore fixtures. Apri console.</div>';
-        console.error("fixtures error:", err);
+          const rawRes = (r && r.result) ? r.result.toUpperCase() : "UNKNOWN";
+          const statusShort = (r && r.status_short ? r.status_short : "").toUpperCase();
+
+          const isVoid =
+            rawRes === "VOID" ||
+            ["PST", "CANC", "ABD"].includes(statusShort);
+
+          let logicalRes = rawRes;
+          if (isVoid) {
+            logicalRes = "VOID";
+            hasVoid = true;
+          } else {
+            if (logicalRes === "LOSE") {
+              hasLose = true;
+            } else if (logicalRes === "PENDING") {
+              hasPending = true;
+            } else if (logicalRes !== "WIN") {
+              hasUnknown = true;
+            }
+            nonVoidLegs.push({ leg, r, logicalRes });
+          }
+
+          const cls = classifyResult(logicalRes);
+          const score = r && r.final_score ? r.final_score : "";
+
+          legViews.push({
+            leg,
+            cls,
+            score,
+            res: logicalRes,
+            isVoid,
+            status_short: statusShort,
+          });
+        }
+
+        let ticketStatus = "UNKNOWN";
+        if (nonVoidLegs.length === 0) {
+          ticketStatus = "UNKNOWN"; // tutte VOID → schedina annullata/ignorata
+        } else if (hasLose) {
+          ticketStatus = "LOSE";
+        } else if (hasPending || hasUnknown) {
+          ticketStatus = "PENDING";
+        } else {
+          ticketStatus = "WIN";
+        }
+
+        // quota effettiva: prodotto solo gambe non-void
+        let effectiveOdd = 1.0;
+        let hasNonVoidOdd = false;
+        for (const lv of legViews) {
+          if (lv.isVoid) continue;
+          const legOddNum = Number(lv.leg.odd || 0);
+          if (legOddNum > 1) {
+            effectiveOdd *= legOddNum;
+            hasNonVoidOdd = true;
+          }
+        }
+
+        let oddToShow;
+        if (ticketStatus === "WIN" || ticketStatus === "LOSE") {
+          oddToShow = hasNonVoidOdd ? effectiveOdd : storedOdd;
+        } else {
+          oddToShow = storedOdd || (hasNonVoidOdd ? effectiveOdd : 0);
+        }
+        const totalOddStr = oddToShow ? oddToShow.toFixed(2) : "-";
+
+        const statusClass = classifyResult(ticketStatus);
+        const statusLabel =
+          ticketStatus === "UNKNOWN"
+            ? tr("preparing")
+            : (ticketStatus === "PENDING" ? tr("waiting") : ticketStatus);
+
+        html += `
+          <details class="combo-accordion ${statusClass || ""}">
+            <summary>
+              <div class="combo-summary-main">
+                <div class="combo-label-row">
+                  <span class="combo-label">${label}</span>
+                  <span class="combo-type-pill">${type}</span>
+                </div>
+                <div class="combo-summary-meta">
+                  <span class="combo-total-odd">Quota totale: ${totalOddStr}</span>
+                </div>
+              </div>
+              <div class="combo-summary-right">
+                <span class="result-badge ${statusClass || ""}">
+                  ${statusLabel}
+                </span>
+                <span class="combo-chevron">▶</span>
+              </div>
+            </summary>
+            <div class="combo-body">
+              <div class="combo-legs">
+        `;
+
+        for (const lv of legViews) {
+          const leg = lv.leg;
+          const teams = `${leg.home || ""} – ${leg.away || ""}`;
+          const legOddNum = Number(leg.odd || 0);
+          const legOddStr = legOddNum ? legOddNum.toFixed(2) : "-";
+          const pickLabel = `${leg.pick || ""} @ ${legOddStr}`;
+          let timeStr = leg.match_time || "-";
+          const fid = (leg.fixture_id != null) ? String(leg.fixture_id).trim() : "";
+          const pickRow = fid ? fixturePickLookup.get(fid) : null;
+          if (pickRow) {
+            const dtLeg = parseMatchDateTime(pickRow);
+            if (dtLeg) {
+              timeStr = dtLeg.toLocaleTimeString("it-IT", { timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit" });
+            }
+          }
+          const leagueStr = leg.league || "";
+          const countryStr = leg.country || "";
+          const catLabel = getCategoryLabel(leg.category || "");
+
+          let legBadge = "";
+          if (lv.res && lv.res !== "UNKNOWN") {
+            let legLabel = lv.res;
+            let legClass = lv.cls || "";
+            const liveStatuses = ["1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"];
+            const stShort = (lv.status_short ? String(lv.status_short).toUpperCase() : "");
+            if (legLabel === "PENDING" && liveStatuses.includes(stShort)) {
+              legLabel = "LIVE";
+              legClass = "live";
+            }
+            const txt = lv.score ? `${translateResultLabel(legLabel)} · ${lv.score}` : translateResultLabel(legLabel);
+            legBadge = `<span class="result-badge ${legClass}">${txt}</span>`;
+          }
+
+          html += `
+            <div class="combo-leg">
+              <div class="combo-leg-main">
+                <span class="combo-leg-teams">${teams}</span>
+                <span class="combo-leg-pick">${pickLabel}</span>
+              </div>
+              <div class="combo-leg-extra">
+                <span class="combo-pill">${timeStr}</span>
+                <span class="combo-pill">
+                  ${leagueStr}${countryStr ? " (" + countryStr + ")" : ""}
+                </span>
+                <span class="combo-pill">${catLabel}</span>
+                ${legBadge}
+              </div>
+            </div>
+          `;
+        }
+
+        html += `
+              </div>
+            </div>
+          </details>
+        `;
+      }
+
+      html += `
+          </div>
+        </section>
+      `;
+    }
+container.innerHTML = html;
+setupVoteHandlers(feedbackMap, todayStr);
+
+// Scroll to top button
+(function setupScrollTop() {
+  const btn = document.getElementById("scroll-top-btn");
+  if (!btn) return;
+
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 260) {
+      btn.classList.add("visible");
+    } else {
+      btn.classList.remove("visible");
+    }
+  });
+
+  btn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+})();
+
+    // Bottoni espandi / chiudi tutto dopo il render delle categorie
+    const btnExpandAll = document.getElementById("btn-expand-all");
+    const btnCollapseAll = document.getElementById("btn-collapse-all");
+    if (btnExpandAll && btnCollapseAll) {
+      btnExpandAll.addEventListener("click", () => {
+        document.querySelectorAll(".category-block").forEach(d => d.open = true);
       });
+      btnCollapseAll.addEventListener("click", () => {
+        document.querySelectorAll(".category-block").forEach(d => d.open = false);
+      });
+    }
+  } catch (err) {
+    console.error("Errore caricamento picks:", err);
+    container.innerHTML = `
+      <div class="empty-state">
+        Errore nel caricamento dei dati. Riprova tra qualche minuto.
+      </div>
+    `;
   }
-
-  // --- Poisson helpers ---
-  function poissonP(k, lambda){
-    // P(X=k) = e^-λ * λ^k / k!
-    if (!(lambda>=0)) return null;
-    if (!(k>=0)) return null;
-    var p = Math.exp(-lambda);
-    for (var i=1; i<=k; i++){
-      p = p * (lambda / i);
-    }
-    return p;
-  }
-
-  function poissonCdf(k, lambda){
-    var s = 0;
-    for (var i=0;i<=k;i++){
-      var p = poissonP(i, lambda);
-      if (p === null) return null;
-      s += p;
-    }
-    return s;
-  }
-
-  function pOver(threshold, lambda){
-    // P(X > threshold)
-    // threshold è tipo 1.5 -> quindi P(X >= 2)
-    var k = Math.floor(threshold + 1e-9);
-    var cdf = poissonCdf(k, lambda);
-    if (cdf === null) return null;
-    return 1 - cdf;
-  }
-
-  function renderGoals(model){
-    if (!model) { goalBox.textContent = t("nd"); return; }
-    var lt = model.lambda_total;
-    var lh = model.lambda_home;
-    var la = model.lambda_away;
-    if (!(lt>=0)) { goalBox.textContent = t("nd"); return; }
-
-    var html = "";
-    html += '<div>λ totale: <b>'+fmtNum(lt,2)+'</b> (home '+fmtNum(lh,2)+' / away '+fmtNum(la,2)+')</div>';
-    html += '<div style="margin-top:8px;">P Over 1.5 <b style="float:right">'+pct(pOver(1.5, lt),1)+'</b></div>';
-    html += '<div style="margin-top:6px;">P Over 2.5 <b style="float:right">'+pct(pOver(2.5, lt),1)+'</b></div>';
-    html += '<div style="margin-top:6px;">P Over 3.5 <b style="float:right">'+pct(pOver(3.5, lt),1)+'</b></div>';
-    goalBox.innerHTML = html;
-  }
-
-  function renderExotics(exotics, fixture){
-    if (!exotics){
-      exoBox.textContent = t("nd");
-      return;
-    }
-
-    try{
-      var out = '';
-      var teams = exotics.teams || {};
-      var home = teams.home || {};
-      var away = teams.away || {};
-
-      out += '<div class="muted2"><b>'+escapeHtml(t("team_avgs"))+'</b></div>';
-
-      function kv(name, val){
-        if (val === null || val === undefined) return '';
-        return '<div class="kv"><div class="muted2">'+escapeHtml(name)+'</div><div><b>'+nf(val,2)+'</b></div></div>';
-      }
-
-      function teamBlock(label, tblock){
-        if (!tblock || !tblock.season_avgs) return '';
-        var a = tblock.season_avgs;
-        var h = '';
-        h += '<div style="font-weight:800; margin-top:10px;">'+escapeHtml(label)+'</div>';
-        h += '<div class="grid2">';
-        h += kv(t("corners_for_pg"), a.corners_for_pg);
-        h += kv(t("corners_against_pg"), a.corners_against_pg);
-        h += kv(t("fouls_for_pg"), a.fouls_for_pg);
-        h += kv(t("fouls_against_pg"), a.fouls_against_pg);
-        h += kv(t("shots_for_pg"), a.shots_for_pg);
-        h += kv(t("shots_against_pg"), a.shots_against_pg);
-        h += kv(t("sot_for_pg"), a.sot_for_pg);
-        h += kv(t("sot_against_pg"), a.sot_against_pg);
-        h += '</div>';
-        return h;
-      }
-
-      out += teamBlock(home.name || "Home", home);
-      out += teamBlock(away.name || "Away", away);
-
-      var totals = exotics.totals || {};
-      if (totals && (totals.shots_total || totals.sot_total || totals.corners_total || totals.fouls_total || totals.cards_total)){
-        out += '<div class="hr"></div>';
-        out += '<div class="muted2"><b>'+escapeHtml(t("match_totals"))+'</b></div>';
-        var g = '<div class="grid2">';
-        if (totals.shots_total) g += kv('Shots', totals.shots_total.mean);
-        if (totals.sot_total) g += kv('SoT', totals.sot_total.mean);
-        if (totals.corners_total) g += kv('Corners', totals.corners_total.mean);
-        if (totals.fouls_total) g += kv('Fouls', totals.fouls_total.mean);
-        if (totals.cards_total) g += kv('Cards', totals.cards_total.mean);
-        g += '</div>';
-        out += g;
-      }
-
-      exoBox.innerHTML = out || t("nd");
-    }catch(e){
-      exoBox.textContent = t("nd");
-    }
-  }
-
-
-  function renderPlayers(exotics){
-    var players = exotics && exotics.players;
-    if (!players){
-      playersBox.textContent = t("nd");
-      return;
-    }
-
-    function metricLine(label, key, it){
-      var v = it && it[key];
-      return '• '+escapeHtml(it.name)+' ('+escapeHtml(it.position||'')+') — '+escapeHtml(label)+': <b>'+nf(v,2)+'</b> — '+escapeHtml(t("apps"))+': '+escapeHtml(it.apps);
-    }
-
-    function section(teamName, block){
-      if (!block) return '';
-      var out = '<div style="font-weight:800; margin-bottom:6px;">'+escapeHtml(teamName)+'</div>';
-
-      function one(title, arr, label, key){
-        if (!arr || !arr.length) return '';
-        var s = '<div class="muted2" style="margin-top:8px;"><b>'+escapeHtml(title)+'</b></div>';
-        for (var i=0;i<arr.length;i++){
-          s += '<div>'+metricLine(label, key, arr[i])+'</div>';
-        }
-        return s;
-      }
-
-      out += one(t("top_shots"), block.topShots, t("shots_pg_lbl"), "shots_per_game");
-      out += one(t("top_sot"), block.topSoT, t("sot_pg_lbl"), "sot_per_game");
-      out += one(t("top_fouls"), block.topFouls, t("fouls_pg_lbl"), "fouls_per_game");
-      out += one(t("top_cards"), block.topCards, t("yellow_pg_lbl"), "yellow_per_game");
-      return out;
-    }
-
-    var out = '';
-    out += section((exotics && exotics.teams && exotics.teams.home && exotics.teams.home.name) ? exotics.teams.home.name : 'Home', players.home);
-    out += '<div class="hr"></div>';
-    out += section((exotics && exotics.teams && exotics.teams.away && exotics.teams.away.name) ? exotics.teams.away.name : 'Away', players.away);
-
-    playersBox.innerHTML = out || t("nd");
-  }
-
-
-
-  function renderMatchups(exotics, fixture){
-    var m = exotics && exotics.matchups;
-    if (!m || !m.available || !m.top5){
-      matchupsBox.textContent = t("lineups_missing");
-      return;
-    }
-
-    function sec(title, arr, statKey, label){
-      if (!arr || !arr.length) return '';
-      var out = '<div class="muted2" style="margin-top:10px;"><b>'+escapeHtml(title)+'</b></div>';
-      for (var i=0;i<arr.length;i++){
-        var it = arr[i] || {};
-        var stat = it[statKey];
-        out += '<div class="listItem">';
-        out +=   '<div class="listHead"><div class="listMain"><b>'+escapeHtml(it.name||t("nd"))+'</b></div></div>';
-        if (stat !== null && stat !== undefined){
-          out += '<div class="listSub" style="margin-top:8px;">• '+escapeHtml(label)+': '+nf(stat,2)+'</div>';
-        }
-        out += '</div>';
-      }
-      return out;
-    }
-
-    var top = m.top5;
-    var h = '';
-    h += sec(t("top_shots"), (top.reliable && top.reliable.shots) || [], "shots_per90", "Shots p90");
-    h += sec(t("top_sot"), (top.reliable && top.reliable.sot) || [], "sot_per90", "SoT p90");
-    h += sec(t("top_fouls"), (top.reliable && top.reliable.fouls) || [], "fouls_per90", "Fouls p90");
-    h += sec(t("top_cards"), (top.reliable && top.reliable.cards) || [], "yellow_per90", "Y p90");
-
-    matchupsBox.innerHTML = h || t("nd");
-  }
-
-
+}
 
 
     
-  function renderChicche(exotics){
-    var c = exotics && exotics.chicche;
-    if (!c || !c.available || !c.picks || !c.picks.length){
-      chiccheBox.textContent = t("nd");
-      return;
-    }
+function applyStaticTranslations() {
+  const subtitleEl = document.getElementById("subtitle");
+  if (subtitleEl) subtitleEl.innerHTML = tr("subtitle");
 
-    function plusFromLine(line){
-      if (line === 0.5) return t("plus1");
-      if (line === 1.5) return t("plus2");
-      if (line === 2.5) return t("plus3");
-      return "";
-    }
+  const lw = document.getElementById("legend-win");
+  const ll = document.getElementById("legend-lose");
+  const lp = document.getElementById("legend-pending");
+  if (lw) lw.textContent = tr("legend_win");
+  if (ll) ll.textContent = tr("legend_lose");
+  if (lp) lp.textContent = tr("legend_pending");
 
-    function pickLabel(p){
-      var m = String(p.market||"").toLowerCase();
-      var l = Number(p.line);
-      if (m.indexOf("shots on target")>-1 || m.indexOf("sot")>-1) return t("pick_sot")+" "+plusFromLine(l);
-      if (m.indexOf("player shots")>-1 || m === "player shots") return t("pick_shots")+" "+plusFromLine(l);
-      if (m.indexOf("foul")>-1) return t("pick_fouls")+" "+plusFromLine(l);
-      if (m.indexOf("yellow")>-1 || m.indexOf("card")>-1) return t("pick_card");
-      return (p.market || "Pick");
-    }
+  const hn = document.getElementById("legend-note");
+  if (hn) hn.textContent = tr("legend_note");
 
-    function p90Line(p){
-      var why = (p && p.why) ? p.why : [];
-      for (var i=0;i<why.length;i++){
-        var s = String(why[i]||"");
-        if (s.indexOf("p90")>-1 || s.indexOf("p/90")>-1) return s;
-      }
-      return "";
-    }
+  const h1 = document.getElementById("legend-history");
+  const h2 = document.getElementById("legend-history-picks");
+  if (h1) h1.textContent = tr("history");
+  if (h2) h2.textContent = tr("history_picks");
 
-    function riskTag(tier){
-      var t0 = String(tier||"").toLowerCase();
-      var cls = (t0 === "spicy") ? "spicy" : (t0 === "high" ? "high" : (t0 === "medium" ? "medium" : "safe"));
-      var label = (t0 === "spicy") ? t("spicy") : (t0 === "high" ? t("risk_high") : (t0 === "medium" ? t("risk_medium") : t("safe")));
-      return '<span class="tag '+cls+'">'+escapeHtml(label)+'</span>';
-    }
+  
 
-    var out = '';
-    for (var j=0;j<c.picks.length;j++){
-      var p = c.picks[j] || {};
-      out += '<div class="listItem">';
-      out +=   '<div class="listHead">';
-      out +=     '<div class="listMain"><b>'+escapeHtml(p.name||t("nd"))+'</b> <span class="muted2">'+escapeHtml(pickLabel(p))+'</span></div>';
-      out +=     (p.risk_tier ? riskTag(p.risk_tier) : '');
-      out +=   '</div>';
-      var st = p90Line(p);
-      if (st) out += '<div class="listSub" style="margin-top:8px;">• '+escapeHtml(st)+'</div>';
-      out += '</div>';
-    }
+  const bb = document.getElementById("legend-betbuilder");
+  if (bb) bb.textContent = tr("betbuilder");
+const appText = document.getElementById("app-cta-text");
+  const appBtn = document.getElementById("app-cta-button");
+  if (appText) appText.textContent = tr("app_cta");
+  if (appBtn) appBtn.textContent = tr("app_soon");
 
-    chiccheBox.innerHTML = out || t("nd");
+  
+
+  const appHeader = document.getElementById("app-header-button");
+  if (appHeader) appHeader.textContent = tr("app_header");
+const coffee = document.getElementById("coffee-cta");
+  if (coffee) coffee.textContent = tr("coffee_cta");
+
+  // Highlight active language button
+  const lang = getLang();
+  const itBtn = document.getElementById("lang-it");
+  const enBtn = document.getElementById("lang-en");
+  if (itBtn && enBtn) {
+    itBtn.classList.toggle("active", lang === "it");
+    enBtn.classList.toggle("active", lang === "en");
+
+      const msLabel = document.getElementById("model-stats-label");
+      if (msLabel) msLabel.textContent = tr("model_stats_label");
+
+      const gSum = document.getElementById("guide-summary");
+      const gBlock = document.getElementById("guide-block");
+      if (gSum) gSum.textContent = tr("guide_summary");
+      if (gBlock) gBlock.innerHTML = tr("guide_html");
+
+  }
+}
+
+function setupLanguageSwitch() {
+  const itBtn = document.getElementById("lang-it");
+  const enBtn = document.getElementById("lang-en");
+  if (!itBtn || !enBtn) return;
+
+  function setLang(lang) {
+    const l = (lang === "it") ? "it" : "en";
+    localStorage.setItem("pb_lang", l);
+
+    // Keep the URL stable but expose SEO-friendly parameter.
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", l);
+    window.location.href = url.toString();
   }
 
+  itBtn.addEventListener("click", () => setLang("it"));
+  enBtn.addEventListener("click", () => setLang("en"));
+}
 
-function renderBets(exotics){
-    if (!betsBox) return;
-    var bets = exotics && exotics.bets;
-    if (!bets){ betsBox.textContent = "n/d"; return; }
+document.addEventListener("DOMContentLoaded", () => {
+  applyStaticTranslations();
+  setupLanguageSwitch();
+  loadTodayPicks();
+});
+  </script>
 
-    function fmtNum(x, d){
-      if (x === null || x === undefined) return "n/d";
-      if (typeof x !== "number" || !isFinite(x)) return "n/d";
-      return x.toFixed(d == null ? 2 : d);
-    }
+  <button id="scroll-top-btn" class="scroll-top-btn">Torna su</button>
 
-    function renderOne(kind, obj){
-      if (!obj) return '';
-      var cls = (kind === "easy") ? "safe" : (kind === "medium" ? "med" : "hard");
-      var title = escapeHtml(obj.name || kind.toUpperCase());
-      var tgt   = escapeHtml(obj.target || obj.target_odds || "n/d");
-      var q     = fmtNum(obj.est_total_odds, 2);
-
-      var out = '';
-      out += '<div class="betCard">';
-      out +=   '<div class="betHead">';
-      out +=     pill(title, cls);
-      var q_real = fmtNum(obj.total_odds_real, 2);
-      var hasReal = (q_real !== "n/d");
-      var q_show = hasReal ? q_real : q;
-      var label = hasReal ? "quota reale" : "quota stimata";
-      out +=     '<span class="betMeta">'+label+' <b>'+q_show+'</b> <span class="muted2">('+tgt+')</span></span>';
-      out +=   '</div>';
-
-      var legs = obj.legs || [];
-      for (var i=0;i<legs.length;i++){
-        var leg = legs[i] || {};
-        var mkt = leg.market || leg.label || ("Leg "+(i+1));
-        var team = leg.team ? (' — ' + escapeHtml(leg.team)) : '';
-        var selection = escapeHtml(leg.selection || "n/d");
-        var oddsVal = (leg.odds_real != null && typeof leg.odds_real === "number" && isFinite(leg.odds_real)) ? leg.odds_real
-                  : ((leg.est_odds != null && typeof leg.est_odds === "number" && isFinite(leg.est_odds)) ? leg.est_odds : null);
-        var odds = (oddsVal != null) ? ('<span class="muted2">@'+oddsVal.toFixed(2)+(leg.odds_real != null ? ' (real)' : '')+'</span>') : '';
-        var pos = leg.position ? (' <span class="muted2">['+escapeHtml(leg.position)+']</span>') : '';
-        var line = (leg.line != null && typeof leg.line === "number" && isFinite(leg.line)) ? ('<span class="muted2">('+leg.line.toFixed(1)+')</span>') : '';
-
-        out += '<div class="prettyRow">';
-        out +=   '<div class="prTop">'+escapeHtml(mkt)+team+' '+line+'</div>';
-        out +=   '<div class="prBot">'+selection+' '+odds+pos+'</div>';
-        out += '</div>';
-      }
-
-      if (obj.note){
-        out += '<div class="muted2" style="margin-top:6px;">'+escapeHtml(obj.note)+'</div>';
-      }
-      out += '</div>';
-      return out;
-    }
-
-    var html = '';
-    html += renderOne("easy", bets.easy);
-    html += renderOne("medium", bets.medium);
-    html += renderOne("hard", bets.hard);
-    betsBox.innerHTML = html || "n/d";
-  }
-
-  function runAnalyze(){
-    if (!selected || !selected.fixture_id) return;
-
-    anBtn.disabled = true;
-    if (rawOut) rawOut.textContent = "Analisi in corso...";
-    goalBox.textContent = t("nd");
-    exoBox.textContent = t("nd");
-    playersBox.textContent = t("nd");
-    matchupsBox.textContent = t("nd");
-    chiccheBox.textContent = t("nd");
-    if (betsBox) betsBox.textContent = "n/d";
-
-    var url = backend.replace(/\/$/,"") + "/api/analyze?cb=" + Date.now();
-
-    fetch(url, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ fixture_id: selected.fixture_id })
-    })
-    .then(function(r){
-      return r.json().then(function(j){ return { ok:r.ok, status:r.status, body:j }; });
-    })
-    .then(function(res){
-      if (!res.ok){
-        if (rawOut) rawOut.textContent = JSON.stringify(res.body, null, 2);
-        throw new Error("analyze "+res.status+" "+JSON.stringify(res.body));
-      }
-      var d = res.body;
-      window.lastAnalysis = d;
-
-      if (rawOut) rawOut.textContent = JSON.stringify(d, null, 2);
-
-      renderGoals(d.goals_model);
-      renderExotics(d.exotics, d.fixture);
-      renderPlayers(d.exotics, d.fixture);
-      renderMatchups(d.exotics, d.fixture);
-      renderChicche(d.exotics);
-      if (typeof renderBets === 'function') renderBets(d.exotics);
-
-      // UX: dopo analisi, apri subito Chicche
-      setTab('chicche');
-      anBtn.disabled = false;
-    })
-    .catch(function(err){
-      console.error(err);
-      if (rawOut) rawOut.textContent = "Errore analisi. Apri console.";
-      anBtn.disabled = false;
-    });
-  }
-
-  // ---- events ----
-  reloadBtn.addEventListener("click", function(){ loadFixtures(); });
-  qInp.addEventListener("input", function(){ applyFilters(); });
-  var leagueBoxes = document.querySelectorAll("input.lg");
-  for (var i=0;i<leagueBoxes.length;i++){
-    leagueBoxes[i].addEventListener("change", function(){ loadFixtures(); });
-  }
-  dateInp.addEventListener("change", function(){ loadFixtures(); });
-  anBtn.addEventListener("click", function(){ runAnalyze(); });
-
-  // ---- init ----
-  setBackend(DEFAULT_BACKEND);
-  try{ localizeStaticUI(); }catch(e){}
-  if (typeof setMiniFromSelected === 'function') setMiniFromSelected(null);
-  dateInp.value = todayISO();
-  setTab('overview');
-  loadFixtures();
-})();
+<script>
+  // ROI nascosto su index: visibile solo nella pagina storico ROI
+  document.addEventListener("DOMContentLoaded", () => {
+    const el = document.getElementById("model-stats-box");
+    if (el) el.style.display = "none";
+  });
 </script>
+
 </body>
 </html>
