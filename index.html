@@ -2,15 +2,15 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Pronostici Bomba – Pronostici calcio con statistiche reali e ROI trasparente</title>
+  <title>Pronostici Bomba – Pronostici calcio + Bet Builder esclusivo in app</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- SEO base -->
   <meta name="description"
-        content="Pronostici Bomba genera pronostici calcio con modelli statistici e dati reali, seleziona solo le partite con valore e mostra uno storico ROI trasparente e aggiornato.">
+        content="Pronostici Bomba genera pronostici calcio con modelli statistici e dati reali, mostra uno storico ROI trasparente e aggiornato, e sull’app offre il Bet Builder esclusivo.">
   <meta name="keywords"
-        content="pronostici calcio, pronostici oggi, scommesse sportive, over 1.5, over 2.5, betting tips, quote di valore, pronostici statistiche, pronostici bomba">
+        content="pronostici calcio, pronostici oggi, scommesse sportive, over 1.5, over 2.5, betting tips, quote di valore, pronostici statistiche, pronostici bomba, bet builder, betbuilder">
   <meta name="robots" content="index,follow" />
   <link rel="canonical" href="https://pronosticibomba.com/" />
 
@@ -30,7 +30,7 @@
   <meta property="og:site_name" content="Pronostici Bomba">
   <meta property="og:title" content="Pronostici Bomba – Pronostici calcio con ROI reale">
   <meta property="og:description"
-        content="Pronostici automatici da modelli su statistiche e quote, filtrati per qualità e rischio. Storico ROI pubblico per capire davvero come performano le selezioni. Disponibile anche come app Android su Google Play.">
+        content="Pronostici automatici da modelli su statistiche e quote, filtrati per qualità e rischio. Storico ROI pubblico. Nell’app Android trovi anche il Bet Builder esclusivo (solo app).">
   <meta property="og:url" content="https://pronosticibomba.com/">
   <meta property="og:image" content="https://pronosticibomba.com/favicon.png">
   <meta property="og:locale" content="it_IT">
@@ -39,42 +39,50 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Pronostici Bomba – Pronostici calcio con ROI reale">
   <meta name="twitter:description"
-        content="Modelli statistici, analisi delle quote e pronostici giornalieri con storico ROI consultabile. App Android su Google Play.">
+        content="Modelli statistici, analisi quote e pronostici giornalieri con storico ROI consultabile. Su app Android trovi anche il Bet Builder esclusivo.">
   <meta name="twitter:image" content="https://pronosticibomba.com/favicon.png">
 
   <!-- Structured Data (JSON-LD) -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "Pronostici Bomba",
-    "url": "https://pronosticibomba.com/",
-    "description": "Pronostici calcio generati da modelli statistici su dati reali, con storico ROI pubblico e spiegato.",
-    "inLanguage": "it-IT",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://pronosticibomba.com/?q={search_term_string}",
-      "query-input": "required name=search_term_string"
-    }
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Pronostici Bomba",
+  "url": "https://pronosticibomba.com/",
+  "description": "Pronostici calcio generati da modelli statistici su dati reali, con storico ROI pubblico e aggiornato.",
+  "inLanguage": "it-IT",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://pronosticibomba.com/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
   }
-  
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "MobileApplication",
-    "name": "Pronostici Bomba",
-    "operatingSystem": "ANDROID",
-    "applicationCategory": "SportsApplication",
-    "downloadUrl": "https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba",
-    "url": "https://pronosticibomba.com/",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "EUR"
-    }
-  }
-  </script>
+}
 </script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "MobileApplication",
+  "name": "Pronostici Bomba",
+  "operatingSystem": "ANDROID",
+  "applicationCategory": "SportsApplication",
+  "description": "Pronostici giornalieri, storico ROI pubblico e Bet Builder esclusivo disponibile solo nell’app.",
+  "featureList": [
+    "Pronostici giornalieri generati da modelli",
+    "Storico ROI trasparente",
+    "Notifiche quando escono nuove selezioni",
+    "Bet Builder esclusivo (solo app)"
+  ],
+  "downloadUrl": "https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba",
+  "url": "https://pronosticibomba.com/",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "EUR"
+  }
+}
+</script>
+
 
   <!-- STILI -->
   <style>
@@ -1271,7 +1279,9 @@
         <div class="legend-item">
           <a href="/storico_picks.html" class="history-link" id="legend-history-picks"></a>
         </div>
-      </div>
+      
+       
+</div>
 
       <p class="legend-note" id="legend-note"></p>
 
@@ -1314,7 +1324,10 @@
 
         subtitle: `I pronostici non sono copiati da altri siti: vengono generati giorno per giorno da modelli che analizzano quote,
         statistiche e dati storici. Vedi solo partite che superano determinati filtri di qualità e sono organizzate per
-        famiglia di selezioni, rischio e valore.`,
+        famiglia di selezioni, rischio e valore.
+
+In app trovi anche il Bet Builder, esclusivo (solo app).
+`,
 
         legend_win: "Presa",
         legend_lose: "Persa",
@@ -1397,12 +1410,14 @@ guide_html: `
         history: "Storico risultati",
         history_picks: "Storico dettagliato picks",
 
+        
+        betbuilder: "Bet Builder (solo app)",
         expand_all: "Espandi tutte",
         collapse_all: "Chiudi tutte",
 
         empty_today: `Nessun pick disponibile per oggi.<br />Torna più tardi quando i modelli avranno generato nuovi pronostici.`,
 
-        app_cta: "App ufficiale Android disponibile su Google Play: stesse picks del sito, con notifiche quando escono le nuove selezioni.",
+        app_cta: "App ufficiale Android disponibile su Google Play: stesse picks del sito, con notifiche quando escono le nuove selezioni, e Bet Builder esclusivo (solo app).",
         app_soon: "Scarica su Google Play",
 
         app_header: "App Android",
@@ -1468,7 +1483,10 @@ guide_html: `
 
         subtitle: `These tips are not copied from other websites: they are generated daily by models that analyze odds,
         statistics and historical data. You only see matches that pass strict quality filters and are grouped
-        by selection type, risk and value.`,
+        by selection type, risk and value.
+
+On the Android app you also get the exclusive Bet Builder (app only).
+`,
 
         legend_win: "Win",
         legend_lose: "Lose",
@@ -1542,12 +1560,14 @@ guide_html: `
         history: "Results history",
         history_picks: "Detailed picks history",
 
+        
+        betbuilder: "Bet Builder (app only)",
         expand_all: "Expand all",
         collapse_all: "Collapse all",
 
         empty_today: `No picks available for today.<br />Come back later when new selections are generated.`,
 
-        app_cta: "Official Android app is live on Google Play: same picks as the website, with notifications when new selections drop.",
+        app_cta: "Official Android app is live on Google Play: same picks as the website, with notifications when new selections drop, plus the exclusive Bet Builder (app only).",
         app_soon: "Get it on Google Play",
         app_header: "Android app",
 
@@ -2856,7 +2876,11 @@ function applyStaticTranslations() {
   if (h1) h1.textContent = tr("history");
   if (h2) h2.textContent = tr("history_picks");
 
-  const appText = document.getElementById("app-cta-text");
+  
+
+  const bb = document.getElementById("legend-betbuilder");
+  if (bb) bb.textContent = tr("betbuilder");
+const appText = document.getElementById("app-cta-text");
   const appBtn = document.getElementById("app-cta-button");
   if (appText) appText.textContent = tr("app_cta");
   if (appBtn) appBtn.textContent = tr("app_soon");
