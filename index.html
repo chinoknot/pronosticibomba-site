@@ -30,7 +30,7 @@
   <meta property="og:site_name" content="Pronostici Bomba">
   <meta property="og:title" content="Pronostici Bomba – Pronostici calcio con ROI reale">
   <meta property="og:description"
-        content="Pronostici automatici da modelli su statistiche e quote, filtrati per qualità e rischio. Storico ROI pubblico per capire davvero come performano le selezioni.">
+        content="Pronostici automatici da modelli su statistiche e quote, filtrati per qualità e rischio. Storico ROI pubblico per capire davvero come performano le selezioni. Disponibile anche come app Android su Google Play.">
   <meta property="og:url" content="https://pronosticibomba.com/">
   <meta property="og:image" content="https://pronosticibomba.com/favicon.png">
   <meta property="og:locale" content="it_IT">
@@ -39,7 +39,7 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Pronostici Bomba – Pronostici calcio con ROI reale">
   <meta name="twitter:description"
-        content="Modelli statistici, analisi delle quote e pronostici giornalieri con storico ROI consultabile.">
+        content="Modelli statistici, analisi delle quote e pronostici giornalieri con storico ROI consultabile. App Android su Google Play.">
   <meta name="twitter:image" content="https://pronosticibomba.com/favicon.png">
 
   <!-- Structured Data (JSON-LD) -->
@@ -57,7 +57,24 @@
       "query-input": "required name=search_term_string"
     }
   }
+  
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "MobileApplication",
+    "name": "Pronostici Bomba",
+    "operatingSystem": "ANDROID",
+    "applicationCategory": "SportsApplication",
+    "downloadUrl": "https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba",
+    "url": "https://pronosticibomba.com/",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR"
+    }
+  }
   </script>
+</script>
 
   <!-- STILI -->
   <style>
@@ -195,6 +212,39 @@
         border-color 0.16s ease,
         color 0.16s ease;
     }
+    /* App header button (Google Play) */
+    .app-header-button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(249, 115, 22, 0.65);
+      color: #ffedd5;
+
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 14px 30px rgba(15, 23, 42, 0.9);
+
+      cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+      white-space: nowrap;
+    }
+
+    .app-header-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(249, 115, 22, 0.95);
+      color: #ffffff;
+    }
+
 
     .coffee-button::after {
       content: "";
@@ -1185,6 +1235,14 @@
             <button type="button" class="lang-btn" id="lang-en">EN</button>
           </div>
           <a
+            href="https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba"
+            target="_blank"
+            rel="noopener"
+            class="app-header-button"
+            id="app-header-button"
+          ></a>
+
+          <a
           href="https://www.buymeacoffee.com/pronosticibomba"
           target="_blank"
           rel="noopener"
@@ -1240,7 +1298,7 @@
 
     <div class="app-cta">
       <span id="app-cta-text"></span>
-      <a class="app-cta-button disabled" href="#" aria-disabled="true" id="app-cta-button"></a>
+      <a class="app-cta-button" href="https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba" target="_blank" rel="noopener" id="app-cta-button"></a>
     </div>
   </main>
 
@@ -1344,8 +1402,10 @@ guide_html: `
 
         empty_today: `Nessun pick disponibile per oggi.<br />Torna più tardi quando i modelli avranno generato nuovi pronostici.`,
 
-        app_cta: "Stiamo preparando l'app Android ufficiale: stessa logica del sito, ma con notifiche per le nuove selezioni.",
-        app_soon: "In arrivo su Google Play",
+        app_cta: "App ufficiale Android disponibile su Google Play: stesse picks del sito, con notifiche quando escono le nuove selezioni.",
+        app_soon: "Scarica su Google Play",
+
+        app_header: "App Android",
 
         // Results / badges
         WIN: "WIN",
@@ -1487,8 +1547,9 @@ guide_html: `
 
         empty_today: `No picks available for today.<br />Come back later when new selections are generated.`,
 
-        app_cta: "We are preparing the official Android app: same logic as the website, with notifications for new picks.",
-        app_soon: "Coming soon on Google Play",
+        app_cta: "Official Android app is live on Google Play: same picks as the website, with notifications when new selections drop.",
+        app_soon: "Get it on Google Play",
+        app_header: "Android app",
 
         WIN: "WIN",
         LOSE: "LOSE",
@@ -2800,7 +2861,11 @@ function applyStaticTranslations() {
   if (appText) appText.textContent = tr("app_cta");
   if (appBtn) appBtn.textContent = tr("app_soon");
 
-  const coffee = document.getElementById("coffee-cta");
+  
+
+  const appHeader = document.getElementById("app-header-button");
+  if (appHeader) appHeader.textContent = tr("app_header");
+const coffee = document.getElementById("coffee-cta");
   if (coffee) coffee.textContent = tr("coffee_cta");
 
   // Highlight active language button
