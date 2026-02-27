@@ -474,6 +474,13 @@
       return CATEGORY_LABELS[k] || (cat || "Altro").replace(/_/g, " ");
     }
 
+
+// Categorie fuori ROI (visibili ma NON contate)
+function isExcludedCategory(cat) {
+  const k = String(cat || "").trim().toUpperCase();
+  return k.startsWith("CORNER_") || k === "BURN_CLOWN_BURN";
+}
+
     // ranking dei risultati: preferiamo righe con esito definito e match finito
     function resultRank(r) {
       let score = 0;
@@ -624,6 +631,7 @@
         // 4) statistiche (MODALITÀ EVENTO): 1 unità per fixture_id
 const byFixture = new Map();
 for (const r of dayRows) {
+  if (isExcludedCategory(r.category)) continue;
   const fid = String(r.fixture_id || "").trim();
   if (!fid) continue;
   if (!byFixture.has(fid)) byFixture.set(fid, []);
@@ -642,6 +650,7 @@ let profit = 0; // in unità (stake 1 per fixture risolta)
 // - se esiste almeno una WIN: prendi la WIN con score più alto (tie-break odd)
 // - altrimenti prendi la LOSE con score più alto (tie-break odd)
 function pickBestRow(rows) {
+  rows = (rows || []).filter(x => !isExcludedCategory(x.category));
   const resolved = rows.filter(x => {
     const res = (x.result || "").toUpperCase();
     return res === "WIN" || res === "LOSE";
