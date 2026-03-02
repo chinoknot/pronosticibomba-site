@@ -107,7 +107,7 @@
 
   function isExcludedCategory(cat) {
     const k = String(cat || "").trim().toUpperCase();
-    return k.startsWith("CORNER_") || k === "BURN_CLOWN_BURN";
+    return k.startsWith("CORNER") || k.startsWith("PATTERN_OVER") || k === "BURN_CLOWN_BURN";
   }
 
   async function apiFootballFetch(path, params) {
