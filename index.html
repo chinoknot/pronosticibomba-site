@@ -700,6 +700,12 @@
 .combo-accordion.lose {
   border-color: rgba(248, 113, 113, 0.9);
 }
+.combo-accordion.live {
+  border-color: rgba(56, 189, 248, 0.78);
+}
+.combo-accordion.finished {
+  border-color: rgba(148, 163, 184, 0.62);
+}
 .combo-accordion.unknown {
   border-color: rgba(148, 163, 184, 0.55);
 }
@@ -884,6 +890,16 @@
       box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.7);
     }
 
+    .pick-card.live {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.58);
+    }
+
+    .pick-card.finished {
+      border-color: #94a3b8;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.34);
+    }
+
     .pick-card.pending { border-color: #facc15; }
     .pick-card.unknown { border-color: #6b7280; }
 
@@ -1009,6 +1025,11 @@
     .result-badge.unknown {
       border-color: #6b7280;
       color: #e5e7eb;
+    }
+
+    .result-badge.finished {
+      border-color: #94a3b8;
+      color: #e2e8f0;
     }
 
     /* Feedback like / dislike */
@@ -1646,6 +1667,11 @@ guide_html: `
     const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
     const SUPABASE_ANON_KEY =
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
+    const API_FOOTBALL_BASE = "https://v3.football.api-sports.io";
+    const API_FOOTBALL_KEY = "daaf29bc97d50f28aa64816c7cc203bc";
+    const LIVE_REFRESH_MS = 60000;
+    const LIVE_STATUSES = new Set(["1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"]);
+    const FINAL_STATUSES = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
 
     async function sbFetch(table, query) {
       const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
@@ -1836,6 +1862,119 @@ function classifyResult(resultRaw) {
       return "";
     }
 
+function isExcludedCategory(cat) {
+  const k = normalizeCategory(cat);
+  // CORNER* (CORNER_, CORNERS, CORNER…) + PATTERN_OVER + BURN_CLOWN_BURN → fuori ROI
+  return k.startsWith("CORNER") || k.startsWith("PATTERN_OVER") || k === "BURN_CLOWN_BURN";
+}
+
+function isCornerLikePick(pickRow, explicitCategory) {
+  const category = explicitCategory ?? pickRow?.category;
+  const pickText = typeof pickRow === "string" ? pickRow : String(pickRow?.pick || "");
+  return isExcludedCategory(category) || /CORNER/i.test(pickText);
+}
+
+function evalResolvedPick(pickText, gh, ga) {
+  const total = Number(gh) + Number(ga);
+  const pickUpper = String(pickText || "").toUpperCase().trim();
+  if (!pickUpper) return "UNKNOWN";
+
+  if (pickUpper.includes("&")) {
+    const parts = pickUpper.split("&").map(part => part.trim()).filter(Boolean);
+    if (!parts.length) return "UNKNOWN";
+    const sub = parts.map(part => evalResolvedPick(part, gh, ga));
+    if (sub.includes("LOSE")) return "LOSE";
+    if (sub.every(result => result === "WIN")) return "WIN";
+    return "UNKNOWN";
+  }
+
+  const pickNorm = pickUpper.replace(/\([^)]*\)/g, "").trim();
+
+  if (pickNorm.includes("AWAY WINS") || pickNorm === "2") return ga > gh ? "WIN" : "LOSE";
+  if (pickNorm.includes("HOME WINS") || pickNorm === "1") return gh > ga ? "WIN" : "LOSE";
+  if (pickNorm.includes("DRAW") || pickNorm === "X") return gh === ga ? "WIN" : "LOSE";
+
+  if (pickNorm.includes("OVER")) {
+    const match = pickNorm.match(/OVER\s+(\d+(?:\.\d+)?)/);
+    if (!match) return "UNKNOWN";
+    return total > Number(match[1]) ? "WIN" : "LOSE";
+  }
+
+  if (pickNorm.includes("UNDER")) {
+    const match = pickNorm.match(/UNDER\s+(\d+(?:\.\d+)?)/);
+    if (!match) return "UNKNOWN";
+    return total < Number(match[1]) ? "WIN" : "LOSE";
+  }
+
+  if (pickNorm.includes("1X")) return gh >= ga ? "WIN" : "LOSE";
+  if (pickNorm.includes("X2")) return ga >= gh ? "WIN" : "LOSE";
+
+  if (pickNorm.includes("BOTH") || pickNorm.includes("BTTS")) {
+    if (pickNorm.includes("NO")) return !(gh > 0 && ga > 0) ? "WIN" : "LOSE";
+    return gh > 0 && ga > 0 ? "WIN" : "LOSE";
+  }
+
+  // GG / NG (entrambe segnano / nessuna segna)
+  if (pickNorm === "GG" || (pickNorm.startsWith("GG") && !pickNorm.includes("NG") && !pickNorm.includes("NO"))) {
+    return gh > 0 && ga > 0 ? "WIN" : "LOSE";
+  }
+  if (pickNorm === "NG" || pickNorm.includes("GG NO") || (pickNorm.includes("NG") && !pickNorm.includes("SINGLE"))) {
+    return !(gh > 0 && ga > 0) ? "WIN" : "LOSE";
+  }
+
+  // DNB – Draw No Bet (pareggio = VOID, trattato come UNKNOWN: il job Python lo gestisce)
+  if (pickNorm.includes("DNB")) {
+    const isHome = pickNorm.includes("1") || pickNorm.includes("HOME");
+    const isAway = pickNorm.includes("2") || pickNorm.includes("AWAY");
+    if (isHome) {
+      if (gh > ga) return "WIN";
+      if (gh === ga) return "UNKNOWN"; // void → lasciamo al job Python
+      return "LOSE";
+    }
+    if (isAway) {
+      if (ga > gh) return "WIN";
+      if (gh === ga) return "UNKNOWN";
+      return "LOSE";
+    }
+  }
+
+  return "UNKNOWN";
+}
+
+function deriveResolvedResultRow(pickRow, resultRow, liveFixture) {
+  const currentResult = String(resultRow?.result || "").toUpperCase();
+  if (currentResult === "WIN" || currentResult === "LOSE" || currentResult === "VOID") {
+    return resultRow;
+  }
+
+  if (!liveFixture) return resultRow || null;
+
+  const baseRow = {
+    ...(resultRow || {}),
+    final_score: liveFixture.score || (resultRow?.final_score || ""),
+    status_short: liveFixture.statusShort || (resultRow?.status_short || ""),
+  };
+
+  if (!liveFixture.isFinal || isCornerLikePick(pickRow)) {
+    return baseRow;
+  }
+
+  const derivedResult = evalResolvedPick(
+    typeof pickRow === "string" ? pickRow : pickRow?.pick,
+    liveFixture.homeGoals,
+    liveFixture.awayGoals
+  );
+
+  if (derivedResult !== "WIN" && derivedResult !== "LOSE") {
+    return baseRow;
+  }
+
+  return {
+    ...baseRow,
+    result: derivedResult,
+  };
+}
+
     
 function confidenceLabel(val) {
   if (val > 130) return tr("conf_very_high");
@@ -1852,6 +1991,164 @@ function confidenceLabel(val) {
 function getCategoryLabel(cat) {
   const k = (cat || "").toString().trim().toUpperCase();
   return trCat(k);
+}
+
+function serializeBadgeState(state) {
+  if (!state || !state.text) return "";
+  return JSON.stringify({
+    label: state.label || "",
+    className: state.className || "",
+    text: state.text || "",
+  }).replace(/"/g, "&quot;");
+}
+
+async function apiFootballFetch(path, params) {
+  const url = new URL(API_FOOTBALL_BASE + path);
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      url.searchParams.set(key, value);
+    }
+  });
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      "x-apisports-key": API_FOOTBALL_KEY,
+      "Accept": "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Live API ${res.status}: ${text.slice(0, 120)}`);
+  }
+
+  return await res.json();
+}
+
+async function fetchLiveFixtureMap(dateStr) {
+  try {
+    const json = await apiFootballFetch("/fixtures", { date: dateStr });
+    const map = new Map();
+    const rows = Array.isArray(json?.response) ? json.response : [];
+
+    for (const row of rows) {
+      const fixtureId = String(row?.fixture?.id ?? "").trim();
+      if (!fixtureId) continue;
+
+      const statusShort = String(row?.fixture?.status?.short ?? "").toUpperCase();
+      const elapsed = Number(row?.fixture?.status?.elapsed ?? 0) || 0;
+      const homeGoals = Number(row?.goals?.home ?? 0) || 0;
+      const awayGoals = Number(row?.goals?.away ?? 0) || 0;
+
+      map.set(fixtureId, {
+        fixtureId,
+        statusShort,
+        elapsed,
+        homeGoals,
+        awayGoals,
+        score: `${homeGoals}-${awayGoals}`,
+        isLive: LIVE_STATUSES.has(statusShort),
+        isFinal: FINAL_STATUSES.has(statusShort),
+      });
+    }
+
+    return map;
+  } catch (err) {
+    console.warn("Errore live fixtures:", err);
+    return new Map();
+  }
+}
+
+function buildLiveBadgeState(liveFixture) {
+  if (!liveFixture) return null;
+
+  if (liveFixture.isLive) {
+    let liveLabel = "LIVE";
+    if (liveFixture.statusShort === "HT") liveLabel = "HT";
+    else if (liveFixture.statusShort === "BT") liveLabel = "BT";
+    else if (liveFixture.statusShort === "P") liveLabel = "PEN";
+    else if (liveFixture.elapsed > 0) liveLabel = `${liveFixture.elapsed}'`;
+
+    return {
+      label: "LIVE",
+      className: "live",
+      text: `${liveLabel} · ${liveFixture.score}`,
+    };
+  }
+
+  if (liveFixture.isFinal) {
+    const finalLabel = liveFixture.statusShort || "FT";
+    return {
+      label: finalLabel,
+      className: "finished",
+      text: `${finalLabel} · ${liveFixture.score}`,
+    };
+  }
+
+  return null;
+}
+
+function buildResultBadgeState(resultRow) {
+  const resultLabel = String(resultRow?.result || "").toUpperCase();
+  const statusShort = String(resultRow?.status_short || "").toUpperCase();
+  const finalScore = resultRow?.final_score || "";
+
+  if (!resultLabel) return { label: "", className: "", text: "" };
+
+  let displayLabel = resultLabel;
+  let className = classifyResult(resultLabel);
+  if (displayLabel === "PENDING" && LIVE_STATUSES.has(statusShort)) {
+    displayLabel = "LIVE";
+    className = "live";
+  }
+
+  return {
+    label: displayLabel,
+    className,
+    text: finalScore
+      ? `${translateResultLabel(displayLabel)} · ${finalScore}`
+      : translateResultLabel(displayLabel),
+  };
+}
+
+function resolveBadgeState(resultRow, liveFixture, pickRow = null) {
+  const effectiveRow = deriveResolvedResultRow(pickRow, resultRow, liveFixture);
+  const resultLabel = String(effectiveRow?.result || "").toUpperCase();
+  if (resultLabel === "WIN" || resultLabel === "LOSE" || resultLabel === "VOID") {
+    return buildResultBadgeState(effectiveRow);
+  }
+
+  const liveBadge = buildLiveBadgeState(liveFixture);
+  if (liveBadge) return liveBadge;
+
+  return buildResultBadgeState(effectiveRow || resultRow);
+}
+
+function captureOpenState() {
+  return {
+    categories: new Set(
+      Array.from(document.querySelectorAll(".category-block[open]"))
+        .map(node => node.getAttribute("data-category") || "")
+        .filter(Boolean)
+    ),
+    combos: new Set(
+      Array.from(document.querySelectorAll(".combo-accordion[open]"))
+        .map(node => node.getAttribute("data-ticket-key") || "")
+        .filter(Boolean)
+    ),
+  };
+}
+
+function restoreOpenState(state) {
+  if (!state) return;
+  for (const key of state.categories || []) {
+    const el = document.querySelector(`.category-block[data-category="${key}"]`);
+    if (el) el.open = true;
+  }
+  for (const key of state.combos || []) {
+    const el = document.querySelector(`.combo-accordion[data-ticket-key="${key}"]`);
+    if (el) el.open = true;
+  }
 }
 
     // ====== FEEDBACK LIKE / DISLIKE ======
@@ -2004,146 +2301,37 @@ function getCategoryLabel(cat) {
       });
     }
 
-// ====== MAIN LOAD ======
-async function loadTodayPicks() {
-
-
-    function safeOdd(o) {
-      const n = Number(o);
-      if (!isFinite(n) || n <= 1) return 1.0;
-      return n;
-    }
-
-    function getLastNDates(n) {
-      const dates = [];
-      const now = new Date();
-      now.setHours(0, 0, 0, 0);
-
-      for (let i = 0; i < n; i++) {
-        const d = new Date(now);
-        d.setDate(now.getDate() - i);
-        const y = d.getFullYear();
-        const m = pad2(d.getMonth() + 1);
-        const day = pad2(d.getDate());
-        dates.push(`${y}-${m}-${day}`);
-      }
-      return dates;
-    }
-
-    function resultRank(r) {
-      let score = 0;
-      const res = (r.result || "").toUpperCase();
-      const st = (r.status_short || "").toUpperCase();
-
-      if (res === "WIN" || res === "LOSE") score += 4;
-      else if (res === "PENDING") score += 1;
-
-      if (["FT", "AET", "PEN"].includes(st)) score += 4;
-      else if (["2H", "HT"].includes(st)) score += 2;
-
-      if (res === "WIN") score += 2;
-      if (res === "LOSE") score += 1;
-
-      return score;
-    }
-
-    async function fetchDayStatsSimple(dateStr) {
-  const picks = await sbFetch(
-    "picks",
-    `?match_date=eq.${dateStr}&select=*`
-  );
-
-  if (!Array.isArray(picks) || picks.length === 0) {
-    return { date: dateStr, wins: 0, loses: 0, stake: 0, profit: 0, avgOdd: null };
-  }
-
-  const results = await sbFetch(
-    "results",
-    `?picks_date=eq.${dateStr}&select=*`
-  );
-
-  const resultMap = new Map();
-  if (Array.isArray(results)) {
-    for (const r of results) {
-      const fid = String(r.fixture_id || "").trim();
-      const pickText = String(r.pick || "").trim();
-      if (!fid && !pickText) continue;
-      const key = fid + "__" + pickText;
-
-      const existing = resultMap.get(key);
-      if (!existing || resultRank(r) > resultRank(existing)) {
-        resultMap.set(key, r);
-      }
-    }
-  }
-
-  function pickResult(p) {
-    const fid = String(p.fixture_id || "").trim();
-    const pickText = String(p.pick || "").trim();
-    const key = fid + "__" + pickText;
-    const res = resultMap.get(key) || {};
-    return String(res.result || "").toUpperCase();
-  }
-
-  function chooseBestResolvedPick(list) {
-    const resolved = list.filter(p => {
-      const r = pickResult(p);
-      return r === "WIN" || r === "LOSE";
-    });
-    if (!resolved.length) return null;
-
-    // Allineato allo storico ROI: scegliamo la pick risolta con score più alto,
-    // senza "preferire" le WIN.
-    resolved.sort((a, b) => {
-      const sa = Number(a.score || 0);
-      const sb = Number(b.score || 0);
-      if (sb !== sa) return sb - sa;
-      return safeOdd(b.odd) - safeOdd(a.odd);
-    });
-    return resolved[0];
-  }
-
-  // ====== QUI È LA DIFFERENZA: stake=1 PER EVENTO (fixture_id) ======
-  const byFixture = new Map();
-  for (const p of picks) {
-    const fid = String(p.fixture_id || "").trim();
-    if (!fid) continue;
-    if (!byFixture.has(fid)) byFixture.set(fid, []);
-    byFixture.get(fid).push(p);
-  }
-
-  let wins = 0;
-  let loses = 0;
-  let stake = 0;
-  let profit = 0;
-  let oddsSum = 0;
-  let oddsCount = 0;
-
-  for (const [fid, list] of byFixture.entries()) {
-    const chosen = chooseBestResolvedPick(list);
-    if (!chosen) continue;
-
-    const r = pickResult(chosen);
-    const odd = safeOdd(chosen.odd);
-
-    // solo WIN/LOSE entrano nel ROI
-    stake += 1;
-    oddsSum += odd;
-    oddsCount += 1;
-
-    if (r === "WIN") {
-      wins += 1;
-      profit += (odd - 1);
-    } else {
-      loses += 1;
-      profit -= 1;
-    }
-  }
-
-  const avgOdd = oddsCount > 0 ? oddsSum / oddsCount : null;
-
-  return { date: dateStr, wins, loses, stake, profit, avgOdd };
+function safeOdd(o) {
+  const n = Number(o);
+  if (!isFinite(n) || n <= 1) return 1.0;
+  return n;
 }
+
+function resultRank(r) {
+  let score = 0;
+  const res = (r.result || "").toUpperCase();
+  const st = (r.status_short || "").toUpperCase();
+
+  if (res === "WIN" || res === "LOSE") score += 4;
+  else if (res === "PENDING") score += 1;
+
+  if (["FT", "AET", "PEN"].includes(st)) score += 4;
+  else if (["2H", "HT"].includes(st)) score += 2;
+
+  if (res === "WIN") score += 2;
+  if (res === "LOSE") score += 1;
+
+  return score;
+}
+
+let loadTodayPicksInFlight = null;
+
+// ====== MAIN LOAD ======
+async function loadTodayPicks(options = {}) {
+  if (loadTodayPicksInFlight) return loadTodayPicksInFlight;
+  const run = (async () => {
+    const preserveUi = !!options.preserveUi;
+    const openState = preserveUi ? captureOpenState() : null;
 
 
 async function loadModelStats() {
@@ -2201,17 +2389,25 @@ async function loadModelStats() {
       }
     }
 
+    const latestLiveFixtureMap = await fetchLiveFixtureMap(latestDateStr);
+
     function pickResult(p) {
       const fid = String(p.fixture_id || "").trim();
       const pickText = String(p.pick || "").trim();
       const key = fid + "__" + pickText;
       const res = resultMap.get(key) || {};
-      return String(res.result || "").toUpperCase();
+      const liveFixture = String(p.match_date || "").trim() === latestDateStr
+        ? latestLiveFixtureMap.get(fid)
+        : null;
+      const derived = deriveResolvedResultRow(p, res, liveFixture);
+      return String(derived?.result || "").toUpperCase();
     }
 
     // raggruppo per evento (fixture_id) e scelgo la pick risolta con score più alto
+    // i corner NON entrano nel ROI (stessa logica del display picks)
     const byFixture = new Map();
     for (const p of picks) {
+      if (isCornerLikePick(p)) continue;
       const fid = String(p.fixture_id || "").trim();
       if (!fid) continue;
       if (!byFixture.has(fid)) byFixture.set(fid, []);
@@ -2274,7 +2470,7 @@ async function loadModelStats() {
           : `Profitto: ${totalProfit.toFixed(2)} u`;
     }
     if (periodEl) {
-      periodEl.textContent = `Periodo: ${formatDateIT(fromDate)} → ${formatDateIT(toDate)}`;
+      periodEl.textContent = `Periodo: ${formatDateLocalized(fromDate)} → ${formatDateLocalized(toDate)}`;
     }
 
     // mostro box (se era nascosto)
@@ -2313,6 +2509,7 @@ async function loadModelStats() {
     );
 
     const feedbackMap = await loadFeedbackMap(todayStr);
+    const liveFixtureMap = await fetchLiveFixtureMap(todayStr);
 
     const resultMap = new Map();
 const fixtureResultMap = new Map();
@@ -2374,6 +2571,8 @@ if (Array.isArray(results)) {
         const fid = String(p.fixture_id || "").trim();
         if (!fid) continue;
 
+        if (isCornerLikePick(p)) continue;
+
         const score = Number(p.score || 0);
         const current = roiPickByFixture.get(fid);
         if (!current || score > current.score) {
@@ -2383,7 +2582,7 @@ if (Array.isArray(results)) {
 
       for (const p of picksForDisplay) {
         const fid = String(p.fixture_id || "").trim();
-        if (!fid) { p.roi_tag = ""; continue; }
+        if (!fid || isCornerLikePick(p)) { p.roi_tag = ""; continue; }
 
         const best = roiPickByFixture.get(fid);
         if (best && best.ref === p) p.roi_tag = "ROI_PICK";
@@ -2433,7 +2632,8 @@ const byCategory = groupByCategory(picksForDisplay);
 
       for (const p of list) {
         const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
-        const res = resultMap.get(key);
+        const liveFixture = liveFixtureMap.get(String(p.fixture_id || "").trim());
+        const res = deriveResolvedResultRow(p, resultMap.get(key), liveFixture);
         const rLabel = (res && res.result) ? res.result.toUpperCase() : "";
         if (rLabel === "WIN") wins++;
         if (rLabel === "LOSE") loses++;
@@ -2446,7 +2646,7 @@ const byCategory = groupByCategory(picksForDisplay);
       const niceCatName = getCategoryLabel(cat);
 
       html += `
-        <details class="category-block">
+        <details class="category-block" data-category="${cat}">
           <summary class="category-header">
             <div class="category-header-main">
               <h2 class="category-title">${niceCatName}</h2>
@@ -2482,30 +2682,13 @@ const byCategory = groupByCategory(picksForDisplay);
 
 
         const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
-        const res = resultMap.get(key);
-        const resResult = res ? res.result : "";
-        const resScore = res ? res.final_score : "";
-        const statusShort = res && res.status_short ? String(res.status_short).toUpperCase() : "";
+        const res = deriveResolvedResultRow(p, resultMap.get(key), liveFixtureMap.get(String(p.fixture_id || "").trim()));
+        const liveFixture = liveFixtureMap.get(String(p.fixture_id || "").trim());
+        const badgeState = resolveBadgeState(res, liveFixture, p);
+        const cardExtraClass = badgeState.className ? ` ${badgeState.className}` : "";
 
-        let resultLabel = (resResult || "").toUpperCase();
-        let resultClass = classifyResult(resResult);
-
-        const liveStatuses = ["1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"];
-        if (resultLabel === "PENDING" && liveStatuses.includes(statusShort)) {
-          resultLabel = "LIVE";
-          resultClass = "live";
-        }
-
-        const cardExtraClass = resultClass ? ` ${resultClass}` : "";
-
-        const finalScore = resScore || "";
-        let badgeText = "";
-        if (resultLabel) {
-          badgeText = finalScore
-            ? `${translateResultLabel(resultLabel)} · ${finalScore}`
-            : translateResultLabel(resultLabel);
-        }
-        const badgeClass = resultClass ? ` ${resultClass}` : "";
+        const badgeText = badgeState.text || "";
+        const badgeClass = badgeState.className ? ` ${badgeState.className}` : "";
 
         const confValue = Number(p.score || 0) * 100;
         const confLabel = confidenceLabel(confValue);
@@ -2655,8 +2838,10 @@ const TICKET_LABELS = {
             }
           }
 
-          const rawRes = (r && r.result) ? r.result.toUpperCase() : "UNKNOWN";
-          const statusShort = (r && r.status_short ? r.status_short : "").toUpperCase();
+          const liveFixture = liveFixtureMap.get(fid);
+          const resolvedRow = deriveResolvedResultRow(leg, r, liveFixture);
+          const rawRes = (resolvedRow && resolvedRow.result) ? resolvedRow.result.toUpperCase() : "UNKNOWN";
+          const statusShort = (resolvedRow && resolvedRow.status_short ? resolvedRow.status_short : "").toUpperCase();
 
           const isVoid =
             rawRes === "VOID" ||
@@ -2677,16 +2862,16 @@ const TICKET_LABELS = {
             nonVoidLegs.push({ leg, r, logicalRes });
           }
 
-          const cls = classifyResult(logicalRes);
-          const score = r && r.final_score ? r.final_score : "";
+          const badgeState = resolveBadgeState(resolvedRow, liveFixture, leg);
 
           legViews.push({
             leg,
-            cls,
-            score,
+            cls: classifyResult(logicalRes),
+            score: resolvedRow && resolvedRow.final_score ? resolvedRow.final_score : "",
             res: logicalRes,
             isVoid,
             status_short: statusShort,
+            badgeState,
           });
         }
 
@@ -2722,13 +2907,23 @@ const TICKET_LABELS = {
         const totalOddStr = oddToShow ? oddToShow.toFixed(2) : "-";
 
         const statusClass = classifyResult(ticketStatus);
-        const statusLabel =
-          ticketStatus === "UNKNOWN"
-            ? tr("preparing")
-            : (ticketStatus === "PENDING" ? tr("waiting") : ticketStatus);
+        const summaryBadgeState = (() => {
+          if (ticketStatus === "PENDING") {
+            if (legViews.some(v => v.badgeState && v.badgeState.className === "live")) {
+              return { className: "live", text: "LIVE" };
+            }
+            if (legViews.some(v => v.badgeState && v.badgeState.className === "finished")) {
+              return { className: "finished", text: "FT" };
+            }
+          }
+          return {
+            className: classifyResult(ticketStatus),
+            text: ticketStatus === "UNKNOWN" ? tr("preparing") : (ticketStatus === "PENDING" ? tr("waiting") : ticketStatus),
+          };
+        })();
 
         html += `
-          <details class="combo-accordion ${statusClass || ""}">
+          <details class="combo-accordion ${summaryBadgeState.className || ""}" data-ticket-key="${type || label}">
             <summary>
               <div class="combo-summary-main">
                 <div class="combo-label-row">
@@ -2740,8 +2935,8 @@ const TICKET_LABELS = {
                 </div>
               </div>
               <div class="combo-summary-right">
-                <span class="result-badge ${statusClass || ""}">
-                  ${statusLabel}
+                <span class="result-badge ${summaryBadgeState.className || ""}">
+                  ${summaryBadgeState.text}
                 </span>
                 <span class="combo-chevron">▶</span>
               </div>
@@ -2749,7 +2944,6 @@ const TICKET_LABELS = {
             <div class="combo-body">
               <div class="combo-legs">
         `;
-
         for (const lv of legViews) {
           const leg = lv.leg;
           const teams = `${leg.home || ""} – ${leg.away || ""}`;
@@ -2770,17 +2964,8 @@ const TICKET_LABELS = {
           const catLabel = getCategoryLabel(leg.category || "");
 
           let legBadge = "";
-          if (lv.res && lv.res !== "UNKNOWN") {
-            let legLabel = lv.res;
-            let legClass = lv.cls || "";
-            const liveStatuses = ["1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"];
-            const stShort = (lv.status_short ? String(lv.status_short).toUpperCase() : "");
-            if (legLabel === "PENDING" && liveStatuses.includes(stShort)) {
-              legLabel = "LIVE";
-              legClass = "live";
-            }
-            const txt = lv.score ? `${translateResultLabel(legLabel)} · ${lv.score}` : translateResultLabel(legLabel);
-            legBadge = `<span class="result-badge ${legClass}">${txt}</span>`;
+          if (lv.badgeState && lv.badgeState.text) {
+            legBadge = `<span class="result-badge ${lv.badgeState.className || ""}">${lv.badgeState.text}</span>`;
           }
 
           html += `
@@ -2845,6 +3030,7 @@ setupVoteHandlers(feedbackMap, todayStr);
         document.querySelectorAll(".category-block").forEach(d => d.open = false);
       });
     }
+    if (preserveUi) restoreOpenState(openState);
   } catch (err) {
     console.error("Errore caricamento picks:", err);
     container.innerHTML = `
@@ -2852,6 +3038,14 @@ setupVoteHandlers(feedbackMap, todayStr);
         Errore nel caricamento dei dati. Riprova tra qualche minuto.
       </div>
     `;
+  }
+  })();
+
+  loadTodayPicksInFlight = run;
+  try {
+    return await run;
+  } finally {
+    if (loadTodayPicksInFlight === run) loadTodayPicksInFlight = null;
   }
 }
 
@@ -2930,10 +3124,29 @@ function setupLanguageSwitch() {
   enBtn.addEventListener("click", () => setLang("en"));
 }
 
+let liveRefreshTimer = null;
+function startLiveRefresh() {
+  if (liveRefreshTimer) clearInterval(liveRefreshTimer);
+  liveRefreshTimer = setInterval(() => {
+    if (document.hidden) return;
+    loadTodayPicks({ preserveUi: true }).catch(err => {
+      console.warn("Errore refresh live:", err);
+    });
+  }, LIVE_REFRESH_MS);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   applyStaticTranslations();
   setupLanguageSwitch();
-  loadTodayPicks();
+  loadTodayPicks().catch(err => console.error("Errore init picks:", err));
+  startLiveRefresh();
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      loadTodayPicks({ preserveUi: true }).catch(err => {
+        console.warn("Errore refresh al ritorno in tab:", err);
+      });
+    }
+  });
 });
   </script>
 
