@@ -1862,6 +1862,118 @@ function classifyResult(resultRaw) {
       return "";
     }
 
+function isExcludedCategory(cat) {
+  const k = normalizeCategory(cat);
+  return k.startsWith("CORNER_") || k === "BURN_CLOWN_BURN";
+}
+
+function isCornerLikePick(pickRow, explicitCategory) {
+  const category = explicitCategory ?? pickRow?.category;
+  const pickText = typeof pickRow === "string" ? pickRow : String(pickRow?.pick || "");
+  return isExcludedCategory(category) || /CORNER/i.test(pickText);
+}
+
+function evalResolvedPick(pickText, gh, ga) {
+  const total = Number(gh) + Number(ga);
+  const pickUpper = String(pickText || "").toUpperCase().trim();
+  if (!pickUpper) return "UNKNOWN";
+
+  if (pickUpper.includes("&")) {
+    const parts = pickUpper.split("&").map(part => part.trim()).filter(Boolean);
+    if (!parts.length) return "UNKNOWN";
+    const sub = parts.map(part => evalResolvedPick(part, gh, ga));
+    if (sub.includes("LOSE")) return "LOSE";
+    if (sub.every(result => result === "WIN")) return "WIN";
+    return "UNKNOWN";
+  }
+
+  const pickNorm = pickUpper.replace(/\([^)]*\)/g, "").trim();
+
+  if (pickNorm.includes("AWAY WINS") || pickNorm === "2") return ga > gh ? "WIN" : "LOSE";
+  if (pickNorm.includes("HOME WINS") || pickNorm === "1") return gh > ga ? "WIN" : "LOSE";
+  if (pickNorm.includes("DRAW") || pickNorm === "X") return gh === ga ? "WIN" : "LOSE";
+
+  if (pickNorm.includes("OVER")) {
+    const match = pickNorm.match(/OVER\s+(\d+(?:\.\d+)?)/);
+    if (!match) return "UNKNOWN";
+    return total > Number(match[1]) ? "WIN" : "LOSE";
+  }
+
+  if (pickNorm.includes("UNDER")) {
+    const match = pickNorm.match(/UNDER\s+(\d+(?:\.\d+)?)/);
+    if (!match) return "UNKNOWN";
+    return total < Number(match[1]) ? "WIN" : "LOSE";
+  }
+
+  if (pickNorm.includes("1X")) return gh >= ga ? "WIN" : "LOSE";
+  if (pickNorm.includes("X2")) return ga >= gh ? "WIN" : "LOSE";
+
+  if (pickNorm.includes("BOTH") || pickNorm.includes("BTTS")) {
+    if (pickNorm.includes("NO")) return !(gh > 0 && ga > 0) ? "WIN" : "LOSE";
+    return gh > 0 && ga > 0 ? "WIN" : "LOSE";
+  }
+
+  // GG / NG (entrambe segnano / nessuna segna)
+  if (pickNorm === "GG" || (pickNorm.startsWith("GG") && !pickNorm.includes("NG") && !pickNorm.includes("NO"))) {
+    return gh > 0 && ga > 0 ? "WIN" : "LOSE";
+  }
+  if (pickNorm === "NG" || pickNorm.includes("GG NO") || (pickNorm.includes("NG") && !pickNorm.includes("SINGLE"))) {
+    return !(gh > 0 && ga > 0) ? "WIN" : "LOSE";
+  }
+
+  // DNB – Draw No Bet (pareggio = VOID, trattato come UNKNOWN: il job Python lo gestisce)
+  if (pickNorm.includes("DNB")) {
+    const isHome = pickNorm.includes("1") || pickNorm.includes("HOME");
+    const isAway = pickNorm.includes("2") || pickNorm.includes("AWAY");
+    if (isHome) {
+      if (gh > ga) return "WIN";
+      if (gh === ga) return "UNKNOWN"; // void → lasciamo al job Python
+      return "LOSE";
+    }
+    if (isAway) {
+      if (ga > gh) return "WIN";
+      if (gh === ga) return "UNKNOWN";
+      return "LOSE";
+    }
+  }
+
+  return "UNKNOWN";
+}
+
+function deriveResolvedResultRow(pickRow, resultRow, liveFixture) {
+  const currentResult = String(resultRow?.result || "").toUpperCase();
+  if (currentResult === "WIN" || currentResult === "LOSE" || currentResult === "VOID") {
+    return resultRow;
+  }
+
+  if (!liveFixture) return resultRow || null;
+
+  const baseRow = {
+    ...(resultRow || {}),
+    final_score: liveFixture.score || (resultRow?.final_score || ""),
+    status_short: liveFixture.statusShort || (resultRow?.status_short || ""),
+  };
+
+  if (!liveFixture.isFinal || isCornerLikePick(pickRow)) {
+    return baseRow;
+  }
+
+  const derivedResult = evalResolvedPick(
+    typeof pickRow === "string" ? pickRow : pickRow?.pick,
+    liveFixture.homeGoals,
+    liveFixture.awayGoals
+  );
+
+  if (derivedResult !== "WIN" && derivedResult !== "LOSE") {
+    return baseRow;
+  }
+
+  return {
+    ...baseRow,
+    result: derivedResult,
+  };
+}
+
     
 function confidenceLabel(val) {
   if (val > 130) return tr("conf_very_high");
@@ -1998,16 +2110,17 @@ function buildResultBadgeState(resultRow) {
   };
 }
 
-function resolveBadgeState(resultRow, liveFixture) {
-  const resultLabel = String(resultRow?.result || "").toUpperCase();
+function resolveBadgeState(resultRow, liveFixture, pickRow = null) {
+  const effectiveRow = deriveResolvedResultRow(pickRow, resultRow, liveFixture);
+  const resultLabel = String(effectiveRow?.result || "").toUpperCase();
   if (resultLabel === "WIN" || resultLabel === "LOSE" || resultLabel === "VOID") {
-    return buildResultBadgeState(resultRow);
+    return buildResultBadgeState(effectiveRow);
   }
 
   const liveBadge = buildLiveBadgeState(liveFixture);
   if (liveBadge) return liveBadge;
 
-  return buildResultBadgeState(resultRow);
+  return buildResultBadgeState(effectiveRow || resultRow);
 }
 
 function captureOpenState() {
@@ -2390,17 +2503,25 @@ async function loadModelStats() {
       }
     }
 
+    const latestLiveFixtureMap = await fetchLiveFixtureMap(latestDateStr);
+
     function pickResult(p) {
       const fid = String(p.fixture_id || "").trim();
       const pickText = String(p.pick || "").trim();
       const key = fid + "__" + pickText;
       const res = resultMap.get(key) || {};
-      return String(res.result || "").toUpperCase();
+      const liveFixture = String(p.match_date || "").trim() === latestDateStr
+        ? latestLiveFixtureMap.get(fid)
+        : null;
+      const derived = deriveResolvedResultRow(p, res, liveFixture);
+      return String(derived?.result || "").toUpperCase();
     }
 
     // raggruppo per evento (fixture_id) e scelgo la pick risolta con score più alto
+    // i corner NON entrano nel ROI (stessa logica del display picks)
     const byFixture = new Map();
     for (const p of picks) {
+      if (isCornerLikePick(p)) continue;
       const fid = String(p.fixture_id || "").trim();
       if (!fid) continue;
       if (!byFixture.has(fid)) byFixture.set(fid, []);
@@ -2564,6 +2685,8 @@ if (Array.isArray(results)) {
         const fid = String(p.fixture_id || "").trim();
         if (!fid) continue;
 
+        if (isCornerLikePick(p)) continue;
+
         const score = Number(p.score || 0);
         const current = roiPickByFixture.get(fid);
         if (!current || score > current.score) {
@@ -2573,7 +2696,7 @@ if (Array.isArray(results)) {
 
       for (const p of picksForDisplay) {
         const fid = String(p.fixture_id || "").trim();
-        if (!fid) { p.roi_tag = ""; continue; }
+        if (!fid || isCornerLikePick(p)) { p.roi_tag = ""; continue; }
 
         const best = roiPickByFixture.get(fid);
         if (best && best.ref === p) p.roi_tag = "ROI_PICK";
@@ -2623,7 +2746,8 @@ const byCategory = groupByCategory(picksForDisplay);
 
       for (const p of list) {
         const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
-        const res = resultMap.get(key);
+        const liveFixture = liveFixtureMap.get(String(p.fixture_id || "").trim());
+        const res = deriveResolvedResultRow(p, resultMap.get(key), liveFixture);
         const rLabel = (res && res.result) ? res.result.toUpperCase() : "";
         if (rLabel === "WIN") wins++;
         if (rLabel === "LOSE") loses++;
@@ -2672,9 +2796,9 @@ const byCategory = groupByCategory(picksForDisplay);
 
 
         const key = String(p.fixture_id) + "__" + String(p.pick || "").trim();
-        const res = resultMap.get(key);
+        const res = deriveResolvedResultRow(p, resultMap.get(key), liveFixtureMap.get(String(p.fixture_id || "").trim()));
         const liveFixture = liveFixtureMap.get(String(p.fixture_id || "").trim());
-        const badgeState = resolveBadgeState(res, liveFixture);
+        const badgeState = resolveBadgeState(res, liveFixture, p);
         const cardExtraClass = badgeState.className ? ` ${badgeState.className}` : "";
 
         const badgeText = badgeState.text || "";
@@ -2828,8 +2952,10 @@ const TICKET_LABELS = {
             }
           }
 
-          const rawRes = (r && r.result) ? r.result.toUpperCase() : "UNKNOWN";
-          const statusShort = (r && r.status_short ? r.status_short : "").toUpperCase();
+          const liveFixture = liveFixtureMap.get(fid);
+          const resolvedRow = deriveResolvedResultRow(leg, r, liveFixture);
+          const rawRes = (resolvedRow && resolvedRow.result) ? resolvedRow.result.toUpperCase() : "UNKNOWN";
+          const statusShort = (resolvedRow && resolvedRow.status_short ? resolvedRow.status_short : "").toUpperCase();
 
           const isVoid =
             rawRes === "VOID" ||
@@ -2850,13 +2976,12 @@ const TICKET_LABELS = {
             nonVoidLegs.push({ leg, r, logicalRes });
           }
 
-          const liveFixture = liveFixtureMap.get(fid);
-          const badgeState = resolveBadgeState(r, liveFixture);
+          const badgeState = resolveBadgeState(resolvedRow, liveFixture, leg);
 
           legViews.push({
             leg,
             cls: classifyResult(logicalRes),
-            score: r && r.final_score ? r.final_score : "",
+            score: resolvedRow && resolvedRow.final_score ? resolvedRow.final_score : "",
             res: logicalRes,
             isVoid,
             status_short: statusShort,
