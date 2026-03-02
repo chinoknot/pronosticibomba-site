@@ -639,7 +639,7 @@
 // Categorie fuori ROI (visibili ma NON contate)
 function isExcludedCategory(cat) {
   const k = String(cat || "").trim().toUpperCase();
-  return k.startsWith("CORNER_") || k === "BURN_CLOWN_BURN";
+  return k.startsWith("CORNER") || k.startsWith("PATTERN_OVER") || k === "BURN_CLOWN_BURN";
 }
 
     // ranking dei risultati: preferiamo righe con esito definito e match finito
