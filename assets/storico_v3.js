@@ -8,9 +8,6 @@
   const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
   const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
-  const API_FOOTBALL_BASE = "https://v3.football.api-sports.io";
-  const API_FOOTBALL_KEY = "daaf29bc97d50f28aa64816c7cc203bc";
-  const FINAL_STATUSES = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
 
   function $(id) { return document.getElementById(id); }
 
@@ -103,144 +100,6 @@
     const n = Number(o);
     if (!isFinite(n) || n <= 1) return 1.0;
     return n;
-  }
-
-  function isExcludedCategory(cat) {
-    const k = String(cat || "").trim().toUpperCase();
-    return k.startsWith("CORNER") || k.startsWith("PATTERN_OVER") || k === "BURN_CLOWN_BURN";
-  }
-
-  async function apiFootballFetch(path, params) {
-    const url = new URL(API_FOOTBALL_BASE + path);
-    Object.entries(params || {}).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        url.searchParams.set(key, value);
-      }
-    });
-
-    const res = await fetch(url.toString(), {
-      headers: {
-        "x-apisports-key": API_FOOTBALL_KEY,
-        "Accept": "application/json",
-      },
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`Live API ${res.status}: ${text.slice(0, 120)}`);
-    }
-
-    return await res.json();
-  }
-
-  async function fetchLiveFixtureMap(dateStr) {
-    try {
-      const json = await apiFootballFetch("/fixtures", { date: dateStr });
-      const map = new Map();
-      const rows = Array.isArray(json?.response) ? json.response : [];
-
-      for (const row of rows) {
-        const fixtureId = String(row?.fixture?.id ?? "").trim();
-        if (!fixtureId) continue;
-
-        const statusShort = String(row?.fixture?.status?.short ?? "").toUpperCase();
-        const homeGoals = Number(row?.goals?.home ?? 0) || 0;
-        const awayGoals = Number(row?.goals?.away ?? 0) || 0;
-
-        map.set(fixtureId, {
-          fixtureId,
-          statusShort,
-          homeGoals,
-          awayGoals,
-          isFinal: FINAL_STATUSES.has(statusShort),
-        });
-      }
-
-      return map;
-    } catch (err) {
-      console.warn("Errore live fixtures storico ROI:", err);
-      return new Map();
-    }
-  }
-
-  function isCornerLikePick(pickRow) {
-    return isExcludedCategory(pickRow?.category) || /CORNER/i.test(String(pickRow?.pick || ""));
-  }
-
-  function evalResolvedPick(pickText, gh, ga) {
-    const total = Number(gh) + Number(ga);
-    const pickUpper = String(pickText || "").toUpperCase().trim();
-    if (!pickUpper) return "UNKNOWN";
-
-    if (pickUpper.includes("&")) {
-      const parts = pickUpper.split("&").map(part => part.trim()).filter(Boolean);
-      if (!parts.length) return "UNKNOWN";
-      const sub = parts.map(part => evalResolvedPick(part, gh, ga));
-      if (sub.includes("LOSE")) return "LOSE";
-      if (sub.every(result => result === "WIN")) return "WIN";
-      return "UNKNOWN";
-    }
-
-    const pickNorm = pickUpper.replace(/\([^)]*\)/g, "").trim();
-
-    if (pickNorm.includes("AWAY WINS") || pickNorm === "2") return ga > gh ? "WIN" : "LOSE";
-    if (pickNorm.includes("HOME WINS") || pickNorm === "1") return gh > ga ? "WIN" : "LOSE";
-    if (pickNorm.includes("DRAW") || pickNorm === "X") return gh === ga ? "WIN" : "LOSE";
-
-    if (pickNorm.includes("OVER")) {
-      const match = pickNorm.match(/OVER\s+(\d+(?:\.\d+)?)/);
-      if (!match) return "UNKNOWN";
-      return total > Number(match[1]) ? "WIN" : "LOSE";
-    }
-
-    if (pickNorm.includes("UNDER")) {
-      const match = pickNorm.match(/UNDER\s+(\d+(?:\.\d+)?)/);
-      if (!match) return "UNKNOWN";
-      return total < Number(match[1]) ? "WIN" : "LOSE";
-    }
-
-    if (pickNorm.includes("1X")) return gh >= ga ? "WIN" : "LOSE";
-    if (pickNorm.includes("X2")) return ga >= gh ? "WIN" : "LOSE";
-
-    if (pickNorm.includes("BOTH") || pickNorm.includes("BTTS")) {
-      if (pickNorm.includes("NO")) return !(gh > 0 && ga > 0) ? "WIN" : "LOSE";
-      return gh > 0 && ga > 0 ? "WIN" : "LOSE";
-    }
-
-    // GG / NG
-    if (pickNorm === "GG" || (pickNorm.startsWith("GG") && !pickNorm.includes("NG") && !pickNorm.includes("NO"))) {
-      return gh > 0 && ga > 0 ? "WIN" : "LOSE";
-    }
-    if (pickNorm === "NG" || pickNorm.includes("GG NO") || (pickNorm.includes("NG") && !pickNorm.includes("SINGLE"))) {
-      return !(gh > 0 && ga > 0) ? "WIN" : "LOSE";
-    }
-
-    // DNB – Draw No Bet
-    if (pickNorm.includes("DNB")) {
-      const isHome = pickNorm.includes("1") || pickNorm.includes("HOME");
-      const isAway = pickNorm.includes("2") || pickNorm.includes("AWAY");
-      if (isHome) {
-        if (gh > ga) return "WIN";
-        if (gh === ga) return "UNKNOWN";
-        return "LOSE";
-      }
-      if (isAway) {
-        if (ga > gh) return "WIN";
-        if (gh === ga) return "UNKNOWN";
-        return "LOSE";
-      }
-    }
-
-    return "UNKNOWN";
-  }
-
-  function deriveResolvedResult(resultRow, pickRow, liveFixture) {
-    const currentResult = String(resultRow?.result || "").toUpperCase();
-    if (currentResult === "WIN" || currentResult === "LOSE" || currentResult === "VOID") {
-      return currentResult;
-    }
-    if (!liveFixture?.isFinal || isCornerLikePick(pickRow)) return currentResult;
-    return evalResolvedPick(pickRow?.pick, liveFixture.homeGoals, liveFixture.awayGoals);
   }
 
   function resultRank(r) {
@@ -347,15 +206,6 @@ VALUE_PICKS: "Quote di Valore",
       return;
     }
 
-    const latestDateWithPicks = picks.reduce((max, row) => {
-      const current = String(row?.match_date || "").trim();
-      if (!current) return max;
-      return !max || current > max ? current : max;
-    }, "");
-    const latestLiveFixtureMap = latestDateWithPicks
-      ? await fetchLiveFixtureMap(latestDateWithPicks)
-      : new Map();
-
     const resultMap = new Map();
     if (Array.isArray(results)) {
       for (const r of results) {
@@ -375,8 +225,7 @@ VALUE_PICKS: "Quote di Valore",
       const pickText = String(p.pick || "").trim();
       const key = pd + "__" + fid + "__" + pickText;
       const res = resultMap.get(key) || {};
-      const liveFixture = pd === latestDateWithPicks ? latestLiveFixtureMap.get(fid) : null;
-      return deriveResolvedResult(res, p, liveFixture);
+      return (res.result || "").toUpperCase();
     }
 
     function chooseBestResolvedPick(list) {
@@ -425,7 +274,6 @@ VALUE_PICKS: "Quote di Valore",
 
       const byFixture = {};
       for (const p of dayPicks) {
-        if (isExcludedCategory(p.category)) continue;
         const fid = String(p.fixture_id || "").trim();
         if (!fid) continue;
         (byFixture[fid] ||= []).push(p);
