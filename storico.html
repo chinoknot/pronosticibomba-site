@@ -339,9 +339,9 @@
   
 
 <script>
-  // ROI fetch filter: exclude CORNER* / PATTERN_OVER* / Burn Clown Burn from ROI
+  // ROI fetch filter: exclude CORNER_* (and Burn Clown Burn) from ROI calculations
   (function () {
-    const EXCLUDED_PREFIXES = ["CORNER", "PATTERN_OVER"];
+    const EXCLUDED_PREFIXES = ["CORNER_"];
     const EXCLUDED_SET = new Set(["BURN_CLOWN_BURN"]);
 
     function isExcludedCategory(cat) {
@@ -380,6 +380,6 @@
   })();
 </script>
 
-<script src="/assets/storico_v3.js?v=20260302a"></script>
+<script src="/assets/storico_v3.js?v=20251223c"></script>
 </body>
 </html>
