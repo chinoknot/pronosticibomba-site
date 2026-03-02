@@ -1864,7 +1864,8 @@ function classifyResult(resultRaw) {
 
 function isExcludedCategory(cat) {
   const k = normalizeCategory(cat);
-  return k.startsWith("CORNER_") || k === "BURN_CLOWN_BURN";
+  // CORNER* (CORNER_, CORNERS, CORNER…) + PATTERN_OVER + BURN_CLOWN_BURN → fuori ROI
+  return k.startsWith("CORNER") || k.startsWith("PATTERN_OVER") || k === "BURN_CLOWN_BURN";
 }
 
 function isCornerLikePick(pickRow, explicitCategory) {
