@@ -2094,6 +2094,9 @@ function buildResultBadgeState(resultRow) {
   const finalScore = resultRow?.final_score || "";
 
   if (!resultLabel) return { label: "", className: "", text: "" };
+  if (resultLabel === "PENDING" && !LIVE_STATUSES.has(statusShort) && !FINAL_STATUSES.has(statusShort)) {
+    return { label: "", className: "", text: "" };
+  }
 
   let displayLabel = resultLabel;
   let className = classifyResult(resultLabel);
@@ -3020,6 +3023,7 @@ const TICKET_LABELS = {
             if (legViews.some(v => v.badgeState && v.badgeState.className === "finished")) {
               return { className: "finished", text: "FT" };
             }
+            return { className: "", text: "" };
           }
           return {
             className: classifyResult(ticketStatus),
@@ -3040,9 +3044,13 @@ const TICKET_LABELS = {
                 </div>
               </div>
               <div class="combo-summary-right">
-                <span class="result-badge ${summaryBadgeState.className || ""}">
+                ${
+                  summaryBadgeState.text
+                    ? `<span class="result-badge ${summaryBadgeState.className || ""}">
                   ${summaryBadgeState.text}
-                </span>
+                </span>`
+                    : ""
+                }
                 <span class="combo-chevron">▶</span>
               </div>
             </summary>
