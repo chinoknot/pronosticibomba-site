@@ -2247,6 +2247,11 @@ function restoreOpenState(state) {
             btn.classList.add("selected");
           }
 
+          if (btn.dataset.voteBound === "1") {
+            return;
+          }
+          btn.dataset.voteBound = "1";
+
           btn.addEventListener("click", () => {
             const currentSelected = row.querySelector(".vote-btn.selected");
             const currentVote = currentSelected ? currentSelected.getAttribute("data-vote") : null;
@@ -2300,6 +2305,106 @@ function restoreOpenState(state) {
         });
       });
     }
+
+function syncAttributes(fromEl, toEl) {
+  const fromAttrs = fromEl.getAttributeNames();
+  const toAttrs = new Set(toEl.getAttributeNames());
+
+  for (const name of fromAttrs) {
+    if (!toAttrs.has(name)) {
+      fromEl.removeAttribute(name);
+    }
+  }
+
+  for (const name of toAttrs) {
+    const nextValue = toEl.getAttribute(name);
+    if (fromEl.getAttribute(name) !== nextValue) {
+      fromEl.setAttribute(name, nextValue);
+    }
+  }
+}
+
+function morphNode(fromNode, toNode) {
+  if (!fromNode || !toNode) return;
+
+  if (fromNode.nodeType !== toNode.nodeType) {
+    fromNode.replaceWith(toNode.cloneNode(true));
+    return;
+  }
+
+  if (fromNode.nodeType === Node.TEXT_NODE) {
+    if (fromNode.textContent !== toNode.textContent) {
+      fromNode.textContent = toNode.textContent;
+    }
+    return;
+  }
+
+  if (fromNode.nodeType !== Node.ELEMENT_NODE) {
+    return;
+  }
+
+  if (fromNode.nodeName !== toNode.nodeName) {
+    fromNode.replaceWith(toNode.cloneNode(true));
+    return;
+  }
+
+  syncAttributes(fromNode, toNode);
+  morphChildren(fromNode, Array.from(toNode.childNodes));
+}
+
+function morphChildren(parent, nextChildren) {
+  const currentChildren = Array.from(parent.childNodes);
+  const maxLen = Math.max(currentChildren.length, nextChildren.length);
+
+  for (let i = 0; i < maxLen; i++) {
+    const current = currentChildren[i];
+    const next = nextChildren[i];
+
+    if (!current && next) {
+      parent.appendChild(next.cloneNode(true));
+      continue;
+    }
+
+    if (current && !next) {
+      current.remove();
+      continue;
+    }
+
+    morphNode(current, next);
+  }
+}
+
+function patchContainerHtml(container, html, preserveUi) {
+  if (!preserveUi || !container.hasChildNodes()) {
+    container.innerHTML = html;
+    return;
+  }
+
+  const template = document.createElement("template");
+  template.innerHTML = html.trim();
+  morphChildren(container, Array.from(template.content.childNodes));
+}
+
+let scrollTopSetupDone = false;
+function setupScrollTop() {
+  if (scrollTopSetupDone) return;
+  scrollTopSetupDone = true;
+
+  const btn = document.getElementById("scroll-top-btn");
+  if (!btn) return;
+
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 260) {
+      btn.classList.add("visible");
+    } else {
+      btn.classList.remove("visible");
+    }
+  });
+
+  btn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+}
 
 function safeOdd(o) {
   const n = Number(o);
@@ -2494,11 +2599,11 @@ async function loadModelStats() {
     );
 
     if (!Array.isArray(picks) || !picks.length) {
-      container.innerHTML = `
+      patchContainerHtml(container, `
         <div class="empty-state">
           ${tr("empty_today")}
         </div>
-      `;
+      `, preserveUi);
       return;
     }
 
@@ -2998,46 +3103,30 @@ const TICKET_LABELS = {
         </section>
       `;
     }
-container.innerHTML = html;
+patchContainerHtml(container, html, preserveUi);
 setupVoteHandlers(feedbackMap, todayStr);
 
-// Scroll to top button
-(function setupScrollTop() {
-  const btn = document.getElementById("scroll-top-btn");
-  if (!btn) return;
-
-  window.addEventListener("scroll", () => {
-    if (window.scrollY > 260) {
-      btn.classList.add("visible");
-    } else {
-      btn.classList.remove("visible");
-    }
-  });
-
-  btn.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
-})();
+setupScrollTop();
 
     // Bottoni espandi / chiudi tutto dopo il render delle categorie
     const btnExpandAll = document.getElementById("btn-expand-all");
     const btnCollapseAll = document.getElementById("btn-collapse-all");
     if (btnExpandAll && btnCollapseAll) {
-      btnExpandAll.addEventListener("click", () => {
+      btnExpandAll.onclick = () => {
         document.querySelectorAll(".category-block").forEach(d => d.open = true);
-      });
-      btnCollapseAll.addEventListener("click", () => {
+      };
+      btnCollapseAll.onclick = () => {
         document.querySelectorAll(".category-block").forEach(d => d.open = false);
-      });
+      };
     }
     if (preserveUi) restoreOpenState(openState);
   } catch (err) {
     console.error("Errore caricamento picks:", err);
-    container.innerHTML = `
+    patchContainerHtml(container, `
       <div class="empty-state">
         Errore nel caricamento dei dati. Riprova tra qualche minuto.
       </div>
-    `;
+    `, preserveUi);
   }
   })();
 
