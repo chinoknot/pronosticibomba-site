@@ -1300,6 +1300,9 @@
         <div class="legend-item">
           <a href="/storico_picks.html" class="history-link" id="legend-history-picks"></a>
         </div>
+        <div class="legend-item">
+          <a href="/match-center.html" class="history-link" id="legend-match-center"></a>
+        </div>
       
        
 </div>
@@ -1430,6 +1433,7 @@ guide_html: `
 `,
         history: "Storico risultati",
         history_picks: "Storico dettagliato picks",
+        match_center: "Match Center",
 
         
         betbuilder: "Bet Builder (solo app)",
@@ -1580,6 +1584,7 @@ guide_html: `
 `,
         history: "Results history",
         history_picks: "Detailed picks history",
+        match_center: "Match Center",
 
         
         betbuilder: "Bet Builder (app only)",
@@ -3164,8 +3169,10 @@ function applyStaticTranslations() {
 
   const h1 = document.getElementById("legend-history");
   const h2 = document.getElementById("legend-history-picks");
+  const h3 = document.getElementById("legend-match-center");
   if (h1) h1.textContent = tr("history");
   if (h2) h2.textContent = tr("history_picks");
+  if (h3) h3.textContent = tr("match_center");
 
   
 
