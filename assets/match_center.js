@@ -6,6 +6,7 @@
 
   const GROUPS = [
     { id: "goals", short: "O/U" },
+    { id: "double", short: "DC" },
     { id: "btts", short: "BTTS" },
     { id: "combo", short: "COMBO" },
     { id: "blank", short: "NG" },
@@ -55,6 +56,7 @@
       unresolved: "Non risolto",
       all: "Tutti",
       goals: "Goal",
+      double: "Doppia chance",
       btts: "BTTS",
       combo: "Combo",
       blank: "No goal",
@@ -113,6 +115,7 @@
       unresolved: "Unresolved",
       all: "All",
       goals: "Goals",
+      double: "Double chance",
       btts: "BTTS",
       combo: "Combo",
       blank: "Blank team",
@@ -224,6 +227,17 @@
     const topYellow = bestLine(match.yellow_overs);
     return [
       {
+        id: "ou15",
+        group: "goals",
+        title: "Over / Under 1.5",
+        pickLabel: match.ou15_pick,
+        pickProbability: match.ou15_conf,
+        options: [
+          { label: "Over 1.5", probability: match.p_over15, odd: match.odd_o15 },
+          { label: "Under 1.5", probability: match.p_under15, odd: match.odd_u15 },
+        ],
+      },
+      {
         id: "ou25",
         group: "goals",
         title: "Over / Under 2.5",
@@ -238,11 +252,22 @@
         id: "o35",
         group: "goals",
         title: "Over / Under 3.5",
-        pickLabel: (Number(match.p_over35 || 0) >= 0.5) ? "Over 3.5" : "Under 3.5",
-        pickProbability: Math.max(Number(match.p_over35 || 0), Number(match.p_under35 || 0)),
+        pickLabel: match.ou35_pick || ((Number(match.p_over35 || 0) >= 0.5) ? "Over 3.5" : "Under 3.5"),
+        pickProbability: match.ou35_conf ?? Math.max(Number(match.p_over35 || 0), Number(match.p_under35 || 0)),
         options: [
-          { label: "Over 3.5", probability: match.p_over35, odd: null },
-          { label: "Under 3.5", probability: match.p_under35, odd: null },
+          { label: "Over 3.5", probability: match.p_over35, odd: match.odd_o35 },
+          { label: "Under 3.5", probability: match.p_under35, odd: match.odd_u35 },
+        ],
+      },
+      {
+        id: "dc",
+        group: "double",
+        title: t("double"),
+        pickLabel: match.dc_pick,
+        pickProbability: match.dc_conf,
+        options: [
+          { label: "1X", probability: match.p_1x, odd: match.odd_1x },
+          { label: "X2", probability: match.p_x2, odd: match.odd_x2 },
         ],
       },
       {
@@ -334,6 +359,8 @@
     const ga = Number(match.goals_away ?? 0);
     const label = String(market.pickLabel || "").toUpperCase();
     if (!label) return "unresolved";
+    if (label === "1X") return (gh >= ga) ? "win" : "lose";
+    if (label === "X2") return (ga >= gh) ? "win" : "lose";
     if (label === "OVER 2.5 + BTTS") return (gh + ga >= 3 && gh > 0 && ga > 0) ? "win" : "lose";
     if (label === "BTTS YES") return (gh > 0 && ga > 0) ? "win" : "lose";
     if (label === "BTTS NO") return !(gh > 0 && ga > 0) ? "win" : "lose";
@@ -345,7 +372,7 @@
       const line = Number(label.replace("UNDER ", ""));
       return (gh + ga < line) ? "win" : "lose";
     }
-    if (label.includes(" NON SEGNA")) {
+    if (label.includes(" NON SEGNA") || label.includes(" TO BLANK")) {
       const homeMatch = label.startsWith(String(match.home || "").toUpperCase());
       const awayMatch = label.startsWith(String(match.away || "").toUpperCase());
       if (homeMatch) return gh === 0 ? "win" : "lose";
@@ -356,8 +383,10 @@
 
   function highlightThreshold(marketId) {
     return {
+      ou15: 0.72,
       ou25: 0.6,
-      o35: 0.58,
+      o35: 0.62,
+      dc: 0.68,
       btts: 0.6,
       combo: 0.32,
       nogol: 0.58,
@@ -372,7 +401,10 @@
       .map(match => ({ ...match, markets: buildMarkets(match) }))
       .filter(match => match.match_time >= state.timeFrom && match.match_time <= state.timeTo)
       .filter(match => {
-        const blob = `${match.home} ${match.away} ${match.league} ${match.country}`.toLowerCase();
+        const marketBlob = (match.markets || [])
+          .flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)])
+          .join(" ");
+        const blob = `${match.home} ${match.away} ${match.league} ${match.country} ${marketBlob}`.toLowerCase();
         return !state.search || blob.includes(state.search);
       })
       .map(match => {
@@ -390,18 +422,22 @@
     return matches
       .flatMap(match => match.visibleMarkets
         .filter(market => Number(market.pickProbability || 0) >= highlightThreshold(market.id))
-        .map(market => ({
-          fixtureId: match.fixture_id,
-          league: match.league,
-          matchTime: match.match_time,
-          home: match.home,
-          away: match.away,
-          pickLabel: market.pickLabel,
-          pickProbability: market.pickProbability,
-          status: market.status,
-          group: market.group,
-          tag: market.tag,
-        })))
+        .map(market => {
+          const pickedOption = (market.options || []).find(option => option.label === market.pickLabel);
+          return {
+            fixtureId: match.fixture_id,
+            league: match.league,
+            matchTime: match.match_time,
+            home: match.home,
+            away: match.away,
+            pickLabel: market.pickLabel,
+            pickProbability: market.pickProbability,
+            status: market.status,
+            group: market.group,
+            tag: market.tag,
+            odd: pickedOption?.odd ?? null,
+          };
+        }))
       .sort((a, b) => Number(b.pickProbability || 0) - Number(a.pickProbability || 0))
       .slice(0, 12);
   }
@@ -458,6 +494,7 @@
         <div style="font-size:0.84rem;color:#94a3b8;">${pick.matchTime} | ${pick.league}</div>
         <div style="font-size:1rem;font-weight:700;line-height:1.4;">${escapeHtml(pick.home)} vs ${escapeHtml(pick.away)}</div>
         <div style="font-size:0.9rem;color:#e2e8f0;">${escapeHtml(pick.pickLabel)}</div>
+        ${pick.odd ? `<div style="font-size:0.8rem;color:#94a3b8;">${t("odds")} ${formatOdd(pick.odd)}</div>` : ""}
         <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-end;">
           <div style="font-size:0.78rem;color:#64748b;">${t("confidence")}</div>
           <div style="font-size:1.5rem;font-weight:700;">${formatPercent(pick.pickProbability)}</div>

@@ -90,4 +90,5 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Mode: ${{ github.event.inputs.mode || 'daemon' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Cache path: assets/data/match-predictor" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Markets: Over/Under 1.5, Over/Under 2.5, Over/Under 3.5, 1X/X2, BTTS, combo, no goal, corners, yellows." >> "$GITHUB_STEP_SUMMARY"
           echo "- Schedule: hourly refresh; the first run after local midnight creates the new daily cache and old entries expire after 24 hours." >> "$GITHUB_STEP_SUMMARY"

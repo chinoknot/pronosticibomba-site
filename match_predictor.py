@@ -111,6 +111,21 @@ def safe_div(a, b):
     try: return a / b if b not in (0, None) and a is not None else 0.0
     except: return 0.0
 
+def normalize_percent(value):
+    num = to_float(value)
+    if num is None:
+        return None
+    return num / 100.0 if num > 1 else num
+
+def clamp_prob(value, low=0.02, high=0.98):
+    return max(low, min(high, value))
+
+def nudge_prob(value, factor=1.04, low=0.03, high=0.97):
+    if value is None:
+        return None
+    centered = 0.5 + (float(value) - 0.5) * factor
+    return clamp_prob(centered, low, high)
+
 
 # ==========================
 # API LAYER
@@ -277,14 +292,31 @@ def get_odds(fixture_id):
                 elif val == "Draw": res["odd_draw"] = v.get("odd", "")
                 elif val == "Away": res["odd_away"] = v.get("odd", "")
 
+    def _n(s): return str(s or "").strip().lower()
+
     for b in bets:
-        if b.get("name") == "Goals Over/Under":
+        if _n(b.get("name")) == "goals over/under":
             for v in b.get("values", []):
                 label = str(v.get("value", "")).strip()
-                if label == "Over 2.5": res["odd_o25"] = v.get("odd", "")
+                if label == "Over 1.5": res["odd_o15"] = v.get("odd", "")
+                elif label == "Under 1.5": res["odd_u15"] = v.get("odd", "")
+                elif label == "Over 2.5": res["odd_o25"] = v.get("odd", "")
                 elif label == "Under 2.5": res["odd_u25"] = v.get("odd", "")
+                elif label == "Over 3.5": res["odd_o35"] = v.get("odd", "")
+                elif label == "Under 3.5": res["odd_u35"] = v.get("odd", "")
 
-    def _n(s): return str(s or "").strip().lower()
+    for b in bets:
+        n = _n(b.get("name"))
+        if "double chance" in n or "chance double" in n:
+            for v in b.get("values", []):
+                val = _n(v.get("value")).replace(" ", "")
+                if val in {"home/draw", "homedraw", "1x"}:
+                    res["odd_1x"] = v.get("odd", "")
+                elif val in {"draw/away", "drawaway", "x2"}:
+                    res["odd_x2"] = v.get("odd", "")
+                elif val in {"home/away", "homeaway", "12"}:
+                    res["odd_12"] = v.get("odd", "")
+
     for b in bets:
         n = _n(b.get("name"))
         if ("both" in n and "team" in n and "score" in n) or "btts" in n:
@@ -388,16 +420,30 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     p_h_zero = 1.0 - p_h_scores  # home fails to score
     p_a_zero = 1.0 - p_a_scores  # away fails to score
 
+    p_over15_poi = p_over(lam_t, 2)
     p_over25_poi = p_over(lam_t, 3)
     p_btts_poi = p_h_scores * p_a_scores
+    g = grid(lam_h, lam_a)
+    p_home_win_poi = sum(p for (h, a), p in g.items() if h > a)
+    p_draw_poi = sum(p for (h, a), p in g.items() if h == a)
+    p_away_win_poi = sum(p for (h, a), p in g.items() if h < a)
+    p_one_x_poi = p_home_win_poi + p_draw_poi
+    p_x_two_poi = p_draw_poi + p_away_win_poi
 
     # --- MARKET IMPLIED (vig-removed) ---
+    o_o15 = to_float(odds.get("odd_o15"))
+    o_u15 = to_float(odds.get("odd_u15"))
     o_o25 = to_float(odds.get("odd_o25"))
     o_u25 = to_float(odds.get("odd_u25"))
+    o_o35 = to_float(odds.get("odd_o35"))
+    o_u35 = to_float(odds.get("odd_u35"))
     o_by = to_float(odds.get("odd_btts_y"))
     o_bn = to_float(odds.get("odd_btts_n"))
     o_h = to_float(odds.get("odd_home"))
+    o_d = to_float(odds.get("odd_draw"))
     o_a = to_float(odds.get("odd_away"))
+    o_1x = to_float(odds.get("odd_1x"))
+    o_x2 = to_float(odds.get("odd_x2"))
 
     def vig_free(o1, o2):
         if o1 and o2 and o1 > 1 and o2 > 1:
@@ -406,11 +452,53 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
             return (i1/t, i2/t) if t > 0 else (0.5, 0.5)
         return None, None
 
+    def vig_free_three(o1, o2, o3):
+        vals = [o1, o2, o3]
+        if all(v and v > 1 for v in vals):
+            inv = [1.0 / v for v in vals]
+            total = sum(inv)
+            if total > 0:
+                return tuple(v / total for v in inv)
+        return (None, None, None)
+
+    mkt_over15, mkt_under15 = vig_free(o_o15, o_u15)
     mkt_over, mkt_under = vig_free(o_o25, o_u25)
+    mkt_over35, mkt_under35 = vig_free(o_o35, o_u35)
     mkt_btts_y, mkt_btts_n = vig_free(o_by, o_bn)
+    mkt_home, mkt_draw, mkt_away = vig_free_three(o_h, o_d, o_a)
+
+    api_home = normalize_percent(pred.get("prob_home"))
+    api_draw = normalize_percent(pred.get("prob_draw"))
+    api_away = normalize_percent(pred.get("prob_away"))
+    api_one_x = None if api_home is None or api_draw is None else api_home + api_draw
+    api_x_two = None if api_draw is None or api_away is None else api_draw + api_away
 
     # ============================================================
-    # 1) OVER / UNDER 2.5
+    # 1) OVER / UNDER 1.5
+    # ============================================================
+    ou15_signals = [("Poisson", p_over15_poi, 0.55)]
+
+    if mkt_over15 is not None:
+        ou15_signals.append(("Market", mkt_over15, 0.25))
+
+    attack_total = hp["gf_side"] + ap["ga_side"] + ap["gf_side"] + hp["ga_side"]
+    if hp["played"] >= 3 and ap["played"] >= 3:
+        p_prof15 = clamp_prob((attack_total - 0.7) / 2.5, 0.20, 0.94)
+        p_prof15 -= ((hp["fts_rate"] + ap["fts_rate"]) / 2.0) * 0.16
+        ou15_signals.append(("Profile", clamp_prob(p_prof15, 0.15, 0.94), 0.10))
+
+    if gh > 0 and ga > 0:
+        goals_hint = gh + ga
+        p_api15 = clamp_prob((goals_hint - 0.8) / 2.0, 0.20, 0.92)
+        ou15_signals.append(("API goals", p_api15, 0.10))
+
+    tw15 = sum(w for _, _, w in ou15_signals)
+    p_over15 = sum(p * w for _, p, w in ou15_signals) / tw15 if tw15 > 0 else 0.65
+    p_over15 = nudge_prob(p_over15, factor=1.05, low=0.12, high=0.975)
+    p_under15 = 1.0 - p_over15
+
+    # ============================================================
+    # 2) OVER / UNDER 2.5
     # ============================================================
     ou_signals = []
 
@@ -423,8 +511,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
 
     # Attack/defense profile (0.20)
     if hp["played"] >= 3 and ap["played"] >= 3:
-        ad = hp["gf_side"] + ap["ga_side"] + ap["gf_side"] + hp["ga_side"]
-        p_prof = max(0.05, min(0.95, (ad - 1.5) / 3.0))
+        p_prof = max(0.05, min(0.95, (attack_total - 1.5) / 3.0))
         cs_pen = (hp["cs_rate"] + ap["cs_rate"]) / 2.0
         fts_pen = (hp["fts_rate"] + ap["fts_rate"]) / 2.0
         p_prof -= cs_pen * 0.15 + fts_pen * 0.10
@@ -463,11 +550,11 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
 
     tw = sum(w for _, _, w in ou_signals)
     p_over25 = sum(p * w for _, p, w in ou_signals) / tw if tw > 0 else 0.50
-    p_over25 = max(0.05, min(0.95, p_over25))
+    p_over25 = nudge_prob(p_over25, factor=1.05, low=0.05, high=0.955)
     p_under25 = 1.0 - p_over25
 
     # ============================================================
-    # 2) BTTS YES / NO
+    # 3) BTTS YES / NO
     # ============================================================
     btts_signals = []
 
@@ -506,7 +593,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
 
     tw2 = sum(w for _, _, w in btts_signals)
     p_btts = sum(p * w for _, p, w in btts_signals) / tw2 if tw2 > 0 else 0.50
-    p_btts = max(0.08, min(0.92, p_btts))
+    p_btts = nudge_prob(p_btts, factor=1.045, low=0.08, high=0.925)
     p_btts_no = 1.0 - p_btts
 
     # ============================================================
@@ -536,23 +623,58 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     if gh > 0 and gh < 0.5: p_home_blanked = min(0.90, p_home_blanked + 0.08)
     if ga > 0 and ga < 0.5: p_away_blanked = min(0.90, p_away_blanked + 0.08)
 
-    p_home_blanked = max(0.05, min(0.90, p_home_blanked))
-    p_away_blanked = max(0.05, min(0.90, p_away_blanked))
-    p_nogol = max(0.10, min(0.90, p_nogol))
+    p_home_blanked = clamp_prob(p_home_blanked, 0.05, 0.90)
+    p_away_blanked = clamp_prob(p_away_blanked, 0.05, 0.90)
+    p_nogol = nudge_prob(p_nogol, factor=1.04, low=0.10, high=0.91)
     p_both_score = 1.0 - p_nogol
 
     # Score grid
-    g = grid(lam_h, lam_a)
     ml = sorted(g.items(), key=lambda x: x[1], reverse=True)[:5]
     p_00 = g.get((0, 0), 0)
 
     # ============================================================
-    # 4) OVER 3.5
+    # 4) OVER / UNDER 3.5
     # ============================================================
-    p_over35 = p_over(lam_t, 4)
+    over35_signals = [("Poisson", p_over(lam_t, 4), 0.58)]
+    if mkt_over35 is not None:
+        over35_signals.append(("Market", mkt_over35, 0.25))
+    if gh > 0 and ga > 0:
+        p_api35 = clamp_prob(((gh + ga) - 2.1) / 2.4, 0.10, 0.82)
+        over35_signals.append(("API goals", p_api35, 0.10))
+    over35_signals.append(("OU bridge", clamp_prob((p_over25 - 0.35) / 0.75, 0.08, 0.90), 0.07))
+    tw35 = sum(w for _, _, w in over35_signals)
+    p_over35 = sum(p * w for _, p, w in over35_signals) / tw35 if tw35 > 0 else p_over(lam_t, 4)
+    p_over35 = nudge_prob(p_over35, factor=1.04, low=0.04, high=0.89)
+    p_under35 = 1.0 - p_over35
 
     # ============================================================
-    # 5) COMBO: Over 2.5 + BTTS YES
+    # 5) DOUBLE CHANCE 1X / X2
+    # ============================================================
+    fav_home_bias = clamp_prob(0.50 + (lam_h - lam_a) * 0.10 + (hp["form"] - ap["form"]) * 0.015, 0.12, 0.88)
+    fav_away_bias = clamp_prob(0.50 + (lam_a - lam_h) * 0.10 + (ap["form"] - hp["form"]) * 0.015, 0.12, 0.88)
+
+    dc_one_x_signals = [("Poisson", p_one_x_poi, 0.38)]
+    dc_x_two_signals = [("Poisson", p_x_two_poi, 0.38)]
+    if mkt_home is not None and mkt_draw is not None:
+        dc_one_x_signals.append(("1X2 market", clamp_prob(mkt_home + mkt_draw, 0.20, 0.94), 0.27))
+    if mkt_draw is not None and mkt_away is not None:
+        dc_x_two_signals.append(("1X2 market", clamp_prob(mkt_draw + mkt_away, 0.20, 0.94), 0.27))
+    if api_one_x is not None:
+        dc_one_x_signals.append(("API", clamp_prob(api_one_x, 0.20, 0.94), 0.25))
+    if api_x_two is not None:
+        dc_x_two_signals.append(("API", clamp_prob(api_x_two, 0.20, 0.94), 0.25))
+    dc_one_x_signals.append(("Bias", fav_home_bias, 0.10))
+    dc_x_two_signals.append(("Bias", fav_away_bias, 0.10))
+
+    tw1x = sum(w for _, _, w in dc_one_x_signals)
+    twx2 = sum(w for _, _, w in dc_x_two_signals)
+    p_1x = sum(p * w for _, p, w in dc_one_x_signals) / tw1x if tw1x > 0 else p_one_x_poi
+    p_x2 = sum(p * w for _, p, w in dc_x_two_signals) / twx2 if twx2 > 0 else p_x_two_poi
+    p_1x = nudge_prob(p_1x, factor=1.05, low=0.18, high=0.97)
+    p_x2 = nudge_prob(p_x2, factor=1.05, low=0.18, high=0.97)
+
+    # ============================================================
+    # 6) COMBO: Over 2.5 + BTTS YES
     # P(O2.5 ∩ BTTS) = P(total≥3 AND both score)
     # Calculated from score grid directly (exact, not approximated)
     # ============================================================
@@ -618,6 +740,13 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
             yellow_overs[str(line)] = None
 
     return {
+        # Over/Under 1.5
+        "p_over15": round(p_over15, 4),
+        "p_under15": round(p_under15, 4),
+        "ou15_pick": "Over 1.5" if p_over15 >= 0.50 else "Under 1.5",
+        "ou15_conf": round(max(p_over15, p_under15), 4),
+        "odd_o15": o_o15, "odd_u15": o_u15,
+
         # Over/Under 2.5
         "p_over25": round(p_over25, 4),
         "p_under25": round(p_under25, 4),
@@ -625,9 +754,12 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
         "ou_conf": round(max(p_over25, p_under25), 4),
         "odd_o25": o_o25, "odd_u25": o_u25,
 
-        # Over 3.5
+        # Over/Under 3.5
         "p_over35": round(p_over35, 4),
-        "p_under35": round(1.0 - p_over35, 4),
+        "p_under35": round(p_under35, 4),
+        "ou35_pick": "Over 3.5" if p_over35 >= 0.50 else "Under 3.5",
+        "ou35_conf": round(max(p_over35, p_under35), 4),
+        "odd_o35": o_o35, "odd_u35": o_u35,
 
         # BTTS
         "p_btts_yes": round(p_btts, 4),
@@ -635,6 +767,14 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
         "btts_pick": "BTTS YES" if p_btts >= 0.50 else "BTTS NO",
         "btts_conf": round(max(p_btts, p_btts_no), 4),
         "odd_btts_y": o_by, "odd_btts_n": o_bn,
+
+        # Double chance
+        "p_1x": round(p_1x, 4),
+        "p_x2": round(p_x2, 4),
+        "dc_pick": "1X" if p_1x >= p_x2 else "X2",
+        "dc_conf": round(max(p_1x, p_x2), 4),
+        "odd_1x": o_1x,
+        "odd_x2": o_x2,
 
         # Combo Over 2.5 + BTTS
         "p_o25_btts": round(p_o25_btts, 4),
@@ -759,13 +899,21 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
 
         for r in lr:
             print(f"\n  [{r['match_time']}] {r['home']} vs {r['away']}", file=sys.stderr)
+            ou15_odds = ""
+            if r["odd_o15"]: ou15_odds = f" [O@{r['odd_o15']} U@{r.get('odd_u15','?')}]"
+            print(f"    Over 1.5: {r['p_over15']*100:.1f}%  |  Under 1.5: {r['p_under15']*100:.1f}%{ou15_odds}", file=sys.stderr)
 
             # Over/Under
             ou_e = "🟢" if r["ou_pick"] == "Over 2.5" else "🔴"
             ou_odds = ""
             if r["odd_o25"]: ou_odds = f" [O@{r['odd_o25']} U@{r.get('odd_u25','?')}]"
             print(f"    {ou_e} Over 2.5: {r['p_over25']*100:.1f}%  |  Under 2.5: {r['p_under25']*100:.1f}%{ou_odds}", file=sys.stderr)
-            print(f"       Over 3.5: {r['p_over35']*100:.1f}%", file=sys.stderr)
+            ou35_odds = ""
+            if r["odd_u35"] or r["odd_o35"]: ou35_odds = f" [O@{r.get('odd_o35','?')} U@{r.get('odd_u35','?')}]"
+            print(f"       Over 3.5: {r['p_over35']*100:.1f}%  |  Under 3.5: {r['p_under35']*100:.1f}%{ou35_odds}", file=sys.stderr)
+            dc_odds = ""
+            if r["odd_1x"] or r["odd_x2"]: dc_odds = f" [1X@{r.get('odd_1x','?')} X2@{r.get('odd_x2','?')}]"
+            print(f"    1X: {r['p_1x']*100:.1f}%  |  X2: {r['p_x2']*100:.1f}%{dc_odds}", file=sys.stderr)
 
             # BTTS
             bt_e = "✅" if r["btts_pick"] == "BTTS YES" else "❌"
@@ -803,6 +951,14 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
     print(f"  ⭐ MIGLIORI PICK (confidence ≥ 60%)", file=sys.stderr)
     print(f"{'='*70}", file=sys.stderr)
 
+    # Best Over 1.5
+    best_over15 = sorted([r for r in results if r["p_over15"] >= 0.72], key=lambda x: x["p_over15"], reverse=True)
+    if best_over15:
+        print(f"\n  OVER 1.5:", file=sys.stderr)
+        for r in best_over15[:8]:
+            o = f" @{r['odd_o15']}" if r['odd_o15'] else ""
+            print(f"     {r['home']} vs {r['away']}: {r['p_over15']*100:.1f}%{o} - {r['country']}/{r['league']}", file=sys.stderr)
+
     # Best Over 2.5
     best_over = sorted([r for r in results if r["p_over25"] >= 0.60], key=lambda x: x["p_over25"], reverse=True)
     if best_over:
@@ -818,6 +974,30 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
         for r in best_under[:8]:
             o = f" @{r['odd_u25']}" if r['odd_u25'] else ""
             print(f"     {r['home']} vs {r['away']}: {r['p_under25']*100:.1f}%{o} — {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Best Under 3.5
+    best_under35 = sorted([r for r in results if r["p_under35"] >= 0.68], key=lambda x: x["p_under35"], reverse=True)
+    if best_under35:
+        print(f"\n  UNDER 3.5:", file=sys.stderr)
+        for r in best_under35[:8]:
+            o = f" @{r['odd_u35']}" if r['odd_u35'] else ""
+            print(f"     {r['home']} vs {r['away']}: {r['p_under35']*100:.1f}%{o} - {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Best 1X
+    best_1x = sorted([r for r in results if r["p_1x"] >= 0.68], key=lambda x: x["p_1x"], reverse=True)
+    if best_1x:
+        print(f"\n  DOUBLE CHANCE 1X:", file=sys.stderr)
+        for r in best_1x[:8]:
+            o = f" @{r['odd_1x']}" if r['odd_1x'] else ""
+            print(f"     {r['home']} vs {r['away']}: {r['p_1x']*100:.1f}%{o} - {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Best X2
+    best_x2 = sorted([r for r in results if r["p_x2"] >= 0.68], key=lambda x: x["p_x2"], reverse=True)
+    if best_x2:
+        print(f"\n  DOUBLE CHANCE X2:", file=sys.stderr)
+        for r in best_x2[:8]:
+            o = f" @{r['odd_x2']}" if r['odd_x2'] else ""
+            print(f"     {r['home']} vs {r['away']}: {r['p_x2']*100:.1f}%{o} - {r['country']}/{r['league']}", file=sys.stderr)
 
     # Best BTTS YES
     best_btts = sorted([r for r in results if r["p_btts_yes"] >= 0.60], key=lambda x: x["p_btts_yes"], reverse=True)
@@ -849,7 +1029,8 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
     if best_o35:
         print(f"\n  🔥 OVER 3.5:", file=sys.stderr)
         for r in best_o35[:8]:
-            print(f"     {r['home']} vs {r['away']}: {r['p_over35']*100:.1f}% — {r['country']}/{r['league']}", file=sys.stderr)
+            o = f" @{r['odd_o35']}" if r['odd_o35'] else ""
+            print(f"     {r['home']} vs {r['away']}: {r['p_over35']*100:.1f}%{o} - {r['country']}/{r['league']}", file=sys.stderr)
 
     # Best Combo O2.5 + BTTS
     best_combo = sorted([r for r in results if r["p_o25_btts"] >= 0.30], key=lambda x: x["p_o25_btts"], reverse=True)
