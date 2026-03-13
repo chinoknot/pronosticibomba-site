@@ -1,0 +1,93 @@
+name: Match Predictor Cache
+
+on:
+  schedule:
+    - cron: "5 * * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Mode"
+        required: false
+        default: "daemon"
+      date:
+        description: "Date (YYYY-MM-DD) for manual build"
+        required: false
+        default: ""
+      time_min:
+        description: "Start time (HH:MM)"
+        required: false
+        default: "00:00"
+      time_max:
+        description: "End time (HH:MM)"
+        required: false
+        default: "23:59"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: match-predictor-cache
+  cancel-in-progress: false
+
+jobs:
+  cache:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Build or refresh cache
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          MATCH_PREDICTOR_TIMEZONE: Europe/Dublin
+          PYTHONUTF8: "1"
+          INPUT_MODE: ${{ github.event.inputs.mode }}
+          INPUT_DATE: ${{ github.event.inputs.date }}
+          INPUT_TIME_MIN: ${{ github.event.inputs.time_min }}
+          INPUT_TIME_MAX: ${{ github.event.inputs.time_max }}
+        run: |
+          MODE="${INPUT_MODE:-daemon}"
+          CMD=(python match_predictor.py --mode "$MODE" --cache-dir assets/data/match-predictor)
+          if [ "$MODE" = "build" ]; then
+            if [ -n "$INPUT_DATE" ]; then
+              CMD+=(--date "$INPUT_DATE")
+            fi
+            CMD+=(--time-min "${INPUT_TIME_MIN:-00:00}" --time-max "${INPUT_TIME_MAX:-23:59}")
+          fi
+          echo "Running: ${CMD[*]}"
+          "${CMD[@]}"
+
+      - name: Commit cache changes
+        run: |
+          if git diff --quiet -- assets/data/match-predictor; then
+            echo "No cache changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data/match-predictor
+          git commit -m "chore: refresh match predictor cache"
+          git push
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Match Predictor cache" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Mode: ${{ github.event.inputs.mode || 'daemon' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Cache path: assets/data/match-predictor" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Schedule: hourly refresh; the first run after local midnight creates the new daily cache and old entries expire after 24 hours." >> "$GITHUB_STEP_SUMMARY"

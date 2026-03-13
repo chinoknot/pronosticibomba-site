@@ -1,0 +1,1128 @@
+# -*- coding: utf-8 -*-
+"""
+MATCH PREDICTOR — Full Analysis — ALL LEAGUES
+================================================
+Per ogni partita nell'intervallo orario mostra TUTTE le probabilità:
+  - Over 2.5 / Under 2.5 (%)
+  - Over 3.5 (%)
+  - BTTS YES / BTTS NO (%)
+  - Over 2.5 + BTTS combo (%)
+  - No Goal: quale squadra non segna (%)
+  - Corner expected + Over 7.5/8.5/9.5/10.5 (%)
+  - Ammonizioni expected + Over 2.5/3.5/4.5 (%)
+  - Score più probabili
+
+Data: API-Football + Supabase (team_season_stats, corner_team_stats)
+
+Usage:
+    python match_predictor.py                           # oggi, 13:30-21:30
+    python match_predictor.py 2026-03-19                # data specifica
+    python match_predictor.py 2026-03-19 17:00 21:00    # data + intervallo
+    python match_predictor.py 17:00 21:00               # oggi + intervallo
+"""
+
+import os, sys, time, math, json, threading, argparse
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+from zoneinfo import ZoneInfo
+import requests
+
+# ==========================
+# CONFIG
+# ==========================
+API_KEY = os.getenv("API_FOOTBALL_KEY", "").strip()
+BASE_URL = "https://v3.football.api-sports.io"
+HEADERS = {"x-apisports-key": API_KEY, "Accept": "application/json"}
+
+API_MIN_INTERVAL_SEC = float(os.getenv("API_FOOTBALL_MIN_INTERVAL_SEC", "0.45"))
+API_MAX_RETRIES = int(os.getenv("API_FOOTBALL_MAX_RETRIES", "6"))
+API_BACKOFF_BASE_SEC = float(os.getenv("API_FOOTBALL_BACKOFF_BASE_SEC", "0.8"))
+API_BACKOFF_MAX_SEC = float(os.getenv("API_FOOTBALL_BACKOFF_MAX_SEC", "20"))
+
+_API_SESSION = requests.Session()
+_API_LOCK = threading.Lock()
+_API_LAST_TS = 0.0
+TZ = timezone.utc
+MATCH_TIMEZONE = os.getenv("MATCH_PREDICTOR_TIMEZONE", "Europe/Dublin")
+LOCAL_TZ = ZoneInfo(MATCH_TIMEZONE)
+DEFAULT_CACHE_DIR = Path(__file__).resolve().parent / "assets" / "data" / "match-predictor"
+CACHE_TTL_HOURS = int(os.getenv("MATCH_PREDICTOR_TTL_HOURS", "24"))
+TEAM_STATS_CACHE = {}
+LIVE_STATUSES = {"1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"}
+FINAL_STATUSES = {"FT", "AET", "PEN", "AWD", "WO"}
+
+PREFERRED_BOOKMAKER_NAMES = {"Bet365", "bet365", "bet365.com", "Bet 365"}
+
+EXCLUDED_COUNTRIES = {
+    "algeria","angola","benin","botswana","burkina faso","burundi","cameroon",
+    "cape verde","chad","comoros","congo","congo dr","dr congo","cote d'ivoire",
+    "ivory coast","djibouti","egypt","equatorial guinea","eritrea","ethiopia",
+    "gabon","gambia","ghana","guinea","guinea-bissau","kenya","lesotho","liberia",
+    "libya","madagascar","malawi","mali","mauritania","mauritius","morocco",
+    "mozambique","namibia","niger","nigeria","rwanda","senegal","seychelles",
+    "sierra leone","somalia","south africa","south sudan","sudan","tanzania",
+    "togo","tunisia","uganda","zambia","zimbabwe","russia","serbia",
+}
+
+EXCLUDED_KEYWORDS = [
+    "friendly","friendlies","women","womens","femin","femmin",
+    "u19","u-19","u20","u-20","u21","u-21","u23","u-23",
+    "youth","junior","academy","reserve","reserves",
+]
+
+
+# ==========================
+# UTILS
+# ==========================
+def today_str():
+    return datetime.now(TZ).strftime("%Y-%m-%d")
+
+def today_local_str():
+    return datetime.now(LOCAL_TZ).strftime("%Y-%m-%d")
+
+def now_utc():
+    return datetime.now(TZ)
+
+def parse_iso_dt(value):
+    if not value:
+        return None
+    text = str(value)
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    return dt if dt.tzinfo else dt.replace(tzinfo=TZ)
+
+def compact_probability(value):
+    if value is None:
+        return None
+    return round(float(value), 4)
+
+def to_float(x):
+    if x is None: return None
+    try:
+        s = str(x).strip().replace("%","").replace(",",".")
+        return float(s) if s else None
+    except: return None
+
+def safe_div(a, b):
+    try: return a / b if b not in (0, None) and a is not None else 0.0
+    except: return 0.0
+
+
+# ==========================
+# API LAYER
+# ==========================
+def _throttle():
+    global _API_LAST_TS
+    with _API_LOCK:
+        w = API_MIN_INTERVAL_SEC - (time.time() - _API_LAST_TS)
+        if w > 0: time.sleep(w)
+        _API_LAST_TS = time.time()
+
+def api_request(path, params=None, timeout=20):
+    if not API_KEY:
+        raise RuntimeError("API_FOOTBALL_KEY is required.")
+    url = f"{BASE_URL}{path}"
+    for att in range(API_MAX_RETRIES + 1):
+        _throttle()
+        try:
+            r = _API_SESSION.get(url, headers=HEADERS, params=params or {}, timeout=timeout)
+            if r.status_code in (429, 500, 502, 503, 504):
+                time.sleep(min(API_BACKOFF_MAX_SEC, API_BACKOFF_BASE_SEC * (2 ** att)))
+                continue
+            r.raise_for_status()
+            d = r.json()
+            return d if isinstance(d, dict) else {}
+        except:
+            time.sleep(min(API_BACKOFF_MAX_SEC, API_BACKOFF_BASE_SEC * (2 ** att)))
+    return {}
+
+def api_get(path, params=None, timeout=20):
+    d = api_request(path, params=params, timeout=timeout)
+    r = d.get("response", []) if isinstance(d, dict) else []
+    return r if isinstance(r, list) else []
+
+
+# ==========================
+# DATA FETCHERS
+# ==========================
+
+# --- SUPABASE ---
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "").strip()
+SB_REST = f"{SUPABASE_URL}/rest/v1" if SUPABASE_URL else ""
+SB_HEADERS = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "Content-Type": "application/json",
+}
+
+def sb_query(table, params):
+    if not SB_REST or not SUPABASE_KEY:
+        return []
+    url = f"{SB_REST}/{table}"
+    if params: url += "?" + "&".join(f"{k}={v}" for k, v in params.items())
+    try:
+        r = requests.get(url, headers=SB_HEADERS, timeout=30)
+        r.raise_for_status()
+        return r.json()
+    except:
+        return []
+
+def sb_team_stats(team_id, season="2025"):
+    """team_season_stats: shots, SoT, fouls, yellows, corners, possession."""
+    r = sb_query("team_season_stats", {"team_id": f"eq.{team_id}", "season": f"eq.{season}", "select": "*"})
+    return r[0] if r else {}
+
+def sb_corner_stats(team_id, league_id=None):
+    """corner_team_stats: avg corners for/against home/away."""
+    p = {"team_id": f"eq.{team_id}", "select": "*"}
+    if league_id: p["league_id"] = f"eq.{league_id}"
+    r = sb_query("corner_team_stats", p)
+    if r: return r[0]
+    r = sb_query("corner_team_stats", {"team_id": f"eq.{team_id}", "select": "*", "order": "total_matches.desc", "limit": "1"})
+    return r[0] if r else {}
+
+def sb_corner_h2h(hid, aid, n=5):
+    """H2H corner average."""
+    r = sb_query("corner_match_stats", {
+        "or": f"(and(home_team_id.eq.{hid},away_team_id.eq.{aid}),and(home_team_id.eq.{aid},away_team_id.eq.{hid}))",
+        "select": "total_corners", "order": "match_date.desc", "limit": str(n),
+    })
+    if r:
+        vals = [to_float(m.get("total_corners")) or 0 for m in r]
+        return sum(vals) / len(vals) if vals else None
+    return None
+def get_all_fixtures(target_date, time_min, time_max):
+    resp = api_get("/fixtures", params={"date": target_date, "timezone": MATCH_TIMEZONE}, timeout=30)
+    print(f"# Fixtures totali per {target_date}: {len(resp)}", file=sys.stderr)
+
+    filtered = []
+    for f in resp:
+        fx = f.get("fixture", {}) or {}
+        league = f.get("league", {}) or {}
+
+        st = (fx.get("status") or {}).get("short", "")
+        if st in ("PST", "CANC", "ABD"): continue
+
+        country = (league.get("country") or "").strip().lower()
+        if country in EXCLUDED_COUNTRIES: continue
+
+        lname = (league.get("name") or "").strip().lower()
+        lround = (league.get("round") or "").strip().lower()
+        if any(kw in lname for kw in EXCLUDED_KEYWORDS) or any(kw in lround for kw in EXCLUDED_KEYWORDS):
+            continue
+
+        dateiso = fx.get("date", "") or ""
+        t = dateiso[11:16] if len(dateiso) >= 16 else ""
+        if not t or t < time_min or t > time_max: continue
+
+        filtered.append(f)
+
+    print(f"# Dopo filtri ({time_min}-{time_max}): {len(filtered)}", file=sys.stderr)
+    return filtered
+
+
+def get_prediction(fixture_id):
+    preds = api_get("/predictions", {"fixture": fixture_id})
+    if not preds: return {}
+    b = preds[0].get("predictions") or {}
+    return {
+        "goals_home": (b.get("goals") or {}).get("home"),
+        "goals_away": (b.get("goals") or {}).get("away"),
+        "under_over": b.get("under_over"),
+        "advice": b.get("advice"),
+        "prob_home": (b.get("percent") or {}).get("home"),
+        "prob_draw": (b.get("percent") or {}).get("draw"),
+        "prob_away": (b.get("percent") or {}).get("away"),
+    }
+
+
+def get_odds(fixture_id):
+    data0 = api_request("/odds", {"fixture": fixture_id, "page": 1})
+    resp0 = data0.get("response", []) if isinstance(data0, dict) else []
+    if not resp0: return {}
+
+    bookmakers = list(resp0[0].get("bookmakers") or [])
+    paging = (data0.get("paging") or {}) if isinstance(data0, dict) else {}
+    total_pages = int(paging.get("total") or 1)
+
+    def _is_b365(name): return (name or "").strip() in PREFERRED_BOOKMAKER_NAMES
+
+    if total_pages > 1 and not any(_is_b365((b or {}).get("name")) for b in bookmakers):
+        seen = set((b or {}).get("name") for b in bookmakers if (b or {}).get("name"))
+        for page in range(2, min(total_pages, 3) + 1):
+            d = api_request("/odds", {"fixture": fixture_id, "page": page})
+            r = d.get("response", []) if isinstance(d, dict) else []
+            if not r: continue
+            for bm in (r[0].get("bookmakers") or []):
+                nm = (bm or {}).get("name")
+                if nm and nm not in seen: bookmakers.append(bm); seen.add(nm)
+            if any(_is_b365((b or {}).get("name")) for b in bookmakers): break
+
+    if not bookmakers: return {}
+
+    chosen = next((b for b in bookmakers if _is_b365(b.get("name"))), bookmakers[0])
+    bets = chosen.get("bets", [])
+    res = {"bookmaker": chosen.get("name", "")}
+
+    for b in bets:
+        if b.get("name") == "Match Winner":
+            for v in b.get("values", []):
+                val = v.get("value")
+                if val == "Home": res["odd_home"] = v.get("odd", "")
+                elif val == "Draw": res["odd_draw"] = v.get("odd", "")
+                elif val == "Away": res["odd_away"] = v.get("odd", "")
+
+    for b in bets:
+        if b.get("name") == "Goals Over/Under":
+            for v in b.get("values", []):
+                label = str(v.get("value", "")).strip()
+                if label == "Over 2.5": res["odd_o25"] = v.get("odd", "")
+                elif label == "Under 2.5": res["odd_u25"] = v.get("odd", "")
+
+    def _n(s): return str(s or "").strip().lower()
+    for b in bets:
+        n = _n(b.get("name"))
+        if ("both" in n and "team" in n and "score" in n) or "btts" in n:
+            for v in b.get("values", []):
+                val = _n(v.get("value"))
+                if val in {"yes","y","si"}: res["odd_btts_y"] = v.get("odd","")
+                elif val in {"no","n"}: res["odd_btts_n"] = v.get("odd","")
+
+    return res
+
+
+def get_team_stats(league_id, season, team_id):
+    if not all([league_id, season, team_id]): return {}
+    key = (league_id, season, team_id)
+    if key in TEAM_STATS_CACHE: return TEAM_STATS_CACHE[key]
+    d = api_request("/teams/statistics", {"league": league_id, "season": season, "team": team_id}, 30)
+    ts = (d.get("response") or {}) if isinstance(d, dict) else {}
+    TEAM_STATS_CACHE[key] = ts
+    time.sleep(0.05)
+    return ts
+
+
+# ==========================
+# PROFILE
+# ==========================
+def profile(ts_raw, side):
+    o = {"played": 0, "played_side": 0, "gf_side": 0.0, "ga_side": 0.0,
+         "gf_total": 0.0, "ga_total": 0.0, "cs_rate": 0.0, "fts_rate": 0.0, "form": 0}
+    if not isinstance(ts_raw, dict) or not ts_raw: return o
+    fx = ts_raw.get("fixtures") or {}
+    pl = fx.get("played") or {}
+    ph, pa = to_float(pl.get("home")) or 0, to_float(pl.get("away")) or 0
+    o["played"] = ph + pa
+    o["played_side"] = ph if side == "home" else pa
+    g = ts_raw.get("goals") or {}
+    gf = (g.get("for") or {}).get("average") or {}
+    ga = (g.get("against") or {}).get("average") or {}
+    o["gf_side"] = to_float(gf.get(side)) or 0.0
+    o["ga_side"] = to_float(ga.get(side)) or 0.0
+    o["gf_total"] = to_float(gf.get("total")) or 0.0
+    o["ga_total"] = to_float(ga.get("total")) or 0.0
+    cs = ts_raw.get("clean_sheet") or {}
+    fts = ts_raw.get("failed_to_score") or {}
+    sp = o["played_side"] or 1
+    o["cs_rate"] = safe_div(to_float(cs.get(side)) or 0, sp)
+    o["fts_rate"] = safe_div(to_float(fts.get(side)) or 0, sp)
+    fm = (ts_raw.get("form") or "").upper()[-5:]
+    o["form"] = sum(3 if c == "W" else 1 if c == "D" else 0 for c in fm)
+    return o
+
+
+# ==========================
+# POISSON
+# ==========================
+def poi(k, lam):
+    if lam is None or lam <= 0: return 0.0
+    return math.exp(-lam) * (lam ** k) / math.factorial(k)
+
+def p_over(lam, thr):
+    if lam <= 0: return 0.0
+    return max(0.0, 1.0 - sum(poi(k, lam) for k in range(thr)))
+
+def grid(lh, la, mx=7):
+    return {(h, a): poi(h, lh) * poi(a, la) for h in range(mx+1) for a in range(mx+1)}
+
+
+# ==========================
+# PREDICTION ENGINE — ALL 3 MARKETS
+# ==========================
+def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, h_crn=None, a_crn=None, h2h_c=None):
+    """
+    Returns dict with ALL markets:
+    Over/Under 2.5, Over 3.5, BTTS, No Goal, O2.5+BTTS combo, Corners, Yellows.
+    """
+    h_sb = h_sb or {}
+    a_sb = a_sb or {}
+    h_crn = h_crn or {}
+    a_crn = a_crn or {}
+
+    # --- BUILD LAMBDAS ---
+    gh = to_float(pred.get("goals_home")) or 0.0
+    ga = to_float(pred.get("goals_away")) or 0.0
+
+    vh, va = [], []
+    if gh > 0: vh.append(gh)
+    if ga > 0: va.append(ga)
+    if hp["gf_side"] > 0: vh.append(hp["gf_side"])
+    if ap["ga_side"] > 0: vh.append(ap["ga_side"])
+    if ap["gf_side"] > 0: va.append(ap["gf_side"])
+    if hp["ga_side"] > 0: va.append(hp["ga_side"])
+    if not vh and hp["gf_total"] > 0: vh.append(hp["gf_total"])
+    if not va and ap["gf_total"] > 0: va.append(ap["gf_total"])
+
+    lam_h = sum(vh) / len(vh) if vh else 1.2
+    lam_a = sum(va) / len(va) if va else 1.0
+    lam_t = lam_h + lam_a
+
+    # --- POISSON BASE PROBABILITIES ---
+    p_h_scores = 1.0 - math.exp(-lam_h) if lam_h > 0 else 0.0
+    p_a_scores = 1.0 - math.exp(-lam_a) if lam_a > 0 else 0.0
+    p_h_zero = 1.0 - p_h_scores  # home fails to score
+    p_a_zero = 1.0 - p_a_scores  # away fails to score
+
+    p_over25_poi = p_over(lam_t, 3)
+    p_btts_poi = p_h_scores * p_a_scores
+
+    # --- MARKET IMPLIED (vig-removed) ---
+    o_o25 = to_float(odds.get("odd_o25"))
+    o_u25 = to_float(odds.get("odd_u25"))
+    o_by = to_float(odds.get("odd_btts_y"))
+    o_bn = to_float(odds.get("odd_btts_n"))
+    o_h = to_float(odds.get("odd_home"))
+    o_a = to_float(odds.get("odd_away"))
+
+    def vig_free(o1, o2):
+        if o1 and o2 and o1 > 1 and o2 > 1:
+            i1, i2 = 1.0/o1, 1.0/o2
+            t = i1 + i2
+            return (i1/t, i2/t) if t > 0 else (0.5, 0.5)
+        return None, None
+
+    mkt_over, mkt_under = vig_free(o_o25, o_u25)
+    mkt_btts_y, mkt_btts_n = vig_free(o_by, o_bn)
+
+    # ============================================================
+    # 1) OVER / UNDER 2.5
+    # ============================================================
+    ou_signals = []
+
+    # Poisson (0.30)
+    ou_signals.append(("Poisson", p_over25_poi, 0.30))
+
+    # Market (0.25)
+    if mkt_over is not None:
+        ou_signals.append(("Market", mkt_over, 0.25))
+
+    # Attack/defense profile (0.20)
+    if hp["played"] >= 3 and ap["played"] >= 3:
+        ad = hp["gf_side"] + ap["ga_side"] + ap["gf_side"] + hp["ga_side"]
+        p_prof = max(0.05, min(0.95, (ad - 1.5) / 3.0))
+        cs_pen = (hp["cs_rate"] + ap["cs_rate"]) / 2.0
+        fts_pen = (hp["fts_rate"] + ap["fts_rate"]) / 2.0
+        p_prof -= cs_pen * 0.15 + fts_pen * 0.10
+        p_prof = max(0.05, min(0.95, p_prof))
+        ou_signals.append(("Profile", p_prof, 0.20))
+
+    # BTTS proxy (0.10)
+    btts_proxy = p_btts_poi * 0.85
+    if mkt_btts_y is not None:
+        btts_proxy = (p_btts_poi * 0.5 + mkt_btts_y * 0.5) * 0.85
+    ou_signals.append(("BTTS proxy", btts_proxy, 0.10))
+
+    # API advice (0.08)
+    adv = str(pred.get("advice") or "").lower()
+    uo = str(pred.get("under_over") or "").strip()
+    p_adv = 0.50
+    if uo:
+        try:
+            v = float(uo.replace("+","").replace("-",""))
+            if v >= 3.5: p_adv = 0.80
+            elif v >= 2.5: p_adv = 0.65
+            elif v <= 1.5: p_adv = 0.20
+            elif "-" in uo: p_adv = 0.35
+        except:
+            if "over" in uo.lower(): p_adv = 0.65
+            elif "under" in uo.lower(): p_adv = 0.35
+    if "over" in adv: p_adv = max(p_adv, 0.62)
+    elif "under" in adv: p_adv = min(p_adv, 0.38)
+    ou_signals.append(("API advice", p_adv, 0.08))
+
+    # Form (0.07)
+    cf = (hp["form"] + ap["form"]) / 2.0
+    ff = max(0.0, min(1.0, (cf - 3.0) / 9.0))
+    p_form = 0.35 + ff * 0.35
+    ou_signals.append(("Form", p_form, 0.07))
+
+    tw = sum(w for _, _, w in ou_signals)
+    p_over25 = sum(p * w for _, p, w in ou_signals) / tw if tw > 0 else 0.50
+    p_over25 = max(0.05, min(0.95, p_over25))
+    p_under25 = 1.0 - p_over25
+
+    # ============================================================
+    # 2) BTTS YES / NO
+    # ============================================================
+    btts_signals = []
+
+    # Poisson (0.30)
+    btts_signals.append(("Poisson", p_btts_poi, 0.30))
+
+    # Market (0.25)
+    if mkt_btts_y is not None:
+        btts_signals.append(("Market", mkt_btts_y, 0.25))
+
+    # CS/FTS profile (0.20)
+    if hp["played"] >= 3 and ap["played"] >= 3:
+        bp = ((1.0 - min(hp["cs_rate"], 1.0)) * (1.0 - min(ap["cs_rate"], 1.0)) *
+              (1.0 - min(hp["fts_rate"], 1.0)) * (1.0 - min(ap["fts_rate"], 1.0)))
+        bp = max(0.10, min(0.90, bp))
+        btts_signals.append(("CS/FTS", bp, 0.20))
+
+    # API predicted goals (0.15)
+    if gh > 0 and ga > 0:
+        mn = min(gh, ga)
+        if mn >= 1.5: p_api_b = 0.75
+        elif mn >= 1.0: p_api_b = 0.62
+        elif mn >= 0.7: p_api_b = 0.50
+        elif mn >= 0.4: p_api_b = 0.35
+        else: p_api_b = 0.22
+        btts_signals.append(("API goals", p_api_b, 0.15))
+
+    # Attack balance (0.10)
+    ha = hp["gf_side"] if hp["gf_side"] > 0 else hp["gf_total"]
+    aa = ap["gf_side"] if ap["gf_side"] > 0 else ap["gf_total"]
+    if ha > 0 and aa > 0:
+        bal = min(ha, aa) / max(ha, aa)
+        ml = min(ha, aa)
+        p_atk = max(0.15, min(0.80, 0.30 + bal * 0.25 + ml * 0.15))
+        btts_signals.append(("Attack bal.", p_atk, 0.10))
+
+    tw2 = sum(w for _, _, w in btts_signals)
+    p_btts = sum(p * w for _, p, w in btts_signals) / tw2 if tw2 > 0 else 0.50
+    p_btts = max(0.08, min(0.92, p_btts))
+    p_btts_no = 1.0 - p_btts
+
+    # ============================================================
+    # 3) NO GOAL — quale squadra non segna
+    # ============================================================
+    # P(home blanked) = blend of Poisson + away CS rate + home FTS rate
+    if hp["played"] >= 3 and ap["played"] >= 3:
+        p_home_blanked = p_h_zero * 0.40 + ap["cs_rate"] * 0.30 + hp["fts_rate"] * 0.30
+        p_away_blanked = p_a_zero * 0.40 + hp["cs_rate"] * 0.30 + ap["fts_rate"] * 0.30
+    else:
+        p_home_blanked = p_h_zero
+        p_away_blanked = p_a_zero
+
+    # Market blend for nogol
+    if mkt_btts_n is not None:
+        p_nogol_model = 1.0 - (1.0 - p_home_blanked) * (1.0 - p_away_blanked)
+        p_nogol = p_nogol_model * 0.65 + mkt_btts_n * 0.35
+    else:
+        p_nogol = 1.0 - (1.0 - p_home_blanked) * (1.0 - p_away_blanked)
+
+    # Favorite boost: strong fav → more likely to blank opponent
+    if o_h and o_a and o_h > 1 and o_a > 1:
+        if to_float(o_h) < 1.40: p_away_blanked = min(0.90, p_away_blanked + 0.05)
+        if to_float(o_a) < 1.40: p_home_blanked = min(0.90, p_home_blanked + 0.05)
+
+    # API: if predicted < 0.5 goals for a team
+    if gh > 0 and gh < 0.5: p_home_blanked = min(0.90, p_home_blanked + 0.08)
+    if ga > 0 and ga < 0.5: p_away_blanked = min(0.90, p_away_blanked + 0.08)
+
+    p_home_blanked = max(0.05, min(0.90, p_home_blanked))
+    p_away_blanked = max(0.05, min(0.90, p_away_blanked))
+    p_nogol = max(0.10, min(0.90, p_nogol))
+    p_both_score = 1.0 - p_nogol
+
+    # Score grid
+    g = grid(lam_h, lam_a)
+    ml = sorted(g.items(), key=lambda x: x[1], reverse=True)[:5]
+    p_00 = g.get((0, 0), 0)
+
+    # ============================================================
+    # 4) OVER 3.5
+    # ============================================================
+    p_over35 = p_over(lam_t, 4)
+
+    # ============================================================
+    # 5) COMBO: Over 2.5 + BTTS YES
+    # P(O2.5 ∩ BTTS) = P(total≥3 AND both score)
+    # Calculated from score grid directly (exact, not approximated)
+    # ============================================================
+    p_o25_btts = 0.0
+    for (h, a), p in g.items():
+        if (h + a) >= 3 and h >= 1 and a >= 1:
+            p_o25_btts += p
+
+    # ============================================================
+    # 6) CORNERS — expected total + Over 7.5 / 8.5 / 9.5 / 10.5
+    # From Supabase corner_team_stats (home corners for + away corners for)
+    # Fallback: team_season_stats corners_for_avg
+    # ============================================================
+    h_cpg_home = to_float(h_crn.get("avg_corners_for_home")) or to_float(h_sb.get("corners_for_avg")) or 0.0
+    a_cpg_away = to_float(a_crn.get("avg_corners_for_away")) or to_float(a_sb.get("corners_for_avg")) or 0.0
+    h_cpg_against = to_float(h_crn.get("avg_corners_against_home")) or 0.0
+    a_cpg_against = to_float(a_crn.get("avg_corners_against_away")) or 0.0
+
+    # Expected corners: average of (home_for + away_for) and (home_against + away_against)
+    if h_cpg_home > 0 and a_cpg_away > 0:
+        exp_corners_attack = h_cpg_home + a_cpg_away
+        if h_cpg_against > 0 and a_cpg_against > 0:
+            exp_corners_defense = h_cpg_against + a_cpg_against
+            exp_corners = (exp_corners_attack + exp_corners_defense) / 2.0
+        else:
+            exp_corners = exp_corners_attack
+    elif to_float(h_sb.get("corners_for_avg")) and to_float(a_sb.get("corners_for_avg")):
+        exp_corners = (to_float(h_sb.get("corners_for_avg")) or 0) + (to_float(a_sb.get("corners_for_avg")) or 0)
+    else:
+        exp_corners = 0.0
+
+    # H2H adjustment
+    if h2h_c and exp_corners > 0:
+        exp_corners = exp_corners * 0.75 + h2h_c * 0.25
+
+    # Corner over probabilities using normal approximation (std ≈ 3.0 for corners)
+    corner_std = 3.0
+    corner_overs = {}
+    for line in [7.5, 8.5, 9.5, 10.5]:
+        if exp_corners > 0:
+            z = (line - exp_corners) / corner_std
+            p_c_over = 1.0 - 0.5 * (1.0 + math.erf(z / math.sqrt(2)))
+            corner_overs[str(line)] = round(max(0.02, min(0.98, p_c_over)), 4)
+        else:
+            corner_overs[str(line)] = None
+
+    # ============================================================
+    # 7) YELLOWS — expected total + Over 2.5 / 3.5 / 4.5
+    # From Supabase team_season_stats: yellow_avg
+    # ============================================================
+    h_yel = to_float(h_sb.get("yellow_avg")) or 0.0
+    a_yel = to_float(a_sb.get("yellow_avg")) or 0.0
+    exp_yellows = h_yel + a_yel
+
+    # Yellow over probabilities using Poisson
+    yellow_overs = {}
+    for line_int in [2, 3, 4]:
+        line = line_int + 0.5  # over 2.5, 3.5, 4.5
+        if exp_yellows > 0:
+            p_y_over = p_over(exp_yellows, line_int + 1)
+            yellow_overs[str(line)] = round(max(0.02, min(0.98, p_y_over)), 4)
+        else:
+            yellow_overs[str(line)] = None
+
+    return {
+        # Over/Under 2.5
+        "p_over25": round(p_over25, 4),
+        "p_under25": round(p_under25, 4),
+        "ou_pick": "Over 2.5" if p_over25 >= 0.50 else "Under 2.5",
+        "ou_conf": round(max(p_over25, p_under25), 4),
+        "odd_o25": o_o25, "odd_u25": o_u25,
+
+        # Over 3.5
+        "p_over35": round(p_over35, 4),
+        "p_under35": round(1.0 - p_over35, 4),
+
+        # BTTS
+        "p_btts_yes": round(p_btts, 4),
+        "p_btts_no": round(p_btts_no, 4),
+        "btts_pick": "BTTS YES" if p_btts >= 0.50 else "BTTS NO",
+        "btts_conf": round(max(p_btts, p_btts_no), 4),
+        "odd_btts_y": o_by, "odd_btts_n": o_bn,
+
+        # Combo Over 2.5 + BTTS
+        "p_o25_btts": round(p_o25_btts, 4),
+
+        # No Goal
+        "p_nogol": round(p_nogol, 4),
+        "p_both_score": round(p_both_score, 4),
+        "p_home_blanked": round(p_home_blanked, 4),
+        "p_away_blanked": round(p_away_blanked, 4),
+        "nogol_team": home_name if p_home_blanked > p_away_blanked else away_name,
+        "nogol_side": "home" if p_home_blanked > p_away_blanked else "away",
+        "p_00": round(p_00, 4),
+
+        # Corners
+        "exp_corners": round(exp_corners, 1) if exp_corners > 0 else None,
+        "corner_overs": corner_overs,
+
+        # Yellows
+        "exp_yellows": round(exp_yellows, 1) if exp_yellows > 0 else None,
+        "yellow_overs": yellow_overs,
+
+        # Shared
+        "lam_home": round(lam_h, 3), "lam_away": round(lam_a, 3), "lam_total": round(lam_t, 3),
+        "most_likely_scores": [(f"{h}-{a}", round(p * 100, 1)) for (h, a), p in ml],
+    }
+
+
+# ==========================
+# PIPELINE
+# ==========================
+def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
+    target = target_date or today_local_str()
+    print(f"\n{'='*70}", file=sys.stderr)
+    print(f"  MATCH PREDICTOR — Goals / BTTS / Corners / Yellows", file=sys.stderr)
+    print(f"  Date: {target} | Orario: {time_min} - {time_max}", file=sys.stderr)
+    print(f"{'='*70}\n", file=sys.stderr)
+
+    fixtures = get_all_fixtures(target, time_min, time_max)
+    if not fixtures:
+        print("# Nessuna partita trovata.", file=sys.stderr)
+        output = {"date": target, "time_range": f"{time_min}-{time_max}", "generated_at": datetime.now(TZ).isoformat(), "total_matches": 0, "matches": []}
+        if emit_json:
+            print(json.dumps(output, indent=2, ensure_ascii=False))
+        return output
+
+    results = []
+    total = len(fixtures)
+
+    for idx, f in enumerate(fixtures, 1):
+        fx = f.get("fixture", {}) or {}
+        league = f.get("league", {}) or {}
+        teams = f.get("teams", {}) or {}
+
+        fid = fx.get("id")
+        lid = league.get("id")
+        season = league.get("season")
+        ht = teams.get("home", {}) or {}
+        at = teams.get("away", {}) or {}
+        hn, an = ht.get("name", "?"), at.get("name", "?")
+        hid, aid = ht.get("id"), at.get("id")
+        dateiso = fx.get("date", "") or ""
+        mtime = dateiso[11:16] if len(dateiso) >= 16 else ""
+        lname = league.get("name", "")
+        country = league.get("country", "")
+
+        if idx % 20 == 0 or idx == 1:
+            print(f"# Progresso: {idx}/{total}...", file=sys.stderr)
+
+        pred = get_prediction(fid)
+        odds = get_odds(fid)
+        h_ts = get_team_stats(lid, season, hid)
+        a_ts = get_team_stats(lid, season, aid)
+        hp_ = profile(h_ts, "home")
+        ap_ = profile(a_ts, "away")
+
+        # Supabase: domestic stats (richer sample than European-only)
+        h_sb = sb_team_stats(hid) if hid else {}
+        a_sb = sb_team_stats(aid) if aid else {}
+        h_crn = sb_corner_stats(hid, lid) if hid else {}
+        a_crn = sb_corner_stats(aid, lid) if aid else {}
+        h2h_c = sb_corner_h2h(hid, aid) if (hid and aid) else None
+
+        result = predict_all(hp_, ap_, pred, odds, hn, an,
+                             h_sb=h_sb, a_sb=a_sb, h_crn=h_crn, a_crn=a_crn, h2h_c=h2h_c)
+
+        results.append({
+            "fixture_id": fid, "date": target, "league": lname, "country": country,
+            "match_time": mtime, "home": hn, "away": an,
+            "home_logo": ht.get("logo", ""), "away_logo": at.get("logo", ""),
+            "league_logo": league.get("logo", ""),
+            "status_short": str((fx.get("status") or {}).get("short", "")).upper(),
+            "status_long": str((fx.get("status") or {}).get("long", "")).strip(),
+            "goals_home": f.get("goals", {}).get("home"),
+            "goals_away": f.get("goals", {}).get("away"),
+            "total_corners": None,
+            "total_yellows": None,
+            "final_score": (
+                f"{f.get('goals', {}).get('home')}-{f.get('goals', {}).get('away')}"
+                if f.get("goals", {}).get("home") is not None and f.get("goals", {}).get("away") is not None
+                else ""
+            ),
+            **result,
+        })
+
+    # ============================================================
+    # OUTPUT
+    # ============================================================
+    # Group by league
+    leagues = {}
+    for r in results:
+        k = f"{r['country']} - {r['league']}"
+        leagues.setdefault(k, []).append(r)
+
+    print(f"\n{'='*70}", file=sys.stderr)
+    print(f"  RISULTATI — {target} ({time_min}-{time_max})", file=sys.stderr)
+    print(f"  Partite analizzate: {len(results)}", file=sys.stderr)
+    print(f"{'='*70}", file=sys.stderr)
+
+    for lkey in sorted(leagues.keys()):
+        lr = leagues[lkey]
+        print(f"\n  ━━━ {lkey} ({len(lr)}) ━━━", file=sys.stderr)
+
+        for r in lr:
+            print(f"\n  [{r['match_time']}] {r['home']} vs {r['away']}", file=sys.stderr)
+
+            # Over/Under
+            ou_e = "🟢" if r["ou_pick"] == "Over 2.5" else "🔴"
+            ou_odds = ""
+            if r["odd_o25"]: ou_odds = f" [O@{r['odd_o25']} U@{r.get('odd_u25','?')}]"
+            print(f"    {ou_e} Over 2.5: {r['p_over25']*100:.1f}%  |  Under 2.5: {r['p_under25']*100:.1f}%{ou_odds}", file=sys.stderr)
+            print(f"       Over 3.5: {r['p_over35']*100:.1f}%", file=sys.stderr)
+
+            # BTTS
+            bt_e = "✅" if r["btts_pick"] == "BTTS YES" else "❌"
+            bt_odds = ""
+            if r["odd_btts_y"]: bt_odds = f" [Y@{r['odd_btts_y']} N@{r.get('odd_btts_n','?')}]"
+            print(f"    {bt_e} BTTS YES: {r['p_btts_yes']*100:.1f}%  |  BTTS NO: {r['p_btts_no']*100:.1f}%{bt_odds}", file=sys.stderr)
+
+            # Combo
+            print(f"    🔗 Over 2.5 + BTTS: {r['p_o25_btts']*100:.1f}%", file=sys.stderr)
+
+            # No Goal
+            print(f"    🚫 {r['home']} non segna: {r['p_home_blanked']*100:.1f}%  |  {r['away']} non segna: {r['p_away_blanked']*100:.1f}%", file=sys.stderr)
+            print(f"       No Goal: {r['p_nogol']*100:.1f}%  |  0-0: {r['p_00']*100:.1f}%", file=sys.stderr)
+
+            # Corners
+            if r.get("exp_corners"):
+                co = r["corner_overs"]
+                c_parts = [f"O{k}: {v*100:.0f}%" for k, v in co.items() if v is not None]
+                print(f"    📐 Corner exp: {r['exp_corners']:.1f}  |  {' | '.join(c_parts)}", file=sys.stderr)
+
+            # Yellows
+            if r.get("exp_yellows"):
+                yo = r["yellow_overs"]
+                y_parts = [f"O{k}: {v*100:.0f}%" for k, v in yo.items() if v is not None]
+                print(f"    🟨 Ammonizioni exp: {r['exp_yellows']:.1f}  |  {' | '.join(y_parts)}", file=sys.stderr)
+
+            # Score
+            scores = ", ".join(f"{s} ({p}%)" for s, p in r["most_likely_scores"][:3])
+            print(f"    📊 Score: {scores}  |  λ {r['lam_home']:.2f}-{r['lam_away']:.2f}", file=sys.stderr)
+
+    # ============================================================
+    # BEST PICKS SUMMARY
+    # ============================================================
+    print(f"\n{'='*70}", file=sys.stderr)
+    print(f"  ⭐ MIGLIORI PICK (confidence ≥ 60%)", file=sys.stderr)
+    print(f"{'='*70}", file=sys.stderr)
+
+    # Best Over 2.5
+    best_over = sorted([r for r in results if r["p_over25"] >= 0.60], key=lambda x: x["p_over25"], reverse=True)
+    if best_over:
+        print(f"\n  🟢 OVER 2.5:", file=sys.stderr)
+        for r in best_over[:8]:
+            o = f" @{r['odd_o25']}" if r['odd_o25'] else ""
+            print(f"     {r['home']} vs {r['away']}: {r['p_over25']*100:.1f}%{o} — {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Best Under 2.5
+    best_under = sorted([r for r in results if r["p_under25"] >= 0.60], key=lambda x: x["p_under25"], reverse=True)
+    if best_under:
+        print(f"\n  🔴 UNDER 2.5:", file=sys.stderr)
+        for r in best_under[:8]:
+            o = f" @{r['odd_u25']}" if r['odd_u25'] else ""
+            print(f"     {r['home']} vs {r['away']}: {r['p_under25']*100:.1f}%{o} — {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Best BTTS YES
+    best_btts = sorted([r for r in results if r["p_btts_yes"] >= 0.60], key=lambda x: x["p_btts_yes"], reverse=True)
+    if best_btts:
+        print(f"\n  ✅ BTTS YES:", file=sys.stderr)
+        for r in best_btts[:8]:
+            o = f" @{r['odd_btts_y']}" if r['odd_btts_y'] else ""
+            print(f"     {r['home']} vs {r['away']}: {r['p_btts_yes']*100:.1f}%{o} — {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Best BTTS NO
+    best_btts_no = sorted([r for r in results if r["p_btts_no"] >= 0.60], key=lambda x: x["p_btts_no"], reverse=True)
+    if best_btts_no:
+        print(f"\n  ❌ BTTS NO:", file=sys.stderr)
+        for r in best_btts_no[:8]:
+            o = f" @{r['odd_btts_n']}" if r['odd_btts_n'] else ""
+            print(f"     {r['home']} vs {r['away']}: {r['p_btts_no']*100:.1f}%{o} — {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Best No Goal
+    best_nogol = sorted([r for r in results if r["p_nogol"] >= 0.55], key=lambda x: x["p_nogol"], reverse=True)
+    if best_nogol:
+        print(f"\n  🚫 NO GOAL (una non segna):", file=sys.stderr)
+        for r in best_nogol[:8]:
+            blanked = r["nogol_team"]
+            pct = r["p_home_blanked"] if r["nogol_side"] == "home" else r["p_away_blanked"]
+            print(f"     {r['home']} vs {r['away']}: {blanked} non segna ({pct*100:.1f}%) — {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Best Over 3.5
+    best_o35 = sorted([r for r in results if r["p_over35"] >= 0.35], key=lambda x: x["p_over35"], reverse=True)
+    if best_o35:
+        print(f"\n  🔥 OVER 3.5:", file=sys.stderr)
+        for r in best_o35[:8]:
+            print(f"     {r['home']} vs {r['away']}: {r['p_over35']*100:.1f}% — {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Best Combo O2.5 + BTTS
+    best_combo = sorted([r for r in results if r["p_o25_btts"] >= 0.30], key=lambda x: x["p_o25_btts"], reverse=True)
+    if best_combo:
+        print(f"\n  🔗 OVER 2.5 + BTTS:", file=sys.stderr)
+        for r in best_combo[:8]:
+            print(f"     {r['home']} vs {r['away']}: {r['p_o25_btts']*100:.1f}% — {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Best Corners Over 9.5
+    best_corners = sorted(
+        [r for r in results if r.get("exp_corners") and r["exp_corners"] > 0],
+        key=lambda x: x["exp_corners"], reverse=True
+    )
+    if best_corners:
+        print(f"\n  📐 TOP CORNER (expected più alto):", file=sys.stderr)
+        for r in best_corners[:8]:
+            co = r["corner_overs"]
+            o95 = co.get("9.5")
+            o_str = f" | O9.5: {o95*100:.0f}%" if o95 else ""
+            print(f"     {r['home']} vs {r['away']}: exp {r['exp_corners']:.1f}{o_str} — {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Best Yellows Over 3.5
+    best_yellows = sorted(
+        [r for r in results if r.get("exp_yellows") and r["exp_yellows"] > 0],
+        key=lambda x: x["exp_yellows"], reverse=True
+    )
+    if best_yellows:
+        print(f"\n  🟨 TOP AMMONIZIONI (expected più alto):", file=sys.stderr)
+        for r in best_yellows[:8]:
+            yo = r["yellow_overs"]
+            o35 = yo.get("3.5")
+            y_str = f" | O3.5: {o35*100:.0f}%" if o35 else ""
+            print(f"     {r['home']} vs {r['away']}: exp {r['exp_yellows']:.1f}{y_str} — {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Top 0-0
+    top00 = sorted(results, key=lambda x: x["p_00"], reverse=True)[:5]
+    if top00 and top00[0]["p_00"] > 0.04:
+        print(f"\n  🥶 TOP 0-0:", file=sys.stderr)
+        for r in top00:
+            print(f"     {r['home']} vs {r['away']}: {r['p_00']*100:.1f}% — {r['country']}/{r['league']}", file=sys.stderr)
+
+    # JSON
+    output = {
+        "date": target,
+        "time_range": f"{time_min}-{time_max}",
+        "generated_at": datetime.now(TZ).isoformat(),
+        "total_matches": len(results),
+        "matches": results,
+    }
+    if emit_json:
+        print("\n" + json.dumps(output, indent=2, ensure_ascii=False))
+    return output
+
+
+# ==========================
+# CACHE HELPERS
+# ==========================
+def ensure_cache_dir(cache_dir):
+    Path(cache_dir).mkdir(parents=True, exist_ok=True)
+
+def cache_file_path(cache_dir, date_str):
+    return Path(cache_dir) / f"{date_str}.json"
+
+def load_cache(path):
+    with open(path, "r", encoding="utf-8") as fh:
+        return json.load(fh)
+
+def write_cache(path, payload):
+    Path(path).write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+
+def chunked(seq, size):
+    for i in range(0, len(seq), size):
+        yield seq[i:i + size]
+
+def get_fixture_rows_map(fixture_ids):
+    out = {}
+    ids = [str(fid) for fid in fixture_ids if fid]
+    for batch in chunked(ids, 20):
+        rows = api_get("/fixtures", {"ids": "-".join(batch), "timezone": MATCH_TIMEZONE}, timeout=30)
+        for row in rows:
+            fx = row.get("fixture", {}) or {}
+            out[str(fx.get("id") or "")] = row
+    return out
+
+def get_fixture_statistics_map(fixture_ids):
+    out = {}
+    for fixture_id in fixture_ids:
+        rows = api_get("/fixtures/statistics", {"fixture": fixture_id}, timeout=30)
+        total_corners = 0
+        total_yellows = 0
+        corners_found = False
+        yellows_found = False
+        for row in rows:
+            for stat in row.get("statistics", []) or []:
+                name = str(stat.get("type") or "").strip().lower()
+                value = stat.get("value")
+                num = to_float(value)
+                if num is None:
+                    continue
+                if name == "corner kicks":
+                    total_corners += num
+                    corners_found = True
+                elif name == "yellow cards":
+                    total_yellows += num
+                    yellows_found = True
+        out[str(fixture_id)] = {
+            "total_corners": round(total_corners, 1) if corners_found else None,
+            "total_yellows": round(total_yellows, 1) if yellows_found else None,
+        }
+    return out
+
+def update_matches_from_fixture_rows(payload, fixture_rows, fixture_stats=None):
+    fixture_stats = fixture_stats or {}
+    for match in payload.get("matches", []) or []:
+        row = fixture_rows.get(str(match.get("fixture_id") or ""))
+        if not row:
+            continue
+        fixture = row.get("fixture", {}) or {}
+        goals = row.get("goals", {}) or {}
+        status = fixture.get("status", {}) or {}
+        match["status_short"] = str(status.get("short", "")).upper()
+        match["status_long"] = str(status.get("long", "")).strip()
+        match["goals_home"] = goals.get("home")
+        match["goals_away"] = goals.get("away")
+        if goals.get("home") is not None and goals.get("away") is not None:
+            match["final_score"] = f"{goals.get('home')}-{goals.get('away')}"
+        else:
+            match["final_score"] = ""
+        stats_row = fixture_stats.get(str(match.get("fixture_id") or "")) or {}
+        match["total_corners"] = stats_row.get("total_corners")
+        match["total_yellows"] = stats_row.get("total_yellows")
+    payload["refreshed_at"] = now_utc().isoformat()
+    return payload
+
+def build_cache_for_date(cache_dir, target_date, time_min="00:00", time_max="23:59"):
+    ensure_cache_dir(cache_dir)
+    payload = run(target_date, time_min, time_max, emit_json=False)
+    payload["timezone"] = MATCH_TIMEZONE
+    payload["expires_at"] = (now_utc() + timedelta(hours=CACHE_TTL_HOURS)).isoformat()
+    write_cache(cache_file_path(cache_dir, target_date), payload)
+    return payload
+
+def refresh_existing_caches(cache_dir):
+    ensure_cache_dir(cache_dir)
+    refreshed = []
+    for path in sorted(Path(cache_dir).glob("????-??-??.json")):
+        payload = load_cache(path)
+        expires_at = parse_iso_dt(payload.get("expires_at"))
+        if expires_at and expires_at <= now_utc():
+            continue
+        fixture_ids = [match.get("fixture_id") for match in payload.get("matches", []) or [] if match.get("fixture_id")]
+        rows = get_fixture_rows_map(fixture_ids) if fixture_ids else {}
+        final_ids = []
+        for match in payload.get("matches", []) or []:
+            row = rows.get(str(match.get("fixture_id") or ""))
+            status = str(((row or {}).get("fixture", {}) or {}).get("status", {}).get("short", "")).upper()
+            if status in FINAL_STATUSES:
+                final_ids.append(match.get("fixture_id"))
+        stats_map = get_fixture_statistics_map(final_ids) if final_ids else {}
+        refreshed_payload = update_matches_from_fixture_rows(payload, rows, stats_map)
+        write_cache(path, refreshed_payload)
+        refreshed.append(refreshed_payload)
+    return refreshed
+
+def cleanup_expired_caches(cache_dir):
+    ensure_cache_dir(cache_dir)
+    removed = []
+    for path in sorted(Path(cache_dir).glob("????-??-??.json")):
+        try:
+            payload = load_cache(path)
+        except Exception:
+            path.unlink(missing_ok=True)
+            removed.append(path.name)
+            continue
+        expires_at = parse_iso_dt(payload.get("expires_at"))
+        if expires_at and expires_at <= now_utc():
+            path.unlink(missing_ok=True)
+            removed.append(path.name)
+    return removed
+
+def rebuild_manifest(cache_dir):
+    ensure_cache_dir(cache_dir)
+    entries = []
+    latest = None
+    for path in sorted(Path(cache_dir).glob("????-??-??.json")):
+        payload = load_cache(path)
+        summary = {
+            "date": payload.get("date"),
+            "file": path.name,
+            "generated_at": payload.get("generated_at"),
+            "expires_at": payload.get("expires_at"),
+            "matches": payload.get("total_matches", 0),
+            "final_matches": sum(1 for match in payload.get("matches", []) if str(match.get("status_short") or "").upper() in FINAL_STATUSES),
+        }
+        entries.append(summary)
+        if latest is None or str(payload.get("date") or "") > str(latest.get("date") or ""):
+            latest = payload
+    manifest = {
+        "generated_at": now_utc().isoformat(),
+        "timezone": MATCH_TIMEZONE,
+        "latest_date": latest.get("date") if latest else "",
+        "dates": sorted(entries, key=lambda row: row["date"], reverse=True),
+    }
+    write_cache(Path(cache_dir) / "manifest.json", manifest)
+    write_cache(Path(cache_dir) / "latest.json", latest or {"generated_at": now_utc().isoformat(), "matches": []})
+    return manifest
+
+def run_daemon(cache_dir):
+    ensure_cache_dir(cache_dir)
+    local_now = datetime.now(LOCAL_TZ)
+    current_date = local_now.strftime("%Y-%m-%d")
+    current_file = cache_file_path(cache_dir, current_date)
+    built = False
+    if local_now.hour == 0 and not current_file.exists():
+        build_cache_for_date(cache_dir, current_date)
+        built = True
+    elif not current_file.exists():
+        build_cache_for_date(cache_dir, current_date)
+        built = True
+    refreshed = refresh_existing_caches(cache_dir)
+    removed = cleanup_expired_caches(cache_dir)
+    manifest = rebuild_manifest(cache_dir)
+    return {"mode": "daemon", "built_today": built, "refreshed_files": len(refreshed), "removed_files": removed, "dates": len(manifest.get("dates", []))}
+
+
+# ==========================
+# ENTRY
+# ==========================
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Match predictor cache builder")
+    parser.add_argument("args", nargs="*")
+    parser.add_argument("--mode", choices=["print", "build", "refresh", "daemon"], default="print")
+    parser.add_argument("--date")
+    parser.add_argument("--time-min", default=None)
+    parser.add_argument("--time-max", default=None)
+    parser.add_argument("--cache-dir", default=str(DEFAULT_CACHE_DIR))
+    parsed = parser.parse_args()
+
+    args = [a for a in parsed.args if a != "--help"]
+    if "--help" in sys.argv:
+        print(__doc__)
+        sys.exit(0)
+
+    target = parsed.date
+    tmin = parsed.time_min or "00:00"
+    tmax = parsed.time_max or "23:59"
+
+    def is_date(s): return len(s) == 10 and s[4] == "-" and s[7] == "-"
+    def is_time(s): return len(s) == 5 and s[2] == ":"
+
+    times_found = []
+    for a in args:
+        if is_date(a) and not target:
+            target = a
+        elif is_time(a):
+            times_found.append(a)
+
+    if parsed.time_min is None and len(times_found) >= 1:
+        tmin = times_found[0]
+    if parsed.time_max is None and len(times_found) >= 2:
+        tmax = times_found[1]
+    target = target or today_local_str()
+
+    if parsed.mode == "print":
+        run(target, tmin, tmax, emit_json=True)
+    elif parsed.mode == "build":
+        payload = build_cache_for_date(parsed.cache_dir, target, tmin, tmax)
+        rebuild_manifest(parsed.cache_dir)
+        print(json.dumps({"mode": "build", "date": payload.get("date"), "matches": payload.get("total_matches", 0)}))
+    elif parsed.mode == "refresh":
+        refreshed = refresh_existing_caches(parsed.cache_dir)
+        removed = cleanup_expired_caches(parsed.cache_dir)
+        manifest = rebuild_manifest(parsed.cache_dir)
+        print(json.dumps({"mode": "refresh", "refreshed": len(refreshed), "removed": removed, "dates": len(manifest.get("dates", []))}))
+    else:
+        print(json.dumps(run_daemon(parsed.cache_dir)))

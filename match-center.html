@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Match Center | Pronostici Bomba</title>
+  <meta name="description" content="Match center filtrabile con intervallo orario, migliori pick, ricerca e stato win/lose dei mercati principali." />
+  <style>
+    :root {
+      --bg: #040816;
+      --bg-soft: #0f172a;
+      --panel: rgba(8, 15, 34, 0.92);
+      --panel-strong: rgba(15, 23, 42, 0.98);
+      --border: rgba(148, 163, 184, 0.22);
+      --border-strong: rgba(249, 115, 22, 0.38);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --soft: #64748b;
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.14);
+      --accent-blue: #38bdf8;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #facc15;
+      --slate: #94a3b8;
+      --shadow: 0 28px 60px rgba(2, 6, 23, 0.55);
+      --radius-xl: 26px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 38%),
+        radial-gradient(circle at top right, rgba(249, 115, 22, 0.18), transparent 40%),
+        linear-gradient(180deg, #020617, #040816 42%, #020617);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      padding: 18px 10px 36px;
+      display: flex;
+      justify-content: center;
+    }
+
+    main {
+      width: 100%;
+      max-width: 1320px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 22px;
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background:
+        radial-gradient(circle at 85% 15%, rgba(56, 189, 248, 0.18), transparent 28%),
+        radial-gradient(circle at 15% 0%, rgba(249, 115, 22, 0.16), transparent 30%),
+        linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98));
+      box-shadow: var(--shadow);
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.8rem, 3vw, 2.65rem);
+      letter-spacing: 0.02em;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 760px;
+      line-height: 1.55;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .top-links,
+    .lang-switch {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .ghost-link,
+    .lang-btn,
+    .chip-btn,
+    .action-btn {
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      background: rgba(15, 23, 42, 0.82);
+      color: var(--text);
+      border-radius: 999px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+    }
+
+    .ghost-link,
+    .lang-btn,
+    .action-btn {
+      padding: 9px 14px;
+      font-size: 0.82rem;
+    }
+
+    .ghost-link:hover,
+    .lang-btn:hover,
+    .chip-btn:hover,
+    .action-btn:hover {
+      border-color: rgba(249, 115, 22, 0.7);
+      background: rgba(15, 23, 42, 0.96);
+      transform: translateY(-1px);
+    }
+
+    .lang-btn.active,
+    .chip-btn.active,
+    .action-btn.primary {
+      border-color: rgba(249, 115, 22, 0.78);
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.18), rgba(56, 189, 248, 0.14));
+      color: #fff7ed;
+    }
+
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(2, 6, 23, 0.55);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .hero-pill strong { color: var(--text); }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 18px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      background: linear-gradient(145deg, var(--panel), rgba(2, 6, 23, 0.94));
+      box-shadow: var(--shadow);
+    }
+
+    .panel-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .sync-note {
+      font-size: 0.78rem;
+      color: var(--soft);
+    }
+
+    .controls-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .control-block {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .input,
+    .select {
+      width: 100%;
+      padding: 12px 13px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(15, 23, 42, 0.82);
+      color: var(--text);
+      outline: none;
+      font: inherit;
+    }
+
+    .input:focus,
+    .select:focus {
+      border-color: rgba(56, 189, 248, 0.7);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.28);
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .range {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .range-pill {
+      min-width: 62px;
+      text-align: center;
+      padding: 9px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(249, 115, 22, 0.25);
+      color: #fed7aa;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip-btn {
+      padding: 9px 12px;
+      font-size: 0.78rem;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .summary-card {
+      position: relative;
+      overflow: hidden;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background:
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 36%),
+        linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.96));
+      min-height: 124px;
+    }
+
+    .summary-value {
+      margin-top: 16px;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .summary-meta {
+      margin-top: 8px;
+      color: var(--soft);
+      font-size: 0.8rem;
+    }
+
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 1.02rem;
+      letter-spacing: 0.02em;
+    }
+
+    .section-head p {
+      margin: 4px 0 0;
+      color: var(--soft);
+      font-size: 0.86rem;
+    }
+
+    .top-picks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 12px;
+    }
+
+    .top-pick-card,
+    .match-card {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: linear-gradient(145deg, var(--panel-strong), rgba(2, 6, 23, 0.96));
+      box-shadow: var(--shadow);
+    }
+
+    .top-pick-card {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .status-pill,
+    .market-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      border: 1px solid transparent;
+    }
+
+    .status-scheduled { background: rgba(250, 204, 21, 0.12); color: #fde68a; border-color: rgba(250, 204, 21, 0.24); }
+    .status-live { background: rgba(56, 189, 248, 0.12); color: #bae6fd; border-color: rgba(56, 189, 248, 0.28); }
+    .status-win { background: rgba(34, 197, 94, 0.12); color: #bbf7d0; border-color: rgba(34, 197, 94, 0.26); }
+    .status-lose { background: rgba(239, 68, 68, 0.12); color: #fecaca; border-color: rgba(239, 68, 68, 0.24); }
+    .status-unresolved { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border-color: rgba(148, 163, 184, 0.24); }
+
+    .match-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .match-card {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .match-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .match-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .teams {
+      display: grid;
+      gap: 6px;
+    }
+
+    .team-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .team-logo,
+    .league-logo {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      flex: 0 0 auto;
+    }
+
+    .match-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .kickoff {
+      color: #cbd5e1;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .scoreline {
+      color: var(--text);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .markets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .market-card {
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(2, 6, 23, 0.52);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .market-card.status-win { border-color: rgba(34, 197, 94, 0.42); box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.12); }
+    .market-card.status-lose { border-color: rgba(239, 68, 68, 0.42); box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.12); }
+    .market-card.status-live { border-color: rgba(56, 189, 248, 0.42); }
+    .market-card.status-scheduled { border-color: rgba(250, 204, 21, 0.34); }
+
+    .market-title-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .market-title {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .market-pick {
+      font-size: 0.94rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .market-probability {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .market-expected,
+    .market-option {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.78rem;
+      color: var(--soft);
+    }
+
+    .market-option strong,
+    .market-expected strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .scores-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .score-chip {
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(15, 23, 42, 0.72);
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .empty-state {
+      padding: 34px 18px;
+      text-align: center;
+      border-radius: var(--radius-lg);
+      border: 1px dashed rgba(148, 163, 184, 0.26);
+      background: rgba(15, 23, 42, 0.46);
+      color: var(--muted);
+    }
+
+    @media (max-width: 1120px) {
+      .dashboard-grid,
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      body { padding: 10px 8px 24px; }
+      .hero { padding: 18px; border-radius: 20px; }
+      .hero-top,
+      .panel-title-row,
+      .section-head,
+      .match-head {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .match-right {
+        align-items: flex-start;
+      }
+      .control-row {
+        grid-template-columns: 1fr;
+      }
+      .markets-grid,
+      .top-picks-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <h1 id="hero-title">Match Center</h1>
+          <p id="hero-copy">Analisi filtrabile dell'intera giornata: scegli fascia oraria, cerca squadre o campionati, ordina per confidenza e controlla in un colpo solo quali mercati stanno andando verdi o rossi.</p>
+          <div class="hero-pills">
+            <div class="hero-pill"><strong id="hero-window-label">Finestra</strong><span id="hero-window-value">00:00 - 23:59</span></div>
+            <div class="hero-pill"><strong id="hero-date-label">Cache</strong><span id="hero-date-value">-</span></div>
+            <div class="hero-pill"><strong id="hero-sync-label">Sync</strong><span id="hero-sync-value">-</span></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end;">
+          <div class="lang-switch" role="group" aria-label="Language">
+            <button type="button" class="lang-btn active" data-lang="it">IT</button>
+            <button type="button" class="lang-btn" data-lang="en">EN</button>
+          </div>
+          <div class="top-links">
+            <a href="/index.html" class="ghost-link" id="back-home-link">Torna ai pronostici</a>
+            <a href="/storico.html" class="ghost-link" id="history-link">Storico ROI</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-grid">
+      <aside class="panel">
+        <div class="panel-title-row">
+          <h2 class="panel-title" id="filters-title">Filtri</h2>
+          <span class="sync-note" id="sync-note">Aggiornamento automatico attivo</span>
+        </div>
+
+        <div class="controls-grid">
+          <div class="control-block">
+            <label class="control-label" for="date-select" id="date-label">Data disponibile</label>
+            <select id="date-select" class="select"></select>
+          </div>
+
+          <div class="control-block">
+            <span class="control-label" id="time-label">Intervallo orario</span>
+            <div class="control-row">
+              <input id="time-from" class="input" type="time" value="00:00" />
+              <input id="time-to" class="input" type="time" value="23:59" />
+            </div>
+          </div>
+
+          <div class="control-block">
+            <label class="control-label" for="search-input" id="search-label">Cerca squadra o campionato</label>
+            <input id="search-input" class="input" type="search" placeholder="Es. Milan, Premier League, BTTS" />
+          </div>
+
+          <div class="control-block">
+            <span class="control-label" id="probability-label">Probabilita minima pick</span>
+            <div class="slider-row">
+              <input id="probability-range" class="range" type="range" min="45" max="90" step="1" value="55" />
+              <div class="range-pill" id="probability-value">55%</div>
+            </div>
+          </div>
+
+          <div class="control-block">
+            <span class="control-label" id="market-filter-label">Mercati</span>
+            <div class="chips" id="market-chips"></div>
+          </div>
+
+          <div class="control-block">
+            <span class="control-label" id="status-filter-label">Esito</span>
+            <div class="chips" id="status-chips"></div>
+          </div>
+
+          <div class="control-block">
+            <button type="button" class="action-btn primary" id="reset-filters">Reset filtri</button>
+          </div>
+        </div>
+      </aside>
+
+      <section class="section">
+        <div class="summary-grid">
+          <article class="summary-card">
+            <div class="summary-label" id="summary-matches-label">Partite visibili</div>
+            <div class="summary-value" id="summary-matches">0</div>
+            <div class="summary-meta" id="summary-matches-meta">Nessuna partita caricata</div>
+          </article>
+          <article class="summary-card">
+            <div class="summary-label" id="summary-top-label">Top picks</div>
+            <div class="summary-value" id="summary-top">0</div>
+            <div class="summary-meta" id="summary-top-meta">Confidenza filtrata</div>
+          </article>
+          <article class="summary-card">
+            <div class="summary-label" id="summary-live-label">Match live / chiusi</div>
+            <div class="summary-value" id="summary-live">0 / 0</div>
+            <div class="summary-meta" id="summary-live-meta">Stato cache corrente</div>
+          </article>
+          <article class="summary-card">
+            <div class="summary-label" id="summary-settled-label">Pick verdi / rossi</div>
+            <div class="summary-value" id="summary-settled">0 / 0</div>
+            <div class="summary-meta" id="summary-settled-meta">Solo mercati risolvibili</div>
+          </article>
+        </div>
+
+        <section class="panel section">
+          <div class="section-head">
+            <div>
+              <h2 id="top-picks-title">Migliori pick</h2>
+              <p id="top-picks-copy">I migliori edge del blocco filtrato, ordinati per confidenza.</p>
+            </div>
+          </div>
+          <div class="top-picks-grid" id="top-picks"></div>
+        </section>
+
+        <section class="panel section">
+          <div class="section-head">
+            <div>
+              <h2 id="matches-title">Partite</h2>
+              <p id="matches-copy">Tutte le partite dell'intervallo selezionato con mercati principali, score più probabili e stato dei pick.</p>
+            </div>
+          </div>
+          <div class="match-grid" id="matches"></div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script src="/assets/match_center.js?v=20260313a"></script>
+</body>
+</html>
