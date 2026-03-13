@@ -53,24 +53,6 @@ FINAL_STATUSES = {"FT", "AET", "PEN", "AWD", "WO"}
 
 PREFERRED_BOOKMAKER_NAMES = {"Bet365", "bet365", "bet365.com", "Bet 365"}
 
-EXCLUDED_COUNTRIES = {
-    "algeria","angola","benin","botswana","burkina faso","burundi","cameroon",
-    "cape verde","chad","comoros","congo","congo dr","dr congo","cote d'ivoire",
-    "ivory coast","djibouti","egypt","equatorial guinea","eritrea","ethiopia",
-    "gabon","gambia","ghana","guinea","guinea-bissau","kenya","lesotho","liberia",
-    "libya","madagascar","malawi","mali","mauritania","mauritius","morocco",
-    "mozambique","namibia","niger","nigeria","rwanda","senegal","seychelles",
-    "sierra leone","somalia","south africa","south sudan","sudan","tanzania",
-    "togo","tunisia","uganda","zambia","zimbabwe","russia","serbia",
-}
-
-EXCLUDED_KEYWORDS = [
-    "friendly","friendlies","women","womens","femin","femmin",
-    "u19","u-19","u20","u-20","u21","u-21","u23","u-23",
-    "youth","junior","academy","reserve","reserves",
-]
-
-
 # ==========================
 # UTILS
 # ==========================
@@ -218,18 +200,9 @@ def get_all_fixtures(target_date, time_min, time_max):
     filtered = []
     for f in resp:
         fx = f.get("fixture", {}) or {}
-        league = f.get("league", {}) or {}
 
         st = (fx.get("status") or {}).get("short", "")
         if st in ("PST", "CANC", "ABD"): continue
-
-        country = (league.get("country") or "").strip().lower()
-        if country in EXCLUDED_COUNTRIES: continue
-
-        lname = (league.get("name") or "").strip().lower()
-        lround = (league.get("round") or "").strip().lower()
-        if any(kw in lname for kw in EXCLUDED_KEYWORDS) or any(kw in lround for kw in EXCLUDED_KEYWORDS):
-            continue
 
         dateiso = fx.get("date", "") or ""
         t = dateiso[11:16] if len(dateiso) >= 16 else ""
@@ -237,7 +210,7 @@ def get_all_fixtures(target_date, time_min, time_max):
 
         filtered.append(f)
 
-    print(f"# Dopo filtri ({time_min}-{time_max}): {len(filtered)}", file=sys.stderr)
+    print(f"# Dopo filtro orario ({time_min}-{time_max}): {len(filtered)}", file=sys.stderr)
     return filtered
 
 
