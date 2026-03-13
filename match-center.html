@@ -215,6 +215,35 @@
       gap: 10px;
     }
 
+    .control-subtext {
+      margin-top: -2px;
+      color: var(--soft);
+      font-size: 0.76rem;
+      line-height: 1.45;
+    }
+
+    .mini-label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--soft);
+      font-size: 0.74rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .quick-range-row,
+    .filter-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chips-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
     .input,
     .select {
       width: 100%;
@@ -265,6 +294,22 @@
     .chip-btn {
       padding: 9px 12px;
       font-size: 0.78rem;
+      min-height: 40px;
+    }
+
+    .chips-grid .chip-btn,
+    .quick-range-row .chip-btn {
+      justify-content: center;
+      width: 100%;
+      text-align: center;
+      font-size: 0.82rem;
+    }
+
+    .chip-btn.utility {
+      min-height: 36px;
+      padding: 8px 12px;
+      font-size: 0.75rem;
+      color: var(--muted);
     }
 
     .summary-grid {
@@ -548,6 +593,9 @@
       .control-row {
         grid-template-columns: 1fr;
       }
+      .chips-grid {
+        grid-template-columns: 1fr 1fr;
+      }
       .markets-grid,
       .top-picks-grid {
         grid-template-columns: 1fr;
@@ -596,9 +644,17 @@
 
           <div class="control-block">
             <span class="control-label" id="time-label">Intervallo orario</span>
+            <div class="quick-range-row" id="quick-range-chips"></div>
+            <div class="control-subtext" id="time-help">Blocchi rapidi oppure selezione precisa.</div>
             <div class="control-row">
-              <input id="time-from" class="input" type="time" value="00:00" />
-              <input id="time-to" class="input" type="time" value="23:59" />
+              <div>
+                <label class="mini-label" for="time-from" id="time-from-label">Da</label>
+                <select id="time-from" class="select"></select>
+              </div>
+              <div>
+                <label class="mini-label" for="time-to" id="time-to-label">A</label>
+                <select id="time-to" class="select"></select>
+              </div>
             </div>
           </div>
 
@@ -617,11 +673,17 @@
 
           <div class="control-block">
             <span class="control-label" id="market-filter-label">Mercati</span>
-            <div class="chips" id="market-chips"></div>
+            <div class="filter-toolbar">
+              <button type="button" class="chip-btn utility" id="markets-all">Tutti</button>
+              <button type="button" class="chip-btn utility" id="markets-none">Nessuno</button>
+            </div>
+            <div class="control-subtext" id="markets-help">Tocca un mercato per isolarlo o combina piu filtri.</div>
+            <div class="chips chips-grid" id="market-chips"></div>
           </div>
 
           <div class="control-block">
             <span class="control-label" id="status-filter-label">Esito</span>
+            <div class="control-subtext" id="status-help">Mostra solo pick con questo stato.</div>
             <div class="chips" id="status-chips"></div>
           </div>
 

@@ -15,6 +15,12 @@
   ];
 
   const STATUS_OPTIONS = ["all", "scheduled", "live", "win", "lose", "unresolved"];
+  const QUICK_RANGES = [
+    { id: "all_day", from: "00:00", to: "23:59" },
+    { id: "morning", from: "06:00", to: "11:59" },
+    { id: "afternoon", from: "12:00", to: "17:59" },
+    { id: "evening", from: "18:00", to: "23:59" },
+  ];
 
   const I18N = {
     it: {
@@ -29,10 +35,20 @@
       sync_note: "Aggiornamento automatico attivo",
       date: "Data disponibile",
       time: "Intervallo orario",
+      time_help: "Blocchi rapidi oppure selezione precisa.",
+      from: "Da",
+      to: "A",
+      all_day: "Tutto il giorno",
+      morning: "Mattina",
+      afternoon: "Pomeriggio",
+      evening: "Sera",
       search: "Cerca squadra o campionato",
       search_placeholder: "Es. Milan, Serie A, BTTS",
       probability: "Probabilita minima pick",
       markets: "Mercati",
+      markets_help: "Tocca un mercato per isolarlo o combina piu filtri.",
+      status_help: "Mostra solo pick con questo stato.",
+      clear_all: "Nessuno",
       status: "Esito",
       reset: "Reset filtri",
       summary_matches: "Partite visibili",
@@ -49,6 +65,7 @@
       matches_copy: "Mercati principali, score più probabili e badge stato per ogni match.",
       empty: "Nessun dato disponibile per i filtri selezionati.",
       no_cache: "La cache predictor non e ancora stata generata dal workflow.",
+      no_market_selected: "Seleziona almeno un mercato per vedere i risultati.",
       scheduled: "Da giocare",
       live: "Live",
       win: "Verde",
@@ -88,10 +105,20 @@
       sync_note: "Auto refresh active",
       date: "Available date",
       time: "Time window",
+      time_help: "Quick presets or precise selection.",
+      from: "From",
+      to: "To",
+      all_day: "All day",
+      morning: "Morning",
+      afternoon: "Afternoon",
+      evening: "Evening",
       search: "Search team or league",
       search_placeholder: "e.g. Milan, Serie A, BTTS",
       probability: "Minimum pick probability",
       markets: "Markets",
+      markets_help: "Tap a market to isolate it or combine multiple filters.",
+      status_help: "Show only picks with this status.",
+      clear_all: "None",
       status: "Outcome",
       reset: "Reset filters",
       summary_matches: "Visible matches",
@@ -108,6 +135,7 @@
       matches_copy: "Main markets, most likely scores and status badge for each match.",
       empty: "No data available for the selected filters.",
       no_cache: "Predictor cache has not been generated yet by the workflow.",
+      no_market_selected: "Select at least one market to see results.",
       scheduled: "Upcoming",
       live: "Live",
       win: "Green",
@@ -153,11 +181,14 @@
   const dom = {
     dateSelect: document.getElementById("date-select"),
     searchInput: document.getElementById("search-input"),
+    quickRangeChips: document.getElementById("quick-range-chips"),
     timeFrom: document.getElementById("time-from"),
     timeTo: document.getElementById("time-to"),
     probabilityRange: document.getElementById("probability-range"),
     probabilityValue: document.getElementById("probability-value"),
     resetFilters: document.getElementById("reset-filters"),
+    marketsAll: document.getElementById("markets-all"),
+    marketsNone: document.getElementById("markets-none"),
     marketChips: document.getElementById("market-chips"),
     statusChips: document.getElementById("status-chips"),
     topPicks: document.getElementById("top-picks"),
@@ -175,6 +206,44 @@
     const saved = (localStorage.getItem("pb_lang") || "").toLowerCase();
     if (saved === "it" || saved === "en") return saved;
     return ((navigator.language || "it").toLowerCase().startsWith("it")) ? "it" : "en";
+  }
+
+  function buildTimeOptions() {
+    const options = [];
+    for (let hour = 0; hour < 24; hour += 1) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        options.push(`${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`);
+      }
+    }
+    options.push("23:59");
+    return [...new Set(options)];
+  }
+
+  function populateTimeSelects() {
+    const options = buildTimeOptions();
+    const renderOptions = value => options
+      .map(option => `<option value="${option}"${option === value ? " selected" : ""}>${option}</option>`)
+      .join("");
+    dom.timeFrom.innerHTML = renderOptions(state.timeFrom);
+    dom.timeTo.innerHTML = renderOptions(state.timeTo);
+  }
+
+  function syncTimeInputs() {
+    dom.timeFrom.value = state.timeFrom;
+    dom.timeTo.value = state.timeTo;
+  }
+
+  function setTimeRange(from, to) {
+    state.timeFrom = from;
+    state.timeTo = to;
+    syncTimeInputs();
+    syncQuickRangeChips();
+    render();
+  }
+
+  function activeQuickRangeId() {
+    const match = QUICK_RANGES.find(range => range.from === state.timeFrom && range.to === state.timeTo);
+    return match?.id || "";
   }
 
   function formatDate(dateStr) {
@@ -482,7 +551,7 @@
 
   function renderTopPicks(topPicks) {
     if (!topPicks.length) {
-      dom.topPicks.innerHTML = `<div class="empty-state">${state.cache ? t("empty") : t("no_cache")}</div>`;
+      dom.topPicks.innerHTML = `<div class="empty-state">${emptyStateMessage()}</div>`;
       return;
     }
     dom.topPicks.innerHTML = topPicks.map(pick => `
@@ -505,7 +574,7 @@
 
   function renderMatches(matches) {
     if (!matches.length) {
-      dom.matches.innerHTML = `<div class="empty-state">${state.cache ? t("empty") : t("no_cache")}</div>`;
+      dom.matches.innerHTML = `<div class="empty-state">${emptyStateMessage()}</div>`;
       return;
     }
     dom.matches.innerHTML = matches.map(match => {
@@ -608,11 +677,18 @@
     setText("sync-note", t("sync_note"));
     setText("date-label", t("date"));
     setText("time-label", t("time"));
+    setText("time-help", t("time_help"));
+    setText("time-from-label", t("from"));
+    setText("time-to-label", t("to"));
     setText("search-label", t("search"));
     dom.searchInput.placeholder = t("search_placeholder");
     setText("probability-label", t("probability"));
     setText("market-filter-label", t("markets"));
+    setText("markets-help", t("markets_help"));
+    setText("markets-all", t("all"));
+    setText("markets-none", t("clear_all"));
     setText("status-filter-label", t("status"));
+    setText("status-help", t("status_help"));
     setText("reset-filters", t("reset"));
     setText("summary-matches-label", t("summary_matches"));
     setText("summary-top-label", t("summary_top"));
@@ -633,9 +709,37 @@
     if (node) node.textContent = value;
   }
 
+  function buildQuickRangeChips() {
+    dom.quickRangeChips.innerHTML = QUICK_RANGES.map(range => `
+      <button type="button" class="chip-btn ${range.id === activeQuickRangeId() ? "active" : ""}" data-quick-range="${range.id}">
+        ${t(range.id)}
+      </button>
+    `).join("");
+
+    dom.quickRangeChips.querySelectorAll("[data-quick-range]").forEach(button => {
+      button.addEventListener("click", () => {
+        const range = QUICK_RANGES.find(item => item.id === button.dataset.quickRange);
+        if (!range) return;
+        setTimeRange(range.from, range.to);
+      });
+    });
+  }
+
+  function syncQuickRangeChips() {
+    const activeId = activeQuickRangeId();
+    dom.quickRangeChips.querySelectorAll("[data-quick-range]").forEach(button => {
+      button.classList.toggle("active", button.dataset.quickRange === activeId);
+    });
+  }
+
+  function emptyStateMessage() {
+    if (!state.groups.size) return t("no_market_selected");
+    return state.cache ? t("empty") : t("no_cache");
+  }
+
   function buildFilterChips() {
     dom.marketChips.innerHTML = GROUPS.map(group => `
-      <button type="button" class="chip-btn active" data-group="${group.id}">${group.short} | ${groupLabel(group.id)}</button>
+      <button type="button" class="chip-btn" data-group="${group.id}">${groupLabel(group.id)}</button>
     `).join("");
 
     dom.statusChips.innerHTML = STATUS_OPTIONS.map(status => `
@@ -645,9 +749,14 @@
     dom.marketChips.querySelectorAll("[data-group]").forEach(button => {
       button.addEventListener("click", () => {
         const group = button.dataset.group;
-        if (state.groups.has(group)) state.groups.delete(group);
-        else state.groups.add(group);
-        if (!state.groups.size) GROUPS.forEach(item => state.groups.add(item.id));
+        const allSelected = state.groups.size === GROUPS.length;
+        if (allSelected) {
+          state.groups = new Set([group]);
+        } else if (state.groups.has(group)) {
+          state.groups.delete(group);
+        } else {
+          state.groups.add(group);
+        }
         syncGroupChips();
         render();
       });
@@ -669,6 +778,8 @@
     dom.marketChips.querySelectorAll("[data-group]").forEach(button => {
       button.classList.toggle("active", state.groups.has(button.dataset.group));
     });
+    if (dom.marketsAll) dom.marketsAll.classList.toggle("active", state.groups.size === GROUPS.length);
+    if (dom.marketsNone) dom.marketsNone.classList.toggle("active", state.groups.size === 0);
   }
 
   function syncStatusChips() {
@@ -687,12 +798,18 @@
       state.search = dom.searchInput.value.trim().toLowerCase();
       render();
     });
-    dom.timeFrom.addEventListener("input", () => {
+    dom.timeFrom.addEventListener("change", () => {
       state.timeFrom = dom.timeFrom.value || "00:00";
+      if (state.timeFrom > state.timeTo) state.timeTo = state.timeFrom;
+      syncTimeInputs();
+      syncQuickRangeChips();
       render();
     });
-    dom.timeTo.addEventListener("input", () => {
+    dom.timeTo.addEventListener("change", () => {
       state.timeTo = dom.timeTo.value || "23:59";
+      if (state.timeTo < state.timeFrom) state.timeFrom = state.timeTo;
+      syncTimeInputs();
+      syncQuickRangeChips();
       render();
     });
     dom.probabilityRange.addEventListener("input", () => {
@@ -708,17 +825,28 @@
       state.timeFrom = "00:00";
       state.timeTo = "23:59";
       dom.searchInput.value = "";
-      dom.timeFrom.value = "00:00";
-      dom.timeTo.value = "23:59";
+      syncTimeInputs();
+      syncQuickRangeChips();
       dom.probabilityRange.value = "55";
       dom.probabilityValue.textContent = "55%";
       syncGroupChips();
       syncStatusChips();
       render();
     });
+    dom.marketsAll.addEventListener("click", () => {
+      state.groups = new Set(GROUPS.map(group => group.id));
+      syncGroupChips();
+      render();
+    });
+    dom.marketsNone.addEventListener("click", () => {
+      state.groups = new Set();
+      syncGroupChips();
+      render();
+    });
     document.querySelectorAll(".lang-btn").forEach(button => {
       button.addEventListener("click", () => {
         state.lang = button.dataset.lang || "it";
+        buildQuickRangeChips();
         buildFilterChips();
         populateDateSelect();
         dom.dateSelect.value = state.selectedDate;
@@ -776,6 +904,9 @@
 
   async function init() {
     dom.probabilityValue.textContent = `${state.minProbability}%`;
+    populateTimeSelects();
+    syncTimeInputs();
+    buildQuickRangeChips();
     buildFilterChips();
     bindControls();
     await refreshData();
