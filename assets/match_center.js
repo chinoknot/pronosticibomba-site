@@ -17,7 +17,9 @@
     { id: "lt_200", label: "< 2.00", from: 1.01, to: 2 },
     { id: "lt_300", label: "< 3.00", from: 1.01, to: 3 },
   ];
-  const PROBABILITY_PRESETS = [55, 60, 65, 70, 75, 80];
+  const PROBABILITY_PRESETS = [60, 65, 70, 75, 80];
+  const PROBABILITY_OPTIONS = [45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 99];
+  const ODD_OPTIONS = [1.01, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.25, 2.5, 3, 4, 5, 7.5, 10];
   const TOTAL_MARKET_RULES = {
     corners: { strongMin: 0.50, softMin: 0.44, impactLine: 12.5 },
     yellows: { strongMin: 0.50, softMin: 0.42, impactLine: 5.5 },
@@ -361,6 +363,20 @@
     const render = value => options.map(option => `<option value="${option}"${option === value ? " selected" : ""}>${option}</option>`).join("");
     dom.timeFrom.innerHTML = render(state.timeFrom);
     dom.timeTo.innerHTML = render(state.timeTo);
+  }
+
+  function populateProbabilitySelects() {
+    if (!dom.probabilityMinInput || !dom.probabilityMaxInput) return;
+    const render = value => PROBABILITY_OPTIONS.map(option => `<option value="${option}"${Number(option) === Number(value) ? " selected" : ""}>${option}%</option>`).join("");
+    dom.probabilityMinInput.innerHTML = render(state.minProbability);
+    dom.probabilityMaxInput.innerHTML = render(state.maxProbability);
+  }
+
+  function populateOddSelects() {
+    if (!dom.oddFrom || !dom.oddTo) return;
+    const render = value => ODD_OPTIONS.map(option => `<option value="${formatOdd(option)}"${Number(option) === Number(value) ? " selected" : ""}>${formatOdd(option)}</option>`).join("");
+    dom.oddFrom.innerHTML = render(state.oddFrom);
+    dom.oddTo.innerHTML = render(state.oddTo);
   }
 
   function activeOddPresetId() {
@@ -726,19 +742,22 @@
     if (label === "OVER 2.5") score += 0.02 + (tempoBoost * 0.8);
     if (label === "BTTS YES") score += 0.015 + (tempoBoost * 0.65);
     if (label === "UNDER 3.5") {
-      score -= 0.03;
-      if (tempoBoost > 0.04) score -= 0.09;
-      if (lamTotal >= 2.75) score -= 0.06;
-      if (Number(market.pickProbability || 0) >= 0.86 && lamTotal <= 2.3) score += 0.06;
+      score -= 0.015;
+      if (tempoBoost > 0.05) score -= 0.08;
+      else if (tempoBoost > 0.025) score -= 0.03;
+      if (lamTotal >= 2.95) score -= 0.06;
+      else if (lamTotal >= 2.65) score -= 0.02;
+      if (Number(market.pickProbability || 0) >= 0.66) score += 0.06;
+      if (Number(market.pickProbability || 0) >= 0.72) score += 0.04;
+      if (Number(market.pickProbability || 0) >= 0.86 && lamTotal <= 2.3) score += 0.04;
     }
     if (label === "UNDER 2.5" && tempoBoost > 0.04) score -= 0.05;
     if (label === "BTTS NO" && tempoBoost > 0.05) score -= 0.04;
     if (label.includes("NON SEGNA") && tempoBoost > 0.05) score -= 0.03;
     if (Number.isFinite(odd)) {
-      if (odd < 1.22) score -= 0.14;
-      else if (odd < 1.35) score -= 0.08;
-      else if (odd >= 1.45 && odd <= 2.8) score += 0.04;
-      else if (odd > 2.8 && odd <= 5) score += 0.015;
+      if (odd < 1.22) score -= 0.12;
+      else if (odd < 1.35) score -= 0.06;
+      else if (odd > 4.5) score -= 0.02;
     }
     return score;
   }
@@ -875,9 +894,25 @@
     return [...markets].sort((a, b) => marketDisplayScore(b, match) - marketDisplayScore(a, match))[0] || null;
   }
 
+  function conservativeGoalPreference(markets, match = null) {
+    const under35 = markets.find(market => market.id === "o35" && String(market.pickLabel || "").toUpperCase() === "UNDER 3.5");
+    const over25 = markets.find(market => market.id === "ou25" && String(market.pickLabel || "").toUpperCase() === "OVER 2.5");
+    if (!under35 || !over25) return null;
+    if (tempoProfile(match) >= 0.08) return null;
+    if (Number(under35.pickProbability || 0) >= Number(over25.pickProbability || 0) + 0.045) return under35;
+    return null;
+  }
+
   function selectHeadlineMarket(markets, match = null) {
     const viableMarkets = markets.filter(market => !(market.id === "combo" && Number(market.pickProbability || 0) < 0.6));
     const pool = viableMarkets.length ? viableMarkets : markets;
+    const conservativeGoalPick = conservativeGoalPreference(pool, match);
+    if (conservativeGoalPick && (
+      (state.groups.size === 1 && state.groups.has("goals"))
+      || pool.every(market => market.group === "goals")
+    )) {
+      return conservativeGoalPick;
+    }
     if (state.outcomeFilters.size) return selectPrimaryMarket(pool, match);
     const withoutSoftProps = pool.filter(market => !["corners", "yellows"].includes(market.group) && market.id !== "ou15");
     if (withoutSoftProps.length) return selectPrimaryMarket(withoutSoftProps, match);
@@ -1071,6 +1106,8 @@
   }
 
   function renderRangePanels() {
+    populateProbabilitySelects();
+    populateOddSelects();
     if (dom.probabilityMinInput) dom.probabilityMinInput.value = String(state.minProbability);
     if (dom.probabilityMaxInput) dom.probabilityMaxInput.value = String(state.maxProbability);
     if (dom.probabilityValue) dom.probabilityValue.textContent = `${state.minProbability}% - ${state.maxProbability}%`;
@@ -1687,6 +1724,8 @@
 
   async function init() {
     populateTimeSelects();
+    populateProbabilitySelects();
+    populateOddSelects();
     renderRangePanels();
     bindEvents();
     await refreshData();

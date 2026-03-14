@@ -7,7 +7,7 @@
   <meta name="description" content="Match center mobile-first con date cache, top picks, filtri rapidi e dettaglio completo per ogni partita." />
   <style>
     :root{--bg:#030712;--panel:rgba(8,14,30,.92);--panel-strong:rgba(12,19,38,.97);--border:rgba(148,163,184,.18);--text:#ecf3ff;--muted:#9fb0c9;--soft:#6d7f9d;--accent:#f97316;--blue:#3b82f6;--success:#22c55e;--danger:#ef4444;--warning:#facc15;--shadow:0 24px 70px rgba(2,6,23,.5);--radius-xl:28px;--radius-lg:22px;--radius-md:16px}
-    *{box-sizing:border-box}html,body{margin:0;min-height:100%;color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top left,rgba(59,130,246,.18),transparent 34%),radial-gradient(circle at top right,rgba(249,115,22,.18),transparent 28%),linear-gradient(180deg,#020611 0%,#040817 36%,#020611 100%);-webkit-font-smoothing:antialiased}body{padding:14px 10px 42px}body.modal-open{overflow:hidden}a{color:inherit}button,input,select{font:inherit}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;max-width:100%;overflow-x:hidden;color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top left,rgba(59,130,246,.18),transparent 34%),radial-gradient(circle at top right,rgba(249,115,22,.18),transparent 28%),linear-gradient(180deg,#020611 0%,#040817 36%,#020611 100%);-webkit-font-smoothing:antialiased}body{padding:14px 10px 42px}body.modal-open{overflow:hidden}a{color:inherit}button,input,select{font:inherit}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     .app-shell{width:100%;max-width:1440px;margin:0 auto;display:flex;flex-direction:column;gap:16px}.panel{border:1px solid var(--border);border-radius:var(--radius-lg);background:radial-gradient(circle at top right,rgba(56,189,248,.12),transparent 34%),linear-gradient(145deg,var(--panel-strong),rgba(3,7,18,.98));box-shadow:var(--shadow)}
     .hero-shell{position:relative;overflow:hidden;padding:16px 18px;border-radius:var(--radius-xl);border:1px solid rgba(148,163,184,.16);background:radial-gradient(circle at 8% 0%,rgba(249,115,22,.12),transparent 28%),radial-gradient(circle at 84% 12%,rgba(59,130,246,.14),transparent 24%),linear-gradient(135deg,rgba(12,19,38,.96),rgba(2,6,23,.98));box-shadow:var(--shadow)}.hero-top{position:relative;z-index:1;display:flex;flex-direction:column;gap:12px}.brand-mark{display:inline-flex;align-items:center;gap:10px;width:fit-content;padding:7px 11px;border-radius:999px;border:1px solid rgba(148,163,184,.18);background:rgba(5,10,24,.62);color:#dce9ff;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase}.hero-title-row{display:flex;flex-direction:column;gap:12px}.hero-copy-wrap h1{margin:0;font-size:clamp(1.55rem,3vw,2.5rem);letter-spacing:-.04em}.hero-copy-wrap p{margin:6px 0 0;max-width:620px;color:var(--muted);line-height:1.45;font-size:.88rem}
     .hero-pills{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.hero-pill{display:flex;flex-direction:column;gap:5px;padding:10px 12px;border-radius:var(--radius-md);border:1px solid rgba(148,163,184,.12);background:rgba(4,9,20,.52);min-height:0}.hero-pill span{color:var(--soft);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em}.hero-pill strong{font-size:.92rem;line-height:1.25}
@@ -132,14 +132,18 @@
             <strong class="inline-filter-value" id="probability-value">55% - 99%</strong>
           </div>
           <div class="chips" id="probability-presets"></div>
-          <div class="range-input-grid compact-grid">
+          <div class="range-input-grid compact-grid compact-select-grid">
             <label class="range-input-card">
               <span class="mini-label">Prob. min</span>
-              <input id="probability-min-input" class="input compact-input" type="number" min="45" max="99" step="1" value="55" />
+              <span class="select-shell select-shell-compact">
+                <select id="probability-min-input" class="select select-compact"></select>
+              </span>
             </label>
             <label class="range-input-card">
               <span class="mini-label">Prob. max</span>
-              <input id="probability-max-input" class="input compact-input" type="number" min="45" max="99" step="1" value="99" />
+              <span class="select-shell select-shell-compact">
+                <select id="probability-max-input" class="select select-compact"></select>
+              </span>
             </label>
           </div>
         </section>
@@ -149,14 +153,18 @@
             <strong class="inline-filter-value" id="odd-value">1.01 - 10.00</strong>
           </div>
           <div class="chips" id="odd-presets"></div>
-          <div class="range-input-grid compact-grid">
+          <div class="range-input-grid compact-grid compact-select-grid">
             <label class="range-input-card">
               <span class="mini-label">Quota min</span>
-              <input id="odd-from" class="input compact-input" type="number" min="1.01" max="10" step="0.01" value="1.01" />
+              <span class="select-shell select-shell-compact">
+                <select id="odd-from" class="select select-compact"></select>
+              </span>
             </label>
             <label class="range-input-card">
               <span class="mini-label">Quota max</span>
-              <input id="odd-to" class="input compact-input" type="number" min="1.01" max="10" step="0.01" value="10.00" />
+              <span class="select-shell select-shell-compact">
+                <select id="odd-to" class="select select-compact"></select>
+              </span>
             </label>
           </div>
         </section>
@@ -279,8 +287,8 @@
     .quick-market-chip strong,.quick-outcome-chip strong{font-size:.9rem;font-weight:800}
     .quick-market-chip small,.quick-outcome-chip small{color:#aebbd1;font-size:.7rem}
     .quick-market-chip.active small,.quick-outcome-chip.active small{color:#ffe7ca}
-    .inline-filter-board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-    .inline-filter-card{display:flex;flex-direction:column;gap:9px;padding:12px;border-radius:18px;border:1px solid rgba(148,163,184,.12);background:linear-gradient(145deg,rgba(10,17,31,.94),rgba(5,9,20,.98))}
+    .inline-filter-board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0}
+    .inline-filter-card{display:flex;flex-direction:column;gap:9px;padding:12px;border-radius:18px;border:1px solid rgba(148,163,184,.12);background:linear-gradient(145deg,rgba(10,17,31,.94),rgba(5,9,20,.98));width:100%;min-width:0;overflow:hidden}
     .inline-filter-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .inline-filter-value{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.16);background:rgba(255,255,255,.04);color:#eef5ff;font-size:.77rem}
     .preset-chip,.status-chip{min-height:32px;padding:0 11px;font-size:.75rem;font-weight:700}
@@ -296,9 +304,10 @@
     .select-compact{min-height:40px;padding:10px 34px 10px 12px;border-radius:14px;font-size:.83rem;background:rgba(8,14,28,.92)}
     .quick-preset-row{display:flex;gap:6px;flex-wrap:wrap}
     .quick-preset-row .chip-btn,.chips#odd-presets .chip-btn{min-height:30px;padding:6px 10px;border-radius:999px;font-size:.69rem}
-    #probability-presets,#odd-presets,#status-chips{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    #probability-presets,#odd-presets,#status-chips{display:flex;flex-wrap:nowrap;gap:6px;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
     #probability-presets::-webkit-scrollbar,#odd-presets::-webkit-scrollbar,#status-chips::-webkit-scrollbar{display:none}
     #probability-presets .preset-chip,#odd-presets .preset-chip,#status-chips .status-chip{flex:0 0 auto;white-space:nowrap}
+    .range-input-grid,.range-input-card,.select-shell,.select-compact,.detail-stack,.detail-section,.market-grid,.detail-hero{min-width:0}
     .date-tab{min-width:92px;padding:10px 12px;border-radius:18px}
     .date-tab strong{font-size:.92rem}
     .date-tab small{font-size:.72rem}
@@ -413,8 +422,12 @@
     .detail-meta-card span{font-size:.66rem}
     .detail-meta-card strong{font-size:.83rem}
     .detail-accordion{border-radius:16px}
-    .detail-summary{padding:12px 14px;font-size:.92rem}
-    .detail-summary-meta{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.18);background:rgba(15,23,42,.7);color:#dbe7f8;font-size:.72rem;font-weight:700;max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .detail-summary{padding:12px 14px;font-size:.92rem;display:flex;align-items:center;gap:10px}
+    .detail-summary>span:first-child{min-width:0;flex:1 1 auto}
+    .detail-summary-meta{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.18);background:rgba(15,23,42,.7);color:#dbe7f8;font-size:.72rem;font-weight:700;max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+    @media (max-width:980px){
+      .sheet,.detail-sheet{left:0;right:0;width:100vw;max-width:100vw;border-left:0}
+    }
     @media (min-width:980px){
       .hero-title-row{grid-template-columns:minmax(0,1fr) 260px}
       .top-picks-rail,.league-feed{display:flex}
@@ -435,7 +448,7 @@
       .quick-chip-rail{gap:6px}
       .quick-market-chip,.quick-outcome-chip{min-height:38px;padding:0 12px}
       .quick-market-chip strong,.quick-outcome-chip strong{font-size:.84rem}
-      .inline-filter-board{grid-template-columns:1fr;gap:8px}
+      .inline-filter-board{display:flex;flex-direction:column;gap:8px}
       .inline-filter-card{padding:10px 11px;border-radius:16px}
       .inline-filter-value{font-size:.74rem}
       .date-tabs{gap:8px}
@@ -471,8 +484,9 @@
       .detail-meta-grid{grid-template-columns:1fr}
       .detail-summary-meta{max-width:52%}
       .range-input-grid{grid-template-columns:1fr}
+      .compact-select-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
   </style>
-  <script src="/assets/match_center.js?v=20260314h"></script>
+  <script src="/assets/match_center.js?v=20260314i"></script>
 </body>
 </html>
