@@ -27,6 +27,46 @@
     { id: "afternoon", label: "Pomeriggio", from: "12:00", to: "17:59" },
     { id: "evening", label: "Sera", from: "18:00", to: "23:59" },
   ];
+  const COUNTRY_PRIORITY = new Map([
+    ["Italy", 0],
+    ["England", 10],
+    ["Spain", 20],
+    ["Germany", 30],
+    ["France", 40],
+    ["Portugal", 50],
+    ["Netherlands", 60],
+    ["Belgium", 70],
+    ["Scotland", 80],
+    ["Turkey", 90],
+  ]);
+  const EUROPEAN_COUNTRIES = new Set([
+    "Italy", "England", "Spain", "Germany", "France", "Portugal", "Netherlands", "Belgium", "Scotland", "Turkey",
+    "Austria", "Switzerland", "Denmark", "Sweden", "Norway", "Poland", "Czech-Republic", "Croatia", "Serbia",
+    "Romania", "Greece", "Ukraine", "Hungary", "Slovakia", "Slovenia", "Ireland", "Northern-Ireland", "Wales",
+  ]);
+  const LEAGUE_PRIORITY_RULES = [
+    [/^serie a$/i, 0],
+    [/^serie b$/i, 1],
+    [/serie a women/i, 2],
+    [/campionato primavera|primavera/i, 3],
+    [/serie c/i, 4],
+    [/coppa italia|super cup/i, 5],
+    [/^premier league$/i, 10],
+    [/championship/i, 11],
+    [/league one/i, 12],
+    [/league two/i, 13],
+    [/fa cup|league cup|efl cup/i, 14],
+    [/u18 premier league|premier league 2/i, 18],
+    [/la liga|laliga/i, 20],
+    [/segunda/i, 21],
+    [/^bundesliga$/i, 30],
+    [/2\. bundesliga/i, 31],
+    [/^ligue 1$/i, 40],
+    [/^ligue 2$/i, 41],
+    [/^primeira liga$/i, 50],
+    [/liga portugal 2|segunda liga/i, 51],
+    [/champions league|europa league|conference league/i, 60],
+  ];
   const TEXT = {
     noCache: "La cache predictor non e ancora stata generata dal workflow.",
     empty: "Nessun dato disponibile per i filtri selezionati.",
@@ -176,6 +216,58 @@
     return GROUPS.find(group => group.id === groupId);
   }
 
+  function toMinutes(timeValue) {
+    const [hour, minute] = String(timeValue || "00:00").split(":").map(Number);
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) return 0;
+    return (hour * 60) + minute;
+  }
+
+  function currentTimeInTimezone(timeZone) {
+    const formatter = new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit", hour12: false });
+    const parts = Object.fromEntries(formatter.formatToParts(new Date()).filter(part => part.type !== "literal").map(part => [part.type, part.value]));
+    return `${parts.hour}:${parts.minute}`;
+  }
+
+  function leaguePriority(country, league) {
+    for (const [rule, rank] of LEAGUE_PRIORITY_RULES) {
+      if (rule.test(String(league || ""))) return rank;
+    }
+    const countryRank = COUNTRY_PRIORITY.get(country);
+    if (countryRank != null) return countryRank + 5;
+    if (EUROPEAN_COUNTRIES.has(country)) return 120;
+    return 300;
+  }
+
+  function groupSortKey(group) {
+    const countryRank = COUNTRY_PRIORITY.get(group.country);
+    const leagueRank = leaguePriority(group.country, group.league);
+    const featuredCountryRank = countryRank != null ? countryRank : (EUROPEAN_COUNTRIES.has(group.country) ? 120 : 300);
+    return [featuredCountryRank, leagueRank, group.matches[0]?.match_time || "", group.league || "", group.country || ""];
+  }
+
+  function marketDisplayScore(market) {
+    const picked = (market.options || []).find(option => option.label === market.pickLabel);
+    const odd = Number(picked?.odd);
+    let score = Number(market.pickProbability || 0);
+    if (market.id === "ou15") score -= 0.15;
+    if (market.id === "dc") score -= 0.06;
+    if (market.id === "combo") score -= 0.03;
+    if (market.id === "btts") score += 0.03;
+    if (market.id === "ou25" || market.id === "o35") score += 0.02;
+    if (market.id === "corners" || market.id === "yellows") score += 0.035;
+    if (market.id === "nogol") score += 0.015;
+    if (Number.isFinite(odd)) {
+      if (odd < 1.22) score -= 0.14;
+      else if (odd < 1.35) score -= 0.08;
+      else if (odd >= 1.45 && odd <= 2.8) score += 0.04;
+    }
+    return score;
+  }
+
+  function isFeaturedCompetition(country, league) {
+    return COUNTRY_PRIORITY.has(country) || (country === "World" && /champions league|europa league|conference league/i.test(String(league || "")));
+  }
+
   function statusLabel(status) {
     return STATUS_OPTIONS.find(option => option.id === status)?.label || status;
   }
@@ -226,7 +318,15 @@
   }
 
   function selectPrimaryMarket(markets) {
-    return [...markets].sort((a, b) => Number(b.pickProbability || 0) - Number(a.pickProbability || 0))[0] || null;
+    return [...markets].sort((a, b) => marketDisplayScore(b) - marketDisplayScore(a))[0] || null;
+  }
+
+  function selectHeadlineMarket(markets) {
+    const withoutSoftProps = markets.filter(market => !["corners", "yellows"].includes(market.group) && market.id !== "ou15");
+    if (withoutSoftProps.length) return selectPrimaryMarket(withoutSoftProps);
+    const withoutProps = markets.filter(market => !["corners", "yellows"].includes(market.group));
+    if (withoutProps.length) return selectPrimaryMarket(withoutProps);
+    return selectPrimaryMarket(markets);
   }
 
   function decorateMatches(rawMatches, keepAll = false) {
@@ -260,13 +360,53 @@
   }
 
   function getTopPicks(matches) {
-    return matches
-      .flatMap(match => match.visibleMarkets.map(market => {
-        const picked = (market.options || []).find(option => option.label === market.pickLabel);
-        return { fixtureId: match.fixture_id, home: match.home, away: match.away, league: match.league, matchTime: match.match_time, pickLabel: market.pickLabel, pickProbability: market.pickProbability, status: market.status, tag: market.tag, odd: picked?.odd ?? null };
-      }))
-      .sort((a, b) => Number(b.pickProbability || 0) - Number(a.pickProbability || 0))
-      .slice(0, 10);
+    const timezone = state.manifest?.timezone || "UTC";
+    const today = todayIso(timezone);
+    const nowMinutes = toMinutes(currentTimeInTimezone(timezone));
+    let pool = matches.filter(match => !FINAL_STATUSES.has(String(match.status_short || "").toUpperCase()) && match.primaryMarket);
+    if (state.selectedDate === today) {
+      const imminent = pool.filter(match => {
+        const kickoff = toMinutes(match.match_time);
+        return kickoff >= nowMinutes && kickoff <= nowMinutes + 60;
+      });
+      if (imminent.length) {
+        pool = imminent;
+      } else {
+        const nextUp = pool.filter(match => toMinutes(match.match_time) >= nowMinutes);
+        if (nextUp.length) pool = nextUp;
+      }
+    }
+    return pool
+      .map(match => {
+        const headline = selectHeadlineMarket(match.visibleMarkets);
+        if (!headline) return null;
+        const picked = (headline.options || []).find(option => option.label === headline.pickLabel);
+        return {
+          fixtureId: match.fixture_id,
+          home: match.home,
+          away: match.away,
+          league: match.league,
+          country: match.country,
+          matchTime: match.match_time,
+          pickLabel: headline.pickLabel,
+          pickProbability: headline.pickProbability,
+          status: headline.status,
+          tag: headline.tag,
+          odd: picked?.odd ?? null,
+          displayScore: marketDisplayScore(headline),
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => {
+        const featuredDiff = Number(isFeaturedCompetition(b.country, b.league)) - Number(isFeaturedCompetition(a.country, a.league));
+        if (featuredDiff !== 0) return featuredDiff;
+        const timeDiff = toMinutes(a.matchTime) - toMinutes(b.matchTime);
+        if (state.selectedDate === today && Math.abs(timeDiff) > 0) return timeDiff;
+        const scoreDiff = b.displayScore - a.displayScore;
+        if (Math.abs(scoreDiff) > 0.0001) return scoreDiff;
+        return timeDiff;
+      })
+      .slice(0, 12);
   }
 
   function groupMatches(matches) {
@@ -276,7 +416,15 @@
       if (!groups.has(key)) groups.set(key, { key, country: match.country || "", league: match.league || "", logo: match.league_logo || "", matches: [] });
       groups.get(key).matches.push(match);
     });
-    return [...groups.values()].sort((a, b) => `${a.matches[0]?.match_time || ""}-${a.league}`.localeCompare(`${b.matches[0]?.match_time || ""}-${b.league}`));
+    return [...groups.values()].sort((a, b) => {
+      const aKey = groupSortKey(a);
+      const bKey = groupSortKey(b);
+      for (let index = 0; index < aKey.length; index += 1) {
+        if (aKey[index] < bKey[index]) return -1;
+        if (aKey[index] > bKey[index]) return 1;
+      }
+      return 0;
+    });
   }
 
   function activeQuickRangeId() {
@@ -369,12 +517,20 @@
     }
     dom.topPicks.innerHTML = topPicks.map(pick => `
       <article class="top-pick-card" data-fixture-open="${pick.fixtureId}">
-        <div class="meta-row"><span class="market-tag">${escapeHtml(pick.tag)}</span><span class="status-pill status-${pick.status}">${statusLabel(pick.status)}</span></div>
-        <time>${escapeHtml(pick.matchTime)} | ${escapeHtml(pick.league)}</time>
-        <h3>${escapeHtml(pick.home)} vs ${escapeHtml(pick.away)}</h3>
-        <div class="pick-title">${escapeHtml(pick.pickLabel || "-")}</div>
-        <div class="pick-meta">${pick.odd ? `${TEXT.odds} ${formatOdd(pick.odd)}` : "&nbsp;"}</div>
-        <div class="pick-metrics"><span class="pick-meta">${TEXT.confidence}</span><strong>${formatPercent(pick.pickProbability)}</strong></div>
+        <div class="top-pick-time">
+          <strong>${escapeHtml(pick.matchTime)}</strong>
+          <span>${escapeHtml(pick.country || "")}</span>
+        </div>
+        <div class="top-pick-main">
+          <h3>${escapeHtml(pick.home)} vs ${escapeHtml(pick.away)}</h3>
+          <div class="pick-meta">${escapeHtml(pick.league)}</div>
+          <div class="pick-title">${escapeHtml(pick.pickLabel || "-")}</div>
+        </div>
+        <div class="top-pick-side">
+          <span class="market-tag">${escapeHtml(pick.tag)}</span>
+          <strong>${formatPercent(pick.pickProbability)}</strong>
+          <small>${pick.odd ? `${TEXT.odds} ${formatOdd(pick.odd)}` : statusLabel(pick.status)}</small>
+        </div>
       </article>
     `).join("");
   }
@@ -388,12 +544,6 @@
     if (primary?.pickProbability != null) meta.push(formatPercent(primary.pickProbability));
     if (picked?.odd) meta.push(`${TEXT.odds} ${formatOdd(picked.odd)}`);
     if (match.visibleMarkets.length) meta.push(`${match.visibleMarkets.length} ${TEXT.markets}`);
-    const secondaryMarkets = match.visibleMarkets
-      .filter(market => !primary || market.id !== primary.id)
-      .sort((a, b) => Number(b.pickProbability || 0) - Number(a.pickProbability || 0))
-      .slice(0, 2)
-      .map(market => `<span class="mini-chip">${escapeHtml(market.pickLabel || market.title)} | ${formatPercent(market.pickProbability)}</span>`)
-      .join("");
     const scoreText = FINAL_STATUSES.has(fixtureStatus)
       ? `${TEXT.final} | ${escapeHtml(match.final_score || "-")}`
       : (match.most_likely_scores || []).slice(0, 2).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("") || escapeHtml(match.status_long || "");
@@ -410,13 +560,11 @@
             <div class="club-line">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" />` : ""}<strong>${escapeHtml(match.away)}</strong></div>
             <div class="match-score">${scoreText}</div>
           </div>
-          <div class="pick-snapshot">
-            <div class="meta-row"><span class="market-tag">${escapeHtml(primary?.tag || "--")}</span><span class="mini-chip">${escapeHtml(match.league || "")}</span></div>
-            <div class="pick-title">${escapeHtml(primary?.pickLabel || "-")}</div>
-            <div class="pick-meta">${escapeHtml(meta.join(" | "))}</div>
-            <div class="secondary-picks">${secondaryMarkets}</div>
+          <div class="match-action">
+            <span class="market-tag">${escapeHtml(primary?.tag || "--")}</span>
+            <strong>${escapeHtml(primary?.pickLabel || TEXT.viewMatch)}</strong>
+            <small>${escapeHtml(meta.join(" | ") || TEXT.viewMatch)}</small>
           </div>
-          <button type="button" class="detail-button" data-fixture-open="${match.fixture_id}">${TEXT.viewMatch}</button>
         </div>
       </article>
     `;
