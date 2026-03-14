@@ -110,6 +110,9 @@
   const dom = {
     dateTabs: document.getElementById("date-tabs"),
     dateSelect: document.getElementById("date-select"),
+    yesterdayBanner: document.getElementById("yesterday-banner"),
+    yesterdayBannerTitle: document.getElementById("yesterday-banner-title"),
+    yesterdayBannerMeta: document.getElementById("yesterday-banner-meta"),
     searchInput: document.getElementById("search-input"),
     sortToggle: document.getElementById("sort-toggle"),
     searchLauncher: document.getElementById("search-launcher"),
@@ -248,6 +251,12 @@
     const leagueRank = leaguePriority(group.country, group.league);
     const featuredCountryRank = countryRank != null ? countryRank : (EUROPEAN_COUNTRIES.has(group.country) ? 120 : 300);
     return [featuredCountryRank, leagueRank, group.matches[0]?.match_time || "", group.league || "", group.country || ""];
+  }
+
+  function matchSortKey(match) {
+    const countryRank = COUNTRY_PRIORITY.get(match.country);
+    const featuredCountryRank = countryRank != null ? countryRank : (EUROPEAN_COUNTRIES.has(match.country) ? 120 : 300);
+    return [featuredCountryRank, leaguePriority(match.country, match.league), match.match_time || "", match.league || "", match.home || ""];
   }
 
   function marketDisplayScore(market) {
@@ -469,6 +478,21 @@
     });
   }
 
+  function sortMatchesForFeed(matches) {
+    return [...matches].sort((a, b) => {
+      if (state.sortMode === "time") {
+        return `${a.match_time || ""}-${a.league || ""}-${a.home || ""}`.localeCompare(`${b.match_time || ""}-${b.league || ""}-${b.home || ""}`);
+      }
+      const aKey = matchSortKey(a);
+      const bKey = matchSortKey(b);
+      for (let index = 0; index < aKey.length; index += 1) {
+        if (aKey[index] < bKey[index]) return -1;
+        if (aKey[index] > bKey[index]) return 1;
+      }
+      return 0;
+    });
+  }
+
   function activeQuickRangeId() {
     return QUICK_RANGES.find(range => range.from === state.timeFrom && range.to === state.timeTo)?.id || "";
   }
@@ -540,6 +564,29 @@
     document.getElementById("hero-date-value").textContent = state.selectedDate ? formatDate(state.selectedDate, { weekday: "short", day: "2-digit", month: "short", year: "numeric" }) : "-";
     document.getElementById("hero-sync-value").textContent = formatDateTime(state.cache?.refreshed_at || state.cache?.generated_at);
     if (dom.sortToggle) dom.sortToggle.classList.toggle("active", state.sortMode === "time");
+    const topBadge = document.getElementById("top-picks-badge");
+    const matchBadge = document.getElementById("matches-badge");
+    if (topBadge) topBadge.textContent = String(topPicks.length);
+    if (matchBadge) matchBadge.textContent = String(matches.length);
+  }
+
+  function renderYesterdayBanner() {
+    if (!dom.yesterdayBanner) return;
+    const timezone = state.manifest?.timezone || "UTC";
+    const today = todayIso(timezone);
+    const yesterday = shiftIso(today, -1);
+    const yesterdayEntry = (state.manifest?.dates || []).find(entry => entry.date === yesterday);
+    if (!yesterdayEntry || state.selectedDate !== today) {
+      dom.yesterdayBanner.hidden = true;
+      dom.yesterdayBanner.removeAttribute("data-date-banner");
+      return;
+    }
+    dom.yesterdayBanner.hidden = false;
+    dom.yesterdayBanner.dataset.dateBanner = yesterday;
+    if (dom.yesterdayBannerTitle) dom.yesterdayBannerTitle.textContent = "Partite di ieri";
+    if (dom.yesterdayBannerMeta) {
+      dom.yesterdayBannerMeta.textContent = `${yesterdayEntry.matches || 0} ${TEXT.matches} | ${formatDate(yesterday, { day: "2-digit", month: "short" })}`;
+    }
   }
 
   function renderActiveFilters() {
@@ -558,24 +605,34 @@
       dom.topPicks.innerHTML = `<div class="empty-state">${emptyStateMessage()}</div>`;
       return;
     }
-    dom.topPicks.innerHTML = topPicks.map(pick => `
-      <article class="top-pick-card" data-fixture-open="${pick.fixtureId}">
-        <div class="top-pick-time">
-          <strong>${escapeHtml(pick.matchTime)}</strong>
-          <span>${escapeHtml(pick.country || "")}</span>
-        </div>
-        <div class="top-pick-main">
-          <h3>${escapeHtml(pick.home)} vs ${escapeHtml(pick.away)}</h3>
-          <div class="pick-meta">${escapeHtml(pick.league)}</div>
-          <div class="pick-title">${escapeHtml(pick.pickLabel || "-")}</div>
-        </div>
-        <div class="top-pick-side">
-          <span class="market-tag">${escapeHtml(pick.tag)}</span>
-          <strong>${formatPercent(pick.pickProbability)}</strong>
-          <small>${pick.odd ? `${TEXT.odds} ${formatOdd(pick.odd)}` : statusLabel(pick.status)}</small>
-        </div>
-      </article>
-    `).join("");
+    dom.topPicks.innerHTML = `<div class="match-list top-pick-list">${topPicks.map(pick => {
+      const meta = [];
+      if (pick.pickProbability != null) meta.push(formatPercent(pick.pickProbability));
+      if (pick.odd) meta.push(`${TEXT.odds} ${formatOdd(pick.odd)}`);
+      else meta.push(pick.tag);
+      return `
+        <article class="match-row match-row-featured status-${pick.status}" data-fixture-open="${pick.fixtureId}">
+          <div class="match-row-inner">
+            <div class="match-time-block">
+              <div class="match-time">${escapeHtml(pick.matchTime || "--:--")}</div>
+              <div class="match-date">${escapeHtml(state.selectedDate ? formatDate(state.selectedDate, { day: "2-digit", month: "2-digit" }) : "")}</div>
+            </div>
+            <div class="match-teams">
+              <div class="match-league-line">${escapeHtml(pick.league)} | ${escapeHtml(pick.country || "")}</div>
+              <div class="clubs-inline">
+                <span class="club-line compact"><strong>${escapeHtml(pick.home)}</strong></span>
+                <span class="match-vs">vs</span>
+                <span class="club-line compact"><strong>${escapeHtml(pick.away)}</strong></span>
+              </div>
+            </div>
+            <div class="match-action">
+              <strong>${escapeHtml(pick.pickLabel || "-")}</strong>
+              <small>${escapeHtml(meta.join(" | "))}</small>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join("")}</div>`;
   }
 
   function renderMatchRow(match) {
@@ -586,6 +643,7 @@
     const meta = [];
     if (primary?.pickProbability != null) meta.push(formatPercent(primary.pickProbability));
     if (picked?.odd) meta.push(`${TEXT.odds} ${formatOdd(picked.odd)}`);
+    else if (primary?.tag) meta.push(primary.tag);
     if (match.visibleMarkets.length) meta.push(`${match.visibleMarkets.length} ${TEXT.markets}`);
     const scoreText = FINAL_STATUSES.has(fixtureStatus)
       ? `${TEXT.final} | ${escapeHtml(match.final_score || "-")}`
@@ -596,15 +654,17 @@
           <div class="match-time-block">
             <div class="match-time">${escapeHtml(match.match_time || "--:--")}</div>
             <div class="match-date">${escapeHtml(formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</div>
-            <span class="status-pill status-${displayStatus}">${statusLabel(displayStatus)}</span>
           </div>
           <div class="match-teams">
-            <div class="club-line">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" />` : ""}<strong>${escapeHtml(match.home)}</strong></div>
-            <div class="club-line">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" />` : ""}<strong>${escapeHtml(match.away)}</strong></div>
+            <div class="match-league-line">${escapeHtml(match.league)} | ${escapeHtml(match.country)}</div>
+            <div class="clubs-inline">
+              <span class="club-line">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" />` : ""}<strong>${escapeHtml(match.home)}</strong></span>
+              <span class="match-vs">vs</span>
+              <span class="club-line">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" />` : ""}<strong>${escapeHtml(match.away)}</strong></span>
+            </div>
             <div class="match-score">${scoreText}</div>
           </div>
           <div class="match-action">
-            <span class="market-tag">${escapeHtml(primary?.tag || "--")}</span>
             <strong>${escapeHtml(primary?.pickLabel || TEXT.viewMatch)}</strong>
             <small>${escapeHtml(meta.join(" | ") || TEXT.viewMatch)}</small>
           </div>
@@ -613,23 +673,12 @@
     `;
   }
 
-  function renderLeagueFeed(groups) {
-    if (!groups.length) {
+  function renderLeagueFeed(matches) {
+    if (!matches.length) {
       dom.leagueFeed.innerHTML = `<div class="empty-state">${emptyStateMessage()}</div>`;
       return;
     }
-    dom.leagueFeed.innerHTML = groups.map(group => `
-      <section class="league-block">
-        <div class="league-header">
-          <div class="league-title">
-            ${group.logo ? `<img class="league-logo" src="${group.logo}" alt="" loading="lazy" />` : ""}
-            <div><h3>${escapeHtml(group.league)}</h3><p>${escapeHtml(group.country)} | ${group.matches.length} ${TEXT.matches}</p></div>
-          </div>
-          <div class="league-count">${group.matches.length}</div>
-        </div>
-        <div class="match-list">${group.matches.map(renderMatchRow).join("")}</div>
-      </section>
-    `).join("");
+    dom.leagueFeed.innerHTML = `<section class="league-block"><div class="match-list">${matches.map(renderMatchRow).join("")}</div></section>`;
   }
 
   function renderMarketCard(market) {
@@ -660,6 +709,7 @@
     const marketGroups = GROUPS
       .map(group => ({ label: group.label, markets: match.markets.filter(market => market.group === group.id && (!match.primaryMarket || market.id !== match.primaryMarket.id)) }))
       .filter(group => group.markets.length);
+    const summaryMeta = label => `<span class="detail-summary-meta">${escapeHtml(label)}</span>`;
     dom.detailBody.innerHTML = `
       <article class="detail-hero">
         <div class="detail-teams">
@@ -675,28 +725,30 @@
       </article>
       <div class="detail-stack">
         <details class="detail-accordion" open>
-          <summary class="detail-summary">${TEXT.detailPrimary}</summary>
+          <summary class="detail-summary"><span>${TEXT.detailPrimary}</span>${match.primaryMarket ? summaryMeta(match.primaryMarket.pickLabel || "-") : ""}</summary>
           <div class="detail-section"><div class="market-grid">${match.primaryMarket ? renderMarketCard(match.primaryMarket) : `<div class="empty-state">${TEXT.empty}</div>`}</div></div>
         </details>
         <details class="detail-accordion" open>
-          <summary class="detail-summary">${TEXT.detailScores}</summary>
+          <summary class="detail-summary"><span>${TEXT.detailScores}</span>${summaryMeta(`${Math.min((match.most_likely_scores || []).length, 5)} score`)}</summary>
           <div class="detail-section"><div class="score-chips">${scoreChips || `<span class="mini-chip">-</span>`}</div></div>
         </details>
-        ${marketGroups.map(group => `<details class="detail-accordion"><summary class="detail-summary">${escapeHtml(group.label)}</summary><div class="detail-section"><div class="market-grid">${group.markets.map(renderMarketCard).join("")}</div></div></details>`).join("")}
+        ${marketGroups.map(group => `<details class="detail-accordion"><summary class="detail-summary"><span>${escapeHtml(group.label)}</span>${summaryMeta(group.markets[0]?.pickLabel || `${group.markets.length} pick`)}</summary><div class="detail-section"><div class="market-grid">${group.markets.map(renderMarketCard).join("")}</div></div></details>`).join("")}
       </div>
     `;
   }
 
   function render() {
     const matches = getDerivedMatches();
+    const orderedMatches = sortMatchesForFeed(matches);
     const topPicks = getTopPicks(matches);
     renderDateTabs();
     renderQuickRanges();
     renderFilterChips();
-    renderSummary(matches, topPicks);
+    renderSummary(orderedMatches, topPicks);
+    renderYesterdayBanner();
     renderActiveFilters();
     renderTopPicks(topPicks);
-    renderLeagueFeed(groupMatches(matches));
+    renderLeagueFeed(orderedMatches);
     renderDetail();
     syncModalState();
   }
@@ -835,6 +887,11 @@
       const dateButton = event.target.closest("[data-date]");
       if (dateButton) {
         await selectDate(dateButton.dataset.date || "");
+        return;
+      }
+      const yesterdayButton = event.target.closest("[data-date-banner]");
+      if (yesterdayButton) {
+        await selectDate(yesterdayButton.dataset.dateBanner || "");
         return;
       }
       const quickButton = event.target.closest("[data-quick-range]");
