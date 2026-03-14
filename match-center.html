@@ -104,14 +104,23 @@
             <strong class="quick-filter-value" id="hero-probability-value">55%</strong>
           </div>
         </div>
-        <label class="quick-filter-card">
-          <span class="quick-filter-label">Quota minima</span>
-          <span class="select-shell select-shell-compact">
-            <select id="hero-odd-select" class="select select-compact">
-              <option value="1">Tutte le quote</option>
-            </select>
-          </span>
-        </label>
+        <div class="quick-filter-card quick-filter-card-odds">
+          <span class="quick-filter-label">Quota</span>
+          <div class="time-select-row">
+            <span class="select-shell select-shell-compact">
+              <select id="hero-odd-from" class="select select-compact">
+                <option value="1.01">1.01</option>
+              </select>
+            </span>
+            <span class="time-separator">-</span>
+            <span class="select-shell select-shell-compact">
+              <select id="hero-odd-to" class="select select-compact">
+                <option value="3">3.00</option>
+              </select>
+            </span>
+          </div>
+          <div class="quick-preset-row" id="hero-odd-presets"></div>
+        </div>
         <div class="quick-filter-card quick-filter-card-time">
           <span class="quick-filter-label">Orario</span>
           <div class="time-select-row">
@@ -154,7 +163,7 @@
         <div class="section-banner-main">
           <span class="section-banner-icon" aria-hidden="true">&#9734;</span>
           <div>
-            <h2 id="top-picks-title">Partite Gratuite</h2>
+            <h2 id="top-picks-title">Partite che stanno per iniziare</h2>
             <p id="top-picks-copy">Le pick piu utili da giocare adesso o entro 30 minuti.</p>
           </div>
         </div>
@@ -168,7 +177,7 @@
         <div class="section-banner-main">
           <span class="section-banner-icon" aria-hidden="true">&#127942;</span>
           <div>
-            <h2 id="matches-title">Previsioni IA Più Affidabili di Oggi</h2>
+            <h2 id="matches-title">Previsioni IA Piu Affidabili di Oggi</h2>
             <p id="matches-copy">Lista compatta: la pick e gia visibile, il dettaglio si apre toccando la partita.</p>
           </div>
         </div>
@@ -202,13 +211,13 @@
         <div class="slider-row"><input id="probability-range" class="range" type="range" min="45" max="90" step="1" value="55" /><div class="range-pill" id="probability-value">55%</div></div>
       </div>
       <div class="control-block">
-        <label class="control-label" for="odd-select" id="odd-label">Quota minima</label>
-        <div class="control-help" id="odd-help">Filtra solo i mercati che hanno una quota pari o superiore al valore scelto.</div>
-        <span class="select-shell">
-          <select id="odd-select" class="select">
-            <option value="1">Tutte le quote</option>
-          </select>
-        </span>
+        <label class="control-label" for="odd-from" id="odd-label">Quota</label>
+        <div class="control-help" id="odd-help">Scegli una fascia quota precisa oppure usa i preset rapidi.</div>
+        <div class="control-row">
+          <div><label class="mini-label" for="odd-from">Da</label><span class="select-shell"><select id="odd-from" class="select"><option value="1.01">1.01</option></select></span></div>
+          <div><label class="mini-label" for="odd-to">A</label><span class="select-shell"><select id="odd-to" class="select"><option value="3">3.00</option></select></span></div>
+        </div>
+        <div class="chips" id="odd-presets"></div>
       </div>
       <div class="control-block">
         <span class="control-label" id="market-filter-label">Mercati</span>
@@ -246,7 +255,7 @@
     .hero-pill strong{font-size:.82rem}
     .ribbon-shell{padding:12px 14px;gap:10px}
     .search-shell{min-height:44px;padding:0 12px;font-size:.86rem}
-    .quick-filter-strip{display:grid;grid-template-columns:1.2fr .9fr 1.2fr;gap:10px}
+    .quick-filter-strip{display:grid;grid-template-columns:1.05fr 1.35fr 1.1fr;gap:10px}
     .quick-filter-card{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:18px;border:1px solid rgba(148,163,184,.14);background:linear-gradient(145deg,rgba(12,20,38,.92),rgba(6,11,23,.96))}
     .quick-filter-label{color:#92a6c8;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase}
     .quick-filter-value{display:inline-flex;align-items:center;justify-content:center;min-width:58px;height:34px;padding:0 10px;border-radius:999px;border:1px solid rgba(249,115,22,.34);background:rgba(249,115,22,.12);color:#fed7aa;font-size:.82rem}
@@ -255,10 +264,12 @@
     .time-select-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center}
     .time-separator{color:#7f93b1;font-size:.86rem;font-weight:700}
     .select-shell{position:relative;display:block}
-    .select-shell::after{content:"▾";position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#8fa2c1;font-size:.8rem;pointer-events:none}
+    .select-shell::after{content:"\25BE";position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#8fa2c1;font-size:.8rem;pointer-events:none}
     .select-shell-compact::after{right:10px}
     .select{appearance:none;-webkit-appearance:none;-moz-appearance:none}
     .select-compact{min-height:40px;padding:10px 34px 10px 12px;border-radius:14px;font-size:.83rem;background:rgba(8,14,28,.92)}
+    .quick-preset-row{display:flex;gap:6px;flex-wrap:wrap}
+    .quick-preset-row .chip-btn,.chips#odd-presets .chip-btn{min-height:30px;padding:6px 10px;border-radius:999px;font-size:.69rem}
     .date-tab{min-width:92px;padding:10px 12px;border-radius:18px}
     .date-tab strong{font-size:.92rem}
     .date-tab small{font-size:.72rem}
@@ -271,7 +282,7 @@
     .yesterday-copy small{color:#cfe8e3;font-size:.76rem;line-height:1.2}
     .yesterday-arrow{margin-left:auto;color:#c8e6dd;font-size:1.3rem;line-height:1}
     .section-feed-block{padding:0;overflow:hidden;gap:0;background:linear-gradient(180deg,rgba(10,16,30,.92),rgba(4,8,19,.98))}
-    .section-feed-block .league-block{border:0;border-radius:0;background:transparent;box-shadow:none}
+    .section-feed-block .league-block{border:1px solid rgba(148,163,184,.12);border-radius:16px;background:rgba(7,12,24,.72);box-shadow:none}
     .section-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-bottom:1px solid rgba(148,163,184,.08)}
     .section-banner-free{background:linear-gradient(90deg,#1cced4,#1295c7)}
     .section-banner-ai{background:linear-gradient(90deg,#145ea8,#1d87df)}
@@ -280,7 +291,8 @@
     .section-banner h2{margin:0;font-size:1rem;line-height:1.15}
     .section-banner p{margin:2px 0 0;color:rgba(237,247,255,.85);font-size:.72rem;line-height:1.2}
     .section-badge{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:32px;padding:0 10px;border-radius:999px;background:rgba(255,255,255,.18);font-size:.86rem;font-weight:800;color:#f8fbff}
-    .top-picks-rail,.league-feed{display:flex;flex-direction:column;gap:0}
+    .top-picks-rail{display:flex;flex-direction:column;gap:0}
+    .league-feed{display:flex;flex-direction:column;gap:12px;padding:12px}
     .top-pick-list,.match-list{display:flex;flex-direction:column}
     .match-row{padding:10px 12px 10px 14px;border-top:1px solid rgba(148,163,184,.08);background:linear-gradient(180deg,rgba(9,15,28,.74),rgba(5,10,20,.94))}
     .match-row:first-child{border-top:0}
@@ -305,6 +317,13 @@
     .match-action small{width:100%;font-size:.62rem;line-height:1.15;color:#ead7a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .match-row-featured .match-action{border-color:rgba(34,197,94,.58);background:linear-gradient(135deg,rgba(20,79,52,.98),rgba(10,24,23,.98))}
     .match-row-featured .match-action small{color:#bbf7d0}
+    .league-header{padding:10px 12px;background:linear-gradient(90deg,rgba(82,98,126,.5),rgba(12,19,38,.94))}
+    .league-title{display:flex;align-items:center;gap:10px}
+    .league-title h3{margin:0;font-size:.96rem;line-height:1.1}
+    .league-title p{margin:2px 0 0;color:#b2c0d8;font-size:.72rem}
+    .league-logo{width:28px;height:28px;padding:2px;background:rgba(255,255,255,.08)}
+    .league-dot{width:10px;height:10px;border-radius:50%;background:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.14)}
+    .league-count{min-width:30px;min-height:30px;padding:0 8px;background:rgba(59,130,246,.18);font-size:.78rem}
     .active-filters{gap:6px;padding:0 2px 2px}
     .active-filter{padding:5px 9px;font-size:.72rem}
     .empty-state{padding:24px 16px;font-size:.88rem}
@@ -342,6 +361,8 @@
       .quick-filter-strip{grid-template-columns:1fr;gap:8px}
       .quick-filter-card{padding:9px 10px;border-radius:16px}
       .quick-filter-label{font-size:.64rem}
+      .quick-preset-row{gap:5px}
+      .quick-preset-row .chip-btn,.chips#odd-presets .chip-btn{min-height:28px;padding:5px 9px;font-size:.66rem}
       .select-compact{min-height:38px;font-size:.8rem}
       .date-tabs{gap:8px}
       .date-tab{min-width:84px;padding:9px 10px}
@@ -350,8 +371,13 @@
       .section-banner p{display:none}
       .section-banner h2{font-size:.94rem}
       .section-badge{min-width:30px;height:30px;font-size:.8rem}
+      .league-feed{padding:10px;gap:10px}
+      .league-header{padding:9px 10px;flex-direction:row;align-items:center}
+      .league-title h3{font-size:.9rem}
+      .league-title p{font-size:.68rem}
       .match-row{padding:9px 10px 9px 13px}
       .match-row-inner{grid-template-columns:48px minmax(0,1fr) 104px;gap:8px}
+      .match-time-block{flex-direction:column;align-items:flex-start}
       .match-time{font-size:.82rem}
       .match-date{font-size:.62rem}
       .match-league-line{font-size:.64rem}
@@ -360,7 +386,7 @@
       .match-vs{font-size:.64rem}
       .match-score{font-size:.66rem}
       .mini-chip{padding:2px 5px;font-size:.6rem}
-      .match-action{max-width:104px;min-height:40px;padding:7px 8px}
+      .match-action{width:auto;max-width:104px;min-height:40px;padding:7px 8px}
       .match-action strong{font-size:.74rem}
       .match-action small{font-size:.58rem}
       .detail-head{padding:10px 12px}

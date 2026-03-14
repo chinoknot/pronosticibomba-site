@@ -3,17 +3,15 @@
   const FINAL_STATUSES = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
   const CACHE_BASE = "/assets/data/match-predictor";
   const AUTO_REFRESH_MS = 5 * 60 * 1000;
-  const DEFAULTS = { minProbability: 55, minOdd: 1, timeFrom: "00:00", timeTo: "23:59" };
-  const ODD_FILTER_OPTIONS = [
-    { value: 1, label: "Tutte le quote" },
-    { value: 1.2, label: "1.20+" },
-    { value: 1.35, label: "1.35+" },
-    { value: 1.5, label: "1.50+" },
-    { value: 1.7, label: "1.70+" },
-    { value: 1.9, label: "1.90+" },
-    { value: 2.1, label: "2.10+" },
-    { value: 2.5, label: "2.50+" },
-    { value: 3, label: "3.00+" },
+  const DEFAULTS = { minProbability: 55, oddFrom: 1.01, oddTo: 3, timeFrom: "00:00", timeTo: "23:59" };
+  const ODD_PRESETS = [
+    { id: "all", label: "Tutte", from: 1.01, to: 3 },
+    { id: "band_120_140", label: "1.20-1.40", from: 1.2, to: 1.4 },
+    { id: "band_140_160", label: "1.40-1.60", from: 1.4, to: 1.6 },
+    { id: "band_160_200", label: "1.60-2.00", from: 1.6, to: 2 },
+    { id: "lt_270", label: "< 2.70", from: 1.01, to: 2.7 },
+    { id: "lt_300", label: "< 3.00", from: 1.01, to: 3 },
+    { id: "band_200_300", label: "2.00-3.00", from: 2, to: 3 },
   ];
   const GROUPS = [
     { id: "goals", short: "O/U", label: "Goal" },
@@ -41,10 +39,10 @@
   const COUNTRY_PRIORITY = new Map([
     ["Italy", 0],
     ["England", 10],
-    ["Spain", 20],
-    ["Germany", 30],
-    ["France", 40],
-    ["Portugal", 50],
+    ["Germany", 20],
+    ["France", 30],
+    ["Portugal", 40],
+    ["Spain", 50],
     ["Netherlands", 60],
     ["Belgium", 70],
     ["Scotland", 80],
@@ -57,26 +55,33 @@
   ]);
   const LEAGUE_PRIORITY_RULES = [
     [/^serie a$/i, 0],
-    [/^serie b$/i, 1],
-    [/serie a women/i, 2],
-    [/campionato primavera|primavera/i, 3],
-    [/serie c/i, 4],
-    [/coppa italia|super cup/i, 5],
     [/^premier league$/i, 10],
-    [/championship/i, 11],
-    [/league one/i, 12],
-    [/league two/i, 13],
-    [/fa cup|league cup|efl cup/i, 14],
-    [/u18 premier league|premier league 2/i, 18],
-    [/la liga|laliga/i, 20],
-    [/segunda/i, 21],
-    [/^bundesliga$/i, 30],
-    [/2\. bundesliga/i, 31],
-    [/^ligue 1$/i, 40],
-    [/^ligue 2$/i, 41],
-    [/^primeira liga$/i, 50],
-    [/liga portugal 2|segunda liga/i, 51],
+    [/^bundesliga$/i, 20],
+    [/^ligue 1$/i, 30],
+    [/^primeira liga$/i, 40],
+    [/^serie b$/i, 50],
+    [/serie a women/i, 51],
+    [/campionato primavera|primavera/i, 52],
+    [/serie c/i, 53],
+    [/coppa italia|super cup/i, 54],
+    [/championship/i, 60],
+    [/league one/i, 61],
+    [/league two/i, 62],
+    [/fa cup|league cup|efl cup/i, 63],
+    [/u18 premier league|premier league 2/i, 64],
+    [/la liga|laliga/i, 70],
+    [/segunda/i, 71],
+    [/2\. bundesliga/i, 80],
+    [/^ligue 2$/i, 90],
+    [/liga portugal 2|segunda liga/i, 100],
     [/champions league|europa league|conference league/i, 60],
+  ];
+  const TOP_LEAGUE_RULES = [
+    [/^serie a$/i, 0],
+    [/^premier league$/i, 1],
+    [/^bundesliga$/i, 2],
+    [/^ligue 1$/i, 3],
+    [/^primeira liga$/i, 4],
   ];
   const TEXT = {
     noCache: "La cache predictor non e ancora stata generata dal workflow.",
@@ -113,7 +118,9 @@
     groups: new Set(GROUPS.map(group => group.id)),
     status: "all",
     minProbability: DEFAULTS.minProbability,
-    minOdd: DEFAULTS.minOdd,
+    oddActive: false,
+    oddFrom: DEFAULTS.oddFrom,
+    oddTo: DEFAULTS.oddTo,
     search: "",
     timeFrom: DEFAULTS.timeFrom,
     timeTo: DEFAULTS.timeTo,
@@ -129,7 +136,9 @@
     searchInput: document.getElementById("search-input"),
     heroProbabilityRange: document.getElementById("hero-probability-range"),
     heroProbabilityValue: document.getElementById("hero-probability-value"),
-    heroOddSelect: document.getElementById("hero-odd-select"),
+    heroOddFrom: document.getElementById("hero-odd-from"),
+    heroOddTo: document.getElementById("hero-odd-to"),
+    heroOddPresets: document.getElementById("hero-odd-presets"),
     heroTimeFrom: document.getElementById("hero-time-from"),
     heroTimeTo: document.getElementById("hero-time-to"),
     sortToggle: document.getElementById("sort-toggle"),
@@ -146,7 +155,9 @@
     timeTo: document.getElementById("time-to"),
     probabilityRange: document.getElementById("probability-range"),
     probabilityValue: document.getElementById("probability-value"),
-    oddSelect: document.getElementById("odd-select"),
+    oddFrom: document.getElementById("odd-from"),
+    oddTo: document.getElementById("odd-to"),
+    oddPresets: document.getElementById("odd-presets"),
     resetFilters: document.getElementById("reset-filters"),
     marketsAll: document.getElementById("markets-all"),
     marketsNone: document.getElementById("markets-none"),
@@ -181,9 +192,11 @@
     return Number.isFinite(number) ? number.toFixed(2) : String(value);
   }
 
-  function formatOddFilter(value) {
-    if (Number(value) <= DEFAULTS.minOdd) return "Tutte";
-    return `${Number(value).toFixed(2)}+`;
+  function formatOddRange(fromValue, toValue) {
+    const from = Number(fromValue);
+    const to = Number(toValue);
+    if (from <= DEFAULTS.oddFrom && to >= DEFAULTS.oddTo) return "Tutte";
+    return `${from.toFixed(2)}-${to.toFixed(2)}`;
   }
 
   function formatDate(dateStr, options) {
@@ -238,10 +251,32 @@
     if (dom.heroTimeTo) dom.heroTimeTo.innerHTML = render(state.timeTo);
   }
 
+  function buildOddOptions() {
+    const values = [1.01];
+    for (let odd = 1.05; odd <= 3.001; odd += 0.05) {
+      values.push(Number(odd.toFixed(2)));
+    }
+    return [...new Set(values)];
+  }
+
   function populateOddSelects() {
-    const render = value => ODD_FILTER_OPTIONS.map(option => `<option value="${option.value}"${Number(option.value) === Number(value) ? " selected" : ""}>${escapeHtml(option.label)}</option>`).join("");
-    if (dom.oddSelect) dom.oddSelect.innerHTML = render(state.minOdd);
-    if (dom.heroOddSelect) dom.heroOddSelect.innerHTML = render(state.minOdd);
+    const options = buildOddOptions();
+    const render = value => options.map(option => `<option value="${option}"${Number(option) === Number(value) ? " selected" : ""}>${formatOdd(option)}</option>`).join("");
+    if (dom.oddFrom) dom.oddFrom.innerHTML = render(state.oddFrom);
+    if (dom.oddTo) dom.oddTo.innerHTML = render(state.oddTo);
+    if (dom.heroOddFrom) dom.heroOddFrom.innerHTML = render(state.oddFrom);
+    if (dom.heroOddTo) dom.heroOddTo.innerHTML = render(state.oddTo);
+  }
+
+  function activeOddPresetId() {
+    if (!state.oddActive) return "all";
+    return ODD_PRESETS.find(preset => preset.id !== "all" && Number(preset.from) === Number(state.oddFrom) && Number(preset.to) === Number(state.oddTo))?.id || "";
+  }
+
+  function renderOddPresetChips() {
+    const markup = ODD_PRESETS.map(preset => `<button type="button" class="chip-btn ${preset.id === activeOddPresetId() ? "active" : ""}" data-odd-preset="${preset.id}">${preset.label}</button>`).join("");
+    if (dom.heroOddPresets) dom.heroOddPresets.innerHTML = markup;
+    if (dom.oddPresets) dom.oddPresets.innerHTML = markup;
   }
 
   function normalizeMap(raw) {
@@ -287,17 +322,24 @@
     return 300;
   }
 
+  function topLeaguePriority(league) {
+    for (const [rule, rank] of TOP_LEAGUE_RULES) {
+      if (rule.test(String(league || ""))) return rank;
+    }
+    return 999;
+  }
+
   function groupSortKey(group) {
     const countryRank = COUNTRY_PRIORITY.get(group.country);
     const leagueRank = leaguePriority(group.country, group.league);
     const featuredCountryRank = countryRank != null ? countryRank : (EUROPEAN_COUNTRIES.has(group.country) ? 120 : 300);
-    return [featuredCountryRank, leagueRank, group.matches[0]?.match_time || "", group.league || "", group.country || ""];
+    return [topLeaguePriority(group.league), featuredCountryRank, leagueRank, group.matches[0]?.match_time || "", group.league || "", group.country || ""];
   }
 
   function matchSortKey(match) {
     const countryRank = COUNTRY_PRIORITY.get(match.country);
     const featuredCountryRank = countryRank != null ? countryRank : (EUROPEAN_COUNTRIES.has(match.country) ? 120 : 300);
-    return [featuredCountryRank, leaguePriority(match.country, match.league), match.match_time || "", match.league || "", match.home || ""];
+    return [topLeaguePriority(match.league), featuredCountryRank, leaguePriority(match.country, match.league), match.match_time || "", match.league || "", match.home || ""];
   }
 
   function marketDisplayScore(market) {
@@ -410,13 +452,18 @@
 
   function decorateMatches(rawMatches, keepAll = false) {
     const search = state.search.trim().toLowerCase();
+    const oddFilterActive = state.oddActive;
     return rawMatches
       .map(match => {
         const markets = buildMarkets(match);
         const visibleMarkets = markets
           .filter(market => state.groups.has(market.group))
           .filter(market => Number(market.pickProbability || 0) * 100 >= state.minProbability)
-          .filter(market => state.minOdd <= DEFAULTS.minOdd ? true : ((pickedOdd(market) || 0) >= state.minOdd))
+          .filter(market => {
+            if (!oddFilterActive) return true;
+            const odd = pickedOdd(market);
+            return odd != null && odd >= state.oddFrom && odd <= state.oddTo;
+          })
           .filter(market => state.status === "all" ? true : market.status === state.status);
         const searchBlob = `${match.home} ${match.away} ${match.league} ${match.country} ${markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" ")}`.toLowerCase();
         return { ...match, markets, visibleMarkets, primaryMarket: selectHeadlineMarket(visibleMarkets), searchBlob };
@@ -544,7 +591,7 @@
     if (state.search) count += 1;
     if (state.timeFrom !== DEFAULTS.timeFrom || state.timeTo !== DEFAULTS.timeTo) count += 1;
     if (state.minProbability !== DEFAULTS.minProbability) count += 1;
-    if (state.minOdd !== DEFAULTS.minOdd) count += 1;
+    if (state.oddActive) count += 1;
     if (state.status !== "all") count += 1;
     if (state.groups.size !== GROUPS.length) count += 1;
     return count;
@@ -593,8 +640,11 @@
     dom.probabilityValue.textContent = `${state.minProbability}%`;
     if (dom.heroProbabilityRange) dom.heroProbabilityRange.value = String(state.minProbability);
     if (dom.heroProbabilityValue) dom.heroProbabilityValue.textContent = `${state.minProbability}%`;
-    if (dom.oddSelect) dom.oddSelect.value = String(state.minOdd);
-    if (dom.heroOddSelect) dom.heroOddSelect.value = String(state.minOdd);
+    if (dom.oddFrom) dom.oddFrom.value = String(state.oddFrom);
+    if (dom.oddTo) dom.oddTo.value = String(state.oddTo);
+    if (dom.heroOddFrom) dom.heroOddFrom.value = String(state.oddFrom);
+    if (dom.heroOddTo) dom.heroOddTo.value = String(state.oddTo);
+    renderOddPresetChips();
     dom.filterCount.textContent = String(activeFilterCount());
   }
 
@@ -643,7 +693,7 @@
     if (state.search) chips.push({ key: "search", label: `${TEXT.filterSearch}: ${state.search}` });
     if (state.timeFrom !== DEFAULTS.timeFrom || state.timeTo !== DEFAULTS.timeTo) chips.push({ key: "time", label: `${TEXT.filterTime}: ${state.timeFrom}-${state.timeTo}` });
     if (state.minProbability !== DEFAULTS.minProbability) chips.push({ key: "probability", label: `${TEXT.filterProbability}: ${state.minProbability}%+` });
-    if (state.minOdd !== DEFAULTS.minOdd) chips.push({ key: "odd", label: `${TEXT.filterOdd}: ${formatOddFilter(state.minOdd)}` });
+    if (state.oddActive) chips.push({ key: "odd", label: `${TEXT.filterOdd}: ${formatOddRange(state.oddFrom, state.oddTo)}` });
     if (state.status !== "all") chips.push({ key: "status", label: `${TEXT.filterStatus}: ${statusLabel(state.status)}` });
     if (state.groups.size !== GROUPS.length) chips.push({ key: "groups", label: `${TEXT.filterMarkets}: ${state.groups.size}/${GROUPS.length}` });
     dom.activeFilters.style.display = chips.length ? "flex" : "none";
@@ -685,7 +735,8 @@
     }).join("")}</div>`;
   }
 
-  function renderMatchRow(match) {
+  function renderMatchRow(match, options = {}) {
+    const showLeagueLine = options.showLeagueLine !== false;
     const primary = match.primaryMarket;
     const fixtureStatus = String(match.status_short || "").toUpperCase();
     const displayStatus = primary?.status || (FINAL_STATUSES.has(fixtureStatus) ? "unresolved" : (LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled"));
@@ -706,7 +757,7 @@
             <div class="match-date">${escapeHtml(formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</div>
           </div>
           <div class="match-teams">
-            <div class="match-league-line">${escapeHtml(match.league)} | ${escapeHtml(match.country)}</div>
+            ${showLeagueLine ? `<div class="match-league-line">${escapeHtml(match.league)} | ${escapeHtml(match.country)}</div>` : ""}
             <div class="clubs-inline">
               <span class="club-line">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" />` : ""}<strong>${escapeHtml(match.home)}</strong></span>
               <span class="match-vs">vs</span>
@@ -728,7 +779,35 @@
       dom.leagueFeed.innerHTML = `<div class="empty-state">${emptyStateMessage()}</div>`;
       return;
     }
-    dom.leagueFeed.innerHTML = `<section class="league-block"><div class="match-list">${matches.map(renderMatchRow).join("")}</div></section>`;
+    const groups = groupMatches(matches).map(group => ({
+      ...group,
+      matches: state.sortMode === "time"
+        ? [...group.matches].sort((a, b) => `${a.match_time || ""}-${a.home || ""}`.localeCompare(`${b.match_time || ""}-${b.home || ""}`))
+        : [...group.matches].sort((a, b) => {
+          const aKey = matchSortKey(a);
+          const bKey = matchSortKey(b);
+          for (let index = 0; index < aKey.length; index += 1) {
+            if (aKey[index] < bKey[index]) return -1;
+            if (aKey[index] > bKey[index]) return 1;
+          }
+          return 0;
+        }),
+    }));
+    dom.leagueFeed.innerHTML = groups.map(group => `
+      <section class="league-block">
+        <div class="league-header">
+          <div class="league-title">
+            ${group.logo ? `<img class="league-logo" src="${group.logo}" alt="" loading="lazy" />` : `<span class="league-dot" aria-hidden="true"></span>`}
+            <div>
+              <h3>${escapeHtml(group.league)}</h3>
+              <p>${escapeHtml(group.country)}</p>
+            </div>
+          </div>
+          <span class="league-count">${group.matches.length}</span>
+        </div>
+        <div class="match-list">${group.matches.map(match => renderMatchRow(match, { showLeagueLine: false })).join("")}</div>
+      </section>
+    `).join("");
   }
 
   function renderMarketCard(market) {
@@ -813,7 +892,11 @@
       state.timeTo = DEFAULTS.timeTo;
     }
     if (key === "probability") state.minProbability = DEFAULTS.minProbability;
-    if (key === "odd") state.minOdd = DEFAULTS.minOdd;
+    if (key === "odd") {
+      state.oddActive = false;
+      state.oddFrom = DEFAULTS.oddFrom;
+      state.oddTo = DEFAULTS.oddTo;
+    }
     if (key === "status") state.status = "all";
     if (key === "groups") state.groups = new Set(GROUPS.map(group => group.id));
     render();
@@ -860,6 +943,17 @@
     if (state.timeFrom > state.timeTo) {
       if (toValue != null) state.timeFrom = state.timeTo;
       else state.timeTo = state.timeFrom;
+    }
+    render();
+  }
+
+  function applyOddFilter(fromValue, toValue, changedField = "from") {
+    state.oddActive = true;
+    state.oddFrom = Number(fromValue || DEFAULTS.oddFrom);
+    state.oddTo = Number(toValue || DEFAULTS.oddTo);
+    if (state.oddFrom > state.oddTo) {
+      if (changedField === "to") state.oddFrom = state.oddTo;
+      else state.oddTo = state.oddFrom;
     }
     render();
   }
@@ -926,23 +1020,17 @@
         render();
       });
     }
-    if (dom.oddSelect) {
-      dom.oddSelect.addEventListener("change", () => {
-        state.minOdd = Number(dom.oddSelect.value || DEFAULTS.minOdd);
-        render();
-      });
-    }
-    if (dom.heroOddSelect) {
-      dom.heroOddSelect.addEventListener("change", () => {
-        state.minOdd = Number(dom.heroOddSelect.value || DEFAULTS.minOdd);
-        render();
-      });
-    }
+    if (dom.oddFrom) dom.oddFrom.addEventListener("change", () => applyOddFilter(dom.oddFrom.value, state.oddTo, "from"));
+    if (dom.oddTo) dom.oddTo.addEventListener("change", () => applyOddFilter(state.oddFrom, dom.oddTo.value, "to"));
+    if (dom.heroOddFrom) dom.heroOddFrom.addEventListener("change", () => applyOddFilter(dom.heroOddFrom.value, state.oddTo, "from"));
+    if (dom.heroOddTo) dom.heroOddTo.addEventListener("change", () => applyOddFilter(state.oddFrom, dom.heroOddTo.value, "to"));
     dom.resetFilters.addEventListener("click", () => {
       state.groups = new Set(GROUPS.map(group => group.id));
       state.status = "all";
       state.minProbability = DEFAULTS.minProbability;
-      state.minOdd = DEFAULTS.minOdd;
+      state.oddActive = false;
+      state.oddFrom = DEFAULTS.oddFrom;
+      state.oddTo = DEFAULTS.oddTo;
       state.search = "";
       state.timeFrom = DEFAULTS.timeFrom;
       state.timeTo = DEFAULTS.timeTo;
@@ -974,6 +1062,17 @@
         if (range) {
           state.timeFrom = range.from;
           state.timeTo = range.to;
+          render();
+        }
+        return;
+      }
+      const oddPresetButton = event.target.closest("[data-odd-preset]");
+      if (oddPresetButton) {
+        const preset = ODD_PRESETS.find(item => item.id === oddPresetButton.dataset.oddPreset);
+        if (preset) {
+          state.oddActive = preset.id !== "all";
+          state.oddFrom = preset.from;
+          state.oddTo = preset.to;
           render();
         }
         return;
