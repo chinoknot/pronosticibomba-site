@@ -16,6 +16,7 @@
     { id: "band_300_500", label: "3.00-5.00", from: 3, to: 5 },
     { id: "band_500_1000", label: "5.00-10.00", from: 5, to: 10 },
   ];
+  const PROBABILITY_PRESETS = [55, 60, 65, 70, 75, 80];
   const TOTAL_MARKET_RULES = {
     corners: { strongMin: 0.50, softMin: 0.44, impactLine: 12.5 },
     yellows: { strongMin: 0.50, softMin: 0.42, impactLine: 5.5 },
@@ -209,12 +210,9 @@
     sortToggleValue: document.getElementById("sort-toggle-value"),
     marketRail: document.getElementById("market-rail"),
     outcomeRail: document.getElementById("outcome-rail"),
-    summaryProbabilityButton: document.getElementById("summary-probability-button"),
-    summaryProbabilityValue: document.getElementById("summary-probability-value"),
-    summaryOddButton: document.getElementById("summary-odd-button"),
-    summaryOddValue: document.getElementById("summary-odd-value"),
-    summaryTimeButton: document.getElementById("summary-time-button"),
+    inlineFilterBoard: document.getElementById("inline-filter-board"),
     summaryTimeValue: document.getElementById("summary-time-value"),
+    summaryStatusValue: document.getElementById("summary-status-value"),
     searchLauncher: document.getElementById("search-launcher"),
     dateJump: document.getElementById("date-jump"),
     filterLauncher: document.getElementById("filter-launcher"),
@@ -222,18 +220,13 @@
     filterCount: document.getElementById("filter-count"),
     filterSheet: document.getElementById("filter-sheet"),
     filterSheetClose: document.getElementById("filter-sheet-close"),
-    filterOverlay: document.getElementById("filter-overlay"),
     quickRangeChips: document.getElementById("quick-range-chips"),
     timeFrom: document.getElementById("time-from"),
     timeTo: document.getElementById("time-to"),
-    probabilityMinRange: document.getElementById("probability-min-range"),
-    probabilityMaxRange: document.getElementById("probability-max-range"),
+    probabilityPresets: document.getElementById("probability-presets"),
     probabilityMinInput: document.getElementById("probability-min-input"),
     probabilityMaxInput: document.getElementById("probability-max-input"),
     probabilityValue: document.getElementById("probability-value"),
-    probabilityMinBadge: document.getElementById("probability-min-badge"),
-    probabilityMaxBadge: document.getElementById("probability-max-badge"),
-    probabilityRangeShell: document.getElementById("probability-range-shell"),
     oddFrom: document.getElementById("odd-from"),
     oddTo: document.getElementById("odd-to"),
     oddValue: document.getElementById("odd-value"),
@@ -244,6 +237,8 @@
     marketChips: document.getElementById("market-chips"),
     statusChips: document.getElementById("status-chips"),
     topPicks: document.getElementById("top-picks"),
+    topPicksWin: document.getElementById("top-picks-win"),
+    topPicksLose: document.getElementById("top-picks-lose"),
     activeFilters: document.getElementById("active-filters"),
     leagueFeed: document.getElementById("league-feed"),
     detailShell: document.getElementById("match-detail-shell"),
@@ -372,19 +367,19 @@
   }
 
   function renderOddPresetChips() {
-    const markup = ODD_PRESETS.map(preset => `<button type="button" class="chip-btn ${preset.id === activeOddPresetId() ? "active" : ""}" data-odd-preset="${preset.id}">${preset.label}</button>`).join("");
+    const markup = ODD_PRESETS.map(preset => `<button type="button" class="preset-chip ${preset.id === activeOddPresetId() ? "active" : ""}" data-odd-preset="${preset.id}">${preset.label}</button>`).join("");
     if (dom.oddPresets) dom.oddPresets.innerHTML = markup;
   }
 
-  function percentageForRange(value, min, max) {
-    if (max <= min) return 0;
-    return ((Number(value) - min) / (max - min)) * 100;
-  }
-
-  function setRangeStage(shell, minValue, maxValue, minBound, maxBound) {
-    if (!shell) return;
-    shell.style.setProperty("--min-pct", String(percentageForRange(minValue, minBound, maxBound)));
-    shell.style.setProperty("--max-pct", String(percentageForRange(maxValue, minBound, maxBound)));
+  function renderProbabilityPresetChips() {
+    if (!dom.probabilityPresets) return;
+    const activeId = state.maxProbability === DEFAULTS.maxProbability
+      ? `min_${state.minProbability}`
+      : "";
+    dom.probabilityPresets.innerHTML = [
+      `<button type="button" class="preset-chip ${state.minProbability === DEFAULTS.minProbability && state.maxProbability === DEFAULTS.maxProbability ? "active" : ""}" data-probability-preset="all">Tutte</button>`,
+      ...PROBABILITY_PRESETS.map(value => `<button type="button" class="preset-chip ${activeId === `min_${value}` ? "active" : ""}" data-probability-preset="${value}">${value}%+</button>`),
+    ].join("");
   }
 
   function focusedOutcomeGroup() {
@@ -1044,8 +1039,7 @@
   }
 
   function syncModalState() {
-    dom.filterSheet.classList.toggle("open", state.filterOpen);
-    dom.filterOverlay.classList.toggle("visible", state.filterOpen);
+    if (dom.filterSheet) dom.filterSheet.classList.toggle("open", state.filterOpen);
     dom.detailShell.classList.toggle("open", Boolean(state.detailFixtureId));
     dom.detailOverlay.classList.toggle("visible", Boolean(state.detailFixtureId));
     document.body.classList.toggle("modal-open", state.filterOpen || Boolean(state.detailFixtureId));
@@ -1069,42 +1063,21 @@
   }
 
   function renderRangePanels() {
-    if (dom.probabilityMinRange) dom.probabilityMinRange.value = String(state.minProbability);
-    if (dom.probabilityMaxRange) dom.probabilityMaxRange.value = String(state.maxProbability);
     if (dom.probabilityMinInput) dom.probabilityMinInput.value = String(state.minProbability);
     if (dom.probabilityMaxInput) dom.probabilityMaxInput.value = String(state.maxProbability);
     if (dom.probabilityValue) dom.probabilityValue.textContent = `${state.minProbability}% - ${state.maxProbability}%`;
-    if (dom.probabilityMinBadge) dom.probabilityMinBadge.textContent = `${state.minProbability}%`;
-    if (dom.probabilityMaxBadge) dom.probabilityMaxBadge.textContent = `${state.maxProbability}%`;
-    setRangeStage(dom.probabilityRangeShell, state.minProbability, state.maxProbability, 45, 99);
 
     if (dom.oddFrom) dom.oddFrom.value = formatOdd(state.oddFrom);
     if (dom.oddTo) dom.oddTo.value = formatOdd(state.oddTo);
     if (dom.oddValue) dom.oddValue.textContent = `${formatOdd(state.oddFrom)} - ${formatOdd(state.oddTo)}`;
   }
 
-  function previewProbabilityRange(minValue, maxValue, changedField = "min") {
-    let nextMin = Math.round(clampNumber(minValue, 45, 99, state.minProbability));
-    let nextMax = Math.round(clampNumber(maxValue, 45, 99, state.maxProbability));
-    if (nextMin > nextMax) {
-      if (changedField === "max") nextMin = nextMax;
-      else nextMax = nextMin;
-    }
-    if (dom.probabilityMinRange) dom.probabilityMinRange.value = String(nextMin);
-    if (dom.probabilityMaxRange) dom.probabilityMaxRange.value = String(nextMax);
-    if (dom.probabilityMinInput) dom.probabilityMinInput.value = String(nextMin);
-    if (dom.probabilityMaxInput) dom.probabilityMaxInput.value = String(nextMax);
-    if (dom.probabilityValue) dom.probabilityValue.textContent = `${nextMin}% - ${nextMax}%`;
-    if (dom.probabilityMinBadge) dom.probabilityMinBadge.textContent = `${nextMin}%`;
-    if (dom.probabilityMaxBadge) dom.probabilityMaxBadge.textContent = `${nextMax}%`;
-    setRangeStage(dom.probabilityRangeShell, nextMin, nextMax, 45, 99);
-  }
-
   function renderFilterChips() {
     dom.marketChips.innerHTML = GROUPS.map(group => `<button type="button" class="chip-btn ${state.groups.has(group.id) ? "active" : ""}" data-group="${group.id}">${group.label}</button>`).join("");
     renderQuickMarketRail();
     renderQuickOutcomeRail();
-    dom.statusChips.innerHTML = STATUS_OPTIONS.map(option => `<button type="button" class="chip-btn ${state.status === option.id ? "active" : ""}" data-status="${option.id}">${option.label}</button>`).join("");
+    renderProbabilityPresetChips();
+    dom.statusChips.innerHTML = STATUS_OPTIONS.map(option => `<button type="button" class="status-chip ${state.status === option.id ? "active" : ""}" data-status="${option.id}">${option.label}</button>`).join("");
     dom.marketsAll.classList.toggle("active", state.groups.size === GROUPS.length);
     dom.marketsNone.classList.toggle("active", state.groups.size === 0);
     dom.timeFrom.value = state.timeFrom;
@@ -1129,12 +1102,8 @@
       dom.feedStateSubtitle.textContent = `${activeGroup} | ${state.sortMode === "priority" ? "ordine prioritario" : "ordine orario"}`;
     }
     if (dom.sortToggleValue) dom.sortToggleValue.textContent = state.sortMode === "priority" ? "Priorita" : "Orario";
-    if (dom.summaryProbabilityValue) dom.summaryProbabilityValue.textContent = `${state.minProbability}% - ${state.maxProbability}%`;
-    if (dom.summaryOddValue) dom.summaryOddValue.textContent = `${formatOdd(state.oddFrom)} - ${formatOdd(state.oddTo)}`;
     if (dom.summaryTimeValue) dom.summaryTimeValue.textContent = `${state.timeFrom} - ${state.timeTo}`;
-    if (dom.summaryProbabilityButton) dom.summaryProbabilityButton.classList.toggle("active", state.minProbability !== DEFAULTS.minProbability || state.maxProbability !== DEFAULTS.maxProbability);
-    if (dom.summaryOddButton) dom.summaryOddButton.classList.toggle("active", state.oddActive);
-    if (dom.summaryTimeButton) dom.summaryTimeButton.classList.toggle("active", state.timeFrom !== DEFAULTS.timeFrom || state.timeTo !== DEFAULTS.timeTo);
+    if (dom.summaryStatusValue) dom.summaryStatusValue.textContent = statusLabel(state.status);
   }
 
   function renderSummary(matches, topPicks) {
@@ -1154,10 +1123,10 @@
     document.getElementById("hero-date-value").textContent = state.selectedDate ? formatDate(state.selectedDate, { weekday: "short", day: "2-digit", month: "short", year: "numeric" }) : "-";
     document.getElementById("hero-sync-value").textContent = formatDateTime(state.cache?.refreshed_at || state.cache?.generated_at);
     const topBadge = document.getElementById("top-picks-badge");
-    const topForm = document.getElementById("top-picks-form");
     const matchBadge = document.getElementById("matches-badge");
     if (topBadge) topBadge.textContent = String(topPicks.length);
-    if (topForm) topForm.textContent = `${topWins}V / ${topLoses}R`;
+    if (dom.topPicksWin) dom.topPicksWin.textContent = `W ${topWins}`;
+    if (dom.topPicksLose) dom.topPicksLose.textContent = `L ${topLoses}`;
     if (matchBadge) matchBadge.textContent = String(matches.length);
   }
 
@@ -1240,6 +1209,9 @@
     const displayStatus = primary?.status || (FINAL_STATUSES.has(fixtureStatus) ? "unresolved" : (LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled"));
     const picked = pickedOption(primary);
     const meta = [];
+    if (displayStatus === "win") meta.push("PRESA");
+    else if (displayStatus === "lose") meta.push("SALTATA");
+    else if (displayStatus === "live") meta.push("LIVE");
     if (primary?.pickProbability != null) meta.push(formatPercent(primary.pickProbability));
     if (picked?.odd) meta.push(`${TEXT.odds} ${formatOdd(picked.odd)}`);
     else if (primary?.tag) meta.push(primary.tag);
@@ -1478,14 +1450,8 @@
     render();
   }
 
-  function openFilterSection(sectionId) {
-    state.filterOpen = true;
-    syncModalState();
-    if (!sectionId) return;
-    window.requestAnimationFrame(() => {
-      const target = document.getElementById(sectionId);
-      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+  function scrollToInlineFilters() {
+    dom.inlineFilterBoard?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   function bindEvents() {
@@ -1505,16 +1471,10 @@
       });
     }
     if (dom.filterLauncher) {
-      dom.filterLauncher.addEventListener("click", () => {
-        state.filterOpen = true;
-        syncModalState();
-      });
+      dom.filterLauncher.addEventListener("click", scrollToInlineFilters);
     }
     if (dom.filterToggle) {
-      dom.filterToggle.addEventListener("click", () => {
-        state.filterOpen = !state.filterOpen;
-        syncModalState();
-      });
+      dom.filterToggle.addEventListener("click", scrollToInlineFilters);
     }
     if (dom.sortToggle) {
       dom.sortToggle.addEventListener("click", () => {
@@ -1522,23 +1482,12 @@
         render();
       });
     }
-    [dom.summaryProbabilityButton, dom.summaryOddButton, dom.summaryTimeButton].forEach(button => {
-      if (!button) return;
-      button.addEventListener("click", () => {
-        const focus = button.dataset.filterFocus;
-        if (focus === "probability") openFilterSection("probability-filter-block");
-        else if (focus === "odd") openFilterSection("odd-filter-block");
-        else openFilterSection("time-filter-block");
+    if (dom.filterSheetClose) {
+      dom.filterSheetClose.addEventListener("click", () => {
+        state.filterOpen = false;
+        syncModalState();
       });
-    });
-    dom.filterSheetClose.addEventListener("click", () => {
-      state.filterOpen = false;
-      syncModalState();
-    });
-    dom.filterOverlay.addEventListener("click", () => {
-      state.filterOpen = false;
-      syncModalState();
-    });
+    }
     dom.detailClose.addEventListener("click", () => {
       state.detailFixtureId = null;
       syncModalState();
@@ -1549,14 +1498,6 @@
     });
     dom.timeFrom.addEventListener("change", () => applyTimeFilter(dom.timeFrom.value, state.timeTo));
     dom.timeTo.addEventListener("change", () => applyTimeFilter(state.timeFrom, dom.timeTo.value));
-    if (dom.probabilityMinRange) {
-      dom.probabilityMinRange.addEventListener("input", () => previewProbabilityRange(dom.probabilityMinRange.value, dom.probabilityMaxRange?.value ?? state.maxProbability, "min"));
-      dom.probabilityMinRange.addEventListener("change", () => applyProbabilityRange(dom.probabilityMinRange.value, dom.probabilityMaxRange?.value ?? state.maxProbability, "min"));
-    }
-    if (dom.probabilityMaxRange) {
-      dom.probabilityMaxRange.addEventListener("input", () => previewProbabilityRange(dom.probabilityMinRange?.value ?? state.minProbability, dom.probabilityMaxRange.value, "max"));
-      dom.probabilityMaxRange.addEventListener("change", () => applyProbabilityRange(dom.probabilityMinRange?.value ?? state.minProbability, dom.probabilityMaxRange.value, "max"));
-    }
     if (dom.probabilityMinInput) dom.probabilityMinInput.addEventListener("change", () => applyProbabilityRange(dom.probabilityMinInput.value, state.maxProbability, "min"));
     if (dom.probabilityMaxInput) dom.probabilityMaxInput.addEventListener("change", () => applyProbabilityRange(state.minProbability, dom.probabilityMaxInput.value, "max"));
     if (dom.oddFrom) dom.oddFrom.addEventListener("change", () => applyOddFilter(dom.oddFrom.value, state.oddTo, "from"));
@@ -1616,6 +1557,19 @@
           state.oddTo = preset.to;
           render();
         }
+        return;
+      }
+      const probabilityPresetButton = event.target.closest("[data-probability-preset]");
+      if (probabilityPresetButton) {
+        const presetValue = probabilityPresetButton.dataset.probabilityPreset;
+        if (presetValue === "all") {
+          state.minProbability = DEFAULTS.minProbability;
+          state.maxProbability = DEFAULTS.maxProbability;
+        } else {
+          state.minProbability = Number(presetValue);
+          state.maxProbability = DEFAULTS.maxProbability;
+        }
+        render();
         return;
       }
       const quickGroupButton = event.target.closest("[data-quick-group]");
