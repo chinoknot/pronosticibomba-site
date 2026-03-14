@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "Mode"
+        description: "Mode: daemon, build, refresh"
         required: false
         default: "daemon"
       date:
@@ -29,8 +29,132 @@ concurrency:
   group: match-predictor-cache
   cancel-in-progress: false
 
+env:
+  MATCH_PREDICTOR_TIMEZONE: Europe/Dublin
+  PYTHONUTF8: "1"
+
 jobs:
-  cache:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      mode: ${{ steps.meta.outputs.mode }}
+      target_date: ${{ steps.meta.outputs.target_date }}
+      time_min: ${{ steps.meta.outputs.time_min }}
+      time_max: ${{ steps.meta.outputs.time_max }}
+      should_build: ${{ steps.meta.outputs.should_build }}
+      should_refresh: ${{ steps.meta.outputs.should_refresh }}
+      fixture_count: ${{ steps.prepare_shards.outputs.fixture_count || steps.no_build.outputs.fixture_count || '0' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Compute mode and target date
+        id: meta
+        env:
+          INPUT_MODE: ${{ github.event.inputs.mode }}
+          INPUT_DATE: ${{ github.event.inputs.date }}
+          INPUT_TIME_MIN: ${{ github.event.inputs.time_min }}
+          INPUT_TIME_MAX: ${{ github.event.inputs.time_max }}
+        run: |
+          MODE="${INPUT_MODE:-daemon}"
+          TIME_MIN="${INPUT_TIME_MIN:-00:00}"
+          TIME_MAX="${INPUT_TIME_MAX:-23:59}"
+          if [ -n "$INPUT_DATE" ]; then
+            TARGET_DATE="$INPUT_DATE"
+          else
+            TARGET_DATE="$(python - <<'PY'
+from datetime import datetime
+from zoneinfo import ZoneInfo
+print(datetime.now(ZoneInfo("Europe/Dublin")).strftime("%Y-%m-%d"))
+PY
+)"
+          fi
+
+          SHOULD_BUILD=false
+          SHOULD_REFRESH=false
+
+          if [ "$MODE" = "build" ]; then
+            SHOULD_BUILD=true
+            SHOULD_REFRESH=true
+          elif [ "$MODE" = "refresh" ]; then
+            SHOULD_REFRESH=true
+          else
+            SHOULD_REFRESH=true
+            if [ ! -f "assets/data/match-predictor/${TARGET_DATE}.json" ]; then
+              SHOULD_BUILD=true
+            fi
+          fi
+
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "target_date=$TARGET_DATE" >> "$GITHUB_OUTPUT"
+          echo "time_min=$TIME_MIN" >> "$GITHUB_OUTPUT"
+          echo "time_max=$TIME_MAX" >> "$GITHUB_OUTPUT"
+          echo "should_build=$SHOULD_BUILD" >> "$GITHUB_OUTPUT"
+          echo "should_refresh=$SHOULD_REFRESH" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare fixture shards
+        id: prepare_shards
+        if: steps.meta.outputs.should_build == 'true'
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: |
+          mkdir -p .tmp/match-predictor
+          python tools/match_predictor_shards.py prepare \
+            --date "${{ steps.meta.outputs.target_date }}" \
+            --time-min "${{ steps.meta.outputs.time_min }}" \
+            --time-max "${{ steps.meta.outputs.time_max }}" \
+            --shards 4 \
+            --output-dir .tmp/match-predictor/shards | tee .tmp/match-predictor/prepare.json
+
+          FIXTURE_COUNT="$(python - <<'PY'
+import json
+from pathlib import Path
+payload = json.loads(Path(".tmp/match-predictor/prepare.json").read_text(encoding="utf-8"))
+print(payload.get("fixture_count", 0))
+PY
+)"
+          echo "fixture_count=$FIXTURE_COUNT" >> "$GITHUB_OUTPUT"
+
+      - name: Default fixture count
+        id: no_build
+        if: steps.meta.outputs.should_build != 'true'
+        run: echo "fixture_count=0" >> "$GITHUB_OUTPUT"
+
+      - name: Upload shard inputs
+        if: steps.meta.outputs.should_build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: match-predictor-shards
+          path: .tmp/match-predictor/shards
+          retention-days: 1
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Match Predictor prepare" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Mode: ${{ steps.meta.outputs.mode }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Date: ${{ steps.meta.outputs.target_date }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Time range: ${{ steps.meta.outputs.time_min }}-${{ steps.meta.outputs.time_max }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Build needed: ${{ steps.meta.outputs.should_build }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Refresh needed: ${{ steps.meta.outputs.should_refresh }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Fixture count: ${{ steps.prepare_shards.outputs.fixture_count || steps.no_build.outputs.fixture_count || '0' }}" >> "$GITHUB_STEP_SUMMARY"
+
+  refresh_only:
+    needs: prepare
+    if: needs.prepare.outputs.should_build != 'true' && needs.prepare.outputs.should_refresh == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
@@ -48,28 +172,265 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      - name: Build or refresh cache
+      - name: Refresh existing caches
         env:
           API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          MATCH_PREDICTOR_TIMEZONE: Europe/Dublin
-          PYTHONUTF8: "1"
-          INPUT_MODE: ${{ github.event.inputs.mode }}
-          INPUT_DATE: ${{ github.event.inputs.date }}
-          INPUT_TIME_MIN: ${{ github.event.inputs.time_min }}
-          INPUT_TIME_MAX: ${{ github.event.inputs.time_max }}
+        run: python match_predictor.py --mode refresh --cache-dir assets/data/match-predictor
+
+      - name: Commit cache changes
         run: |
-          MODE="${INPUT_MODE:-daemon}"
-          CMD=(python match_predictor.py --mode "$MODE" --cache-dir assets/data/match-predictor)
-          if [ "$MODE" = "build" ]; then
-            if [ -n "$INPUT_DATE" ]; then
-              CMD+=(--date "$INPUT_DATE")
-            fi
-            CMD+=(--time-min "${INPUT_TIME_MIN:-00:00}" --time-max "${INPUT_TIME_MAX:-23:59}")
+          if git diff --quiet -- assets/data/match-predictor; then
+            echo "No cache changes."
+            exit 0
           fi
-          echo "Running: ${CMD[*]}"
-          "${CMD[@]}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data/match-predictor
+          git commit -m "chore: refresh match predictor cache"
+          git pull --rebase origin "${GITHUB_REF_NAME:-main}"
+          git push origin "HEAD:${GITHUB_REF_NAME:-main}"
+
+  build_shard_01:
+    needs: prepare
+    if: needs.prepare.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download shard inputs
+        uses: actions/download-artifact@v4
+        with:
+          name: match-predictor-shards
+          path: .tmp/match-predictor/shards
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Build shard 1
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python tools/match_predictor_shards.py build-shard \
+            --date "${{ needs.prepare.outputs.target_date }}" \
+            --time-min "${{ needs.prepare.outputs.time_min }}" \
+            --time-max "${{ needs.prepare.outputs.time_max }}" \
+            --fixtures-file .tmp/match-predictor/shards/shard_01.fixtures.json \
+            --output-file .tmp/match-predictor/results/shard_01.json \
+            --shard-label shard-01
+
+      - name: Upload shard 1 result
+        uses: actions/upload-artifact@v4
+        with:
+          name: match-predictor-part-01
+          path: .tmp/match-predictor/results/shard_01.json
+          retention-days: 1
+
+  build_shard_02:
+    needs: [prepare, build_shard_01]
+    if: needs.prepare.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download shard inputs
+        uses: actions/download-artifact@v4
+        with:
+          name: match-predictor-shards
+          path: .tmp/match-predictor/shards
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Build shard 2
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python tools/match_predictor_shards.py build-shard \
+            --date "${{ needs.prepare.outputs.target_date }}" \
+            --time-min "${{ needs.prepare.outputs.time_min }}" \
+            --time-max "${{ needs.prepare.outputs.time_max }}" \
+            --fixtures-file .tmp/match-predictor/shards/shard_02.fixtures.json \
+            --output-file .tmp/match-predictor/results/shard_02.json \
+            --shard-label shard-02
+
+      - name: Upload shard 2 result
+        uses: actions/upload-artifact@v4
+        with:
+          name: match-predictor-part-02
+          path: .tmp/match-predictor/results/shard_02.json
+          retention-days: 1
+
+  build_shard_03:
+    needs: [prepare, build_shard_02]
+    if: needs.prepare.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download shard inputs
+        uses: actions/download-artifact@v4
+        with:
+          name: match-predictor-shards
+          path: .tmp/match-predictor/shards
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Build shard 3
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python tools/match_predictor_shards.py build-shard \
+            --date "${{ needs.prepare.outputs.target_date }}" \
+            --time-min "${{ needs.prepare.outputs.time_min }}" \
+            --time-max "${{ needs.prepare.outputs.time_max }}" \
+            --fixtures-file .tmp/match-predictor/shards/shard_03.fixtures.json \
+            --output-file .tmp/match-predictor/results/shard_03.json \
+            --shard-label shard-03
+
+      - name: Upload shard 3 result
+        uses: actions/upload-artifact@v4
+        with:
+          name: match-predictor-part-03
+          path: .tmp/match-predictor/results/shard_03.json
+          retention-days: 1
+
+  build_shard_04:
+    needs: [prepare, build_shard_03]
+    if: needs.prepare.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download shard inputs
+        uses: actions/download-artifact@v4
+        with:
+          name: match-predictor-shards
+          path: .tmp/match-predictor/shards
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Build shard 4
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python tools/match_predictor_shards.py build-shard \
+            --date "${{ needs.prepare.outputs.target_date }}" \
+            --time-min "${{ needs.prepare.outputs.time_min }}" \
+            --time-max "${{ needs.prepare.outputs.time_max }}" \
+            --fixtures-file .tmp/match-predictor/shards/shard_04.fixtures.json \
+            --output-file .tmp/match-predictor/results/shard_04.json \
+            --shard-label shard-04
+
+      - name: Upload shard 4 result
+        uses: actions/upload-artifact@v4
+        with:
+          name: match-predictor-part-04
+          path: .tmp/match-predictor/results/shard_04.json
+          retention-days: 1
+
+  merge_build:
+    needs: [prepare, build_shard_01, build_shard_02, build_shard_03, build_shard_04]
+    if: needs.prepare.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download shard 1 result
+        uses: actions/download-artifact@v4
+        with:
+          name: match-predictor-part-01
+          path: .tmp/match-predictor/parts
+
+      - name: Download shard 2 result
+        uses: actions/download-artifact@v4
+        with:
+          name: match-predictor-part-02
+          path: .tmp/match-predictor/parts
+
+      - name: Download shard 3 result
+        uses: actions/download-artifact@v4
+        with:
+          name: match-predictor-part-03
+          path: .tmp/match-predictor/parts
+
+      - name: Download shard 4 result
+        uses: actions/download-artifact@v4
+        with:
+          name: match-predictor-part-04
+          path: .tmp/match-predictor/parts
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Merge shard outputs
+        run: |
+          python tools/match_predictor_shards.py merge \
+            --date "${{ needs.prepare.outputs.target_date }}" \
+            --time-min "${{ needs.prepare.outputs.time_min }}" \
+            --time-max "${{ needs.prepare.outputs.time_max }}" \
+            --parts-dir .tmp/match-predictor/parts \
+            --cache-dir assets/data/match-predictor
+
+      - name: Refresh caches after merge
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python match_predictor.py --mode refresh --cache-dir assets/data/match-predictor
 
       - name: Commit cache changes
         run: |
@@ -87,9 +448,9 @@ jobs:
       - name: Summary
         if: always()
         run: |
-          echo "## Match Predictor cache" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Match Predictor build" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Mode: ${{ github.event.inputs.mode || 'daemon' }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Cache path: assets/data/match-predictor" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Markets: Over/Under 1.5, Over/Under 2.5, Over/Under 3.5, 1X/X2, BTTS, combo, no goal, corners, yellows." >> "$GITHUB_STEP_SUMMARY"
-          echo "- Schedule: hourly refresh; the first run after local midnight creates the new daily cache and old entries expire after 24 hours." >> "$GITHUB_STEP_SUMMARY"
+          echo "- Date: ${{ needs.prepare.outputs.target_date }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Time range: ${{ needs.prepare.outputs.time_min }}-${{ needs.prepare.outputs.time_max }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Fixture count: ${{ needs.prepare.outputs.fixture_count }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Strategy: prepare + 4 sequential shard jobs + merge + refresh." >> "$GITHUB_STEP_SUMMARY"
