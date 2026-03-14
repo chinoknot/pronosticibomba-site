@@ -3,9 +3,12 @@
   const FINAL_STATUSES = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
   const CACHE_BASE = "/assets/data/match-predictor";
   const AUTO_REFRESH_MS = 5 * 60 * 1000;
+  const PAGE_LANG = String(document.documentElement.lang || "it").toLowerCase();
+  const IS_EN = PAGE_LANG.startsWith("en");
+  const APP_LOCALE = IS_EN ? "en-GB" : "it-IT";
   const DEFAULTS = { minProbability: 55, maxProbability: 99, oddFrom: 1.01, oddTo: 10, timeFrom: "00:00", timeTo: "23:59" };
   const ODD_PRESETS = [
-    { id: "all", label: "Tutte", from: 1.01, to: 10 },
+    { id: "all", label: IS_EN ? "All" : "Tutte", from: 1.01, to: 10 },
     { id: "band_101_120", label: "1.01-1.20", from: 1.01, to: 1.2 },
     { id: "band_120_140", label: "1.20-1.40", from: 1.2, to: 1.4 },
     { id: "band_140_150", label: "1.40-1.50", from: 1.4, to: 1.5 },
@@ -13,8 +16,6 @@
     { id: "band_170_200", label: "1.70-2.00", from: 1.7, to: 2 },
     { id: "lt_200", label: "< 2.00", from: 1.01, to: 2 },
     { id: "lt_300", label: "< 3.00", from: 1.01, to: 3 },
-    { id: "band_300_500", label: "3.00-5.00", from: 3, to: 5 },
-    { id: "band_500_1000", label: "5.00-10.00", from: 5, to: 10 },
   ];
   const PROBABILITY_PRESETS = [55, 60, 65, 70, 75, 80];
   const TOTAL_MARKET_RULES = {
@@ -54,12 +55,11 @@
     ...[5.5, 4.5, 3.5, 2.5, 1.5].map(line => ({ id: `yellows_u_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Under ${line.toFixed(1)}` })),
   ];
   const STATUS_OPTIONS = [
-    { id: "all", label: "Tutti" },
-    { id: "scheduled", label: "Da giocare" },
+    { id: "all", label: IS_EN ? "All" : "Tutti" },
+    { id: "scheduled", label: IS_EN ? "Upcoming" : "Da giocare" },
     { id: "live", label: "Live" },
-    { id: "win", label: "Verde" },
-    { id: "lose", label: "Rosso" },
-    { id: "unresolved", label: "Non risolto" },
+    { id: "win", label: IS_EN ? "Won" : "Vinta" },
+    { id: "lose", label: IS_EN ? "Lost" : "Persa" },
   ];
   const QUICK_RANGES = [
     { id: "all_day", label: "Tutto il giorno", from: "00:00", to: "23:59" },
@@ -177,6 +177,8 @@
     detailScores: "Score piu probabili",
     liveWord: "live",
     finalWord: "finali",
+    wonWord: IS_EN ? "Won" : "Vinta",
+    lostWord: IS_EN ? "Lost" : "Persa",
   };
   const state = {
     manifest: null,
@@ -313,12 +315,12 @@
 
   function formatDate(dateStr, options) {
     if (!dateStr) return "-";
-    return new Intl.DateTimeFormat("it-IT", options).format(new Date(`${dateStr}T00:00:00`));
+    return new Intl.DateTimeFormat(APP_LOCALE, options).format(new Date(`${dateStr}T00:00:00`));
   }
 
   function formatDateTime(isoValue) {
     if (!isoValue) return "-";
-    return new Intl.DateTimeFormat("it-IT", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(isoValue));
+    return new Intl.DateTimeFormat(APP_LOCALE, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(isoValue));
   }
 
   function todayIso(timeZone) {
@@ -711,7 +713,11 @@
     const lamTotal = Number(match?.lam_total || 0);
     if (market.id === "ou15") score -= 0.07;
     if (market.id === "dc") score -= 0.06;
-    if (market.id === "combo") score -= 0.03;
+    if (market.id === "combo") {
+      score -= 0.12;
+      if (Number(market.pickProbability || 0) < 0.62) score -= 0.14;
+      if (Number(market.pickProbability || 0) < 0.58) score -= 0.10;
+    }
     if (market.id === "btts") score += 0.03;
     if (market.id === "ou25" || market.id === "o35") score += 0.02;
     if (market.id === "corners" || market.id === "yellows") score += 0.035;
@@ -870,12 +876,14 @@
   }
 
   function selectHeadlineMarket(markets, match = null) {
-    if (state.outcomeFilters.size) return selectPrimaryMarket(markets, match);
-    const withoutSoftProps = markets.filter(market => !["corners", "yellows"].includes(market.group) && market.id !== "ou15");
+    const viableMarkets = markets.filter(market => !(market.id === "combo" && Number(market.pickProbability || 0) < 0.6));
+    const pool = viableMarkets.length ? viableMarkets : markets;
+    if (state.outcomeFilters.size) return selectPrimaryMarket(pool, match);
+    const withoutSoftProps = pool.filter(market => !["corners", "yellows"].includes(market.group) && market.id !== "ou15");
     if (withoutSoftProps.length) return selectPrimaryMarket(withoutSoftProps, match);
-    const withoutProps = markets.filter(market => !["corners", "yellows"].includes(market.group));
+    const withoutProps = pool.filter(market => !["corners", "yellows"].includes(market.group));
     if (withoutProps.length) return selectPrimaryMarket(withoutProps, match);
-    return selectPrimaryMarket(markets, match);
+    return selectPrimaryMarket(pool, match);
   }
 
   function decorateMatches(rawMatches, keepAll = false) {
@@ -1094,7 +1102,6 @@
       else if (state.status === "scheduled") label = "In arrivo";
       else if (state.status === "win") label = "Verdi";
       else if (state.status === "lose") label = "Rossi";
-      else if (state.status === "unresolved") label = "Non risolte";
       dom.feedStateTitle.textContent = `${label} (${matches.length})`;
     }
     if (dom.feedStateSubtitle) {
@@ -1112,8 +1119,11 @@
     const settled = matches.flatMap(match => match.visibleMarkets);
     const winCount = settled.filter(market => market.status === "win").length;
     const loseCount = settled.filter(market => market.status === "lose").length;
-    const topWins = topPicks.filter(pick => pick.status === "win").length;
-    const topLoses = topPicks.filter(pick => pick.status === "lose").length;
+    const closedPrimary = matches
+      .map(match => match.primaryMarket)
+      .filter(market => market && (market.status === "win" || market.status === "lose"));
+    const topWins = closedPrimary.filter(market => market.status === "win").length;
+    const topLoses = closedPrimary.filter(market => market.status === "lose").length;
     document.getElementById("summary-matches").textContent = String(matches.length);
     document.getElementById("summary-top").textContent = String(topPicks.length);
     document.getElementById("summary-live").textContent = `${liveCount} / ${finalCount}`;
@@ -1125,8 +1135,8 @@
     const topBadge = document.getElementById("top-picks-badge");
     const matchBadge = document.getElementById("matches-badge");
     if (topBadge) topBadge.textContent = String(topPicks.length);
-    if (dom.topPicksWin) dom.topPicksWin.textContent = `W ${topWins}`;
-    if (dom.topPicksLose) dom.topPicksLose.textContent = `L ${topLoses}`;
+    if (dom.topPicksWin) dom.topPicksWin.textContent = `${TEXT.wonWord} ${topWins}`;
+    if (dom.topPicksLose) dom.topPicksLose.textContent = `${TEXT.lostWord} ${topLoses}`;
     if (matchBadge) matchBadge.textContent = String(matches.length);
   }
 
@@ -1209,8 +1219,8 @@
     const displayStatus = primary?.status || (FINAL_STATUSES.has(fixtureStatus) ? "unresolved" : (LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled"));
     const picked = pickedOption(primary);
     const meta = [];
-    if (displayStatus === "win") meta.push("PRESA");
-    else if (displayStatus === "lose") meta.push("SALTATA");
+    if (displayStatus === "win") meta.push(TEXT.wonWord.toUpperCase());
+    else if (displayStatus === "lose") meta.push(TEXT.lostWord.toUpperCase());
     else if (displayStatus === "live") meta.push("LIVE");
     if (primary?.pickProbability != null) meta.push(formatPercent(primary.pickProbability));
     if (picked?.odd) meta.push(`${TEXT.odds} ${formatOdd(picked.odd)}`);
@@ -1302,6 +1312,14 @@
     `;
   }
 
+  function marketSummaryLabel(market, fallback = "-") {
+    if (!market) return fallback;
+    const parts = [];
+    if (market.pickLabel) parts.push(market.pickLabel);
+    if (market.pickProbability != null) parts.push(formatPercent(market.pickProbability));
+    return parts.join(" | ") || fallback;
+  }
+
   function renderDetail() {
     const match = getDetailMatch();
     if (!match) {
@@ -1310,7 +1328,12 @@
     }
     const scoreChips = (match.most_likely_scores || []).slice(0, 5).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("");
     const marketGroups = GROUPS
-      .map(group => ({ label: group.label, markets: match.markets.filter(market => market.group === group.id && (!match.primaryMarket || market.id !== match.primaryMarket.id)) }))
+      .map(group => ({
+        label: group.label,
+        markets: match.markets
+          .filter(market => market.group === group.id && (!match.primaryMarket || market.id !== match.primaryMarket.id))
+          .sort((a, b) => marketDisplayScore(b, match) - marketDisplayScore(a, match)),
+      }))
       .filter(group => group.markets.length);
     const summaryMeta = label => `<span class="detail-summary-meta">${escapeHtml(label)}</span>`;
     dom.detailBody.innerHTML = `
@@ -1328,14 +1351,14 @@
       </article>
       <div class="detail-stack">
         <details class="detail-accordion" open>
-          <summary class="detail-summary"><span>${TEXT.detailPrimary}</span>${match.primaryMarket ? summaryMeta(match.primaryMarket.pickLabel || "-") : ""}</summary>
+          <summary class="detail-summary"><span>${TEXT.detailPrimary}</span>${match.primaryMarket ? summaryMeta(marketSummaryLabel(match.primaryMarket)) : ""}</summary>
           <div class="detail-section"><div class="market-grid">${match.primaryMarket ? renderMarketCard(match.primaryMarket) : `<div class="empty-state">${TEXT.empty}</div>`}</div></div>
         </details>
         <details class="detail-accordion" open>
           <summary class="detail-summary"><span>${TEXT.detailScores}</span>${summaryMeta(`${Math.min((match.most_likely_scores || []).length, 5)} score`)}</summary>
           <div class="detail-section"><div class="score-chips">${scoreChips || `<span class="mini-chip">-</span>`}</div></div>
         </details>
-        ${marketGroups.map(group => `<details class="detail-accordion"><summary class="detail-summary"><span>${escapeHtml(group.label)}</span>${summaryMeta(group.markets[0]?.pickLabel || `${group.markets.length} pick`)}</summary><div class="detail-section"><div class="market-grid">${group.markets.map(renderMarketCard).join("")}</div></div></details>`).join("")}
+        ${marketGroups.map(group => `<details class="detail-accordion"><summary class="detail-summary"><span>${escapeHtml(group.label)}</span>${summaryMeta(marketSummaryLabel(group.markets[0], `${group.markets.length} pick`))}</summary><div class="detail-section"><div class="market-grid">${group.markets.map(renderMarketCard).join("")}</div></div></details>`).join("")}
       </div>
     `;
   }

@@ -200,8 +200,8 @@
         <div class="section-banner-side">
           <span class="section-badge" id="top-picks-badge">0</span>
           <div class="top-result-pills" id="top-picks-form">
-            <span class="result-pill result-pill-win" id="top-picks-win">W 0</span>
-            <span class="result-pill result-pill-lose" id="top-picks-lose">L 0</span>
+            <span class="result-pill result-pill-win" id="top-picks-win">Vinta 0</span>
+            <span class="result-pill result-pill-lose" id="top-picks-lose">Persa 0</span>
           </div>
         </div>
       </div>
@@ -296,6 +296,9 @@
     .select-compact{min-height:40px;padding:10px 34px 10px 12px;border-radius:14px;font-size:.83rem;background:rgba(8,14,28,.92)}
     .quick-preset-row{display:flex;gap:6px;flex-wrap:wrap}
     .quick-preset-row .chip-btn,.chips#odd-presets .chip-btn{min-height:30px;padding:6px 10px;border-radius:999px;font-size:.69rem}
+    #probability-presets,#odd-presets,#status-chips{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    #probability-presets::-webkit-scrollbar,#odd-presets::-webkit-scrollbar,#status-chips::-webkit-scrollbar{display:none}
+    #probability-presets .preset-chip,#odd-presets .preset-chip,#status-chips .status-chip{flex:0 0 auto;white-space:nowrap}
     .date-tab{min-width:92px;padding:10px 12px;border-radius:18px}
     .date-tab strong{font-size:.92rem}
     .date-tab small{font-size:.72rem}
@@ -470,6 +473,6 @@
       .range-input-grid{grid-template-columns:1fr}
     }
   </style>
-  <script src="/assets/match_center.js?v=20260314g"></script>
+  <script src="/assets/match_center.js?v=20260314h"></script>
 </body>
 </html>
