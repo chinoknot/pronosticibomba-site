@@ -26,6 +26,18 @@
     { id: "corners", short: "CRN", label: "Corner" },
     { id: "yellows", short: "YC", label: "Cartellini" },
   ];
+  const OUTCOME_FILTERS = [
+    { id: "goals_o15", group: "goals", marketId: "ou15", label: "Over 1.5" },
+    { id: "goals_u15", group: "goals", marketId: "ou15", label: "Under 1.5" },
+    { id: "goals_o25", group: "goals", marketId: "ou25", label: "Over 2.5" },
+    { id: "goals_u25", group: "goals", marketId: "ou25", label: "Under 2.5" },
+    { id: "goals_o35", group: "goals", marketId: "o35", label: "Over 3.5" },
+    { id: "goals_u35", group: "goals", marketId: "o35", label: "Under 3.5" },
+    ...[7.5, 8.5, 9.5, 10.5, 11.5, 12.5].map(line => ({ id: `corners_o_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Over ${line.toFixed(1)}` })),
+    ...[12.5, 11.5, 10.5, 9.5].map(line => ({ id: `corners_u_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Under ${line.toFixed(1)}` })),
+    ...[1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5].map(line => ({ id: `yellows_o_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Over ${line.toFixed(1)}` })),
+    ...[7.5, 6.5, 5.5, 4.5, 3.5, 2.5, 1.5].map(line => ({ id: `yellows_u_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Under ${line.toFixed(1)}` })),
+  ];
   const STATUS_OPTIONS = [
     { id: "all", label: "Tutti" },
     { id: "scheduled", label: "Da giocare" },
@@ -166,6 +178,7 @@
     timeFrom: DEFAULTS.timeFrom,
     timeTo: DEFAULTS.timeTo,
     filterOpen: false,
+    outcomeFilters: new Set(),
     detailFixtureId: null,
   };
   const dom = {
@@ -202,6 +215,8 @@
     marketsAll: document.getElementById("markets-all"),
     marketsNone: document.getElementById("markets-none"),
     marketChips: document.getElementById("market-chips"),
+    outcomesClear: document.getElementById("outcomes-clear"),
+    outcomeChips: document.getElementById("outcome-chips"),
     statusChips: document.getElementById("status-chips"),
     topPicks: document.getElementById("top-picks"),
     activeFilters: document.getElementById("active-filters"),
@@ -237,6 +252,30 @@
     const to = Number(toValue);
     if (from <= DEFAULTS.oddFrom && to >= DEFAULTS.oddTo) return "Tutte";
     return `${from.toFixed(2)}-${to.toFixed(2)}`;
+  }
+
+  function outcomeFiltersForGroup(groupId) {
+    return OUTCOME_FILTERS.filter(filter => filter.group === groupId);
+  }
+
+  function selectedOutcomeFiltersForGroup(groupId) {
+    return outcomeFiltersForGroup(groupId).filter(filter => state.outcomeFilters.has(filter.id));
+  }
+
+  function visibleOutcomeGroups() {
+    const allowed = new Set(["goals", "corners", "yellows"]);
+    if (state.groups.size === GROUPS.length) return GROUPS.filter(group => allowed.has(group.id));
+    const active = GROUPS.filter(group => allowed.has(group.id) && state.groups.has(group.id));
+    return active.length ? active : GROUPS.filter(group => allowed.has(group.id));
+  }
+
+  function pruneOutcomeFilters() {
+    const allowedGroups = state.groups.size === GROUPS.length ? null : new Set([...state.groups]);
+    if (!allowedGroups) return;
+    state.outcomeFilters = new Set([...state.outcomeFilters].filter(id => {
+      const filter = OUTCOME_FILTERS.find(item => item.id === id);
+      return filter && allowedGroups.has(filter.group);
+    }));
   }
 
   function formatDate(dateStr, options) {
@@ -317,6 +356,20 @@
     const markup = ODD_PRESETS.map(preset => `<button type="button" class="chip-btn ${preset.id === activeOddPresetId() ? "active" : ""}" data-odd-preset="${preset.id}">${preset.label}</button>`).join("");
     if (dom.heroOddPresets) dom.heroOddPresets.innerHTML = markup;
     if (dom.oddPresets) dom.oddPresets.innerHTML = markup;
+  }
+
+  function renderOutcomeChips() {
+    if (!dom.outcomeChips) return;
+    const groups = visibleOutcomeGroups();
+    dom.outcomeChips.innerHTML = groups.map(group => `
+      <div class="outcome-filter-group">
+        <div class="outcome-filter-title">${escapeHtml(group.label)}</div>
+        <div class="outcome-filter-row">
+          ${outcomeFiltersForGroup(group.id).map(filter => `<button type="button" class="chip-btn ${state.outcomeFilters.has(filter.id) ? "active" : ""}" data-outcome="${filter.id}">${escapeHtml(filter.label)}</button>`).join("")}
+        </div>
+      </div>
+    `).join("");
+    if (dom.outcomesClear) dom.outcomesClear.classList.toggle("active", state.outcomeFilters.size === 0);
   }
 
   function normalizeMap(raw) {
@@ -641,8 +694,12 @@
     if (market.id === "corners" || market.id === "yellows") {
       if (FINAL_STATUSES.has(fixtureStatus)) {
         const actual = Number(market.actual);
-        const line = Number(String(market.pickLabel || "").replace("OVER ", ""));
-        if (Number.isFinite(actual) && Number.isFinite(line)) return actual > line ? "win" : "lose";
+        const label = String(market.pickLabel || "").toUpperCase();
+        const line = Number(label.replace("OVER ", "").replace("UNDER ", ""));
+        if (Number.isFinite(actual) && Number.isFinite(line)) {
+          if (label.startsWith("OVER ")) return actual > line ? "win" : "lose";
+          if (label.startsWith("UNDER ")) return actual < line ? "win" : "lose";
+        }
         return "unresolved";
       }
       return LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled";
@@ -665,23 +722,52 @@
     return "unresolved";
   }
 
+  function buildTotalMarketOptions(raw, marketId) {
+    return normalizeMap(raw).flatMap(item => {
+      const underProbability = Math.max(0.02, Math.min(0.98, 1 - Number(item.value)));
+      return [
+        {
+          label: `Over ${item.key}`,
+          probability: item.value,
+          odd: null,
+          line: item.line,
+          highImpact: isImpactLine(marketId, item.line),
+          impactLabel: impactLabel(marketId, item.line),
+        },
+        {
+          label: `Under ${item.key}`,
+          probability: Number(underProbability.toFixed(4)),
+          odd: null,
+          line: item.line,
+          highImpact: isImpactLine(marketId, item.line),
+          impactLabel: impactLabel(marketId, item.line),
+        },
+      ];
+    });
+  }
+
+  function remapMarketForOutcomeFilters(match, market) {
+    const selectedForGroup = selectedOutcomeFiltersForGroup(market.group);
+    if (!selectedForGroup.length) return market;
+    const selectedForMarket = selectedForGroup.filter(filter => !filter.marketId || filter.marketId === market.id);
+    if (!selectedForMarket.length) return null;
+    const matchingOptions = (market.options || []).filter(option => selectedForMarket.some(filter => filter.label === option.label));
+    if (!matchingOptions.length) return null;
+    const bestOption = [...matchingOptions].sort((a, b) => Number(b.probability || 0) - Number(a.probability || 0) || Number(b.line || 0) - Number(a.line || 0))[0];
+    const remapped = {
+      ...market,
+      pickLabel: bestOption.label,
+      pickProbability: Number(bestOption.probability ?? market.pickProbability ?? 0),
+      highImpact: Boolean(bestOption.highImpact),
+      impactLabel: bestOption.impactLabel || "",
+    };
+    remapped.status = resolveMarketStatus(match, remapped);
+    return remapped;
+  }
+
   function buildMarkets(match) {
-    const cornerOptions = normalizeMap(match.corner_overs).map(item => ({
-      label: `Over ${item.key}`,
-      probability: item.value,
-      odd: null,
-      line: item.line,
-      highImpact: isImpactLine("corners", item.line),
-      impactLabel: impactLabel("corners", item.line),
-    }));
-    const yellowOptions = normalizeMap(match.yellow_overs).map(item => ({
-      label: `Over ${item.key}`,
-      probability: item.value,
-      odd: null,
-      line: item.line,
-      highImpact: isImpactLine("yellows", item.line),
-      impactLabel: impactLabel("yellows", item.line),
-    }));
+    const cornerOptions = buildTotalMarketOptions(match.corner_overs, "corners");
+    const yellowOptions = buildTotalMarketOptions(match.yellow_overs, "yellows");
     const cornerLine = bestLine(match.corner_overs, "corners");
     const yellowLine = bestLine(match.yellow_overs, "yellows");
     return [
@@ -702,6 +788,7 @@
   }
 
   function selectHeadlineMarket(markets) {
+    if (state.outcomeFilters.size) return selectPrimaryMarket(markets);
     const withoutSoftProps = markets.filter(market => !["corners", "yellows"].includes(market.group) && market.id !== "ou15");
     if (withoutSoftProps.length) return selectPrimaryMarket(withoutSoftProps);
     const withoutProps = markets.filter(market => !["corners", "yellows"].includes(market.group));
@@ -714,7 +801,7 @@
     const oddFilterActive = state.oddActive;
     return rawMatches
       .map(match => {
-        const markets = buildMarkets(match);
+        const markets = buildMarkets(match).map(market => remapMarketForOutcomeFilters(match, market)).filter(Boolean);
         const visibleMarkets = markets
           .filter(market => state.groups.has(market.group))
           .filter(market => Number(market.pickProbability || 0) * 100 >= state.minProbability)
@@ -742,7 +829,9 @@
     const rawMatch = (state.cache?.matches || []).find(match => String(match.fixture_id) === String(state.detailFixtureId));
     if (!rawMatch) return null;
     const markets = buildMarkets(rawMatch).filter(market => Number(market.pickProbability || 0) > 0 || (market.options || []).some(option => option.probability != null));
-    return { ...rawMatch, markets, primaryMarket: selectPrimaryMarket(markets) };
+    const filteredMarkets = markets.map(market => remapMarketForOutcomeFilters(rawMatch, market)).filter(Boolean);
+    const primaryMarket = filteredMarkets.length ? selectHeadlineMarket(filteredMarkets) : selectPrimaryMarket(markets);
+    return { ...rawMatch, markets, primaryMarket };
   }
 
   function getTopPicks(matches) {
@@ -855,6 +944,7 @@
     if (state.oddActive) count += 1;
     if (state.status !== "all") count += 1;
     if (state.groups.size !== GROUPS.length) count += 1;
+    if (state.outcomeFilters.size) count += 1;
     return count;
   }
 
@@ -890,6 +980,7 @@
 
   function renderFilterChips() {
     dom.marketChips.innerHTML = GROUPS.map(group => `<button type="button" class="chip-btn ${state.groups.has(group.id) ? "active" : ""}" data-group="${group.id}">${group.label}</button>`).join("");
+    renderOutcomeChips();
     dom.statusChips.innerHTML = STATUS_OPTIONS.map(option => `<button type="button" class="chip-btn ${state.status === option.id ? "active" : ""}" data-status="${option.id}">${option.label}</button>`).join("");
     dom.marketsAll.classList.toggle("active", state.groups.size === GROUPS.length);
     dom.marketsNone.classList.toggle("active", state.groups.size === 0);
@@ -960,6 +1051,11 @@
     if (state.oddActive) chips.push({ key: "odd", label: `${TEXT.filterOdd}: ${formatOddRange(state.oddFrom, state.oddTo)}` });
     if (state.status !== "all") chips.push({ key: "status", label: `${TEXT.filterStatus}: ${statusLabel(state.status)}` });
     if (state.groups.size !== GROUPS.length) chips.push({ key: "groups", label: `${TEXT.filterMarkets}: ${state.groups.size}/${GROUPS.length}` });
+    if (state.outcomeFilters.size) {
+      const labels = OUTCOME_FILTERS.filter(filter => state.outcomeFilters.has(filter.id)).map(filter => filter.label);
+      const summary = labels.length <= 2 ? labels.join(" | ") : `${labels.slice(0, 2).join(" | ")} +${labels.length - 2}`;
+      chips.push({ key: "outcomes", label: `Linee: ${summary}` });
+    }
     dom.activeFilters.style.display = chips.length ? "flex" : "none";
     dom.activeFilters.innerHTML = chips.map(chip => `<button type="button" class="active-filter" data-clear-filter="${chip.key}">${escapeHtml(chip.label)} <span aria-hidden="true">x</span></button>`).join("");
   }
@@ -1168,6 +1264,7 @@
     }
     if (key === "status") state.status = "all";
     if (key === "groups") state.groups = new Set(GROUPS.map(group => group.id));
+    if (key === "outcomes") state.outcomeFilters = new Set();
     render();
   }
 
@@ -1289,6 +1386,7 @@
     if (dom.heroOddTo) dom.heroOddTo.addEventListener("change", () => applyOddFilter(state.oddFrom, dom.heroOddTo.value, "to"));
     dom.resetFilters.addEventListener("click", () => {
       state.groups = new Set(GROUPS.map(group => group.id));
+      state.outcomeFilters = new Set();
       state.status = "all";
       state.minProbability = DEFAULTS.minProbability;
       state.oddActive = false;
@@ -1302,12 +1400,20 @@
     });
     dom.marketsAll.addEventListener("click", () => {
       state.groups = new Set(GROUPS.map(group => group.id));
+      pruneOutcomeFilters();
       render();
     });
     dom.marketsNone.addEventListener("click", () => {
       state.groups = new Set();
+      pruneOutcomeFilters();
       render();
     });
+    if (dom.outcomesClear) {
+      dom.outcomesClear.addEventListener("click", () => {
+        state.outcomeFilters = new Set();
+        render();
+      });
+    }
     document.addEventListener("click", async event => {
       const dateButton = event.target.closest("[data-date]");
       if (dateButton) {
@@ -1346,6 +1452,20 @@
         if (state.groups.size === GROUPS.length) state.groups = new Set([group]);
         else if (state.groups.has(group)) state.groups.delete(group);
         else state.groups.add(group);
+        pruneOutcomeFilters();
+        render();
+        return;
+      }
+      const outcomeButton = event.target.closest("[data-outcome]");
+      if (outcomeButton) {
+        const outcomeId = outcomeButton.dataset.outcome;
+        const filter = OUTCOME_FILTERS.find(item => item.id === outcomeId);
+        if (!filter) return;
+        if (state.outcomeFilters.has(outcomeId)) state.outcomeFilters.delete(outcomeId);
+        else {
+          state.outcomeFilters.add(outcomeId);
+          state.groups.add(filter.group);
+        }
         render();
         return;
       }
