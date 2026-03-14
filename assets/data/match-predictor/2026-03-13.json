@@ -32319,7 +32319,7 @@
       "status_long": "Match Finished",
       "goals_home": 0,
       "goals_away": 2,
-      "total_corners": 6.0,
+      "total_corners": 5.0,
       "total_yellows": null,
       "final_score": "0-2",
       "p_over15": 0.7212,
@@ -39052,5 +39052,5 @@
   ],
   "timezone": "Europe/Dublin",
   "expires_at": "2026-03-14T23:31:07.989740+00:00",
-  "refreshed_at": "2026-03-14T06:57:16.632879+00:00"
+  "refreshed_at": "2026-03-14T07:40:56.350246+00:00"
 }
