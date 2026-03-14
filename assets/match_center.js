@@ -6,11 +6,12 @@
   const DEFAULTS = { minProbability: 55, maxProbability: 99, oddFrom: 1.01, oddTo: 10, timeFrom: "00:00", timeTo: "23:59" };
   const ODD_PRESETS = [
     { id: "all", label: "Tutte", from: 1.01, to: 10 },
+    { id: "band_101_120", label: "1.01-1.20", from: 1.01, to: 1.2 },
     { id: "band_120_140", label: "1.20-1.40", from: 1.2, to: 1.4 },
-    { id: "band_140_160", label: "1.40-1.60", from: 1.4, to: 1.6 },
-    { id: "band_160_200", label: "1.60-2.00", from: 1.6, to: 2 },
-    { id: "band_200_270", label: "2.00-2.70", from: 2, to: 2.7 },
-    { id: "lt_270", label: "< 2.70", from: 1.01, to: 2.7 },
+    { id: "band_140_150", label: "1.40-1.50", from: 1.4, to: 1.5 },
+    { id: "band_150_170", label: "1.50-1.70", from: 1.5, to: 1.7 },
+    { id: "band_170_200", label: "1.70-2.00", from: 1.7, to: 2 },
+    { id: "lt_200", label: "< 2.00", from: 1.01, to: 2 },
     { id: "lt_300", label: "< 3.00", from: 1.01, to: 3 },
     { id: "band_300_500", label: "3.00-5.00", from: 3, to: 5 },
     { id: "band_500_1000", label: "5.00-10.00", from: 5, to: 10 },
@@ -48,8 +49,8 @@
     { id: "goals_u35", group: "goals", marketId: "o35", label: "Under 3.5" },
     ...[7.5, 8.5, 9.5, 10.5, 11.5, 12.5].map(line => ({ id: `corners_o_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Over ${line.toFixed(1)}` })),
     ...[12.5, 11.5, 10.5, 9.5].map(line => ({ id: `corners_u_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Under ${line.toFixed(1)}` })),
-    ...[1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5].map(line => ({ id: `yellows_o_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Over ${line.toFixed(1)}` })),
-    ...[7.5, 6.5, 5.5, 4.5, 3.5, 2.5, 1.5].map(line => ({ id: `yellows_u_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Under ${line.toFixed(1)}` })),
+    ...[1.5, 2.5, 3.5, 4.5, 5.5].map(line => ({ id: `yellows_o_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Over ${line.toFixed(1)}` })),
+    ...[5.5, 4.5, 3.5, 2.5, 1.5].map(line => ({ id: `yellows_u_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Under ${line.toFixed(1)}` })),
   ];
   const STATUS_OPTIONS = [
     { id: "all", label: "Tutti" },
@@ -233,14 +234,9 @@
     probabilityMinBadge: document.getElementById("probability-min-badge"),
     probabilityMaxBadge: document.getElementById("probability-max-badge"),
     probabilityRangeShell: document.getElementById("probability-range-shell"),
-    oddMinRange: document.getElementById("odd-min-range"),
-    oddMaxRange: document.getElementById("odd-max-range"),
     oddFrom: document.getElementById("odd-from"),
     oddTo: document.getElementById("odd-to"),
     oddValue: document.getElementById("odd-value"),
-    oddMinBadge: document.getElementById("odd-min-badge"),
-    oddMaxBadge: document.getElementById("odd-max-badge"),
-    oddRangeShell: document.getElementById("odd-range-shell"),
     oddPresets: document.getElementById("odd-presets"),
     resetFilters: document.getElementById("reset-filters"),
     marketsAll: document.getElementById("markets-all"),
@@ -812,7 +808,9 @@
   }
 
   function buildTotalMarketOptions(raw, marketId) {
-    return normalizeMap(raw).flatMap(item => {
+    return normalizeMap(raw)
+      .filter(item => marketId !== "yellows" || Number(item.line) <= 5.5)
+      .flatMap(item => {
       const underProbability = Math.max(0.02, Math.min(0.98, 1 - Number(item.value)));
       return [
         {
@@ -1080,14 +1078,26 @@
     if (dom.probabilityMaxBadge) dom.probabilityMaxBadge.textContent = `${state.maxProbability}%`;
     setRangeStage(dom.probabilityRangeShell, state.minProbability, state.maxProbability, 45, 99);
 
-    if (dom.oddMinRange) dom.oddMinRange.value = String(state.oddFrom);
-    if (dom.oddMaxRange) dom.oddMaxRange.value = String(state.oddTo);
     if (dom.oddFrom) dom.oddFrom.value = formatOdd(state.oddFrom);
     if (dom.oddTo) dom.oddTo.value = formatOdd(state.oddTo);
     if (dom.oddValue) dom.oddValue.textContent = `${formatOdd(state.oddFrom)} - ${formatOdd(state.oddTo)}`;
-    if (dom.oddMinBadge) dom.oddMinBadge.textContent = formatOdd(state.oddFrom);
-    if (dom.oddMaxBadge) dom.oddMaxBadge.textContent = formatOdd(state.oddTo);
-    setRangeStage(dom.oddRangeShell, state.oddFrom, state.oddTo, 1.01, 10);
+  }
+
+  function previewProbabilityRange(minValue, maxValue, changedField = "min") {
+    let nextMin = Math.round(clampNumber(minValue, 45, 99, state.minProbability));
+    let nextMax = Math.round(clampNumber(maxValue, 45, 99, state.maxProbability));
+    if (nextMin > nextMax) {
+      if (changedField === "max") nextMin = nextMax;
+      else nextMax = nextMin;
+    }
+    if (dom.probabilityMinRange) dom.probabilityMinRange.value = String(nextMin);
+    if (dom.probabilityMaxRange) dom.probabilityMaxRange.value = String(nextMax);
+    if (dom.probabilityMinInput) dom.probabilityMinInput.value = String(nextMin);
+    if (dom.probabilityMaxInput) dom.probabilityMaxInput.value = String(nextMax);
+    if (dom.probabilityValue) dom.probabilityValue.textContent = `${nextMin}% - ${nextMax}%`;
+    if (dom.probabilityMinBadge) dom.probabilityMinBadge.textContent = `${nextMin}%`;
+    if (dom.probabilityMaxBadge) dom.probabilityMaxBadge.textContent = `${nextMax}%`;
+    setRangeStage(dom.probabilityRangeShell, nextMin, nextMax, 45, 99);
   }
 
   function renderFilterChips() {
@@ -1539,12 +1549,16 @@
     });
     dom.timeFrom.addEventListener("change", () => applyTimeFilter(dom.timeFrom.value, state.timeTo));
     dom.timeTo.addEventListener("change", () => applyTimeFilter(state.timeFrom, dom.timeTo.value));
-    if (dom.probabilityMinRange) dom.probabilityMinRange.addEventListener("input", () => applyProbabilityRange(dom.probabilityMinRange.value, state.maxProbability, "min"));
-    if (dom.probabilityMaxRange) dom.probabilityMaxRange.addEventListener("input", () => applyProbabilityRange(state.minProbability, dom.probabilityMaxRange.value, "max"));
+    if (dom.probabilityMinRange) {
+      dom.probabilityMinRange.addEventListener("input", () => previewProbabilityRange(dom.probabilityMinRange.value, dom.probabilityMaxRange?.value ?? state.maxProbability, "min"));
+      dom.probabilityMinRange.addEventListener("change", () => applyProbabilityRange(dom.probabilityMinRange.value, dom.probabilityMaxRange?.value ?? state.maxProbability, "min"));
+    }
+    if (dom.probabilityMaxRange) {
+      dom.probabilityMaxRange.addEventListener("input", () => previewProbabilityRange(dom.probabilityMinRange?.value ?? state.minProbability, dom.probabilityMaxRange.value, "max"));
+      dom.probabilityMaxRange.addEventListener("change", () => applyProbabilityRange(dom.probabilityMinRange?.value ?? state.minProbability, dom.probabilityMaxRange.value, "max"));
+    }
     if (dom.probabilityMinInput) dom.probabilityMinInput.addEventListener("change", () => applyProbabilityRange(dom.probabilityMinInput.value, state.maxProbability, "min"));
     if (dom.probabilityMaxInput) dom.probabilityMaxInput.addEventListener("change", () => applyProbabilityRange(state.minProbability, dom.probabilityMaxInput.value, "max"));
-    if (dom.oddMinRange) dom.oddMinRange.addEventListener("input", () => applyOddFilter(dom.oddMinRange.value, state.oddTo, "from"));
-    if (dom.oddMaxRange) dom.oddMaxRange.addEventListener("input", () => applyOddFilter(state.oddFrom, dom.oddMaxRange.value, "to"));
     if (dom.oddFrom) dom.oddFrom.addEventListener("change", () => applyOddFilter(dom.oddFrom.value, state.oddTo, "from"));
     if (dom.oddTo) dom.oddTo.addEventListener("change", () => applyOddFilter(state.oddFrom, dom.oddTo.value, "to"));
     dom.resetFilters.addEventListener("click", () => {
