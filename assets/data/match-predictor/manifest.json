@@ -1,15 +1,23 @@
 {
-  "generated_at": "2026-03-13T23:41:21.282635+00:00",
+  "generated_at": "2026-03-14T01:39:43.786911+00:00",
   "timezone": "Europe/Dublin",
-  "latest_date": "2026-03-13",
+  "latest_date": "2026-03-14",
   "dates": [
+    {
+      "date": "2026-03-14",
+      "file": "2026-03-14.json",
+      "generated_at": "2026-03-14T01:35:54.671859+00:00",
+      "expires_at": "2026-03-15T01:35:54.671879+00:00",
+      "matches": 1774,
+      "final_matches": 2
+    },
     {
       "date": "2026-03-13",
       "file": "2026-03-13.json",
       "generated_at": "2026-03-13T23:31:07.988973+00:00",
       "expires_at": "2026-03-14T23:31:07.989740+00:00",
       "matches": 411,
-      "final_matches": 379
+      "final_matches": 396
     }
   ]
 }
