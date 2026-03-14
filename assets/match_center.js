@@ -513,14 +513,44 @@
     return competitionTier(group.country, group.league)[0] <= 1;
   }
 
+  function shouldPrioritizeOpenSelections() {
+    return state.oddActive || state.minProbability !== DEFAULTS.minProbability;
+  }
+
+  function matchLifecycleRank(match) {
+    const fixtureStatus = String(match.status_short || "").toUpperCase();
+    if (LIVE_STATUSES.has(fixtureStatus)) return 0;
+    if (FINAL_STATUSES.has(fixtureStatus)) return 2;
+    return 1;
+  }
+
+  function groupLifecycleRank(group) {
+    return group.matches.reduce((best, match) => Math.min(best, matchLifecycleRank(match)), 9);
+  }
+
+  function earliestOpenKickoff(group) {
+    return group.matches
+      .filter(match => matchLifecycleRank(match) < 2)
+      .map(match => match.match_time || "99:99")
+      .sort()[0] || "99:99";
+  }
+
   function groupSortKey(group) {
     const [tier, tierRank] = competitionTier(group.country, group.league);
     const leagueRank = leaguePriority(group.country, group.league);
+    if (shouldPrioritizeOpenSelections()) {
+      return [groupLifecycleRank(group), earliestOpenKickoff(group), tier, tierRank, leagueRank, group.league || "", group.country || ""];
+    }
     return [tier, tierRank, leagueRank, group.matches[0]?.match_time || "", group.league || "", group.country || ""];
   }
 
   function matchSortKey(match) {
     const [tier, tierRank] = competitionTier(match.country, match.league);
+    if (shouldPrioritizeOpenSelections()) {
+      const lifecycleRank = matchLifecycleRank(match);
+      const kickoff = lifecycleRank < 2 ? (match.match_time || "99:99") : "99:99";
+      return [lifecycleRank, kickoff, tier, tierRank, leaguePriority(match.country, match.league), match.league || "", match.home || ""];
+    }
     return [tier, tierRank, leaguePriority(match.country, match.league), match.match_time || "", match.league || "", match.home || ""];
   }
 
