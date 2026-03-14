@@ -44,7 +44,6 @@ jobs:
       time_max: ${{ steps.meta.outputs.time_max }}
       should_build: ${{ steps.meta.outputs.should_build }}
       should_refresh: ${{ steps.meta.outputs.should_refresh }}
-      fixture_count: ${{ steps.prepare_shards.outputs.fixture_count || steps.no_build.outputs.fixture_count || '0' }}
 
     steps:
       - name: Checkout repository
@@ -74,12 +73,7 @@ jobs:
           if [ -n "$INPUT_DATE" ]; then
             TARGET_DATE="$INPUT_DATE"
           else
-            TARGET_DATE="$(python - <<'PY'
-from datetime import datetime
-from zoneinfo import ZoneInfo
-print(datetime.now(ZoneInfo("Europe/Dublin")).strftime("%Y-%m-%d"))
-PY
-)"
+            TARGET_DATE="$(python -c "from datetime import datetime; from zoneinfo import ZoneInfo; print(datetime.now(ZoneInfo('Europe/Dublin')).strftime('%Y-%m-%d'))")"
           fi
 
           SHOULD_BUILD=false
@@ -105,8 +99,7 @@ PY
           echo "should_refresh=$SHOULD_REFRESH" >> "$GITHUB_OUTPUT"
 
       - name: Prepare fixture shards
-        id: prepare_shards
-        if: steps.meta.outputs.should_build == 'true'
+        if: ${{ steps.meta.outputs.should_build == 'true' }}
         env:
           API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
         run: |
@@ -118,22 +111,8 @@ PY
             --shards 4 \
             --output-dir .tmp/match-predictor/shards | tee .tmp/match-predictor/prepare.json
 
-          FIXTURE_COUNT="$(python - <<'PY'
-import json
-from pathlib import Path
-payload = json.loads(Path(".tmp/match-predictor/prepare.json").read_text(encoding="utf-8"))
-print(payload.get("fixture_count", 0))
-PY
-)"
-          echo "fixture_count=$FIXTURE_COUNT" >> "$GITHUB_OUTPUT"
-
-      - name: Default fixture count
-        id: no_build
-        if: steps.meta.outputs.should_build != 'true'
-        run: echo "fixture_count=0" >> "$GITHUB_OUTPUT"
-
       - name: Upload shard inputs
-        if: steps.meta.outputs.should_build == 'true'
+        if: ${{ steps.meta.outputs.should_build == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: match-predictor-shards
@@ -141,7 +120,7 @@ PY
           retention-days: 1
 
       - name: Summary
-        if: always()
+        if: ${{ always() }}
         run: |
           echo "## Match Predictor prepare" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -150,11 +129,10 @@ PY
           echo "- Time range: ${{ steps.meta.outputs.time_min }}-${{ steps.meta.outputs.time_max }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Build needed: ${{ steps.meta.outputs.should_build }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Refresh needed: ${{ steps.meta.outputs.should_refresh }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Fixture count: ${{ steps.prepare_shards.outputs.fixture_count || steps.no_build.outputs.fixture_count || '0' }}" >> "$GITHUB_STEP_SUMMARY"
 
   refresh_only:
     needs: prepare
-    if: needs.prepare.outputs.should_build != 'true' && needs.prepare.outputs.should_refresh == 'true'
+    if: ${{ needs.prepare.outputs.should_build != 'true' && needs.prepare.outputs.should_refresh == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
@@ -194,7 +172,7 @@ PY
 
   build_shard_01:
     needs: prepare
-    if: needs.prepare.outputs.should_build == 'true'
+    if: ${{ needs.prepare.outputs.should_build == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
 
@@ -239,7 +217,7 @@ PY
 
   build_shard_02:
     needs: [prepare, build_shard_01]
-    if: needs.prepare.outputs.should_build == 'true'
+    if: ${{ needs.prepare.outputs.should_build == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
 
@@ -284,7 +262,7 @@ PY
 
   build_shard_03:
     needs: [prepare, build_shard_02]
-    if: needs.prepare.outputs.should_build == 'true'
+    if: ${{ needs.prepare.outputs.should_build == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
 
@@ -329,7 +307,7 @@ PY
 
   build_shard_04:
     needs: [prepare, build_shard_03]
-    if: needs.prepare.outputs.should_build == 'true'
+    if: ${{ needs.prepare.outputs.should_build == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
 
@@ -374,7 +352,7 @@ PY
 
   merge_build:
     needs: [prepare, build_shard_01, build_shard_02, build_shard_03, build_shard_04]
-    if: needs.prepare.outputs.should_build == 'true'
+    if: ${{ needs.prepare.outputs.should_build == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
@@ -446,11 +424,10 @@ PY
           git push origin "HEAD:${GITHUB_REF_NAME:-main}"
 
       - name: Summary
-        if: always()
+        if: ${{ always() }}
         run: |
           echo "## Match Predictor build" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Date: ${{ needs.prepare.outputs.target_date }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Time range: ${{ needs.prepare.outputs.time_min }}-${{ needs.prepare.outputs.time_max }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Fixture count: ${{ needs.prepare.outputs.fixture_count }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Strategy: prepare + 4 sequential shard jobs + merge + refresh." >> "$GITHUB_STEP_SUMMARY"
