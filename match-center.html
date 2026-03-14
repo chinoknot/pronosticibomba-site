@@ -26,7 +26,7 @@
     .status-scheduled{background:rgba(250,204,21,.12);color:#fde68a;border-color:rgba(250,204,21,.26)}.status-live{background:rgba(56,189,248,.12);color:#bae6fd;border-color:rgba(56,189,248,.28)}.status-win{background:rgba(34,197,94,.12);color:#bbf7d0;border-color:rgba(34,197,94,.26)}.status-lose{background:rgba(239,68,68,.12);color:#fecaca;border-color:rgba(239,68,68,.26)}.status-unresolved{background:rgba(148,163,184,.12);color:#d7e3f5;border-color:rgba(148,163,184,.24)}.market-tag{background:rgba(59,130,246,.14);border-color:rgba(59,130,246,.24);color:#dbeafe}.mini-chip{background:rgba(15,23,42,.74);border-color:rgba(148,163,184,.16);color:var(--muted);font-weight:600}.active-filter{background:rgba(10,16,30,.84);border-color:rgba(148,163,184,.18);color:var(--text)}
     .top-pick-time,.top-pick-side{display:flex;flex-direction:column;gap:6px}.top-pick-time strong,.top-pick-side strong{font-size:1.1rem;letter-spacing:-.04em}.top-pick-time span,.top-pick-side small,.pick-meta{color:var(--muted);font-size:.79rem}.top-pick-main h3,.club-line strong,.league-header h3,.detail-hero h3{margin:0;letter-spacing:-.03em}.top-pick-main h3{font-size:1rem;line-height:1.25}.pick-title{font-size:1rem;font-weight:800;line-height:1.3}.top-pick-side{align-items:flex-end;text-align:right}
     .league-feed{display:flex;flex-direction:column;gap:14px}.league-block{border-radius:24px;overflow:hidden;border:1px solid rgba(148,163,184,.14);background:linear-gradient(180deg,rgba(12,19,38,.92),rgba(5,10,22,.98))}.league-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid rgba(148,163,184,.1);background:linear-gradient(90deg,rgba(59,130,246,.16),rgba(8,14,30,.94))}.league-title{display:flex;align-items:center;gap:12px;min-width:0}.league-logo{width:38px;height:38px;object-fit:contain;border-radius:50%;border:1px solid rgba(148,163,184,.14);background:rgba(255,255,255,.06);padding:4px;flex:0 0 auto}.league-header h3{font-size:clamp(1.08rem,2vw,1.35rem)}.league-header p{margin:4px 0 0;color:var(--muted);font-size:.84rem}.league-count{min-width:42px;min-height:42px;padding:0 12px;background:rgba(59,130,246,.2);color:#bfdbfe}
-    .match-list{display:flex;flex-direction:column}.match-row{position:relative;padding:16px 18px;border-top:1px solid rgba(148,163,184,.08);background:linear-gradient(180deg,rgba(10,16,30,.72),rgba(4,9,20,.92));cursor:pointer;transition:border-color .16s ease,background .16s ease,transform .16s ease}.match-row::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:rgba(148,163,184,.18)}.match-row.status-scheduled::before{background:rgba(250,204,21,.9)}.match-row.status-live::before{background:rgba(56,189,248,.95)}.match-row.status-win::before{background:rgba(34,197,94,.95)}.match-row.status-lose::before{background:rgba(239,68,68,.95)}.match-row.status-unresolved::before{background:rgba(148,163,184,.78)}
+    .match-list{display:flex;flex-direction:column}.match-row{position:relative;padding:16px 18px;border-top:1px solid rgba(148,163,184,.08);background:linear-gradient(180deg,rgba(10,16,30,.72),rgba(4,9,20,.92));cursor:pointer;transition:border-color .16s ease,background .16s ease,transform .16s ease}.match-row::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:rgba(148,163,184,.18)}.match-row.status-scheduled::before{background:rgba(250,204,21,.9)}.match-row.status-live::before{background:rgba(56,189,248,.95)}.match-row.status-win{border-top-color:rgba(34,197,94,.18);background:linear-gradient(180deg,rgba(13,42,29,.88),rgba(7,20,17,.98));box-shadow:inset 0 0 0 1px rgba(34,197,94,.14)}.match-row.status-win::before{background:rgba(34,197,94,.95)}.match-row.status-win .match-date,.match-row.status-win .match-score,.match-row.status-win .match-league-line{color:#bbf7d0}.match-row.status-lose{border-top-color:rgba(239,68,68,.18);background:linear-gradient(180deg,rgba(53,16,20,.9),rgba(20,8,12,.98));box-shadow:inset 0 0 0 1px rgba(239,68,68,.16)}.match-row.status-lose::before{background:rgba(239,68,68,.95)}.match-row.status-lose .match-date,.match-row.status-lose .match-score,.match-row.status-lose .match-league-line{color:#fecaca}.match-row.status-unresolved::before{background:rgba(148,163,184,.78)}
     .match-row-inner{display:grid;grid-template-columns:78px minmax(0,1fr) 182px;gap:14px;align-items:center}.match-time-block{display:flex;flex-direction:column;gap:6px}.match-time{font-size:1.08rem;font-weight:800;letter-spacing:-.03em}.match-date{color:var(--muted);font-size:.8rem}.match-teams{min-width:0;display:flex;flex-direction:column;gap:8px}.club-line{display:flex;align-items:center;gap:10px;min-width:0}.team-logo{width:32px;height:32px;object-fit:contain;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(148,163,184,.16);padding:2px;flex:0 0 auto}.club-line strong{display:block;font-size:1rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.match-score{display:flex;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:.82rem;line-height:1.4}
     .match-action{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px 16px;border-radius:999px;border:1px solid rgba(249,115,22,.44);background:linear-gradient(135deg,rgba(18,28,52,.98),rgba(7,12,24,.98));text-align:center;min-height:72px}.match-action strong{font-size:.96rem;line-height:1.2}.match-action small{color:var(--muted);font-size:.74rem;line-height:1.25}.empty-state{padding:32px 18px;border-radius:20px;border:1px dashed rgba(148,163,184,.22);background:rgba(8,14,30,.52);color:var(--muted);text-align:center;line-height:1.6}
     .screen-overlay{position:fixed;inset:0;background:rgba(2,6,23,.64);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .18s ease;z-index:40}.screen-overlay.visible{opacity:1;pointer-events:auto}
@@ -158,13 +158,16 @@
     <section class="panel section-block section-feed-block">
       <div class="section-banner section-banner-soon">
         <div class="section-banner-main">
-          <span class="section-banner-icon" aria-hidden="true">ORA</span>
+          <span class="section-banner-icon" aria-hidden="true">NEXT 30</span>
           <div>
-            <h2 id="top-picks-title">Partite in arrivo</h2>
-            <p id="top-picks-copy">Calcio d'inizio nei prossimi 30 minuti, con pick principale gia visibile.</p>
+            <h2 id="top-picks-title">Partite che partono adesso</h2>
+            <p id="top-picks-copy">Solo live e kickoff imminenti: qui devono stare le selezioni piu calde della prossima mezz'ora.</p>
           </div>
         </div>
-        <span class="section-badge" id="top-picks-badge">0</span>
+        <div class="section-banner-side">
+          <span class="section-badge" id="top-picks-badge">0</span>
+          <span class="section-mini-stats" id="top-picks-form">0V / 0R</span>
+        </div>
       </div>
       <div class="top-picks-rail" id="top-picks"></div>
     </section>
@@ -281,13 +284,19 @@
     .section-feed-block{padding:0;overflow:hidden;gap:0;background:linear-gradient(180deg,rgba(10,16,30,.92),rgba(4,8,19,.98))}
     .section-feed-block .league-block{border:1px solid rgba(148,163,184,.12);border-radius:16px;background:rgba(7,12,24,.72);box-shadow:none}
     .section-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(148,163,184,.08);background:linear-gradient(180deg,rgba(11,16,28,.98),rgba(6,10,21,.98))}
-    .section-banner-soon{box-shadow:none;border-top-color:rgba(233,179,74,.26)}
+    .section-banner-soon{box-shadow:inset 0 1px 0 rgba(251,191,36,.18);border-top-color:rgba(249,115,22,.52);background:radial-gradient(circle at top right,rgba(249,115,22,.16),transparent 42%),linear-gradient(180deg,rgba(21,15,12,.98),rgba(10,10,18,.98))}
     .section-banner-board{box-shadow:none;border-top-color:rgba(148,163,184,.18)}
     .section-banner-main{display:flex;align-items:center;gap:10px;min-width:0}
+    .section-banner-side{display:flex;align-items:center;gap:8px}
     .section-banner-icon{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.16);background:rgba(255,255,255,.04);font-size:.58rem;font-weight:800;letter-spacing:.14em;color:#dce8fb;flex:0 0 auto}
     .section-banner h2{margin:0;font-size:.96rem;line-height:1.12;letter-spacing:-.02em}
     .section-banner p{margin:3px 0 0;color:#8ea0ba;font-size:.71rem;line-height:1.24}
     .section-badge{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:32px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.14);background:rgba(255,255,255,.04);font-size:.84rem;font-weight:800;color:#eef4ff}
+    .section-mini-stats{display:inline-flex;align-items:center;justify-content:center;min-width:58px;height:32px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.14);background:rgba(255,255,255,.04);font-size:.72rem;font-weight:800;color:#fef3c7}
+    .section-banner-soon .section-banner-icon{border-color:rgba(249,115,22,.34);background:rgba(249,115,22,.12);color:#fdba74}
+    .section-banner-soon h2{font-size:1.08rem;font-weight:900;color:#fff7ed}
+    .section-banner-soon p{color:#fcd7aa}
+    .section-banner-soon .section-badge,.section-banner-soon .section-mini-stats{border-color:rgba(249,115,22,.24);background:rgba(249,115,22,.08)}
     .top-picks-rail{display:flex;flex-direction:column;gap:0}
     .league-feed{display:flex;flex-direction:column;gap:12px;padding:12px}
     .top-pick-list,.match-list{display:flex;flex-direction:column}
@@ -375,6 +384,8 @@
       .section-banner{padding:10px 12px}
       .section-banner p{display:none}
       .section-banner h2{font-size:.94rem}
+      .section-banner-side{gap:6px}
+      .section-mini-stats{min-width:52px;padding:0 8px;font-size:.68rem}
       .section-badge{min-width:30px;height:30px;font-size:.8rem}
       .league-feed{padding:10px;gap:10px}
       .league-header{padding:9px 10px;flex-direction:row;align-items:center}

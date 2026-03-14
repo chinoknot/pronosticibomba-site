@@ -915,6 +915,8 @@
     const settled = matches.flatMap(match => match.visibleMarkets);
     const winCount = settled.filter(market => market.status === "win").length;
     const loseCount = settled.filter(market => market.status === "lose").length;
+    const topWins = topPicks.filter(pick => pick.status === "win").length;
+    const topLoses = topPicks.filter(pick => pick.status === "lose").length;
     document.getElementById("summary-matches").textContent = String(matches.length);
     document.getElementById("summary-top").textContent = String(topPicks.length);
     document.getElementById("summary-live").textContent = `${liveCount} / ${finalCount}`;
@@ -924,8 +926,10 @@
     document.getElementById("hero-date-value").textContent = state.selectedDate ? formatDate(state.selectedDate, { weekday: "short", day: "2-digit", month: "short", year: "numeric" }) : "-";
     document.getElementById("hero-sync-value").textContent = formatDateTime(state.cache?.refreshed_at || state.cache?.generated_at);
     const topBadge = document.getElementById("top-picks-badge");
+    const topForm = document.getElementById("top-picks-form");
     const matchBadge = document.getElementById("matches-badge");
     if (topBadge) topBadge.textContent = String(topPicks.length);
+    if (topForm) topForm.textContent = `${topWins}V / ${topLoses}R`;
     if (matchBadge) matchBadge.textContent = String(matches.length);
   }
 
