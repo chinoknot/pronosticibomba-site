@@ -108,6 +108,11 @@ def nudge_prob(value, factor=1.04, low=0.03, high=0.97):
     centered = 0.5 + (float(value) - 0.5) * factor
     return clamp_prob(centered, low, high)
 
+def half_lines(start, end):
+    start_i = int(round(float(start) * 2))
+    end_i = int(round(float(end) * 2))
+    return [round(value / 2.0, 1) for value in range(start_i, end_i + 1, 2)]
+
 
 # ==========================
 # API LAYER
@@ -686,7 +691,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     # Corner over probabilities using normal approximation (std ≈ 3.0 for corners)
     corner_std = 3.0
     corner_overs = {}
-    for line in [7.5, 8.5, 9.5, 10.5]:
+    for line in half_lines(6.5, 13.5):
         if exp_corners > 0:
             z = (line - exp_corners) / corner_std
             p_c_over = 1.0 - 0.5 * (1.0 + math.erf(z / math.sqrt(2)))
@@ -704,8 +709,8 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
 
     # Yellow over probabilities using Poisson
     yellow_overs = {}
-    for line_int in [2, 3, 4]:
-        line = line_int + 0.5  # over 2.5, 3.5, 4.5
+    for line in half_lines(1.5, 7.5):
+        line_int = int(math.floor(line))
         if exp_yellows > 0:
             p_y_over = p_over(exp_yellows, line_int + 1)
             yellow_overs[str(line)] = round(max(0.02, min(0.98, p_y_over)), 4)

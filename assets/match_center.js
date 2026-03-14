@@ -13,6 +13,10 @@
     { id: "lt_300", label: "< 3.00", from: 1.01, to: 3 },
     { id: "band_200_300", label: "2.00-3.00", from: 2, to: 3 },
   ];
+  const TOTAL_MARKET_RULES = {
+    corners: { strongMin: 0.50, softMin: 0.44, impactLine: 12.5 },
+    yellows: { strongMin: 0.50, softMin: 0.42, impactLine: 5.5 },
+  };
   const GROUPS = [
     { id: "goals", short: "O/U", label: "Goal" },
     { id: "double", short: "DC", label: "Doppia chance" },
@@ -316,11 +320,38 @@
   }
 
   function normalizeMap(raw) {
-    return Object.entries(raw || {}).filter(([, value]) => value != null).map(([key, value]) => ({ key, value: Number(value) }));
+    return Object.entries(raw || {})
+      .filter(([, value]) => value != null)
+      .map(([key, value]) => ({ key, line: Number(key), value: Number(value) }))
+      .filter(item => Number.isFinite(item.line) && Number.isFinite(item.value))
+      .sort((a, b) => a.line - b.line);
   }
 
-  function bestLine(raw) {
-    return normalizeMap(raw).sort((a, b) => b.value - a.value)[0] || null;
+  function isDynamicTotalMarket(marketId) {
+    return marketId === "corners" || marketId === "yellows";
+  }
+
+  function isImpactLine(marketId, line) {
+    const threshold = TOTAL_MARKET_RULES[marketId]?.impactLine;
+    return Number.isFinite(Number(threshold)) && Number(line) >= Number(threshold);
+  }
+
+  function impactLabel(marketId, line) {
+    return isImpactLine(marketId, line) ? "Linea alta" : "";
+  }
+
+  function bestLine(raw, marketId = "") {
+    const options = normalizeMap(raw);
+    if (!options.length) return null;
+    if (!isDynamicTotalMarket(marketId)) {
+      return [...options].sort((a, b) => b.value - a.value || b.line - a.line)[0] || null;
+    }
+    const { strongMin, softMin } = TOTAL_MARKET_RULES[marketId];
+    const strong = options.filter(option => option.value >= strongMin);
+    if (strong.length) return strong[strong.length - 1];
+    const soft = options.filter(option => option.value >= softMin);
+    if (soft.length) return soft[soft.length - 1];
+    return [...options].sort((a, b) => b.value - a.value || b.line - a.line)[0] || null;
   }
 
   function marketGroup(groupId) {
@@ -635,8 +666,24 @@
   }
 
   function buildMarkets(match) {
-    const cornerLine = bestLine(match.corner_overs);
-    const yellowLine = bestLine(match.yellow_overs);
+    const cornerOptions = normalizeMap(match.corner_overs).map(item => ({
+      label: `Over ${item.key}`,
+      probability: item.value,
+      odd: null,
+      line: item.line,
+      highImpact: isImpactLine("corners", item.line),
+      impactLabel: impactLabel("corners", item.line),
+    }));
+    const yellowOptions = normalizeMap(match.yellow_overs).map(item => ({
+      label: `Over ${item.key}`,
+      probability: item.value,
+      odd: null,
+      line: item.line,
+      highImpact: isImpactLine("yellows", item.line),
+      impactLabel: impactLabel("yellows", item.line),
+    }));
+    const cornerLine = bestLine(match.corner_overs, "corners");
+    const yellowLine = bestLine(match.yellow_overs, "yellows");
     return [
       { id: "ou15", group: "goals", title: "Over / Under 1.5", pickLabel: match.ou15_pick, pickProbability: match.ou15_conf, options: [{ label: "Over 1.5", probability: match.p_over15, odd: match.odd_o15 }, { label: "Under 1.5", probability: match.p_under15, odd: match.odd_u15 }] },
       { id: "ou25", group: "goals", title: "Over / Under 2.5", pickLabel: match.ou_pick, pickProbability: match.ou_conf, options: [{ label: "Over 2.5", probability: match.p_over25, odd: match.odd_o25 }, { label: "Under 2.5", probability: match.p_under25, odd: match.odd_u25 }] },
@@ -645,8 +692,8 @@
       { id: "btts", group: "btts", title: "Both Teams To Score", pickLabel: match.btts_pick, pickProbability: match.btts_conf, options: [{ label: "BTTS YES", probability: match.p_btts_yes, odd: match.odd_btts_y }, { label: "BTTS NO", probability: match.p_btts_no, odd: match.odd_btts_n }] },
       { id: "combo", group: "combo", title: "Combo Goals", pickLabel: "Over 2.5 + BTTS", pickProbability: match.p_o25_btts, options: [{ label: "Over 2.5 + BTTS", probability: match.p_o25_btts, odd: null }] },
       { id: "nogol", group: "blank", title: "No goal", pickLabel: `${match.nogol_team} ${TEXT.teamBlank}`, pickProbability: Math.max(Number(match.p_home_blanked || 0), Number(match.p_away_blanked || 0)), options: [{ label: `${match.home} ${TEXT.teamBlank}`, probability: match.p_home_blanked, odd: null }, { label: `${match.away} ${TEXT.teamBlank}`, probability: match.p_away_blanked, odd: null }] },
-      { id: "corners", group: "corners", title: "Corner", pickLabel: cornerLine ? `Over ${cornerLine.key}` : "", pickProbability: cornerLine ? cornerLine.value : null, expected: match.exp_corners, actual: match.total_corners, options: normalizeMap(match.corner_overs).map(item => ({ label: `Over ${item.key}`, probability: item.value, odd: null })) },
-      { id: "yellows", group: "yellows", title: "Cartellini", pickLabel: yellowLine ? `Over ${yellowLine.key}` : "", pickProbability: yellowLine ? yellowLine.value : null, expected: match.exp_yellows, actual: match.total_yellows, options: normalizeMap(match.yellow_overs).map(item => ({ label: `Over ${item.key}`, probability: item.value, odd: null })) },
+      { id: "corners", group: "corners", title: "Corner", pickLabel: cornerLine ? `Over ${cornerLine.key}` : "", pickProbability: cornerLine ? cornerLine.value : null, expected: match.exp_corners, actual: match.total_corners, highImpact: Boolean(cornerLine && isImpactLine("corners", cornerLine.line)), impactLabel: cornerLine ? impactLabel("corners", cornerLine.line) : "", options: cornerOptions },
+      { id: "yellows", group: "yellows", title: "Cartellini", pickLabel: yellowLine ? `Over ${yellowLine.key}` : "", pickProbability: yellowLine ? yellowLine.value : null, expected: match.exp_yellows, actual: match.total_yellows, highImpact: Boolean(yellowLine && isImpactLine("yellows", yellowLine.line)), impactLabel: yellowLine ? impactLabel("yellows", yellowLine.line) : "", options: yellowOptions },
     ].map(market => ({ ...market, status: resolveMarketStatus(match, market), tag: marketGroup(market.group)?.short || market.group.toUpperCase() }));
   }
 
@@ -741,6 +788,8 @@
           pickProbability: headline.pickProbability,
           status: headline.status,
           tag: headline.tag,
+          impactLabel: headline.impactLabel || "",
+          highImpact: Boolean(headline.highImpact),
           odd: picked?.odd ?? null,
           displayScore: marketDisplayScore(headline),
         };
@@ -921,6 +970,7 @@
       if (pick.pickProbability != null) meta.push(formatPercent(pick.pickProbability));
       if (pick.odd) meta.push(`${TEXT.odds} ${formatOdd(pick.odd)}`);
       else meta.push(pick.tag);
+      if (pick.impactLabel) meta.push(pick.impactLabel);
       return `
         <article class="match-row match-row-featured status-${pick.status}" data-fixture-open="${pick.fixtureId}">
           <div class="match-row-inner">
@@ -936,7 +986,7 @@
                 <span class="club-line compact"><strong>${escapeHtml(pick.away)}</strong></span>
               </div>
             </div>
-            <div class="match-action">
+            <div class="match-action${pick.highImpact ? " match-action-impact" : ""}">
               <strong>${escapeHtml(pick.pickLabel || "-")}</strong>
               <small>${escapeHtml(meta.join(" | "))}</small>
             </div>
@@ -956,6 +1006,7 @@
     if (primary?.pickProbability != null) meta.push(formatPercent(primary.pickProbability));
     if (picked?.odd) meta.push(`${TEXT.odds} ${formatOdd(picked.odd)}`);
     else if (primary?.tag) meta.push(primary.tag);
+    if (primary?.impactLabel) meta.push(primary.impactLabel);
     if (match.visibleMarkets.length) meta.push(`${match.visibleMarkets.length} ${TEXT.markets}`);
     const scoreText = FINAL_STATUSES.has(fixtureStatus)
       ? `${TEXT.final} | ${escapeHtml(match.final_score || "-")}`
@@ -976,7 +1027,7 @@
             </div>
             <div class="match-score">${scoreText}</div>
           </div>
-          <div class="match-action">
+          <div class="match-action${primary?.highImpact ? " match-action-impact" : ""}">
             <strong>${escapeHtml(primary?.pickLabel || TEXT.viewMatch)}</strong>
             <small>${escapeHtml(meta.join(" | ") || TEXT.viewMatch)}</small>
           </div>
@@ -1026,12 +1077,13 @@
   function renderMarketCard(market) {
     const expected = market.expected != null ? `<div class="market-expected"><span>${TEXT.expected}</span><strong>${Number(market.expected).toFixed(1)}</strong></div>` : "";
     const actual = market.actual != null ? `<div class="market-expected"><span>${TEXT.actual}</span><strong>${Number(market.actual).toFixed(1)}</strong></div>` : "";
-    const options = (market.options || []).slice(0, 4).map(option => `<div class="market-option"><span>${escapeHtml(option.label)}</span><strong>${formatPercent(option.probability)}${option.odd ? ` | ${TEXT.odds} ${formatOdd(option.odd)}` : ""}</strong></div>`).join("");
+    const visibleOptions = isDynamicTotalMarket(market.id) ? (market.options || []) : (market.options || []).slice(0, 4);
+    const options = visibleOptions.map(option => `<div class="market-option${option.highImpact ? " market-option-impact" : ""}"><span>${escapeHtml(option.label)}${option.impactLabel ? ` <em>${escapeHtml(option.impactLabel)}</em>` : ""}</span><strong>${formatPercent(option.probability)}${option.odd ? ` | ${TEXT.odds} ${formatOdd(option.odd)}` : ""}</strong></div>`).join("");
     return `
-      <article class="market-card status-${market.status}">
+      <article class="market-card status-${market.status}${market.highImpact ? " market-card-impact" : ""}">
         <div class="market-title-row">
           <div><div class="market-title">${escapeHtml(market.title)}</div><div class="market-pick">${escapeHtml(market.pickLabel || "-")}</div></div>
-          <span class="market-tag">${escapeHtml(market.tag)}</span>
+          <span class="market-tag${market.highImpact ? " market-tag-impact" : ""}">${escapeHtml(market.highImpact ? `${market.tag} | ${market.impactLabel}` : market.tag)}</span>
         </div>
         <div class="meta-row"><span class="status-pill status-${market.status}">${statusLabel(market.status)}</span><div class="market-probability">${formatPercent(market.pickProbability)}</div></div>
         ${expected}
