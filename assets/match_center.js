@@ -41,12 +41,40 @@
     ["England", 10],
     ["Germany", 20],
     ["France", 30],
-    ["Portugal", 40],
-    ["Spain", 50],
+    ["Spain", 40],
+    ["Portugal", 50],
     ["Netherlands", 60],
     ["Belgium", 70],
-    ["Scotland", 80],
-    ["Turkey", 90],
+    ["Turkey", 80],
+    ["Scotland", 90],
+    ["Austria", 100],
+    ["Switzerland", 110],
+    ["Denmark", 120],
+    ["Sweden", 130],
+    ["Norway", 140],
+    ["Czech-Republic", 150],
+    ["Greece", 160],
+    ["Poland", 170],
+    ["Croatia", 180],
+    ["Serbia", 190],
+    ["Ukraine", 200],
+  ]);
+  const FEATURED_COUNTRY_PRIORITY = new Map([
+    ["Netherlands", 0],
+    ["Belgium", 10],
+    ["Turkey", 20],
+    ["Scotland", 30],
+    ["Austria", 40],
+    ["Switzerland", 50],
+    ["Denmark", 60],
+    ["Sweden", 70],
+    ["Norway", 80],
+    ["Greece", 90],
+    ["Czech-Republic", 100],
+    ["Poland", 110],
+    ["Ukraine", 120],
+    ["Croatia", 130],
+    ["Serbia", 140],
   ]);
   const EUROPEAN_COUNTRIES = new Set([
     "Italy", "England", "Spain", "Germany", "France", "Portugal", "Netherlands", "Belgium", "Scotland", "Turkey",
@@ -81,8 +109,17 @@
     [/^premier league$/i, 1],
     [/^bundesliga$/i, 2],
     [/^ligue 1$/i, 3],
-    [/^primeira liga$/i, 4],
+    [/^la liga/i, 4],
+    [/^primeira liga$/i, 5],
   ];
+  const TOP_COUNTRY_PRIORITY = new Map([
+    ["Italy", 0],
+    ["England", 10],
+    ["Germany", 20],
+    ["France", 30],
+    ["Spain", 40],
+    ["Portugal", 50],
+  ]);
   const TEXT = {
     noCache: "La cache predictor non e ancora stata generata dal workflow.",
     empty: "Nessun dato disponibile per i filtri selezionati.",
@@ -141,7 +178,6 @@
     heroOddPresets: document.getElementById("hero-odd-presets"),
     heroTimeFrom: document.getElementById("hero-time-from"),
     heroTimeTo: document.getElementById("hero-time-to"),
-    sortToggle: document.getElementById("sort-toggle"),
     searchLauncher: document.getElementById("search-launcher"),
     dateJump: document.getElementById("date-jump"),
     filterLauncher: document.getElementById("filter-launcher"),
@@ -313,8 +349,104 @@
   }
 
   function leaguePriority(country, league) {
-    for (const [rule, rank] of LEAGUE_PRIORITY_RULES) {
-      if (rule.test(String(league || ""))) return rank;
+    const leagueName = String(league || "");
+    if (country === "Italy") {
+      if (/^serie a$/i.test(leagueName)) return 0;
+      if (/^serie b$/i.test(leagueName)) return 50;
+      if (/serie a women/i.test(leagueName)) return 51;
+      if (/campionato primavera|primavera/i.test(leagueName)) return 52;
+      if (/serie c/i.test(leagueName)) return 53;
+      if (/coppa italia|super cup/i.test(leagueName)) return 54;
+    }
+    if (country === "England") {
+      if (/^premier league$/i.test(leagueName)) return 10;
+      if (/championship/i.test(leagueName)) return 60;
+      if (/league one/i.test(leagueName)) return 61;
+      if (/league two/i.test(leagueName)) return 62;
+      if (/fa cup|league cup|efl cup/i.test(leagueName)) return 63;
+      if (/u18 premier league|premier league 2/i.test(leagueName)) return 64;
+    }
+    if (country === "Germany") {
+      if (/^bundesliga$/i.test(leagueName)) return 20;
+      if (/2\. bundesliga/i.test(leagueName)) return 80;
+    }
+    if (country === "France") {
+      if (/^ligue 1$/i.test(leagueName)) return 30;
+      if (/^ligue 2$/i.test(leagueName)) return 90;
+    }
+    if (country === "Spain") {
+      if (/la liga|laliga/i.test(leagueName)) return 35;
+      if (/segunda/i.test(leagueName)) return 95;
+    }
+    if (country === "Portugal") {
+      if (/^primeira liga$/i.test(leagueName)) return 40;
+      if (/liga portugal 2|segunda liga/i.test(leagueName)) return 100;
+    }
+    if (country === "World" && /champions league|europa league|conference league/i.test(leagueName)) return 45;
+    if (country === "Netherlands") {
+      if (/^eredivisie$/i.test(leagueName)) return 60;
+      if (/eerste/i.test(leagueName)) return 61;
+      if (/tweede/i.test(leagueName)) return 62;
+      if (/derde/i.test(leagueName)) return 63;
+    }
+    if (country === "Belgium") {
+      if (/^jupiler pro league$/i.test(leagueName) || /^pro league$/i.test(leagueName)) return 70;
+      if (/challenger/i.test(leagueName)) return 71;
+      if (/amateur/i.test(leagueName)) return 72;
+    }
+    if (country === "Turkey") {
+      if (/^s(?:u|ü)per lig$/i.test(leagueName)) return 80;
+      if (/1\. lig/i.test(leagueName)) return 81;
+      if (/2\. lig/i.test(leagueName)) return 82;
+      if (/3\. lig/i.test(leagueName)) return 83;
+    }
+    if (country === "Scotland") {
+      if (/^premiership$/i.test(leagueName)) return 90;
+      if (/championship/i.test(leagueName)) return 91;
+    }
+    if (country === "Austria") {
+      if (/bundesliga/i.test(leagueName)) return 100;
+      if (/2\. liga/i.test(leagueName)) return 101;
+    }
+    if (country === "Switzerland") {
+      if (/^super league$/i.test(leagueName)) return 110;
+      if (/challenge league/i.test(leagueName)) return 111;
+    }
+    if (country === "Denmark") {
+      if (/^superliga$/i.test(leagueName)) return 120;
+      if (/1st division|1\. division/i.test(leagueName)) return 121;
+    }
+    if (country === "Sweden") {
+      if (/^allsvenskan$/i.test(leagueName)) return 130;
+      if (/superettan/i.test(leagueName)) return 131;
+    }
+    if (country === "Norway") {
+      if (/^eliteserien$/i.test(leagueName)) return 140;
+      if (/obos/i.test(leagueName)) return 141;
+    }
+    if (country === "Czech-Republic") {
+      if (/^1\. liga$/i.test(leagueName) || /^chance liga$/i.test(leagueName)) return 150;
+      if (/fnl|2\. liga/i.test(leagueName)) return 151;
+    }
+    if (country === "Greece") {
+      if (/^super league(?: 1)?$/i.test(leagueName)) return 160;
+      if (/super league 2/i.test(leagueName)) return 161;
+    }
+    if (country === "Poland") {
+      if (/^ekstraklasa$/i.test(leagueName)) return 170;
+      if (/i liga|1\. liga/i.test(leagueName)) return 171;
+    }
+    if (country === "Croatia") {
+      if (/^hnl$/i.test(leagueName)) return 180;
+      if (/1\. nl|druga/i.test(leagueName)) return 181;
+    }
+    if (country === "Serbia") {
+      if (/^super liga$/i.test(leagueName)) return 190;
+      if (/prva liga/i.test(leagueName)) return 191;
+    }
+    if (country === "Ukraine") {
+      if (/^premier league$/i.test(leagueName)) return 200;
+      if (/persha/i.test(leagueName)) return 201;
     }
     const countryRank = COUNTRY_PRIORITY.get(country);
     if (countryRank != null) return countryRank + 5;
@@ -322,24 +454,74 @@
     return 300;
   }
 
-  function topLeaguePriority(league) {
-    for (const [rule, rank] of TOP_LEAGUE_RULES) {
-      if (rule.test(String(league || ""))) return rank;
-    }
+  function topLeaguePriority(country, league) {
+    const leagueName = String(league || "");
+    if (country === "Italy" && /^serie a$/i.test(leagueName)) return 0;
+    if (country === "England" && /^premier league$/i.test(leagueName)) return 1;
+    if (country === "Germany" && /^bundesliga$/i.test(leagueName)) return 2;
+    if (country === "France" && /^ligue 1$/i.test(leagueName)) return 3;
+    if (country === "Spain" && /la liga|laliga/i.test(leagueName)) return 4;
+    if (country === "Portugal" && /^primeira liga$/i.test(leagueName)) return 5;
     return 999;
   }
 
+  function isMinorLeagueName(league) {
+    return /\b2\b|segunda|serie b|serie c|league one|league two|championship|liga 2|ligue 2|superettan|obos|1st division|1\. division|eerste|tweede|derde|challenge league|challenger|amateur|1\. lig|2\. lig|3\. lig|super league 2|fnl|prva liga|persha|regionalliga|landesliga|lowland|highland|frauen|u\d{1,2}|women|femin|primavera|reserve|reserves|youth|cup/i.test(String(league || ""));
+  }
+
+  function isEliteWorldCompetition(league) {
+    return /\buefa champions league\b|\buefa europa league\b|\buefa europa conference league\b|\bchampions league women\b/i.test(String(league || ""));
+  }
+
+  function isSecondaryWorldCompetition(league) {
+    return /champions league|europa league|conference league|libertadores|sudamericana|concacaf|caf|afc champions|leagues cup/i.test(String(league || ""));
+  }
+
+  function isFeaturedTopDivision(country, league) {
+    const leagueName = String(league || "");
+    if (country === "Netherlands") return /^eredivisie$/i.test(leagueName);
+    if (country === "Belgium") return /^jupiler pro league$/i.test(leagueName) || /^pro league$/i.test(leagueName);
+    if (country === "Turkey") return /^s(?:u|ü)per lig$/i.test(leagueName);
+    if (country === "Scotland") return /^premiership$/i.test(leagueName);
+    if (country === "Austria") return /^bundesliga$/i.test(leagueName);
+    if (country === "Switzerland") return /^super league$/i.test(leagueName);
+    if (country === "Denmark") return /^superliga$/i.test(leagueName);
+    if (country === "Sweden") return /^allsvenskan$/i.test(leagueName);
+    if (country === "Norway") return /^eliteserien$/i.test(leagueName);
+    if (country === "Czech-Republic") return /^1\. liga$/i.test(leagueName) || /^chance liga$/i.test(leagueName);
+    if (country === "Greece") return /^super league(?: 1)?$/i.test(leagueName);
+    if (country === "Poland") return /^ekstraklasa$/i.test(leagueName);
+    if (country === "Croatia") return /^hnl$/i.test(leagueName);
+    if (country === "Serbia") return /^super liga$/i.test(leagueName);
+    if (country === "Ukraine") return /^premier league$/i.test(leagueName);
+    return false;
+  }
+
+  function competitionTier(country, league) {
+    const majorRank = topLeaguePriority(country, league);
+    if (majorRank !== 999) return [0, majorRank];
+    if (FEATURED_COUNTRY_PRIORITY.has(country) && isFeaturedTopDivision(country, league)) return [1, FEATURED_COUNTRY_PRIORITY.get(country)];
+    if (country === "World" && isEliteWorldCompetition(league)) return [2, 0];
+    if (TOP_COUNTRY_PRIORITY.has(country)) return [3, TOP_COUNTRY_PRIORITY.get(country)];
+    if (EUROPEAN_COUNTRIES.has(country) && !isMinorLeagueName(league)) return [4, COUNTRY_PRIORITY.get(country) ?? 999];
+    if (country === "World" && isSecondaryWorldCompetition(league)) return [5, 0];
+    if (EUROPEAN_COUNTRIES.has(country)) return [5, (COUNTRY_PRIORITY.get(country) ?? 999) + 50];
+    return [6, 999];
+  }
+
+  function isMajorLeagueGroup(group) {
+    return competitionTier(group.country, group.league)[0] <= 1;
+  }
+
   function groupSortKey(group) {
-    const countryRank = COUNTRY_PRIORITY.get(group.country);
+    const [tier, tierRank] = competitionTier(group.country, group.league);
     const leagueRank = leaguePriority(group.country, group.league);
-    const featuredCountryRank = countryRank != null ? countryRank : (EUROPEAN_COUNTRIES.has(group.country) ? 120 : 300);
-    return [topLeaguePriority(group.league), featuredCountryRank, leagueRank, group.matches[0]?.match_time || "", group.league || "", group.country || ""];
+    return [tier, tierRank, leagueRank, group.matches[0]?.match_time || "", group.league || "", group.country || ""];
   }
 
   function matchSortKey(match) {
-    const countryRank = COUNTRY_PRIORITY.get(match.country);
-    const featuredCountryRank = countryRank != null ? countryRank : (EUROPEAN_COUNTRIES.has(match.country) ? 120 : 300);
-    return [topLeaguePriority(match.league), featuredCountryRank, leaguePriority(match.country, match.league), match.match_time || "", match.league || "", match.home || ""];
+    const [tier, tierRank] = competitionTier(match.country, match.league);
+    return [tier, tierRank, leaguePriority(match.country, match.league), match.match_time || "", match.league || "", match.home || ""];
   }
 
   function marketDisplayScore(market) {
@@ -662,7 +844,6 @@
     document.getElementById("hero-window-value").textContent = `${state.timeFrom} - ${state.timeTo}`;
     document.getElementById("hero-date-value").textContent = state.selectedDate ? formatDate(state.selectedDate, { weekday: "short", day: "2-digit", month: "short", year: "numeric" }) : "-";
     document.getElementById("hero-sync-value").textContent = formatDateTime(state.cache?.refreshed_at || state.cache?.generated_at);
-    if (dom.sortToggle) dom.sortToggle.classList.toggle("active", state.sortMode === "time");
     const topBadge = document.getElementById("top-picks-badge");
     const matchBadge = document.getElementById("matches-badge");
     if (topBadge) topBadge.textContent = String(topPicks.length);
@@ -793,21 +974,23 @@
           return 0;
         }),
     }));
-    dom.leagueFeed.innerHTML = groups.map(group => `
-      <section class="league-block">
-        <div class="league-header">
-          <div class="league-title">
-            ${group.logo ? `<img class="league-logo" src="${group.logo}" alt="" loading="lazy" />` : `<span class="league-dot" aria-hidden="true"></span>`}
-            <div>
-              <h3>${escapeHtml(group.league)}</h3>
-              <p>${escapeHtml(group.country)}</p>
-            </div>
+    dom.leagueFeed.innerHTML = groups.map(group => {
+      const header = `
+        <div class="league-title">
+          ${group.logo ? `<img class="league-logo" src="${group.logo}" alt="" loading="lazy" />` : `<span class="league-dot" aria-hidden="true"></span>`}
+          <div>
+            <h3>${escapeHtml(group.league)}</h3>
+            <p>${escapeHtml(group.country)}</p>
           </div>
-          <span class="league-count">${group.matches.length}</span>
         </div>
-        <div class="match-list">${group.matches.map(match => renderMatchRow(match, { showLeagueLine: false })).join("")}</div>
-      </section>
-    `).join("");
+        <span class="league-count">${group.matches.length}</span>
+      `;
+      const content = `<div class="match-list">${group.matches.map(match => renderMatchRow(match, { showLeagueLine: false })).join("")}</div>`;
+      if (isMajorLeagueGroup(group)) {
+        return `<section class="league-block league-block-major"><div class="league-header">${header}</div>${content}</section>`;
+      }
+      return `<details class="league-block league-accordion"${state.search ? " open" : ""}><summary class="league-header league-summary">${header}<span class="league-caret" aria-hidden="true"></span></summary>${content}</details>`;
+    }).join("");
   }
 
   function renderMarketCard(market) {
@@ -978,12 +1161,6 @@
       dom.filterLauncher.addEventListener("click", () => {
         state.filterOpen = true;
         syncModalState();
-      });
-    }
-    if (dom.sortToggle) {
-      dom.sortToggle.addEventListener("click", () => {
-        state.sortMode = state.sortMode === "priority" ? "time" : "priority";
-        render();
       });
     }
     dom.filterToggle.addEventListener("click", () => {

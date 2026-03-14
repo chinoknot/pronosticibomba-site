@@ -63,9 +63,6 @@
         </div>
         <div class="hero-actions">
           <div class="app-icon-row">
-            <button type="button" class="icon-button" id="sort-toggle" aria-label="Ordina">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4V20"></path><path d="M7 20L4 17"></path><path d="M7 20L10 17"></path><path d="M17 20V4"></path><path d="M17 4L14 7"></path><path d="M17 4L20 7"></path></svg>
-            </button>
             <button type="button" class="icon-button" id="search-launcher" aria-label="Cerca">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20L17 17"></path></svg>
             </button>
@@ -159,12 +156,12 @@
       </button>
     </section>
     <section class="panel section-block section-feed-block">
-      <div class="section-banner section-banner-free">
+      <div class="section-banner section-banner-soon">
         <div class="section-banner-main">
-          <span class="section-banner-icon" aria-hidden="true">&#9734;</span>
+          <span class="section-banner-icon" aria-hidden="true">ORA</span>
           <div>
-            <h2 id="top-picks-title">Partite che stanno per iniziare</h2>
-            <p id="top-picks-copy">Le pick piu utili da giocare adesso o entro 30 minuti.</p>
+            <h2 id="top-picks-title">Partite in arrivo</h2>
+            <p id="top-picks-copy">Calcio d'inizio nei prossimi 30 minuti, con pick principale gia visibile.</p>
           </div>
         </div>
         <span class="section-badge" id="top-picks-badge">0</span>
@@ -173,12 +170,12 @@
     </section>
     <div class="active-filters" id="active-filters"></div>
     <section class="panel section-block section-feed-block">
-      <div class="section-banner section-banner-ai">
+      <div class="section-banner section-banner-board">
         <div class="section-banner-main">
-          <span class="section-banner-icon" aria-hidden="true">&#127942;</span>
+          <span class="section-banner-icon" aria-hidden="true">LEGHE</span>
           <div>
-            <h2 id="matches-title">Previsioni IA Piu Affidabili di Oggi</h2>
-            <p id="matches-copy">Lista compatta: la pick e gia visibile, il dettaglio si apre toccando la partita.</p>
+            <h2 id="matches-title">Campionati del giorno</h2>
+            <p id="matches-copy">Prima le leghe forti, poi seconde fasce, campionati minori e resto del palinsesto.</p>
           </div>
         </div>
         <span class="section-badge" id="matches-badge">0</span>
@@ -283,14 +280,14 @@
     .yesterday-arrow{margin-left:auto;color:#c8e6dd;font-size:1.3rem;line-height:1}
     .section-feed-block{padding:0;overflow:hidden;gap:0;background:linear-gradient(180deg,rgba(10,16,30,.92),rgba(4,8,19,.98))}
     .section-feed-block .league-block{border:1px solid rgba(148,163,184,.12);border-radius:16px;background:rgba(7,12,24,.72);box-shadow:none}
-    .section-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-bottom:1px solid rgba(148,163,184,.08)}
-    .section-banner-free{background:linear-gradient(90deg,#1cced4,#1295c7)}
-    .section-banner-ai{background:linear-gradient(90deg,#145ea8,#1d87df)}
+    .section-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(148,163,184,.08);background:linear-gradient(180deg,rgba(11,16,28,.98),rgba(6,10,21,.98))}
+    .section-banner-soon{box-shadow:none;border-top-color:rgba(233,179,74,.26)}
+    .section-banner-board{box-shadow:none;border-top-color:rgba(148,163,184,.18)}
     .section-banner-main{display:flex;align-items:center;gap:10px;min-width:0}
-    .section-banner-icon{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.14);font-size:.9rem;flex:0 0 auto}
-    .section-banner h2{margin:0;font-size:1rem;line-height:1.15}
-    .section-banner p{margin:2px 0 0;color:rgba(237,247,255,.85);font-size:.72rem;line-height:1.2}
-    .section-badge{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:32px;padding:0 10px;border-radius:999px;background:rgba(255,255,255,.18);font-size:.86rem;font-weight:800;color:#f8fbff}
+    .section-banner-icon{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.16);background:rgba(255,255,255,.04);font-size:.58rem;font-weight:800;letter-spacing:.14em;color:#dce8fb;flex:0 0 auto}
+    .section-banner h2{margin:0;font-size:.96rem;line-height:1.12;letter-spacing:-.02em}
+    .section-banner p{margin:3px 0 0;color:#8ea0ba;font-size:.71rem;line-height:1.24}
+    .section-badge{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:32px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.14);background:rgba(255,255,255,.04);font-size:.84rem;font-weight:800;color:#eef4ff}
     .top-picks-rail{display:flex;flex-direction:column;gap:0}
     .league-feed{display:flex;flex-direction:column;gap:12px;padding:12px}
     .top-pick-list,.match-list{display:flex;flex-direction:column}
@@ -317,13 +314,21 @@
     .match-action small{width:100%;font-size:.62rem;line-height:1.15;color:#ead7a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .match-row-featured .match-action{border-color:rgba(34,197,94,.58);background:linear-gradient(135deg,rgba(20,79,52,.98),rgba(10,24,23,.98))}
     .match-row-featured .match-action small{color:#bbf7d0}
-    .league-header{padding:10px 12px;background:linear-gradient(90deg,rgba(82,98,126,.5),rgba(12,19,38,.94))}
+    .league-header{padding:10px 12px;background:linear-gradient(90deg,rgba(82,98,126,.36),rgba(12,19,38,.94))}
     .league-title{display:flex;align-items:center;gap:10px}
     .league-title h3{margin:0;font-size:.96rem;line-height:1.1}
     .league-title p{margin:2px 0 0;color:#b2c0d8;font-size:.72rem}
     .league-logo{width:28px;height:28px;padding:2px;background:rgba(255,255,255,.08)}
     .league-dot{width:10px;height:10px;border-radius:50%;background:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.14)}
     .league-count{min-width:30px;min-height:30px;padding:0 8px;background:rgba(59,130,246,.18);font-size:.78rem}
+    .league-summary{list-style:none;cursor:pointer}
+    .league-summary::-webkit-details-marker{display:none}
+    .league-summary .league-count{margin-left:auto}
+    .league-caret{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;margin-left:8px;color:#99abc6;font-size:.9rem;transition:transform .16s ease}
+    .league-caret::before{content:">"}
+    .league-accordion[open] .league-caret{transform:rotate(90deg)}
+    .league-accordion .match-list{display:none}
+    .league-accordion[open] .match-list{display:flex}
     .active-filters{gap:6px;padding:0 2px 2px}
     .active-filter{padding:5px 9px;font-size:.72rem}
     .empty-state{padding:24px 16px;font-size:.88rem}
@@ -367,7 +372,7 @@
       .date-tabs{gap:8px}
       .date-tab{min-width:84px;padding:9px 10px}
       .date-tab span{margin-bottom:4px}
-      .section-banner{padding:9px 12px}
+      .section-banner{padding:10px 12px}
       .section-banner p{display:none}
       .section-banner h2{font-size:.94rem}
       .section-badge{min-width:30px;height:30px;font-size:.8rem}
