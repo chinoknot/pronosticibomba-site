@@ -96,6 +96,39 @@
         </button>
       </div>
       <div class="date-tabs" id="date-tabs"></div>
+      <div class="quick-filter-strip">
+        <div class="quick-filter-card quick-filter-card-prob">
+          <span class="quick-filter-label">Prob. minima</span>
+          <div class="mini-slider-row">
+            <input id="hero-probability-range" class="range range-slim" type="range" min="45" max="90" step="1" value="55" />
+            <strong class="quick-filter-value" id="hero-probability-value">55%</strong>
+          </div>
+        </div>
+        <label class="quick-filter-card">
+          <span class="quick-filter-label">Quota minima</span>
+          <span class="select-shell select-shell-compact">
+            <select id="hero-odd-select" class="select select-compact">
+              <option value="1">Tutte le quote</option>
+            </select>
+          </span>
+        </label>
+        <div class="quick-filter-card quick-filter-card-time">
+          <span class="quick-filter-label">Orario</span>
+          <div class="time-select-row">
+            <span class="select-shell select-shell-compact">
+              <select id="hero-time-from" class="select select-compact">
+                <option value="00:00">00:00</option>
+              </select>
+            </span>
+            <span class="time-separator">-</span>
+            <span class="select-shell select-shell-compact">
+              <select id="hero-time-to" class="select select-compact">
+                <option value="23:59">23:59</option>
+              </select>
+            </span>
+          </div>
+        </div>
+      </div>
       <select id="date-select" class="sr-only" aria-hidden="true" tabindex="-1"></select>
     </section>
     <section class="stats-grid">
@@ -122,7 +155,7 @@
           <span class="section-banner-icon" aria-hidden="true">&#9734;</span>
           <div>
             <h2 id="top-picks-title">Partite Gratuite</h2>
-            <p id="top-picks-copy">Le pick piu utili da giocare adesso o entro poco.</p>
+            <p id="top-picks-copy">Le pick piu utili da giocare adesso o entro 30 minuti.</p>
           </div>
         </div>
         <span class="section-badge" id="top-picks-badge">0</span>
@@ -158,15 +191,24 @@
       <div class="control-block">
         <label class="control-label" for="time-from" id="time-label">Intervallo orario</label>
         <div class="quick-range-row" id="quick-range-chips"></div>
-        <div class="control-help" id="time-help">Blocchi rapidi oppure selezione precisa.</div>
+        <div class="control-help" id="time-help">Blocchi rapidi oppure step da 30 minuti.</div>
         <div class="control-row">
-          <div><label class="mini-label" for="time-from" id="time-from-label">Da</label><select id="time-from" class="select"><option value="00:00">00:00</option></select></div>
-          <div><label class="mini-label" for="time-to" id="time-to-label">A</label><select id="time-to" class="select"><option value="23:59">23:59</option></select></div>
+          <div><label class="mini-label" for="time-from" id="time-from-label">Da</label><span class="select-shell"><select id="time-from" class="select"><option value="00:00">00:00</option></select></span></div>
+          <div><label class="mini-label" for="time-to" id="time-to-label">A</label><span class="select-shell"><select id="time-to" class="select"><option value="23:59">23:59</option></select></span></div>
         </div>
       </div>
       <div class="control-block">
         <label class="control-label" for="probability-range" id="probability-label">Probabilita minima pick</label>
         <div class="slider-row"><input id="probability-range" class="range" type="range" min="45" max="90" step="1" value="55" /><div class="range-pill" id="probability-value">55%</div></div>
+      </div>
+      <div class="control-block">
+        <label class="control-label" for="odd-select" id="odd-label">Quota minima</label>
+        <div class="control-help" id="odd-help">Filtra solo i mercati che hanno una quota pari o superiore al valore scelto.</div>
+        <span class="select-shell">
+          <select id="odd-select" class="select">
+            <option value="1">Tutte le quote</option>
+          </select>
+        </span>
       </div>
       <div class="control-block">
         <span class="control-label" id="market-filter-label">Mercati</span>
@@ -204,6 +246,19 @@
     .hero-pill strong{font-size:.82rem}
     .ribbon-shell{padding:12px 14px;gap:10px}
     .search-shell{min-height:44px;padding:0 12px;font-size:.86rem}
+    .quick-filter-strip{display:grid;grid-template-columns:1.2fr .9fr 1.2fr;gap:10px}
+    .quick-filter-card{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:18px;border:1px solid rgba(148,163,184,.14);background:linear-gradient(145deg,rgba(12,20,38,.92),rgba(6,11,23,.96))}
+    .quick-filter-label{color:#92a6c8;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase}
+    .quick-filter-value{display:inline-flex;align-items:center;justify-content:center;min-width:58px;height:34px;padding:0 10px;border-radius:999px;border:1px solid rgba(249,115,22,.34);background:rgba(249,115,22,.12);color:#fed7aa;font-size:.82rem}
+    .mini-slider-row{display:flex;align-items:center;gap:10px}
+    .range-slim{accent-color:var(--accent);height:20px}
+    .time-select-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center}
+    .time-separator{color:#7f93b1;font-size:.86rem;font-weight:700}
+    .select-shell{position:relative;display:block}
+    .select-shell::after{content:"▾";position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#8fa2c1;font-size:.8rem;pointer-events:none}
+    .select-shell-compact::after{right:10px}
+    .select{appearance:none;-webkit-appearance:none;-moz-appearance:none}
+    .select-compact{min-height:40px;padding:10px 34px 10px 12px;border-radius:14px;font-size:.83rem;background:rgba(8,14,28,.92)}
     .date-tab{min-width:92px;padding:10px 12px;border-radius:18px}
     .date-tab strong{font-size:.92rem}
     .date-tab small{font-size:.72rem}
@@ -284,6 +339,10 @@
       .hero-actions{justify-content:space-between;flex-direction:row}
       .ribbon-shell{padding:10px 12px}
       .search-shell{min-height:42px}
+      .quick-filter-strip{grid-template-columns:1fr;gap:8px}
+      .quick-filter-card{padding:9px 10px;border-radius:16px}
+      .quick-filter-label{font-size:.64rem}
+      .select-compact{min-height:38px;font-size:.8rem}
       .date-tabs{gap:8px}
       .date-tab{min-width:84px;padding:9px 10px}
       .date-tab span{margin-bottom:4px}

@@ -3,7 +3,18 @@
   const FINAL_STATUSES = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
   const CACHE_BASE = "/assets/data/match-predictor";
   const AUTO_REFRESH_MS = 5 * 60 * 1000;
-  const DEFAULTS = { minProbability: 55, timeFrom: "00:00", timeTo: "23:59" };
+  const DEFAULTS = { minProbability: 55, minOdd: 1, timeFrom: "00:00", timeTo: "23:59" };
+  const ODD_FILTER_OPTIONS = [
+    { value: 1, label: "Tutte le quote" },
+    { value: 1.2, label: "1.20+" },
+    { value: 1.35, label: "1.35+" },
+    { value: 1.5, label: "1.50+" },
+    { value: 1.7, label: "1.70+" },
+    { value: 1.9, label: "1.90+" },
+    { value: 2.1, label: "2.10+" },
+    { value: 2.5, label: "2.50+" },
+    { value: 3, label: "3.00+" },
+  ];
   const GROUPS = [
     { id: "goals", short: "O/U", label: "Goal" },
     { id: "double", short: "DC", label: "Doppia chance" },
@@ -86,6 +97,7 @@
     filterSearch: "Ricerca",
     filterTime: "Orario",
     filterProbability: "Probabilita",
+    filterOdd: "Quota",
     filterStatus: "Esito",
     filterMarkets: "Mercati",
     detailPrimary: "Pick principale",
@@ -101,6 +113,7 @@
     groups: new Set(GROUPS.map(group => group.id)),
     status: "all",
     minProbability: DEFAULTS.minProbability,
+    minOdd: DEFAULTS.minOdd,
     search: "",
     timeFrom: DEFAULTS.timeFrom,
     timeTo: DEFAULTS.timeTo,
@@ -114,6 +127,11 @@
     yesterdayBannerTitle: document.getElementById("yesterday-banner-title"),
     yesterdayBannerMeta: document.getElementById("yesterday-banner-meta"),
     searchInput: document.getElementById("search-input"),
+    heroProbabilityRange: document.getElementById("hero-probability-range"),
+    heroProbabilityValue: document.getElementById("hero-probability-value"),
+    heroOddSelect: document.getElementById("hero-odd-select"),
+    heroTimeFrom: document.getElementById("hero-time-from"),
+    heroTimeTo: document.getElementById("hero-time-to"),
     sortToggle: document.getElementById("sort-toggle"),
     searchLauncher: document.getElementById("search-launcher"),
     dateJump: document.getElementById("date-jump"),
@@ -128,6 +146,7 @@
     timeTo: document.getElementById("time-to"),
     probabilityRange: document.getElementById("probability-range"),
     probabilityValue: document.getElementById("probability-value"),
+    oddSelect: document.getElementById("odd-select"),
     resetFilters: document.getElementById("reset-filters"),
     marketsAll: document.getElementById("markets-all"),
     marketsNone: document.getElementById("markets-none"),
@@ -160,6 +179,11 @@
     if (value == null || value === "") return "-";
     const number = Number(value);
     return Number.isFinite(number) ? number.toFixed(2) : String(value);
+  }
+
+  function formatOddFilter(value) {
+    if (Number(value) <= DEFAULTS.minOdd) return "Tutte";
+    return `${Number(value).toFixed(2)}+`;
   }
 
   function formatDate(dateStr, options) {
@@ -197,7 +221,7 @@
   function buildTimeOptions() {
     const values = [];
     for (let hour = 0; hour < 24; hour += 1) {
-      for (let minute = 0; minute < 60; minute += 15) {
+      for (let minute = 0; minute < 60; minute += 30) {
         values.push(`${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`);
       }
     }
@@ -210,6 +234,14 @@
     const render = value => options.map(option => `<option value="${option}"${option === value ? " selected" : ""}>${option}</option>`).join("");
     dom.timeFrom.innerHTML = render(state.timeFrom);
     dom.timeTo.innerHTML = render(state.timeTo);
+    if (dom.heroTimeFrom) dom.heroTimeFrom.innerHTML = render(state.timeFrom);
+    if (dom.heroTimeTo) dom.heroTimeTo.innerHTML = render(state.timeTo);
+  }
+
+  function populateOddSelects() {
+    const render = value => ODD_FILTER_OPTIONS.map(option => `<option value="${option.value}"${Number(option.value) === Number(value) ? " selected" : ""}>${escapeHtml(option.label)}</option>`).join("");
+    if (dom.oddSelect) dom.oddSelect.innerHTML = render(state.minOdd);
+    if (dom.heroOddSelect) dom.heroOddSelect.innerHTML = render(state.minOdd);
   }
 
   function normalizeMap(raw) {
@@ -222,6 +254,15 @@
 
   function marketGroup(groupId) {
     return GROUPS.find(group => group.id === groupId);
+  }
+
+  function pickedOption(market) {
+    return (market?.options || []).find(option => option.label === market?.pickLabel) || null;
+  }
+
+  function pickedOdd(market) {
+    const odd = Number(pickedOption(market)?.odd);
+    return Number.isFinite(odd) ? odd : null;
   }
 
   function toMinutes(timeValue) {
@@ -375,6 +416,7 @@
         const visibleMarkets = markets
           .filter(market => state.groups.has(market.group))
           .filter(market => Number(market.pickProbability || 0) * 100 >= state.minProbability)
+          .filter(market => state.minOdd <= DEFAULTS.minOdd ? true : ((pickedOdd(market) || 0) >= state.minOdd))
           .filter(market => state.status === "all" ? true : market.status === state.status);
         const searchBlob = `${match.home} ${match.away} ${match.league} ${match.country} ${markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" ")}`.toLowerCase();
         return { ...match, markets, visibleMarkets, primaryMarket: selectHeadlineMarket(visibleMarkets), searchBlob };
@@ -405,7 +447,7 @@
     if (state.selectedDate === today) {
       const imminent = pool.filter(match => {
         const kickoff = toMinutes(match.match_time);
-        return kickoff >= nowMinutes && kickoff <= nowMinutes + 60;
+        return kickoff >= nowMinutes && kickoff <= nowMinutes + 30;
       });
       if (imminent.length) {
         pool = imminent;
@@ -502,6 +544,7 @@
     if (state.search) count += 1;
     if (state.timeFrom !== DEFAULTS.timeFrom || state.timeTo !== DEFAULTS.timeTo) count += 1;
     if (state.minProbability !== DEFAULTS.minProbability) count += 1;
+    if (state.minOdd !== DEFAULTS.minOdd) count += 1;
     if (state.status !== "all") count += 1;
     if (state.groups.size !== GROUPS.length) count += 1;
     return count;
@@ -544,8 +587,14 @@
     dom.marketsNone.classList.toggle("active", state.groups.size === 0);
     dom.timeFrom.value = state.timeFrom;
     dom.timeTo.value = state.timeTo;
+    if (dom.heroTimeFrom) dom.heroTimeFrom.value = state.timeFrom;
+    if (dom.heroTimeTo) dom.heroTimeTo.value = state.timeTo;
     dom.probabilityRange.value = String(state.minProbability);
     dom.probabilityValue.textContent = `${state.minProbability}%`;
+    if (dom.heroProbabilityRange) dom.heroProbabilityRange.value = String(state.minProbability);
+    if (dom.heroProbabilityValue) dom.heroProbabilityValue.textContent = `${state.minProbability}%`;
+    if (dom.oddSelect) dom.oddSelect.value = String(state.minOdd);
+    if (dom.heroOddSelect) dom.heroOddSelect.value = String(state.minOdd);
     dom.filterCount.textContent = String(activeFilterCount());
   }
 
@@ -594,6 +643,7 @@
     if (state.search) chips.push({ key: "search", label: `${TEXT.filterSearch}: ${state.search}` });
     if (state.timeFrom !== DEFAULTS.timeFrom || state.timeTo !== DEFAULTS.timeTo) chips.push({ key: "time", label: `${TEXT.filterTime}: ${state.timeFrom}-${state.timeTo}` });
     if (state.minProbability !== DEFAULTS.minProbability) chips.push({ key: "probability", label: `${TEXT.filterProbability}: ${state.minProbability}%+` });
+    if (state.minOdd !== DEFAULTS.minOdd) chips.push({ key: "odd", label: `${TEXT.filterOdd}: ${formatOddFilter(state.minOdd)}` });
     if (state.status !== "all") chips.push({ key: "status", label: `${TEXT.filterStatus}: ${statusLabel(state.status)}` });
     if (state.groups.size !== GROUPS.length) chips.push({ key: "groups", label: `${TEXT.filterMarkets}: ${state.groups.size}/${GROUPS.length}` });
     dom.activeFilters.style.display = chips.length ? "flex" : "none";
@@ -639,7 +689,7 @@
     const primary = match.primaryMarket;
     const fixtureStatus = String(match.status_short || "").toUpperCase();
     const displayStatus = primary?.status || (FINAL_STATUSES.has(fixtureStatus) ? "unresolved" : (LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled"));
-    const picked = (primary?.options || []).find(option => option.label === primary?.pickLabel);
+    const picked = pickedOption(primary);
     const meta = [];
     if (primary?.pickProbability != null) meta.push(formatPercent(primary.pickProbability));
     if (picked?.odd) meta.push(`${TEXT.odds} ${formatOdd(picked.odd)}`);
@@ -763,6 +813,7 @@
       state.timeTo = DEFAULTS.timeTo;
     }
     if (key === "probability") state.minProbability = DEFAULTS.minProbability;
+    if (key === "odd") state.minOdd = DEFAULTS.minOdd;
     if (key === "status") state.status = "all";
     if (key === "groups") state.groups = new Set(GROUPS.map(group => group.id));
     render();
@@ -799,6 +850,16 @@
     } catch (error) {
       console.warn("Match center refresh failed:", error);
       state.cache = null;
+    }
+    render();
+  }
+
+  function applyTimeFilter(fromValue, toValue) {
+    state.timeFrom = fromValue || DEFAULTS.timeFrom;
+    state.timeTo = toValue || DEFAULTS.timeTo;
+    if (state.timeFrom > state.timeTo) {
+      if (toValue != null) state.timeFrom = state.timeTo;
+      else state.timeTo = state.timeFrom;
     }
     render();
   }
@@ -851,24 +912,37 @@
       state.detailFixtureId = null;
       syncModalState();
     });
-    dom.timeFrom.addEventListener("change", () => {
-      state.timeFrom = dom.timeFrom.value || DEFAULTS.timeFrom;
-      if (state.timeFrom > state.timeTo) state.timeTo = state.timeFrom;
-      render();
-    });
-    dom.timeTo.addEventListener("change", () => {
-      state.timeTo = dom.timeTo.value || DEFAULTS.timeTo;
-      if (state.timeTo < state.timeFrom) state.timeFrom = state.timeTo;
-      render();
-    });
+    dom.timeFrom.addEventListener("change", () => applyTimeFilter(dom.timeFrom.value, state.timeTo));
+    dom.timeTo.addEventListener("change", () => applyTimeFilter(state.timeFrom, dom.timeTo.value));
+    if (dom.heroTimeFrom) dom.heroTimeFrom.addEventListener("change", () => applyTimeFilter(dom.heroTimeFrom.value, state.timeTo));
+    if (dom.heroTimeTo) dom.heroTimeTo.addEventListener("change", () => applyTimeFilter(state.timeFrom, dom.heroTimeTo.value));
     dom.probabilityRange.addEventListener("input", () => {
       state.minProbability = Number(dom.probabilityRange.value || DEFAULTS.minProbability);
       render();
     });
+    if (dom.heroProbabilityRange) {
+      dom.heroProbabilityRange.addEventListener("input", () => {
+        state.minProbability = Number(dom.heroProbabilityRange.value || DEFAULTS.minProbability);
+        render();
+      });
+    }
+    if (dom.oddSelect) {
+      dom.oddSelect.addEventListener("change", () => {
+        state.minOdd = Number(dom.oddSelect.value || DEFAULTS.minOdd);
+        render();
+      });
+    }
+    if (dom.heroOddSelect) {
+      dom.heroOddSelect.addEventListener("change", () => {
+        state.minOdd = Number(dom.heroOddSelect.value || DEFAULTS.minOdd);
+        render();
+      });
+    }
     dom.resetFilters.addEventListener("click", () => {
       state.groups = new Set(GROUPS.map(group => group.id));
       state.status = "all";
       state.minProbability = DEFAULTS.minProbability;
+      state.minOdd = DEFAULTS.minOdd;
       state.search = "";
       state.timeFrom = DEFAULTS.timeFrom;
       state.timeTo = DEFAULTS.timeTo;
@@ -950,6 +1024,7 @@
 
   async function init() {
     populateTimeSelects();
+    populateOddSelects();
     bindEvents();
     await refreshData();
     startAutoRefresh();
