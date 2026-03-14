@@ -97,6 +97,7 @@
     manifest: null,
     selectedDate: "",
     cache: null,
+    sortMode: "priority",
     groups: new Set(GROUPS.map(group => group.id)),
     status: "all",
     minProbability: DEFAULTS.minProbability,
@@ -110,6 +111,10 @@
     dateTabs: document.getElementById("date-tabs"),
     dateSelect: document.getElementById("date-select"),
     searchInput: document.getElementById("search-input"),
+    sortToggle: document.getElementById("sort-toggle"),
+    searchLauncher: document.getElementById("search-launcher"),
+    dateJump: document.getElementById("date-jump"),
+    filterLauncher: document.getElementById("filter-launcher"),
     filterToggle: document.getElementById("filter-toggle"),
     filterCount: document.getElementById("filter-count"),
     filterSheet: document.getElementById("filter-sheet"),
@@ -268,6 +273,30 @@
     return COUNTRY_PRIORITY.has(country) || (country === "World" && /champions league|europa league|conference league/i.test(String(league || "")));
   }
 
+  function isHeadlineCompetition(country, league) {
+    if (country === "World") return /champions league|europa league|conference league/i.test(String(league || ""));
+    const explicit = [
+      /^serie a$/i,
+      /^serie b$/i,
+      /^premier league$/i,
+      /championship/i,
+      /^la liga/i,
+      /^bundesliga$/i,
+      /^ligue 1$/i,
+      /^primeira liga$/i,
+      /^eredivisie$/i,
+      /super lig/i,
+      /premiership/i,
+    ];
+    return COUNTRY_PRIORITY.has(country) && explicit.some(rule => rule.test(String(league || "")));
+  }
+
+  function isTopRailCompetition(country, league) {
+    if (isHeadlineCompetition(country, league)) return true;
+    if (!COUNTRY_PRIORITY.has(country)) return false;
+    return !/\bu\d{1,2}\b|women|femenina|feminina|primavera|juniores|reserve|reserves/i.test(String(league || ""));
+  }
+
   function statusLabel(status) {
     return STATUS_OPTIONS.find(option => option.id === status)?.label || status;
   }
@@ -339,7 +368,7 @@
           .filter(market => Number(market.pickProbability || 0) * 100 >= state.minProbability)
           .filter(market => state.status === "all" ? true : market.status === state.status);
         const searchBlob = `${match.home} ${match.away} ${match.league} ${match.country} ${markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" ")}`.toLowerCase();
-        return { ...match, markets, visibleMarkets, primaryMarket: selectPrimaryMarket(visibleMarkets), searchBlob };
+        return { ...match, markets, visibleMarkets, primaryMarket: selectHeadlineMarket(visibleMarkets), searchBlob };
       })
       .filter(match => match.match_time >= state.timeFrom && match.match_time <= state.timeTo)
       .filter(match => !search || match.searchBlob.includes(search))
@@ -374,6 +403,16 @@
       } else {
         const nextUp = pool.filter(match => toMinutes(match.match_time) >= nowMinutes);
         if (nextUp.length) pool = nextUp;
+      }
+    }
+    const headlinePool = pool.filter(match => isHeadlineCompetition(match.country, match.league));
+    if (headlinePool.length) pool = headlinePool;
+    else {
+      const curatedPool = pool.filter(match => isTopRailCompetition(match.country, match.league));
+      if (curatedPool.length) pool = curatedPool;
+      else {
+        const featuredPool = pool.filter(match => isFeaturedCompetition(match.country, match.league));
+        if (featuredPool.length) pool = featuredPool;
       }
     }
     return pool
@@ -417,6 +456,9 @@
       groups.get(key).matches.push(match);
     });
     return [...groups.values()].sort((a, b) => {
+      if (state.sortMode === "time") {
+        return `${a.matches[0]?.match_time || ""}-${a.league}`.localeCompare(`${b.matches[0]?.match_time || ""}-${b.league}`);
+      }
       const aKey = groupSortKey(a);
       const bKey = groupSortKey(b);
       for (let index = 0; index < aKey.length; index += 1) {
@@ -497,6 +539,7 @@
     document.getElementById("hero-window-value").textContent = `${state.timeFrom} - ${state.timeTo}`;
     document.getElementById("hero-date-value").textContent = state.selectedDate ? formatDate(state.selectedDate, { weekday: "short", day: "2-digit", month: "short", year: "numeric" }) : "-";
     document.getElementById("hero-sync-value").textContent = formatDateTime(state.cache?.refreshed_at || state.cache?.generated_at);
+    if (dom.sortToggle) dom.sortToggle.classList.toggle("active", state.sortMode === "time");
   }
 
   function renderActiveFilters() {
@@ -631,9 +674,15 @@
         </div>
       </article>
       <div class="detail-stack">
-        <section class="detail-section"><h3>${TEXT.detailPrimary}</h3><div class="market-grid">${match.primaryMarket ? renderMarketCard(match.primaryMarket) : `<div class="empty-state">${TEXT.empty}</div>`}</div></section>
-        <section class="detail-section"><h3>${TEXT.detailScores}</h3><div class="score-chips">${scoreChips || `<span class="mini-chip">-</span>`}</div></section>
-        ${marketGroups.map(group => `<section class="detail-section"><h3>${escapeHtml(group.label)}</h3><div class="market-grid">${group.markets.map(renderMarketCard).join("")}</div></section>`).join("")}
+        <details class="detail-accordion" open>
+          <summary class="detail-summary">${TEXT.detailPrimary}</summary>
+          <div class="detail-section"><div class="market-grid">${match.primaryMarket ? renderMarketCard(match.primaryMarket) : `<div class="empty-state">${TEXT.empty}</div>`}</div></div>
+        </details>
+        <details class="detail-accordion" open>
+          <summary class="detail-summary">${TEXT.detailScores}</summary>
+          <div class="detail-section"><div class="score-chips">${scoreChips || `<span class="mini-chip">-</span>`}</div></div>
+        </details>
+        ${marketGroups.map(group => `<details class="detail-accordion"><summary class="detail-summary">${escapeHtml(group.label)}</summary><div class="detail-section"><div class="market-grid">${group.markets.map(renderMarketCard).join("")}</div></div></details>`).join("")}
       </div>
     `;
   }
@@ -707,6 +756,29 @@
       state.search = dom.searchInput.value.trim().toLowerCase();
       render();
     });
+    if (dom.searchLauncher) {
+      dom.searchLauncher.addEventListener("click", () => {
+        dom.searchInput.focus();
+        dom.searchInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    }
+    if (dom.dateJump) {
+      dom.dateJump.addEventListener("click", () => {
+        dom.dateTabs.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+    }
+    if (dom.filterLauncher) {
+      dom.filterLauncher.addEventListener("click", () => {
+        state.filterOpen = true;
+        syncModalState();
+      });
+    }
+    if (dom.sortToggle) {
+      dom.sortToggle.addEventListener("click", () => {
+        state.sortMode = state.sortMode === "priority" ? "time" : "priority";
+        render();
+      });
+    }
     dom.filterToggle.addEventListener("click", () => {
       state.filterOpen = !state.filterOpen;
       syncModalState();
