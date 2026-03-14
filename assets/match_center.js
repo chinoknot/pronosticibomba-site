@@ -3,15 +3,17 @@
   const FINAL_STATUSES = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
   const CACHE_BASE = "/assets/data/match-predictor";
   const AUTO_REFRESH_MS = 5 * 60 * 1000;
-  const DEFAULTS = { minProbability: 55, oddFrom: 1.01, oddTo: 3, timeFrom: "00:00", timeTo: "23:59" };
+  const DEFAULTS = { minProbability: 55, maxProbability: 99, oddFrom: 1.01, oddTo: 10, timeFrom: "00:00", timeTo: "23:59" };
   const ODD_PRESETS = [
-    { id: "all", label: "Tutte", from: 1.01, to: 3 },
+    { id: "all", label: "Tutte", from: 1.01, to: 10 },
     { id: "band_120_140", label: "1.20-1.40", from: 1.2, to: 1.4 },
     { id: "band_140_160", label: "1.40-1.60", from: 1.4, to: 1.6 },
     { id: "band_160_200", label: "1.60-2.00", from: 1.6, to: 2 },
+    { id: "band_200_270", label: "2.00-2.70", from: 2, to: 2.7 },
     { id: "lt_270", label: "< 2.70", from: 1.01, to: 2.7 },
     { id: "lt_300", label: "< 3.00", from: 1.01, to: 3 },
-    { id: "band_200_300", label: "2.00-3.00", from: 2, to: 3 },
+    { id: "band_300_500", label: "3.00-5.00", from: 3, to: 5 },
+    { id: "band_500_1000", label: "5.00-10.00", from: 5, to: 10 },
   ];
   const TOTAL_MARKET_RULES = {
     corners: { strongMin: 0.50, softMin: 0.44, impactLine: 12.5 },
@@ -26,6 +28,17 @@
     { id: "corners", short: "CRN", label: "Corner" },
     { id: "yellows", short: "YC", label: "Cartellini" },
   ];
+  const QUICK_GROUPS = [
+    { id: "all", label: "Top pronostici", note: "Tutti" },
+    { id: "goals", label: "Goal", note: "O/U" },
+    { id: "double", label: "1X2 / DC", note: "Doppia" },
+    { id: "btts", label: "Entrambe segnano", note: "BTTS" },
+    { id: "corners", label: "Corner", note: "Linee" },
+    { id: "yellows", label: "Cartellini", note: "Linee" },
+    { id: "blank", label: "No goal", note: "NG" },
+    { id: "combo", label: "Combo", note: "Mix" },
+  ];
+  const HIGH_TEMPO_COUNTRIES = new Set(["Germany", "Austria", "Switzerland", "Belgium", "Netherlands", "Turkey", "Denmark", "Sweden", "Norway"]);
   const OUTCOME_FILTERS = [
     { id: "goals_o15", group: "goals", marketId: "ou15", label: "Over 1.5" },
     { id: "goals_u15", group: "goals", marketId: "ou15", label: "Under 1.5" },
@@ -171,6 +184,7 @@
     groups: new Set(GROUPS.map(group => group.id)),
     status: "all",
     minProbability: DEFAULTS.minProbability,
+    maxProbability: DEFAULTS.maxProbability,
     oddActive: false,
     oddFrom: DEFAULTS.oddFrom,
     oddTo: DEFAULTS.oddTo,
@@ -188,13 +202,18 @@
     yesterdayBannerTitle: document.getElementById("yesterday-banner-title"),
     yesterdayBannerMeta: document.getElementById("yesterday-banner-meta"),
     searchInput: document.getElementById("search-input"),
-    heroProbabilityRange: document.getElementById("hero-probability-range"),
-    heroProbabilityValue: document.getElementById("hero-probability-value"),
-    heroOddFrom: document.getElementById("hero-odd-from"),
-    heroOddTo: document.getElementById("hero-odd-to"),
-    heroOddPresets: document.getElementById("hero-odd-presets"),
-    heroTimeFrom: document.getElementById("hero-time-from"),
-    heroTimeTo: document.getElementById("hero-time-to"),
+    feedStateTitle: document.getElementById("feed-state-title"),
+    feedStateSubtitle: document.getElementById("feed-state-subtitle"),
+    sortToggle: document.getElementById("sort-toggle"),
+    sortToggleValue: document.getElementById("sort-toggle-value"),
+    marketRail: document.getElementById("market-rail"),
+    outcomeRail: document.getElementById("outcome-rail"),
+    summaryProbabilityButton: document.getElementById("summary-probability-button"),
+    summaryProbabilityValue: document.getElementById("summary-probability-value"),
+    summaryOddButton: document.getElementById("summary-odd-button"),
+    summaryOddValue: document.getElementById("summary-odd-value"),
+    summaryTimeButton: document.getElementById("summary-time-button"),
+    summaryTimeValue: document.getElementById("summary-time-value"),
     searchLauncher: document.getElementById("search-launcher"),
     dateJump: document.getElementById("date-jump"),
     filterLauncher: document.getElementById("filter-launcher"),
@@ -206,17 +225,27 @@
     quickRangeChips: document.getElementById("quick-range-chips"),
     timeFrom: document.getElementById("time-from"),
     timeTo: document.getElementById("time-to"),
-    probabilityRange: document.getElementById("probability-range"),
+    probabilityMinRange: document.getElementById("probability-min-range"),
+    probabilityMaxRange: document.getElementById("probability-max-range"),
+    probabilityMinInput: document.getElementById("probability-min-input"),
+    probabilityMaxInput: document.getElementById("probability-max-input"),
     probabilityValue: document.getElementById("probability-value"),
+    probabilityMinBadge: document.getElementById("probability-min-badge"),
+    probabilityMaxBadge: document.getElementById("probability-max-badge"),
+    probabilityRangeShell: document.getElementById("probability-range-shell"),
+    oddMinRange: document.getElementById("odd-min-range"),
+    oddMaxRange: document.getElementById("odd-max-range"),
     oddFrom: document.getElementById("odd-from"),
     oddTo: document.getElementById("odd-to"),
+    oddValue: document.getElementById("odd-value"),
+    oddMinBadge: document.getElementById("odd-min-badge"),
+    oddMaxBadge: document.getElementById("odd-max-badge"),
+    oddRangeShell: document.getElementById("odd-range-shell"),
     oddPresets: document.getElementById("odd-presets"),
     resetFilters: document.getElementById("reset-filters"),
     marketsAll: document.getElementById("markets-all"),
     marketsNone: document.getElementById("markets-none"),
     marketChips: document.getElementById("market-chips"),
-    outcomesClear: document.getElementById("outcomes-clear"),
-    outcomeChips: document.getElementById("outcome-chips"),
     statusChips: document.getElementById("status-chips"),
     topPicks: document.getElementById("top-picks"),
     activeFilters: document.getElementById("active-filters"),
@@ -247,11 +276,24 @@
     return Number.isFinite(number) ? number.toFixed(2) : String(value);
   }
 
+  function clampNumber(value, min, max, fallback) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return fallback;
+    return Math.min(max, Math.max(min, numeric));
+  }
+
   function formatOddRange(fromValue, toValue) {
     const from = Number(fromValue);
     const to = Number(toValue);
     if (from <= DEFAULTS.oddFrom && to >= DEFAULTS.oddTo) return "Tutte";
     return `${from.toFixed(2)}-${to.toFixed(2)}`;
+  }
+
+  function formatProbabilityRange(fromValue, toValue) {
+    const from = Number(fromValue);
+    const to = Number(toValue);
+    if (from <= DEFAULTS.minProbability && to >= DEFAULTS.maxProbability) return "Tutte";
+    return `${Math.round(from)}%-${Math.round(to)}%`;
   }
 
   function outcomeFiltersForGroup(groupId) {
@@ -326,25 +368,6 @@
     const render = value => options.map(option => `<option value="${option}"${option === value ? " selected" : ""}>${option}</option>`).join("");
     dom.timeFrom.innerHTML = render(state.timeFrom);
     dom.timeTo.innerHTML = render(state.timeTo);
-    if (dom.heroTimeFrom) dom.heroTimeFrom.innerHTML = render(state.timeFrom);
-    if (dom.heroTimeTo) dom.heroTimeTo.innerHTML = render(state.timeTo);
-  }
-
-  function buildOddOptions() {
-    const values = [1.01];
-    for (let odd = 1.05; odd <= 3.001; odd += 0.05) {
-      values.push(Number(odd.toFixed(2)));
-    }
-    return [...new Set(values)];
-  }
-
-  function populateOddSelects() {
-    const options = buildOddOptions();
-    const render = value => options.map(option => `<option value="${option}"${Number(option) === Number(value) ? " selected" : ""}>${formatOdd(option)}</option>`).join("");
-    if (dom.oddFrom) dom.oddFrom.innerHTML = render(state.oddFrom);
-    if (dom.oddTo) dom.oddTo.innerHTML = render(state.oddTo);
-    if (dom.heroOddFrom) dom.heroOddFrom.innerHTML = render(state.oddFrom);
-    if (dom.heroOddTo) dom.heroOddTo.innerHTML = render(state.oddTo);
   }
 
   function activeOddPresetId() {
@@ -354,22 +377,57 @@
 
   function renderOddPresetChips() {
     const markup = ODD_PRESETS.map(preset => `<button type="button" class="chip-btn ${preset.id === activeOddPresetId() ? "active" : ""}" data-odd-preset="${preset.id}">${preset.label}</button>`).join("");
-    if (dom.heroOddPresets) dom.heroOddPresets.innerHTML = markup;
     if (dom.oddPresets) dom.oddPresets.innerHTML = markup;
   }
 
-  function renderOutcomeChips() {
-    if (!dom.outcomeChips) return;
-    const groups = visibleOutcomeGroups();
-    dom.outcomeChips.innerHTML = groups.map(group => `
-      <div class="outcome-filter-group">
-        <div class="outcome-filter-title">${escapeHtml(group.label)}</div>
-        <div class="outcome-filter-row">
-          ${outcomeFiltersForGroup(group.id).map(filter => `<button type="button" class="chip-btn ${state.outcomeFilters.has(filter.id) ? "active" : ""}" data-outcome="${filter.id}">${escapeHtml(filter.label)}</button>`).join("")}
-        </div>
-      </div>
-    `).join("");
-    if (dom.outcomesClear) dom.outcomesClear.classList.toggle("active", state.outcomeFilters.size === 0);
+  function percentageForRange(value, min, max) {
+    if (max <= min) return 0;
+    return ((Number(value) - min) / (max - min)) * 100;
+  }
+
+  function setRangeStage(shell, minValue, maxValue, minBound, maxBound) {
+    if (!shell) return;
+    shell.style.setProperty("--min-pct", String(percentageForRange(minValue, minBound, maxBound)));
+    shell.style.setProperty("--max-pct", String(percentageForRange(maxValue, minBound, maxBound)));
+  }
+
+  function focusedOutcomeGroup() {
+    if (state.groups.size === 1) {
+      const [groupId] = [...state.groups];
+      if (["goals", "corners", "yellows"].includes(groupId)) return groupId;
+    }
+    if (state.outcomeFilters.size) {
+      const activeGroups = [...new Set(OUTCOME_FILTERS.filter(filter => state.outcomeFilters.has(filter.id)).map(filter => filter.group))];
+      if (activeGroups.length === 1) return activeGroups[0];
+    }
+    return "";
+  }
+
+  function renderQuickMarketRail() {
+    if (!dom.marketRail) return;
+    const singleGroup = state.groups.size === 1 ? [...state.groups][0] : "";
+    dom.marketRail.innerHTML = QUICK_GROUPS.map(group => {
+      const active = group.id === "all" ? state.groups.size === GROUPS.length : singleGroup === group.id;
+      return `<button type="button" class="quick-market-chip ${active ? "active" : ""}" data-quick-group="${group.id}"><strong>${escapeHtml(group.label)}</strong><small>${escapeHtml(group.note)}</small></button>`;
+    }).join("");
+  }
+
+  function renderQuickOutcomeRail() {
+    if (!dom.outcomeRail) return;
+    const groupId = focusedOutcomeGroup();
+    if (!groupId) {
+      dom.outcomeRail.hidden = true;
+      dom.outcomeRail.innerHTML = "";
+      return;
+    }
+    const filters = outcomeFiltersForGroup(groupId);
+    const selected = selectedOutcomeFiltersForGroup(groupId);
+    const singleSelected = selected.length === 1 ? selected[0].id : "";
+    dom.outcomeRail.hidden = false;
+    dom.outcomeRail.innerHTML = [
+      `<button type="button" class="quick-outcome-chip ${!singleSelected ? "active" : ""}" data-quick-outcome-clear="${groupId}"><strong>Tutte le linee</strong><small>${escapeHtml(marketGroup(groupId)?.label || groupId)}</small></button>`,
+      ...filters.map(filter => `<button type="button" class="quick-outcome-chip ${singleSelected === filter.id ? "active" : ""}" data-quick-outcome="${filter.id}"><strong>${escapeHtml(filter.label)}</strong><small>${escapeHtml(marketGroup(groupId)?.label || groupId)}</small></button>`),
+    ].join("");
   }
 
   function normalizeMap(raw) {
@@ -598,7 +656,9 @@
   }
 
   function shouldPrioritizeOpenSelections() {
-    return state.oddActive || state.minProbability !== DEFAULTS.minProbability;
+    return state.oddActive
+      || state.minProbability !== DEFAULTS.minProbability
+      || state.maxProbability !== DEFAULTS.maxProbability;
   }
 
   function matchLifecycleRank(match) {
@@ -638,21 +698,50 @@
     return [tier, tierRank, leaguePriority(match.country, match.league), match.match_time || "", match.league || "", match.home || ""];
   }
 
-  function marketDisplayScore(market) {
+  function tempoProfile(match) {
+    const lamTotal = Number(match?.lam_total || 0);
+    const over25 = Number(match?.p_over25 || 0);
+    let boost = 0;
+    if (HIGH_TEMPO_COUNTRIES.has(match?.country)) boost += 0.06;
+    if (/bundesliga|eredivisie|super lig|jupiler|pro league|allsvenskan|eliteserien|superliga|super league/i.test(String(match?.league || ""))) boost += 0.04;
+    if (lamTotal >= 3.1) boost += 0.08;
+    else if (lamTotal >= 2.75) boost += 0.05;
+    else if (lamTotal >= 2.45) boost += 0.025;
+    if (over25 >= 0.6) boost += 0.03;
+    return boost;
+  }
+
+  function marketDisplayScore(market, match = null) {
     const picked = (market.options || []).find(option => option.label === market.pickLabel);
     const odd = Number(picked?.odd);
     let score = Number(market.pickProbability || 0);
-    if (market.id === "ou15") score -= 0.15;
+    const label = String(market.pickLabel || "").toUpperCase();
+    const tempoBoost = tempoProfile(match);
+    const lamTotal = Number(match?.lam_total || 0);
+    if (market.id === "ou15") score -= 0.07;
     if (market.id === "dc") score -= 0.06;
     if (market.id === "combo") score -= 0.03;
     if (market.id === "btts") score += 0.03;
     if (market.id === "ou25" || market.id === "o35") score += 0.02;
     if (market.id === "corners" || market.id === "yellows") score += 0.035;
     if (market.id === "nogol") score += 0.015;
+    if (label === "OVER 1.5") score += 0.03 + tempoBoost;
+    if (label === "OVER 2.5") score += 0.02 + (tempoBoost * 0.8);
+    if (label === "BTTS YES") score += 0.015 + (tempoBoost * 0.65);
+    if (label === "UNDER 3.5") {
+      score -= 0.03;
+      if (tempoBoost > 0.04) score -= 0.09;
+      if (lamTotal >= 2.75) score -= 0.06;
+      if (Number(market.pickProbability || 0) >= 0.86 && lamTotal <= 2.3) score += 0.06;
+    }
+    if (label === "UNDER 2.5" && tempoBoost > 0.04) score -= 0.05;
+    if (label === "BTTS NO" && tempoBoost > 0.05) score -= 0.04;
+    if (label.includes("NON SEGNA") && tempoBoost > 0.05) score -= 0.03;
     if (Number.isFinite(odd)) {
       if (odd < 1.22) score -= 0.14;
       else if (odd < 1.35) score -= 0.08;
       else if (odd >= 1.45 && odd <= 2.8) score += 0.04;
+      else if (odd > 2.8 && odd <= 5) score += 0.015;
     }
     return score;
   }
@@ -783,17 +872,17 @@
     ].map(market => ({ ...market, status: resolveMarketStatus(match, market), tag: marketGroup(market.group)?.short || market.group.toUpperCase() }));
   }
 
-  function selectPrimaryMarket(markets) {
-    return [...markets].sort((a, b) => marketDisplayScore(b) - marketDisplayScore(a))[0] || null;
+  function selectPrimaryMarket(markets, match = null) {
+    return [...markets].sort((a, b) => marketDisplayScore(b, match) - marketDisplayScore(a, match))[0] || null;
   }
 
-  function selectHeadlineMarket(markets) {
-    if (state.outcomeFilters.size) return selectPrimaryMarket(markets);
+  function selectHeadlineMarket(markets, match = null) {
+    if (state.outcomeFilters.size) return selectPrimaryMarket(markets, match);
     const withoutSoftProps = markets.filter(market => !["corners", "yellows"].includes(market.group) && market.id !== "ou15");
-    if (withoutSoftProps.length) return selectPrimaryMarket(withoutSoftProps);
+    if (withoutSoftProps.length) return selectPrimaryMarket(withoutSoftProps, match);
     const withoutProps = markets.filter(market => !["corners", "yellows"].includes(market.group));
-    if (withoutProps.length) return selectPrimaryMarket(withoutProps);
-    return selectPrimaryMarket(markets);
+    if (withoutProps.length) return selectPrimaryMarket(withoutProps, match);
+    return selectPrimaryMarket(markets, match);
   }
 
   function decorateMatches(rawMatches, keepAll = false) {
@@ -804,7 +893,10 @@
         const markets = buildMarkets(match).map(market => remapMarketForOutcomeFilters(match, market)).filter(Boolean);
         const visibleMarkets = markets
           .filter(market => state.groups.has(market.group))
-          .filter(market => Number(market.pickProbability || 0) * 100 >= state.minProbability)
+          .filter(market => {
+            const probability = Number(market.pickProbability || 0) * 100;
+            return probability >= state.minProbability && probability <= state.maxProbability;
+          })
           .filter(market => {
             if (!oddFilterActive) return true;
             const odd = pickedOdd(market);
@@ -812,7 +904,7 @@
           })
           .filter(market => state.status === "all" ? true : market.status === state.status);
         const searchBlob = `${match.home} ${match.away} ${match.league} ${match.country} ${markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" ")}`.toLowerCase();
-        return { ...match, markets, visibleMarkets, primaryMarket: selectHeadlineMarket(visibleMarkets), searchBlob };
+        return { ...match, markets, visibleMarkets, primaryMarket: selectHeadlineMarket(visibleMarkets, match), searchBlob };
       })
       .filter(match => match.match_time >= state.timeFrom && match.match_time <= state.timeTo)
       .filter(match => !search || match.searchBlob.includes(search))
@@ -830,7 +922,7 @@
     if (!rawMatch) return null;
     const markets = buildMarkets(rawMatch).filter(market => Number(market.pickProbability || 0) > 0 || (market.options || []).some(option => option.probability != null));
     const filteredMarkets = markets.map(market => remapMarketForOutcomeFilters(rawMatch, market)).filter(Boolean);
-    const primaryMarket = filteredMarkets.length ? selectHeadlineMarket(filteredMarkets) : selectPrimaryMarket(markets);
+    const primaryMarket = filteredMarkets.length ? selectHeadlineMarket(filteredMarkets, rawMatch) : selectPrimaryMarket(markets, rawMatch);
     return { ...rawMatch, markets, primaryMarket };
   }
 
@@ -863,7 +955,7 @@
     }
     return pool
       .map(match => {
-        const headline = selectHeadlineMarket(match.visibleMarkets);
+        const headline = selectHeadlineMarket(match.visibleMarkets, match);
         if (!headline) return null;
         const picked = (headline.options || []).find(option => option.label === headline.pickLabel);
         return {
@@ -880,7 +972,7 @@
           impactLabel: headline.impactLabel || "",
           highImpact: Boolean(headline.highImpact),
           odd: picked?.odd ?? null,
-          displayScore: marketDisplayScore(headline),
+          displayScore: marketDisplayScore(headline, match),
         };
       })
       .filter(Boolean)
@@ -940,7 +1032,7 @@
     let count = 0;
     if (state.search) count += 1;
     if (state.timeFrom !== DEFAULTS.timeFrom || state.timeTo !== DEFAULTS.timeTo) count += 1;
-    if (state.minProbability !== DEFAULTS.minProbability) count += 1;
+    if (state.minProbability !== DEFAULTS.minProbability || state.maxProbability !== DEFAULTS.maxProbability) count += 1;
     if (state.oddActive) count += 1;
     if (state.status !== "all") count += 1;
     if (state.groups.size !== GROUPS.length) count += 1;
@@ -978,26 +1070,61 @@
     dom.quickRangeChips.innerHTML = QUICK_RANGES.map(range => `<button type="button" class="chip-btn ${range.id === activeQuickRangeId() ? "active" : ""}" data-quick-range="${range.id}">${range.label}</button>`).join("");
   }
 
+  function renderRangePanels() {
+    if (dom.probabilityMinRange) dom.probabilityMinRange.value = String(state.minProbability);
+    if (dom.probabilityMaxRange) dom.probabilityMaxRange.value = String(state.maxProbability);
+    if (dom.probabilityMinInput) dom.probabilityMinInput.value = String(state.minProbability);
+    if (dom.probabilityMaxInput) dom.probabilityMaxInput.value = String(state.maxProbability);
+    if (dom.probabilityValue) dom.probabilityValue.textContent = `${state.minProbability}% - ${state.maxProbability}%`;
+    if (dom.probabilityMinBadge) dom.probabilityMinBadge.textContent = `${state.minProbability}%`;
+    if (dom.probabilityMaxBadge) dom.probabilityMaxBadge.textContent = `${state.maxProbability}%`;
+    setRangeStage(dom.probabilityRangeShell, state.minProbability, state.maxProbability, 45, 99);
+
+    if (dom.oddMinRange) dom.oddMinRange.value = String(state.oddFrom);
+    if (dom.oddMaxRange) dom.oddMaxRange.value = String(state.oddTo);
+    if (dom.oddFrom) dom.oddFrom.value = formatOdd(state.oddFrom);
+    if (dom.oddTo) dom.oddTo.value = formatOdd(state.oddTo);
+    if (dom.oddValue) dom.oddValue.textContent = `${formatOdd(state.oddFrom)} - ${formatOdd(state.oddTo)}`;
+    if (dom.oddMinBadge) dom.oddMinBadge.textContent = formatOdd(state.oddFrom);
+    if (dom.oddMaxBadge) dom.oddMaxBadge.textContent = formatOdd(state.oddTo);
+    setRangeStage(dom.oddRangeShell, state.oddFrom, state.oddTo, 1.01, 10);
+  }
+
   function renderFilterChips() {
     dom.marketChips.innerHTML = GROUPS.map(group => `<button type="button" class="chip-btn ${state.groups.has(group.id) ? "active" : ""}" data-group="${group.id}">${group.label}</button>`).join("");
-    renderOutcomeChips();
+    renderQuickMarketRail();
+    renderQuickOutcomeRail();
     dom.statusChips.innerHTML = STATUS_OPTIONS.map(option => `<button type="button" class="chip-btn ${state.status === option.id ? "active" : ""}" data-status="${option.id}">${option.label}</button>`).join("");
     dom.marketsAll.classList.toggle("active", state.groups.size === GROUPS.length);
     dom.marketsNone.classList.toggle("active", state.groups.size === 0);
     dom.timeFrom.value = state.timeFrom;
     dom.timeTo.value = state.timeTo;
-    if (dom.heroTimeFrom) dom.heroTimeFrom.value = state.timeFrom;
-    if (dom.heroTimeTo) dom.heroTimeTo.value = state.timeTo;
-    dom.probabilityRange.value = String(state.minProbability);
-    dom.probabilityValue.textContent = `${state.minProbability}%`;
-    if (dom.heroProbabilityRange) dom.heroProbabilityRange.value = String(state.minProbability);
-    if (dom.heroProbabilityValue) dom.heroProbabilityValue.textContent = `${state.minProbability}%`;
-    if (dom.oddFrom) dom.oddFrom.value = String(state.oddFrom);
-    if (dom.oddTo) dom.oddTo.value = String(state.oddTo);
-    if (dom.heroOddFrom) dom.heroOddFrom.value = String(state.oddFrom);
-    if (dom.heroOddTo) dom.heroOddTo.value = String(state.oddTo);
+    renderRangePanels();
     renderOddPresetChips();
     dom.filterCount.textContent = String(activeFilterCount());
+  }
+
+  function renderFeedToolbar(matches) {
+    if (dom.feedStateTitle) {
+      let label = "Pronostici";
+      if (state.status === "live") label = "Live";
+      else if (state.status === "scheduled") label = "In arrivo";
+      else if (state.status === "win") label = "Verdi";
+      else if (state.status === "lose") label = "Rossi";
+      else if (state.status === "unresolved") label = "Non risolte";
+      dom.feedStateTitle.textContent = `${label} (${matches.length})`;
+    }
+    if (dom.feedStateSubtitle) {
+      const activeGroup = state.groups.size === 1 ? (marketGroup([...state.groups][0])?.label || "Focus") : "Tutti i mercati";
+      dom.feedStateSubtitle.textContent = `${activeGroup} | ${state.sortMode === "priority" ? "ordine prioritario" : "ordine orario"}`;
+    }
+    if (dom.sortToggleValue) dom.sortToggleValue.textContent = state.sortMode === "priority" ? "Priorita" : "Orario";
+    if (dom.summaryProbabilityValue) dom.summaryProbabilityValue.textContent = `${state.minProbability}% - ${state.maxProbability}%`;
+    if (dom.summaryOddValue) dom.summaryOddValue.textContent = `${formatOdd(state.oddFrom)} - ${formatOdd(state.oddTo)}`;
+    if (dom.summaryTimeValue) dom.summaryTimeValue.textContent = `${state.timeFrom} - ${state.timeTo}`;
+    if (dom.summaryProbabilityButton) dom.summaryProbabilityButton.classList.toggle("active", state.minProbability !== DEFAULTS.minProbability || state.maxProbability !== DEFAULTS.maxProbability);
+    if (dom.summaryOddButton) dom.summaryOddButton.classList.toggle("active", state.oddActive);
+    if (dom.summaryTimeButton) dom.summaryTimeButton.classList.toggle("active", state.timeFrom !== DEFAULTS.timeFrom || state.timeTo !== DEFAULTS.timeTo);
   }
 
   function renderSummary(matches, topPicks) {
@@ -1047,7 +1174,7 @@
     const chips = [];
     if (state.search) chips.push({ key: "search", label: `${TEXT.filterSearch}: ${state.search}` });
     if (state.timeFrom !== DEFAULTS.timeFrom || state.timeTo !== DEFAULTS.timeTo) chips.push({ key: "time", label: `${TEXT.filterTime}: ${state.timeFrom}-${state.timeTo}` });
-    if (state.minProbability !== DEFAULTS.minProbability) chips.push({ key: "probability", label: `${TEXT.filterProbability}: ${state.minProbability}%+` });
+    if (state.minProbability !== DEFAULTS.minProbability || state.maxProbability !== DEFAULTS.maxProbability) chips.push({ key: "probability", label: `${TEXT.filterProbability}: ${formatProbabilityRange(state.minProbability, state.maxProbability)}` });
     if (state.oddActive) chips.push({ key: "odd", label: `${TEXT.filterOdd}: ${formatOddRange(state.oddFrom, state.oddTo)}` });
     if (state.status !== "all") chips.push({ key: "status", label: `${TEXT.filterStatus}: ${statusLabel(state.status)}` });
     if (state.groups.size !== GROUPS.length) chips.push({ key: "groups", label: `${TEXT.filterMarkets}: ${state.groups.size}/${GROUPS.length}` });
@@ -1238,6 +1365,7 @@
     renderDateTabs();
     renderQuickRanges();
     renderFilterChips();
+    renderFeedToolbar(orderedMatches);
     renderSummary(orderedMatches, topPicks);
     renderYesterdayBanner();
     renderActiveFilters();
@@ -1256,14 +1384,20 @@
       state.timeFrom = DEFAULTS.timeFrom;
       state.timeTo = DEFAULTS.timeTo;
     }
-    if (key === "probability") state.minProbability = DEFAULTS.minProbability;
+    if (key === "probability") {
+      state.minProbability = DEFAULTS.minProbability;
+      state.maxProbability = DEFAULTS.maxProbability;
+    }
     if (key === "odd") {
       state.oddActive = false;
       state.oddFrom = DEFAULTS.oddFrom;
       state.oddTo = DEFAULTS.oddTo;
     }
     if (key === "status") state.status = "all";
-    if (key === "groups") state.groups = new Set(GROUPS.map(group => group.id));
+    if (key === "groups") {
+      state.groups = new Set(GROUPS.map(group => group.id));
+      state.outcomeFilters = new Set();
+    }
     if (key === "outcomes") state.outcomeFilters = new Set();
     render();
   }
@@ -1313,15 +1447,35 @@
     render();
   }
 
+  function applyProbabilityRange(minValue, maxValue, changedField = "min") {
+    state.minProbability = Math.round(clampNumber(minValue, 45, 99, DEFAULTS.minProbability));
+    state.maxProbability = Math.round(clampNumber(maxValue, 45, 99, DEFAULTS.maxProbability));
+    if (state.minProbability > state.maxProbability) {
+      if (changedField === "max") state.minProbability = state.maxProbability;
+      else state.maxProbability = state.minProbability;
+    }
+    render();
+  }
+
   function applyOddFilter(fromValue, toValue, changedField = "from") {
-    state.oddActive = true;
-    state.oddFrom = Number(fromValue || DEFAULTS.oddFrom);
-    state.oddTo = Number(toValue || DEFAULTS.oddTo);
+    state.oddFrom = clampNumber(fromValue, 1.01, 10, DEFAULTS.oddFrom);
+    state.oddTo = clampNumber(toValue, 1.01, 10, DEFAULTS.oddTo);
     if (state.oddFrom > state.oddTo) {
       if (changedField === "to") state.oddFrom = state.oddTo;
       else state.oddTo = state.oddFrom;
     }
+    state.oddActive = state.oddFrom > DEFAULTS.oddFrom || state.oddTo < DEFAULTS.oddTo;
     render();
+  }
+
+  function openFilterSection(sectionId) {
+    state.filterOpen = true;
+    syncModalState();
+    if (!sectionId) return;
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(sectionId);
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   function bindEvents() {
@@ -1346,9 +1500,26 @@
         syncModalState();
       });
     }
-    dom.filterToggle.addEventListener("click", () => {
-      state.filterOpen = !state.filterOpen;
-      syncModalState();
+    if (dom.filterToggle) {
+      dom.filterToggle.addEventListener("click", () => {
+        state.filterOpen = !state.filterOpen;
+        syncModalState();
+      });
+    }
+    if (dom.sortToggle) {
+      dom.sortToggle.addEventListener("click", () => {
+        state.sortMode = state.sortMode === "priority" ? "time" : "priority";
+        render();
+      });
+    }
+    [dom.summaryProbabilityButton, dom.summaryOddButton, dom.summaryTimeButton].forEach(button => {
+      if (!button) return;
+      button.addEventListener("click", () => {
+        const focus = button.dataset.filterFocus;
+        if (focus === "probability") openFilterSection("probability-filter-block");
+        else if (focus === "odd") openFilterSection("odd-filter-block");
+        else openFilterSection("time-filter-block");
+      });
     });
     dom.filterSheetClose.addEventListener("click", () => {
       state.filterOpen = false;
@@ -1368,27 +1539,20 @@
     });
     dom.timeFrom.addEventListener("change", () => applyTimeFilter(dom.timeFrom.value, state.timeTo));
     dom.timeTo.addEventListener("change", () => applyTimeFilter(state.timeFrom, dom.timeTo.value));
-    if (dom.heroTimeFrom) dom.heroTimeFrom.addEventListener("change", () => applyTimeFilter(dom.heroTimeFrom.value, state.timeTo));
-    if (dom.heroTimeTo) dom.heroTimeTo.addEventListener("change", () => applyTimeFilter(state.timeFrom, dom.heroTimeTo.value));
-    dom.probabilityRange.addEventListener("input", () => {
-      state.minProbability = Number(dom.probabilityRange.value || DEFAULTS.minProbability);
-      render();
-    });
-    if (dom.heroProbabilityRange) {
-      dom.heroProbabilityRange.addEventListener("input", () => {
-        state.minProbability = Number(dom.heroProbabilityRange.value || DEFAULTS.minProbability);
-        render();
-      });
-    }
+    if (dom.probabilityMinRange) dom.probabilityMinRange.addEventListener("input", () => applyProbabilityRange(dom.probabilityMinRange.value, state.maxProbability, "min"));
+    if (dom.probabilityMaxRange) dom.probabilityMaxRange.addEventListener("input", () => applyProbabilityRange(state.minProbability, dom.probabilityMaxRange.value, "max"));
+    if (dom.probabilityMinInput) dom.probabilityMinInput.addEventListener("change", () => applyProbabilityRange(dom.probabilityMinInput.value, state.maxProbability, "min"));
+    if (dom.probabilityMaxInput) dom.probabilityMaxInput.addEventListener("change", () => applyProbabilityRange(state.minProbability, dom.probabilityMaxInput.value, "max"));
+    if (dom.oddMinRange) dom.oddMinRange.addEventListener("input", () => applyOddFilter(dom.oddMinRange.value, state.oddTo, "from"));
+    if (dom.oddMaxRange) dom.oddMaxRange.addEventListener("input", () => applyOddFilter(state.oddFrom, dom.oddMaxRange.value, "to"));
     if (dom.oddFrom) dom.oddFrom.addEventListener("change", () => applyOddFilter(dom.oddFrom.value, state.oddTo, "from"));
     if (dom.oddTo) dom.oddTo.addEventListener("change", () => applyOddFilter(state.oddFrom, dom.oddTo.value, "to"));
-    if (dom.heroOddFrom) dom.heroOddFrom.addEventListener("change", () => applyOddFilter(dom.heroOddFrom.value, state.oddTo, "from"));
-    if (dom.heroOddTo) dom.heroOddTo.addEventListener("change", () => applyOddFilter(state.oddFrom, dom.heroOddTo.value, "to"));
     dom.resetFilters.addEventListener("click", () => {
       state.groups = new Set(GROUPS.map(group => group.id));
       state.outcomeFilters = new Set();
       state.status = "all";
       state.minProbability = DEFAULTS.minProbability;
+      state.maxProbability = DEFAULTS.maxProbability;
       state.oddActive = false;
       state.oddFrom = DEFAULTS.oddFrom;
       state.oddTo = DEFAULTS.oddTo;
@@ -1408,12 +1572,6 @@
       pruneOutcomeFilters();
       render();
     });
-    if (dom.outcomesClear) {
-      dom.outcomesClear.addEventListener("click", () => {
-        state.outcomeFilters = new Set();
-        render();
-      });
-    }
     document.addEventListener("click", async event => {
       const dateButton = event.target.closest("[data-date]");
       if (dateButton) {
@@ -1444,6 +1602,38 @@
           state.oddTo = preset.to;
           render();
         }
+        return;
+      }
+      const quickGroupButton = event.target.closest("[data-quick-group]");
+      if (quickGroupButton) {
+        const quickGroup = quickGroupButton.dataset.quickGroup;
+        if (quickGroup === "all") {
+          state.groups = new Set(GROUPS.map(group => group.id));
+          state.outcomeFilters = new Set();
+        } else {
+          state.groups = new Set([quickGroup]);
+          state.outcomeFilters = new Set([...state.outcomeFilters].filter(id => OUTCOME_FILTERS.find(filter => filter.id === id)?.group === quickGroup));
+        }
+        render();
+        return;
+      }
+      const quickOutcomeClearButton = event.target.closest("[data-quick-outcome-clear]");
+      if (quickOutcomeClearButton) {
+        const groupId = quickOutcomeClearButton.dataset.quickOutcomeClear;
+        state.outcomeFilters = new Set([...state.outcomeFilters].filter(id => OUTCOME_FILTERS.find(filter => filter.id === id)?.group !== groupId));
+        render();
+        return;
+      }
+      const quickOutcomeButton = event.target.closest("[data-quick-outcome]");
+      if (quickOutcomeButton) {
+        const outcomeId = quickOutcomeButton.dataset.quickOutcome;
+        const filter = OUTCOME_FILTERS.find(item => item.id === outcomeId);
+        if (!filter) return;
+        state.groups = new Set([filter.group]);
+        const alreadySingle = selectedOutcomeFiltersForGroup(filter.group).length === 1 && state.outcomeFilters.has(outcomeId);
+        state.outcomeFilters = new Set();
+        if (!alreadySingle) state.outcomeFilters.add(outcomeId);
+        render();
         return;
       }
       const groupButton = event.target.closest("[data-group]");
@@ -1506,7 +1696,7 @@
 
   async function init() {
     populateTimeSelects();
-    populateOddSelects();
+    renderRangePanels();
     bindEvents();
     await refreshData();
     startAutoRefresh();
