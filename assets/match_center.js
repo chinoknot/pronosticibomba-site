@@ -244,6 +244,7 @@
       probTo: 99,
       selectedProfile: "safe",
       outcomeFilters: new Set(),
+      outcomeMenuOpen: false,
       windowMode: "soon",
       timeFrom: "00:00",
       timeTo: "23:59",
@@ -309,7 +310,12 @@
     betMasterTimeTo: document.getElementById("bet-master-time-to"),
     betMasterGenerate: document.getElementById("bet-master-generate"),
     betMasterOutcomeValue: document.getElementById("bet-master-outcome-value"),
-    betMasterOutcomeChips: document.getElementById("bet-master-outcome-chips"),
+    betMasterOutcomeDropdown: document.getElementById("bet-master-outcome-dropdown"),
+    betMasterOutcomeToggle: document.getElementById("bet-master-outcome-toggle"),
+    betMasterOutcomeToggleLabel: document.getElementById("bet-master-outcome-toggle-label"),
+    betMasterOutcomeMeta: document.getElementById("bet-master-outcome-meta"),
+    betMasterOutcomePanel: document.getElementById("bet-master-outcome-panel"),
+    betMasterOutcomeGroups: document.getElementById("bet-master-outcome-groups"),
     betMasterResults: document.getElementById("bet-master-results"),
     betMasterNote: document.getElementById("bet-master-note"),
     resetFilters: document.getElementById("reset-filters"),
@@ -400,9 +406,25 @@
     return betMasterOutcomeCatalog().filter(option => allowedGroups.has(option.group));
   }
 
+  function groupedBetMasterOutcomes() {
+    const labels = new Map(GROUPS.map(group => [group.id, group.label]));
+    const groups = new Map();
+    availableBetMasterOutcomes().forEach(option => {
+      if (!groups.has(option.group)) groups.set(option.group, { id: option.group, label: labels.get(option.group) || option.group, options: [] });
+      groups.get(option.group).options.push(option);
+    });
+    return [...groups.values()];
+  }
+
   function pruneBetMasterOutcomeFilters() {
     const allowed = new Set(availableBetMasterOutcomes().map(option => option.id));
     state.betMaster.outcomeFilters = new Set([...state.betMaster.outcomeFilters].filter(id => allowed.has(id)));
+  }
+
+  function syncBetMasterOutcomeDropdown() {
+    if (dom.betMasterOutcomeToggle) dom.betMasterOutcomeToggle.classList.toggle("open", state.betMaster.outcomeMenuOpen);
+    if (dom.betMasterOutcomeToggle) dom.betMasterOutcomeToggle.setAttribute("aria-expanded", state.betMaster.outcomeMenuOpen ? "true" : "false");
+    if (dom.betMasterOutcomePanel) dom.betMasterOutcomePanel.hidden = !state.betMaster.outcomeMenuOpen;
   }
 
   function visibleOutcomeGroups() {
@@ -1945,6 +1967,7 @@
       dom.betMasterProbPresets.innerHTML = BET_MASTER_PROB_PRESETS.map(preset => `<button type="button" class="preset-chip ${Number(preset.from) === Number(state.betMaster.probFrom) && Number(preset.to) === Number(state.betMaster.probTo) ? "active" : ""}" data-bet-master-prob-preset="${preset.id}">${preset.label}</button>`).join("");
     }
     const outcomeOptions = availableBetMasterOutcomes();
+    const groupedOutcomes = groupedBetMasterOutcomes();
     if (dom.betMasterOutcomeValue) {
       const labels = outcomeOptions
         .filter(option => state.betMaster.outcomeFilters.has(option.id))
@@ -1953,12 +1976,25 @@
         ? (labels.length <= 2 ? labels.join(" | ") : (IS_EN ? `${labels.length} outcomes` : `${labels.length} esiti`))
         : (IS_EN ? "All" : "Tutti");
     }
-    if (dom.betMasterOutcomeChips) {
-      dom.betMasterOutcomeChips.innerHTML = [
-        `<button type="button" class="preset-chip ${state.betMaster.outcomeFilters.size === 0 ? "active" : ""}" data-bet-master-outcome="all">${IS_EN ? "All" : "Tutti"}</button>`,
-        ...outcomeOptions.map(option => `<button type="button" class="preset-chip ${state.betMaster.outcomeFilters.has(option.id) ? "active" : ""}" data-bet-master-outcome="${option.id}">${escapeHtml(option.label)}</button>`),
-      ].join("");
+    if (dom.betMasterOutcomeToggleLabel) {
+      dom.betMasterOutcomeToggleLabel.textContent = dom.betMasterOutcomeValue?.textContent || (IS_EN ? "All" : "Tutti");
     }
+    if (dom.betMasterOutcomeMeta) {
+      dom.betMasterOutcomeMeta.textContent = state.betMaster.outcomeFilters.size
+        ? (IS_EN ? "Tap to refine the slip mix" : "Tocca per rifinire il mix della schedina")
+        : (IS_EN ? "Mix goals, DC, BTTS, corners and cards" : "Mischia goal, doppie chance, BTTS, corner e cartellini");
+    }
+    if (dom.betMasterOutcomeGroups) {
+      dom.betMasterOutcomeGroups.innerHTML = groupedOutcomes.map(group => `
+        <section class="bet-master-outcome-group">
+          <h4>${escapeHtml(group.label)}</h4>
+          <div class="bet-master-outcome-grid">
+            ${group.options.map(option => `<button type="button" class="preset-chip ${state.betMaster.outcomeFilters.has(option.id) ? "active" : ""}" data-bet-master-outcome="${option.id}">${escapeHtml(option.label)}</button>`).join("")}
+          </div>
+        </section>
+      `).join("");
+    }
+    syncBetMasterOutcomeDropdown();
     if (dom.betMasterNote) {
       const baseNote = IS_EN
         ? "Bet Master uses the active markets/outcomes above and keeps bet365 odds first."
@@ -2625,6 +2661,18 @@
         }
         return;
       }
+      const betMasterOutcomeToggle = event.target.closest("#bet-master-outcome-toggle");
+      if (betMasterOutcomeToggle) {
+        state.betMaster.outcomeMenuOpen = !state.betMaster.outcomeMenuOpen;
+        syncBetMasterOutcomeDropdown();
+        return;
+      }
+      const betMasterOutcomeClose = event.target.closest("[data-bet-master-outcome-close]");
+      if (betMasterOutcomeClose) {
+        state.betMaster.outcomeMenuOpen = false;
+        syncBetMasterOutcomeDropdown();
+        return;
+      }
       const betMasterOutcomeButton = event.target.closest("[data-bet-master-outcome]");
       if (betMasterOutcomeButton) {
         const outcomeId = betMasterOutcomeButton.dataset.betMasterOutcome;
@@ -2719,11 +2767,21 @@
         state.detailFixtureId = openButton.dataset.fixtureOpen || openButton.getAttribute("data-fixture-open");
         renderDetail();
         syncModalState();
+        state.betMaster.outcomeMenuOpen = false;
+        syncBetMasterOutcomeDropdown();
+        return;
+      }
+      if (state.betMaster.outcomeMenuOpen && dom.betMasterOutcomeDropdown && !event.target.closest("#bet-master-outcome-dropdown")) {
+        state.betMaster.outcomeMenuOpen = false;
+        syncBetMasterOutcomeDropdown();
       }
     });
     document.addEventListener("keydown", event => {
       if (event.key !== "Escape") return;
-      if (state.detailFixtureId) state.detailFixtureId = null;
+      if (state.betMaster.outcomeMenuOpen) {
+        state.betMaster.outcomeMenuOpen = false;
+        syncBetMasterOutcomeDropdown();
+      } else if (state.detailFixtureId) state.detailFixtureId = null;
       else if (state.filterOpen) state.filterOpen = false;
       syncModalState();
     });
