@@ -6,6 +6,7 @@
   const PAGE_LANG = String(document.documentElement.lang || "it").toLowerCase();
   const IS_EN = PAGE_LANG.startsWith("en");
   const APP_LOCALE = IS_EN ? "en-GB" : "it-IT";
+  const BROWSER_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
   const DEFAULTS = { minProbability: 55, maxProbability: 99, oddFrom: 1.01, oddTo: 10, timeFrom: "00:00", timeTo: "23:59" };
   const ODD_PRESETS = [
     { id: "all", label: IS_EN ? "All" : "Tutte", from: 1.01, to: 10 },
@@ -320,9 +321,106 @@
     return new Intl.DateTimeFormat(APP_LOCALE, options).format(new Date(`${dateStr}T00:00:00`));
   }
 
+  function activeTimeZone() {
+    return BROWSER_TIMEZONE || state.cache?.timezone || state.manifest?.timezone || "UTC";
+  }
+
   function formatDateTime(isoValue) {
     if (!isoValue) return "-";
     return new Intl.DateTimeFormat(APP_LOCALE, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(isoValue));
+  }
+
+  function formatIsoDateInTimeZone(date, timeZone) {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const parts = Object.fromEntries(
+      formatter.formatToParts(date)
+        .filter(part => part.type !== "literal")
+        .map(part => [part.type, part.value]),
+    );
+    return `${parts.year}-${parts.month}-${parts.day}`;
+  }
+
+  function timeZoneOffsetMinutes(date, timeZone) {
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+    const parts = Object.fromEntries(
+      formatter.formatToParts(date)
+        .filter(part => part.type !== "literal")
+        .map(part => [part.type, part.value]),
+    );
+    const asUtc = Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour),
+      Number(parts.minute),
+      Number(parts.second),
+    );
+    return (asUtc - date.getTime()) / 60000;
+  }
+
+  function zonedDateToUtc(dateStr, timeStr, timeZone) {
+    if (!dateStr || !timeStr) return null;
+    const [year, month, day] = String(dateStr || "").split("-").map(Number);
+    const [hour, minute] = String(timeStr || "").split(":").map(Number);
+    if (![year, month, day, hour, minute].every(Number.isFinite)) return null;
+    const utcGuess = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
+    const firstOffset = timeZoneOffsetMinutes(utcGuess, timeZone);
+    const firstPass = new Date(utcGuess.getTime() - (firstOffset * 60000));
+    const secondOffset = timeZoneOffsetMinutes(firstPass, timeZone);
+    return secondOffset === firstOffset ? firstPass : new Date(utcGuess.getTime() - (secondOffset * 60000));
+  }
+
+  function kickoffDate(match) {
+    if (!match) return null;
+    if (match.kickoff_at) {
+      const parsed = new Date(match.kickoff_at);
+      if (!Number.isNaN(parsed.getTime())) return parsed;
+    }
+    if (Number.isFinite(Number(match.kickoff_ts))) {
+      const parsed = new Date(Number(match.kickoff_ts) * 1000);
+      if (!Number.isNaN(parsed.getTime())) return parsed;
+    }
+    const sourceTimeZone = state.cache?.timezone || state.manifest?.timezone || "UTC";
+    return zonedDateToUtc(match.date, match.match_time, sourceTimeZone);
+  }
+
+  function withLocalKickoff(match) {
+    const kickoff = kickoffDate(match);
+    if (!kickoff) {
+      return {
+        ...match,
+        localMatchTime: match.match_time || "--:--",
+        localMatchDateLabel: formatDate(match.date, { day: "2-digit", month: "2-digit" }),
+        localMatchIsoDate: match.date || "",
+        localKickoffMinutes: toMinutes(match.match_time),
+        localKickoffSort: `${match.date || ""}T${match.match_time || ""}`,
+      };
+    }
+    const zone = activeTimeZone();
+    const timeLabel = new Intl.DateTimeFormat(APP_LOCALE, { hour: "2-digit", minute: "2-digit" }).format(kickoff);
+    const dateLabel = new Intl.DateTimeFormat(APP_LOCALE, { day: "2-digit", month: "2-digit" }).format(kickoff);
+    return {
+      ...match,
+      localMatchTime: timeLabel,
+      localMatchDateLabel: dateLabel,
+      localMatchIsoDate: formatIsoDateInTimeZone(kickoff, zone),
+      localKickoffMinutes: toMinutes(timeLabel),
+      localKickoffSort: kickoff.toISOString(),
+    };
   }
 
   function todayIso(timeZone) {
@@ -731,7 +829,7 @@
   function earliestOpenKickoff(group) {
     return group.matches
       .filter(match => matchLifecycleRank(match) < 2)
-      .map(match => match.match_time || "99:99")
+      .map(match => match.localMatchTime || match.match_time || "99:99")
       .sort()[0] || "99:99";
   }
 
@@ -741,17 +839,17 @@
     if (shouldPrioritizeOpenSelections()) {
       return [groupLifecycleRank(group), earliestOpenKickoff(group), tier, tierRank, leagueRank, group.league || "", group.country || ""];
     }
-    return [tier, tierRank, leagueRank, group.matches[0]?.match_time || "", group.league || "", group.country || ""];
+    return [tier, tierRank, leagueRank, group.matches[0]?.localKickoffSort || group.matches[0]?.match_time || "", group.league || "", group.country || ""];
   }
 
   function matchSortKey(match) {
     const [tier, tierRank] = competitionTier(match.country, match.league);
     if (shouldPrioritizeOpenSelections()) {
       const lifecycleRank = matchLifecycleRank(match);
-      const kickoff = lifecycleRank < 2 ? (match.match_time || "99:99") : "99:99";
+      const kickoff = lifecycleRank < 2 ? (match.localMatchTime || match.match_time || "99:99") : "99:99";
       return [lifecycleRank, kickoff, tier, tierRank, leaguePriority(match.country, match.league), match.league || "", match.home || ""];
     }
-    return [tier, tierRank, leaguePriority(match.country, match.league), match.match_time || "", match.league || "", match.home || ""];
+    return [tier, tierRank, leaguePriority(match.country, match.league), match.localKickoffSort || match.match_time || "", match.league || "", match.home || ""];
   }
 
   function tempoProfile(match) {
@@ -1155,12 +1253,12 @@
           })
           .filter(market => state.status === "all" ? true : market.status === state.status);
         const searchBlob = `${match.home} ${match.away} ${match.league} ${match.country} ${markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" ")}`.toLowerCase();
-        return { ...match, markets, visibleMarkets, primaryMarket: selectHeadlineMarket(visibleMarkets, match), searchBlob };
+        return withLocalKickoff({ ...match, markets, visibleMarkets, primaryMarket: selectHeadlineMarket(visibleMarkets, match), searchBlob });
       })
-      .filter(match => match.match_time >= state.timeFrom && match.match_time <= state.timeTo)
+      .filter(match => (match.localMatchTime || match.match_time || "00:00") >= state.timeFrom && (match.localMatchTime || match.match_time || "23:59") <= state.timeTo)
       .filter(match => !search || match.searchBlob.includes(search))
       .filter(match => keepAll || match.visibleMarkets.length > 0)
-      .sort((a, b) => `${a.match_time}-${a.league}-${a.home}`.localeCompare(`${b.match_time}-${b.league}-${b.home}`));
+      .sort((a, b) => `${a.localKickoffSort || a.match_time}-${a.league}-${a.home}`.localeCompare(`${b.localKickoffSort || b.match_time}-${b.league}-${b.home}`));
     return diversifyMatchesByLeague(decorated);
   }
 
@@ -1176,23 +1274,23 @@
     const markets = buildMarkets(rawMatch).filter(market => Number(market.pickProbability || 0) > 0 || (market.options || []).some(option => option.probability != null));
     const filteredMarkets = markets.map(market => remapMarketForOutcomeFilters(rawMatch, market)).filter(Boolean);
     const primaryMarket = derivedMatch?.primaryMarket || (filteredMarkets.length ? selectHeadlineMarket(filteredMarkets, rawMatch) : selectPrimaryMarket(markets, rawMatch));
-    return { ...rawMatch, markets, primaryMarket };
+    return withLocalKickoff({ ...rawMatch, markets, primaryMarket });
   }
 
   function getTopPicks(matches) {
-    const timezone = state.manifest?.timezone || "UTC";
+    const timezone = activeTimeZone();
     const today = todayIso(timezone);
     const nowMinutes = toMinutes(currentTimeInTimezone(timezone));
     let pool = matches.filter(match => !FINAL_STATUSES.has(String(match.status_short || "").toUpperCase()) && match.primaryMarket);
     if (state.selectedDate === today) {
       const imminent = pool.filter(match => {
-        const kickoff = toMinutes(match.match_time);
+        const kickoff = Number(match.localKickoffMinutes || toMinutes(match.match_time));
         return kickoff >= nowMinutes && kickoff <= nowMinutes + 30;
       });
       if (imminent.length) {
         pool = imminent;
       } else {
-        const nextUp = pool.filter(match => toMinutes(match.match_time) >= nowMinutes);
+        const nextUp = pool.filter(match => Number(match.localKickoffMinutes || toMinutes(match.match_time)) >= nowMinutes);
         if (nextUp.length) pool = nextUp;
       }
     }
@@ -1217,7 +1315,7 @@
           away: match.away,
           league: match.league,
           country: match.country,
-          matchTime: match.match_time,
+          matchTime: match.localMatchTime || match.match_time,
           pickLabel: headline.pickLabel,
           pickProbability: headline.pickProbability,
           status: headline.status,
@@ -1274,7 +1372,7 @@
     });
     return [...groups.values()].sort((a, b) => {
       if (state.sortMode === "time") {
-        return `${a.matches[0]?.match_time || ""}-${a.league}`.localeCompare(`${b.matches[0]?.match_time || ""}-${b.league}`);
+        return `${a.matches[0]?.localKickoffSort || a.matches[0]?.match_time || ""}-${a.league}`.localeCompare(`${b.matches[0]?.localKickoffSort || b.matches[0]?.match_time || ""}-${b.league}`);
       }
       const aKey = groupSortKey(a);
       const bKey = groupSortKey(b);
@@ -1289,7 +1387,7 @@
   function sortMatchesForFeed(matches) {
     return [...matches].sort((a, b) => {
       if (state.sortMode === "time") {
-        return `${a.match_time || ""}-${a.league || ""}-${a.home || ""}`.localeCompare(`${b.match_time || ""}-${b.league || ""}-${b.home || ""}`);
+        return `${a.localKickoffSort || a.match_time || ""}-${a.league || ""}-${a.home || ""}`.localeCompare(`${b.localKickoffSort || b.match_time || ""}-${b.league || ""}-${b.home || ""}`);
       }
       const aKey = matchSortKey(a);
       const bKey = matchSortKey(b);
@@ -1512,8 +1610,8 @@
       <article class="match-row status-${displayStatus}" data-fixture-open="${match.fixture_id}">
         <div class="match-row-inner">
           <div class="match-time-block">
-            <div class="match-time">${escapeHtml(match.match_time || "--:--")}</div>
-            <div class="match-date">${escapeHtml(formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</div>
+            <div class="match-time">${escapeHtml(match.localMatchTime || match.match_time || "--:--")}</div>
+            <div class="match-date">${escapeHtml(match.localMatchDateLabel || formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</div>
           </div>
           <div class="match-teams">
             ${showLeagueLine ? `<div class="match-league-line">${escapeHtml(match.league)} | ${escapeHtml(match.country)}</div>` : ""}
@@ -1541,7 +1639,7 @@
     const groups = groupMatches(matches).map(group => ({
       ...group,
       matches: state.sortMode === "time"
-        ? [...group.matches].sort((a, b) => `${a.match_time || ""}-${a.home || ""}`.localeCompare(`${b.match_time || ""}-${b.home || ""}`))
+        ? [...group.matches].sort((a, b) => `${a.localKickoffSort || a.match_time || ""}-${a.home || ""}`.localeCompare(`${b.localKickoffSort || b.match_time || ""}-${b.home || ""}`))
         : [...group.matches].sort((a, b) => {
           const aKey = matchSortKey(a);
           const bKey = matchSortKey(b);
@@ -1623,7 +1721,7 @@
         </div>
         <div class="detail-meta-grid">
           <div class="detail-meta-card"><span>Campionato</span><strong>${escapeHtml(match.league)}</strong></div>
-          <div class="detail-meta-card"><span>Kickoff</span><strong>${escapeHtml(match.match_time)} | ${escapeHtml(formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</strong></div>
+          <div class="detail-meta-card"><span>Kickoff</span><strong>${escapeHtml(match.localMatchTime || match.match_time)} | ${escapeHtml(match.localMatchDateLabel || formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</strong></div>
           <div class="detail-meta-card"><span>Stato</span><strong>${FINAL_STATUSES.has(String(match.status_short || "").toUpperCase()) ? `${TEXT.final} | ${escapeHtml(match.final_score || "-")}` : escapeHtml(match.status_long || statusLabel("scheduled"))}</strong></div>
         </div>
       </article>
