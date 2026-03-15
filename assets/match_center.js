@@ -43,11 +43,6 @@
     { id: "balanced", label: IS_EN ? "Balanced Slip" : "Schedina bilanciata", note: IS_EN ? "Balanced between hit-rate and odds" : "Equilibrata tra probabilita e quota" },
     { id: "value", label: IS_EN ? "Value Slip" : "Schedina value", note: IS_EN ? "Slightly bolder but still playable" : "Un po piu coraggiosa ma ancora giocabile" },
   ];
-  const BET_MASTER_PROFILE_RULES = {
-    safe: { preferredOddMin: 1.08, preferredOddMax: 1.55, hardOddMin: 1.01, hardOddMax: 1.9, reusePenalty: 0.1 },
-    balanced: { preferredOddMin: 1.28, preferredOddMax: 1.95, hardOddMin: 1.12, hardOddMax: 2.35, reusePenalty: 0.24 },
-    value: { preferredOddMin: 1.55, preferredOddMax: 3.2, hardOddMin: 1.3, hardOddMax: 4, reusePenalty: 0.42 },
-  };
   const TOTAL_MARKET_RULES = {
     corners: { strongMin: 0.50, softMin: 0.44, impactLine: 12.5 },
     yellows: { strongMin: 0.50, softMin: 0.42, impactLine: 4.5 },
@@ -829,6 +824,53 @@
   function invalidateBetMasterCache() {
     state.betMaster.entryCacheKey = "";
     state.betMaster.entryCacheResult = null;
+  }
+
+  function betMasterProfileRules(profileId) {
+    const floor = Number(state.betMaster.oddFrom || 1.2);
+    const ceiling = Number(state.betMaster.oddTo || 2);
+    if (profileId === "safe") {
+      const targetOdd = Math.min(ceiling, Number((floor + 0.08).toFixed(2)));
+      const preferredOddMax = Math.min(ceiling, Number((floor + 0.16).toFixed(2)));
+      const hardOddMax = Math.min(ceiling, Number((floor + 0.32).toFixed(2)));
+      return {
+        targetOdd,
+        preferredOddMin: floor,
+        preferredOddMax: Math.max(floor, preferredOddMax),
+        hardOddMin: Math.max(1.01, Number((floor - 0.04).toFixed(2))),
+        hardOddMax: Math.max(floor, hardOddMax),
+        reusePenalty: 0.12,
+        tierPenalty: 0.15,
+        syntheticPenalty: 0.24,
+        minSignal: Math.max(Number(state.betMaster.probFrom || 60) / 100, 0.62),
+      };
+    }
+    if (profileId === "balanced") {
+      const targetOdd = Math.min(ceiling, Number((floor + 0.22).toFixed(2)));
+      return {
+        targetOdd,
+        preferredOddMin: Math.max(floor, Number((targetOdd - 0.12).toFixed(2))),
+        preferredOddMax: Math.min(ceiling, Number((targetOdd + 0.16).toFixed(2))),
+        hardOddMin: Math.max(1.01, Number((floor - 0.03).toFixed(2))),
+        hardOddMax: Math.min(ceiling, Number((targetOdd + 0.32).toFixed(2))),
+        reusePenalty: 0.26,
+        tierPenalty: 0.08,
+        syntheticPenalty: 0.14,
+        minSignal: Math.max((Number(state.betMaster.probFrom || 60) - 1) / 100, 0.59),
+      };
+    }
+    const targetOdd = Math.min(ceiling, Number((Math.max(floor + 0.42, 1.6)).toFixed(2)));
+    return {
+      targetOdd,
+      preferredOddMin: Math.max(floor, Number((targetOdd - 0.16).toFixed(2))),
+      preferredOddMax: Math.min(ceiling, Number((targetOdd + 0.34).toFixed(2))),
+      hardOddMin: Math.max(1.05, Number((floor + 0.08).toFixed(2))),
+      hardOddMax: Math.min(ceiling, Number((targetOdd + 0.58).toFixed(2))),
+      reusePenalty: 0.44,
+      tierPenalty: 0.04,
+      syntheticPenalty: 0.08,
+      minSignal: Math.max((Number(state.betMaster.probFrom || 60) - 2) / 100, 0.57),
+    };
   }
 
   function leaguePriority(country, league) {
@@ -1737,29 +1779,35 @@
     const probability = Number(entry.probability || 0);
     const odd = Number(entry.odd || 0);
     const base = Number(entry.displayScore || 0);
-    const rules = BET_MASTER_PROFILE_RULES[profileId] || BET_MASTER_PROFILE_RULES.safe;
+    const rules = betMasterProfileRules(profileId);
+    const distance = Math.abs(odd - rules.targetOdd);
     let score = 0;
     if (profileId === "safe") {
-      score = (probability * 1.45) + (base * 0.88);
-      if (odd > 1.6) score -= (odd - 1.6) * 0.22;
-      if (odd < 1.16) score -= (1.16 - odd) * 0.06;
-      if (entry.group === "double") score += 0.05;
-      if (entry.group === "combo") score -= 0.08;
+      score = (probability * 1.58) + (base * 0.94);
+      score -= distance * 0.7;
+      if (odd > rules.targetOdd) score -= (odd - rules.targetOdd) * 1.15;
+      if (probability < rules.minSignal) score -= (rules.minSignal - probability) * 1.4;
+      if (entry.group === "double") score += 0.04;
+      if (entry.group === "combo") score -= 0.16;
+      if (entry.group === "corners" || entry.group === "yellows") score -= 0.06;
     } else if (profileId === "balanced") {
-      score = (probability * 1.08) + (base * 0.92);
-      if (odd >= 1.38 && odd <= 2.02) score += 0.08;
-      score -= Math.abs(odd - 1.68) * 0.07;
+      score = (probability * 1.18) + (base * 0.96);
+      score -= distance * 0.36;
+      if (probability < rules.minSignal) score -= (rules.minSignal - probability) * 0.7;
       if (["btts", "corners", "yellows"].includes(entry.group)) score += 0.03;
+      if (entry.group === "combo" && probability < 0.61) score -= 0.06;
     } else {
-      score = (probability * 0.88) + (base * 0.9);
-      if (odd >= 1.7 && odd <= 2.8) score += 0.16;
-      else if (odd >= 2.8 && odd <= 4) score += 0.09;
-      else if (odd < 1.42) score -= 0.2;
+      score = (probability * 0.96) + (base * 0.98);
+      score -= distance * 0.18;
+      if (odd >= rules.preferredOddMin && odd <= rules.preferredOddMax) score += 0.12;
+      if (probability < rules.minSignal) score -= (rules.minSignal - probability) * 0.55;
+      if (probability >= 0.64) score += 0.03;
       if (["btts", "combo", "corners", "yellows"].includes(entry.group)) score += 0.05;
       if (entry.group === "double") score -= 0.04;
     }
-    if (odd < rules.hardOddMin || odd > rules.hardOddMax) score -= 0.2;
-    if (entry.syntheticOdd) score -= profileId === "value" ? 0.08 : 0.16;
+    score -= Number(entry.tier || 0) * rules.tierPenalty;
+    if (odd < rules.hardOddMin || odd > rules.hardOddMax) score -= 0.24;
+    if (entry.syntheticOdd) score -= rules.syntheticPenalty;
     return score;
   }
 
@@ -1767,14 +1815,14 @@
     const targetCount = Math.max(1, Math.min(20, Number(state.betMaster.count || 1)));
     const groupLimit = Math.max(2, Math.ceil(targetCount / 3));
     const labelLimit = 1;
-    const rules = BET_MASTER_PROFILE_RULES[profile.id] || BET_MASTER_PROFILE_RULES.safe;
+    const rules = betMasterProfileRules(profile.id);
     const sorted = [...entries].sort((a, b) => {
-      const tierDiff = Number(a.tier || 99) - Number(b.tier || 99);
-      if (tierDiff) return tierDiff;
       const aScore = betMasterProfileScore(a, profile.id) - (avoidedFixtures.has(a.fixtureId) ? rules.reusePenalty : 0);
       const bScore = betMasterProfileScore(b, profile.id) - (avoidedFixtures.has(b.fixtureId) ? rules.reusePenalty : 0);
       const diff = bScore - aScore;
       if (Math.abs(diff) > 0.0001) return diff;
+      const tierDiff = Number(a.tier || 99) - Number(b.tier || 99);
+      if (tierDiff) return tierDiff;
       return `${a.kickoffSort}-${a.league}-${a.home}`.localeCompare(`${b.kickoffSort}-${b.league}-${b.home}`);
     });
     const preferred = sorted.filter(entry => entry.odd >= rules.preferredOddMin && entry.odd <= rules.preferredOddMax);
