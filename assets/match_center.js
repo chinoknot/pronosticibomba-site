@@ -21,6 +21,25 @@
   const PROBABILITY_PRESETS = [60, 65, 70, 75, 80];
   const PROBABILITY_OPTIONS = [45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 99];
   const ODD_OPTIONS = [1.01, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.25, 2.5, 3, 4, 5, 7.5, 10];
+  const BET_MASTER_ODD_PRESETS = [
+    { id: "bm_110_135", label: "1.10-1.35", from: 1.1, to: 1.35 },
+    { id: "bm_120_150", label: "1.20-1.50", from: 1.2, to: 1.5 },
+    { id: "bm_135_170", label: "1.35-1.70", from: 1.35, to: 1.7 },
+    { id: "bm_150_200", label: "1.50-2.00", from: 1.5, to: 2 },
+    { id: "bm_170_250", label: "1.70-2.50", from: 1.7, to: 2.5 },
+    { id: "bm_200_400", label: "2.00-4+", from: 2, to: 10 },
+  ];
+  const BET_MASTER_PROB_PRESETS = [
+    { id: "bm_prob_60", label: "60%+", from: 60, to: 99 },
+    { id: "bm_prob_65", label: "65%+", from: 65, to: 99 },
+    { id: "bm_prob_70", label: "70%+", from: 70, to: 99 },
+    { id: "bm_prob_75", label: "75%+", from: 75, to: 99 },
+  ];
+  const BET_MASTER_PROFILES = [
+    { id: "safe", label: IS_EN ? "Safe Slip" : "Schedina solida", note: IS_EN ? "Highest hit-rate first" : "Prima la probabilita piu alta" },
+    { id: "balanced", label: IS_EN ? "Balanced Slip" : "Schedina bilanciata", note: IS_EN ? "Balanced between hit-rate and odds" : "Equilibrata tra probabilita e quota" },
+    { id: "value", label: IS_EN ? "Value Slip" : "Schedina value", note: IS_EN ? "Slightly bolder but still playable" : "Un po piu coraggiosa ma ancora giocabile" },
+  ];
   const TOTAL_MARKET_RULES = {
     corners: { strongMin: 0.50, softMin: 0.44, impactLine: 12.5 },
     yellows: { strongMin: 0.50, softMin: 0.42, impactLine: 4.5 },
@@ -52,6 +71,8 @@
     { id: "goals_u25", group: "goals", marketId: "ou25", label: "Under 2.5" },
     { id: "goals_o35", group: "goals", marketId: "o35", label: "Over 3.5" },
     { id: "goals_u35", group: "goals", marketId: "o35", label: "Under 3.5" },
+    { id: "goals_ht_o15", group: "goals", marketId: "ht15", label: "Over 1.5 HT" },
+    { id: "goals_sh_o15", group: "goals", marketId: "sh15", label: "Over 1.5 2H" },
     ...[7.5, 8.5, 9.5, 10.5, 11.5, 12.5].map(line => ({ id: `corners_o_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Over ${line.toFixed(1)}` })),
     ...[10.5, 9.5].map(line => ({ id: `corners_u_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Under ${line.toFixed(1)}` })),
     ...[1.5, 2.5, 3.5, 4.5].map(line => ({ id: `yellows_o_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Over ${line.toFixed(1)}` })),
@@ -182,6 +203,11 @@
     finalWord: "finali",
     wonWord: IS_EN ? "Won" : "Vinta",
     lostWord: IS_EN ? "Lost" : "Persa",
+    betMasterEmpty: IS_EN ? "Generate to see the playable slips in the selected window." : "Genera per vedere le schedine disponibili nella finestra selezionata.",
+    betMasterNoCandidates: IS_EN ? "No bet365 picks available in this window with the filters you selected." : "Nessuna pick bet365 disponibile in questa finestra con i filtri scelti.",
+    betMasterNeedMarkets: IS_EN ? "Enable at least one market to build a slip." : "Attiva almeno un mercato per creare la schedina.",
+    betMasterSoon: IS_EN ? "Now +30m" : "Adesso +30m",
+    betMasterCustom: IS_EN ? "Custom slot" : "Intervallo",
   };
   const state = {
     manifest: null,
@@ -201,6 +227,18 @@
     filterOpen: false,
     outcomeFilters: new Set(),
     detailFixtureId: null,
+    betMaster: {
+      count: 4,
+      oddFrom: 1.2,
+      oddTo: 2,
+      probFrom: 60,
+      probTo: 99,
+      windowMode: "soon",
+      timeFrom: "00:00",
+      timeTo: "23:59",
+      generated: false,
+      slips: [],
+    },
   };
   const dom = {
     dateTabs: document.getElementById("date-tabs"),
@@ -236,6 +274,27 @@
     oddTo: document.getElementById("odd-to"),
     oddValue: document.getElementById("odd-value"),
     oddPresets: document.getElementById("odd-presets"),
+    betMasterCountValue: document.getElementById("bet-master-count-value"),
+    betMasterCountDisplay: document.getElementById("bet-master-count-display"),
+    betMasterCountMeta: document.getElementById("bet-master-count-meta"),
+    betMasterOddValue: document.getElementById("bet-master-odd-value"),
+    betMasterProbValue: document.getElementById("bet-master-prob-value"),
+    betMasterTimeValue: document.getElementById("bet-master-time-value"),
+    betMasterWindowLabel: document.getElementById("bet-master-window-label"),
+    betMasterOddPresets: document.getElementById("bet-master-odd-presets"),
+    betMasterProbPresets: document.getElementById("bet-master-prob-presets"),
+    betMasterOddFrom: document.getElementById("bet-master-odd-from"),
+    betMasterOddTo: document.getElementById("bet-master-odd-to"),
+    betMasterProbFrom: document.getElementById("bet-master-prob-from"),
+    betMasterProbTo: document.getElementById("bet-master-prob-to"),
+    betMasterTimeSoon: document.getElementById("bet-master-time-soon"),
+    betMasterTimeCustom: document.getElementById("bet-master-time-custom"),
+    betMasterTimeSelects: document.getElementById("bet-master-time-selects"),
+    betMasterTimeFrom: document.getElementById("bet-master-time-from"),
+    betMasterTimeTo: document.getElementById("bet-master-time-to"),
+    betMasterGenerate: document.getElementById("bet-master-generate"),
+    betMasterResults: document.getElementById("bet-master-results"),
+    betMasterNote: document.getElementById("bet-master-note"),
     resetFilters: document.getElementById("reset-filters"),
     marketsAll: document.getElementById("markets-all"),
     marketsNone: document.getElementById("markets-none"),
@@ -461,6 +520,8 @@
     const render = value => options.map(option => `<option value="${option}"${option === value ? " selected" : ""}>${option}</option>`).join("");
     dom.timeFrom.innerHTML = render(state.timeFrom);
     dom.timeTo.innerHTML = render(state.timeTo);
+    if (dom.betMasterTimeFrom) dom.betMasterTimeFrom.innerHTML = render(state.betMaster.timeFrom);
+    if (dom.betMasterTimeTo) dom.betMasterTimeTo.innerHTML = render(state.betMaster.timeTo);
   }
 
   function populateProbabilitySelects() {
@@ -468,6 +529,8 @@
     const render = value => PROBABILITY_OPTIONS.map(option => `<option value="${option}"${Number(option) === Number(value) ? " selected" : ""}>${option}%</option>`).join("");
     dom.probabilityMinInput.innerHTML = render(state.minProbability);
     dom.probabilityMaxInput.innerHTML = render(state.maxProbability);
+    if (dom.betMasterProbFrom) dom.betMasterProbFrom.innerHTML = render(state.betMaster.probFrom);
+    if (dom.betMasterProbTo) dom.betMasterProbTo.innerHTML = render(state.betMaster.probTo);
   }
 
   function populateOddSelects() {
@@ -475,6 +538,8 @@
     const render = value => ODD_OPTIONS.map(option => `<option value="${formatOdd(option)}"${Number(option) === Number(value) ? " selected" : ""}>${formatOdd(option)}</option>`).join("");
     dom.oddFrom.innerHTML = render(state.oddFrom);
     dom.oddTo.innerHTML = render(state.oddTo);
+    if (dom.betMasterOddFrom) dom.betMasterOddFrom.innerHTML = render(state.betMaster.oddFrom);
+    if (dom.betMasterOddTo) dom.betMasterOddTo.innerHTML = render(state.betMaster.oddTo);
   }
 
   function activeOddPresetId() {
@@ -543,6 +608,29 @@
       .map(([key, value]) => ({ key, line: Number(key), value: Number(value) }))
       .filter(item => Number.isFinite(item.line) && Number.isFinite(item.value))
       .sort((a, b) => a.line - b.line);
+  }
+
+  function normalizeOddsMap(raw) {
+    return Object.entries(raw || {})
+      .map(([key, value]) => {
+        const line = Number(key);
+        const over = Number(value?.over);
+        const under = Number(value?.under);
+        return {
+          key,
+          line,
+          over: Number.isFinite(over) ? over : null,
+          under: Number.isFinite(under) ? under : null,
+        };
+      })
+      .filter(item => Number.isFinite(item.line))
+      .sort((a, b) => a.line - b.line);
+  }
+
+  function totalMarketOdd(rawOdds, line, side) {
+    const found = normalizeOddsMap(rawOdds).find(item => Number(item.line) === Number(line));
+    if (!found) return null;
+    return side === "under" ? found.under : found.over;
   }
 
   function isDynamicTotalMarket(marketId) {
@@ -874,6 +962,11 @@
     const tempoBoost = tempoProfile(match);
     const lamTotal = Number(match?.lam_total || 0);
     if (market.id === "ou15") score -= 0.07;
+    if (market.id === "ht15" || market.id === "sh15") {
+      score -= 0.015;
+      if (Number(market.pickProbability || 0) >= 0.64) score += 0.035;
+      if (Number.isFinite(odd) && odd >= 1.35 && odd <= 2.15) score += 0.025;
+    }
     if (market.id === "dc") {
       score -= 0.04;
       if (Number(market.pickProbability || 0) >= 0.74) score += 0.06;
@@ -966,30 +1059,36 @@
     return STATUS_OPTIONS.find(option => option.id === status)?.label || status;
   }
 
+  function settleTotalLabel(label, total) {
+    const upperLabel = String(label || "").toUpperCase();
+    const line = Number(upperLabel.replace("OVER ", "").replace("UNDER ", "").replace(" HT", "").replace(" 2H", ""));
+    if (!Number.isFinite(total) || !Number.isFinite(line)) return "unresolved";
+    if (upperLabel.startsWith("OVER ")) return total > line ? "win" : "lose";
+    if (upperLabel.startsWith("UNDER ")) return total < line ? "win" : "lose";
+    return "unresolved";
+  }
+
   function resolveMarketStatus(match, market) {
     const fixtureStatus = String(match.status_short || "").toUpperCase();
     if (market.id === "corners" || market.id === "yellows") {
       if (FINAL_STATUSES.has(fixtureStatus)) {
-        const actual = Number(market.actual);
-        const label = String(market.pickLabel || "").toUpperCase();
-        const line = Number(label.replace("OVER ", "").replace("UNDER ", ""));
-        if (Number.isFinite(actual) && Number.isFinite(line)) {
-          if (label.startsWith("OVER ")) return actual > line ? "win" : "lose";
-          if (label.startsWith("UNDER ")) return actual < line ? "win" : "lose";
-        }
-        return "unresolved";
+        return settleTotalLabel(market.pickLabel, Number(market.actual));
       }
       return LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled";
     }
     if (!FINAL_STATUSES.has(fixtureStatus)) return LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled";
     const homeGoals = Number(match.goals_home ?? 0);
     const awayGoals = Number(match.goals_away ?? 0);
+    const halfTimeGoals = Number(match.ht_goals_home ?? 0) + Number(match.ht_goals_away ?? 0);
+    const secondHalfGoals = (homeGoals + awayGoals) - halfTimeGoals;
     const label = String(market.pickLabel || "").toUpperCase();
     if (label === "1X") return homeGoals >= awayGoals ? "win" : "lose";
     if (label === "X2") return awayGoals >= homeGoals ? "win" : "lose";
     if (label === "OVER 2.5 + BTTS") return (homeGoals + awayGoals >= 3 && homeGoals > 0 && awayGoals > 0) ? "win" : "lose";
     if (label === "BTTS YES") return (homeGoals > 0 && awayGoals > 0) ? "win" : "lose";
     if (label === "BTTS NO") return !(homeGoals > 0 && awayGoals > 0) ? "win" : "lose";
+    if (label.endsWith(" HT")) return settleTotalLabel(label, halfTimeGoals);
+    if (label.endsWith(" 2H")) return settleTotalLabel(label, secondHalfGoals);
     if (label.startsWith("OVER ")) return homeGoals + awayGoals > Number(label.replace("OVER ", "")) ? "win" : "lose";
     if (label.startsWith("UNDER ")) return homeGoals + awayGoals < Number(label.replace("UNDER ", "")) ? "win" : "lose";
     if (label.includes(" NON SEGNA")) {
@@ -999,31 +1098,31 @@
     return "unresolved";
   }
 
-  function buildTotalMarketOptions(raw, marketId) {
+  function buildTotalMarketOptions(raw, marketId, oddsMap = null) {
     return normalizeMap(raw)
       .filter(item => marketId !== "yellows" || Number(item.line) <= 4.5)
       .flatMap(item => {
-      const underProbability = Math.max(0.02, Math.min(0.98, 1 - Number(item.value)));
-      const options = [
-        {
-          label: `Over ${item.key}`,
-          probability: item.value,
-          odd: null,
-          line: item.line,
-          highImpact: isImpactLine(marketId, item.line),
-          impactLabel: impactLabel(marketId, item.line),
-        },
-      ];
+        const underProbability = Math.max(0.02, Math.min(0.98, 1 - Number(item.value)));
+        const options = [
+          {
+            label: `Over ${item.key}`,
+            probability: item.value,
+            odd: totalMarketOdd(oddsMap, item.line, "over"),
+            line: item.line,
+            highImpact: isImpactLine(marketId, item.line),
+            impactLabel: impactLabel(marketId, item.line),
+          },
+        ];
       const allowUnder = marketId !== "corners" || Number(item.line) <= 10.5;
-      if (allowUnder) {
-        options.push({
-          label: `Under ${item.key}`,
-          probability: Number(underProbability.toFixed(4)),
-          odd: null,
-          line: item.line,
-          highImpact: isImpactLine(marketId, item.line),
-          impactLabel: impactLabel(marketId, item.line),
-        });
+        if (allowUnder) {
+          options.push({
+            label: `Under ${item.key}`,
+            probability: Number(underProbability.toFixed(4)),
+            odd: totalMarketOdd(oddsMap, item.line, "under"),
+            line: item.line,
+            highImpact: isImpactLine(marketId, item.line),
+            impactLabel: impactLabel(marketId, item.line),
+          });
       }
       return options;
     });
@@ -1049,14 +1148,16 @@
   }
 
   function buildMarkets(match) {
-    const cornerOptions = buildTotalMarketOptions(match.corner_overs, "corners");
-    const yellowOptions = buildTotalMarketOptions(match.yellow_overs, "yellows");
+    const cornerOptions = buildTotalMarketOptions(match.corner_overs, "corners", match.corner_odds);
+    const yellowOptions = buildTotalMarketOptions(match.yellow_overs, "yellows", match.yellow_odds);
     const cornerPick = pickDynamicTotalOption(cornerOptions, "corners", match.exp_corners);
     const yellowPick = pickDynamicTotalOption(yellowOptions, "yellows", match.exp_yellows);
     return [
       { id: "ou15", group: "goals", title: "Over / Under 1.5", pickLabel: match.ou15_pick, pickProbability: match.ou15_conf, options: [{ label: "Over 1.5", probability: match.p_over15, odd: match.odd_o15 }, { label: "Under 1.5", probability: match.p_under15, odd: match.odd_u15 }] },
       { id: "ou25", group: "goals", title: "Over / Under 2.5", pickLabel: match.ou_pick, pickProbability: match.ou_conf, options: [{ label: "Over 2.5", probability: match.p_over25, odd: match.odd_o25 }, { label: "Under 2.5", probability: match.p_under25, odd: match.odd_u25 }] },
       { id: "o35", group: "goals", title: "Over / Under 3.5", pickLabel: match.ou35_pick || (Number(match.p_over35 || 0) >= 0.5 ? "Over 3.5" : "Under 3.5"), pickProbability: match.ou35_conf ?? Math.max(Number(match.p_over35 || 0), Number(match.p_under35 || 0)), options: [{ label: "Over 3.5", probability: match.p_over35, odd: match.odd_o35 }, { label: "Under 3.5", probability: match.p_under35, odd: match.odd_u35 }] },
+      { id: "ht15", group: "goals", title: "1T Goals 1.5", pickLabel: match.ht15_pick, pickProbability: match.ht15_conf, options: [{ label: "Over 1.5 HT", probability: match.p_over15_ht, odd: match.odd_o15_ht }, { label: "Under 1.5 HT", probability: match.p_under15_ht, odd: match.odd_u15_ht }] },
+      { id: "sh15", group: "goals", title: "2T Goals 1.5", pickLabel: match.sh15_pick, pickProbability: match.sh15_conf, options: [{ label: "Over 1.5 2H", probability: match.p_over15_sh, odd: match.odd_o15_sh }, { label: "Under 1.5 2H", probability: match.p_under15_sh, odd: match.odd_u15_sh }] },
       { id: "dc", group: "double", title: "Doppia chance", pickLabel: match.dc_pick, pickProbability: match.dc_conf, options: [{ label: "1X", probability: match.p_1x, odd: match.odd_1x }, { label: "X2", probability: match.p_x2, odd: match.odd_x2 }] },
       { id: "btts", group: "btts", title: "Both Teams To Score", pickLabel: match.btts_pick, pickProbability: match.btts_conf, options: [{ label: "BTTS YES", probability: match.p_btts_yes, odd: match.odd_btts_y }, { label: "BTTS NO", probability: match.p_btts_no, odd: match.odd_btts_n }] },
       { id: "combo", group: "combo", title: "Combo Goals", pickLabel: "Over 2.5 + BTTS", pickProbability: match.p_o25_btts, options: [{ label: "Over 2.5 + BTTS", probability: match.p_o25_btts, odd: null }] },
@@ -1363,6 +1464,193 @@
     return diversified.slice(0, 12);
   }
 
+  function minutesToTime(totalMinutes) {
+    const safeMinutes = Math.max(0, Math.min((23 * 60) + 59, Number(totalMinutes || 0)));
+    const hour = Math.floor(safeMinutes / 60);
+    const minute = safeMinutes % 60;
+    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+  }
+
+  function formatCombinedOdd(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "-";
+    if (number >= 100) return number.toFixed(1);
+    if (number >= 10) return number.toFixed(2);
+    return number.toFixed(2);
+  }
+
+  function betMasterWindow() {
+    if (state.betMaster.windowMode === "custom") {
+      return {
+        mode: "custom",
+        from: state.betMaster.timeFrom,
+        to: state.betMaster.timeTo,
+        label: `${state.betMaster.timeFrom} - ${state.betMaster.timeTo}`,
+      };
+    }
+    const zone = activeTimeZone();
+    const today = todayIso(zone);
+    if (state.selectedDate !== today) {
+      return {
+        mode: "fallback",
+        from: state.timeFrom,
+        to: state.timeTo,
+        label: `${state.timeFrom} - ${state.timeTo}`,
+      };
+    }
+    const nowMinutes = toMinutes(currentTimeInTimezone(zone));
+    const endMinutes = Math.min((23 * 60) + 59, nowMinutes + 30);
+    return {
+      mode: "soon",
+      from: minutesToTime(nowMinutes),
+      to: minutesToTime(endMinutes),
+      label: TEXT.betMasterSoon,
+    };
+  }
+
+  function buildBetMasterMatches() {
+    const search = state.search.trim().toLowerCase();
+    const rawMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
+    return rawMatches
+      .map(match => {
+        const markets = buildMarkets(match)
+          .map(market => remapMarketForOutcomeFilters(match, market))
+          .filter(Boolean)
+          .filter(market => state.groups.has(market.group));
+        const searchBlob = `${match.home} ${match.away} ${match.league} ${match.country} ${markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" ")}`.toLowerCase();
+        return withLocalKickoff({ ...match, markets, searchBlob });
+      })
+      .filter(match => !search || match.searchBlob.includes(search));
+  }
+
+  function betMasterCandidateEntries() {
+    if (!state.groups.size) return { window: betMasterWindow(), entries: [] };
+    const window = betMasterWindow();
+    const fromMinutes = toMinutes(window.from);
+    const toMinutesValue = toMinutes(window.to);
+    const matches = buildBetMasterMatches()
+      .filter(match => {
+        const fixtureStatus = String(match.status_short || "").toUpperCase();
+        if (FINAL_STATUSES.has(fixtureStatus) || LIVE_STATUSES.has(fixtureStatus)) return false;
+        const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.localMatchTime || match.match_time));
+        return kickoffMinutes >= fromMinutes && kickoffMinutes <= toMinutesValue;
+      });
+
+    const entries = [];
+    matches.forEach(match => {
+      match.markets.forEach(market => {
+        (market.options || []).forEach(option => {
+          const odd = Number(option.odd);
+          const probability = Number(option.probability || 0) * 100;
+          if (!Number.isFinite(odd)) return;
+          if (!Number.isFinite(probability)) return;
+          if (probability < state.betMaster.probFrom || probability > state.betMaster.probTo) return;
+          if (odd < state.betMaster.oddFrom || odd > state.betMaster.oddTo) return;
+          const pickMarket = {
+            ...market,
+            pickLabel: option.label,
+            pickProbability: Number(option.probability || 0),
+            highImpact: Boolean(option.highImpact || market.highImpact),
+            impactLabel: option.impactLabel || market.impactLabel || "",
+          };
+          const status = resolveMarketStatus(match, pickMarket);
+          if (status !== "scheduled") return;
+          const displayScore = marketDisplayScore(pickMarket, match);
+          const marketTitle = market.title;
+          entries.push({
+            fixtureId: String(match.fixture_id),
+            home: match.home,
+            away: match.away,
+            league: match.league,
+            country: match.country,
+            kickoff: match.localMatchTime || match.match_time,
+            kickoffSort: match.localKickoffSort || `${match.localMatchIsoDate || match.date}T${match.localMatchTime || match.match_time}`,
+            probability: Number(option.probability || 0),
+            odd,
+            group: market.group,
+            tag: market.tag,
+            label: option.label,
+            title: marketTitle,
+            impactLabel: pickMarket.impactLabel || "",
+            highImpact: Boolean(pickMarket.highImpact),
+            displayScore,
+            match,
+            market: pickMarket,
+            diversityKey: `${market.group}:${String(option.label || "").toUpperCase()}`,
+          });
+        });
+      });
+    });
+    return { window, entries };
+  }
+
+  function betMasterProfileScore(entry, profileId) {
+    const probability = Number(entry.probability || 0);
+    const odd = Number(entry.odd || 0);
+    const base = Number(entry.displayScore || 0);
+    if (profileId === "safe") return (probability * 1.25) + (base * 0.75) - Math.max(0, odd - 1.55) * 0.05;
+    if (profileId === "balanced") return (probability * 0.95) + (base * 0.85) - (Math.abs(odd - 1.6) * 0.08) + (odd >= 1.35 && odd <= 1.95 ? 0.05 : 0);
+    return (probability * 0.78) + (base * 0.82) + Math.min(0.18, Math.max(-0.1, (odd - 1.45) * 0.16));
+  }
+
+  function buildBetMasterSlip(profile, entries) {
+    const targetCount = Math.max(1, Math.min(20, Number(state.betMaster.count || 1)));
+    const groupLimit = Math.max(2, Math.ceil(targetCount / 3));
+    const labelLimit = 1;
+    const sorted = [...entries].sort((a, b) => {
+      const diff = betMasterProfileScore(b, profile.id) - betMasterProfileScore(a, profile.id);
+      if (Math.abs(diff) > 0.0001) return diff;
+      return `${a.kickoffSort}-${a.league}-${a.home}`.localeCompare(`${b.kickoffSort}-${b.league}-${b.home}`);
+    });
+
+    const selected = [];
+    const usedFixtures = new Set();
+    const groupCounts = {};
+    const labelCounts = {};
+
+    const tryAdd = (entry, strict = true) => {
+      if (usedFixtures.has(entry.fixtureId)) return false;
+      if (strict) {
+        if ((groupCounts[entry.group] || 0) >= groupLimit) return false;
+        if ((labelCounts[entry.diversityKey] || 0) >= labelLimit) return false;
+      }
+      selected.push(entry);
+      usedFixtures.add(entry.fixtureId);
+      groupCounts[entry.group] = (groupCounts[entry.group] || 0) + 1;
+      labelCounts[entry.diversityKey] = (labelCounts[entry.diversityKey] || 0) + 1;
+      return true;
+    };
+
+    sorted.forEach(entry => {
+      if (selected.length >= targetCount) return;
+      tryAdd(entry, true);
+    });
+    if (selected.length < targetCount) {
+      sorted.forEach(entry => {
+        if (selected.length >= targetCount) return;
+        tryAdd(entry, false);
+      });
+    }
+
+    const totalOdd = selected.reduce((acc, entry) => acc * Number(entry.odd || 1), 1);
+    return {
+      ...profile,
+      picks: selected,
+      totalOdd,
+    };
+  }
+
+  function buildBetMasterSlips() {
+    const { window, entries } = betMasterCandidateEntries();
+    if (!entries.length) return { window, slips: [] };
+    return {
+      window,
+      slips: BET_MASTER_PROFILES
+        .map(profile => buildBetMasterSlip(profile, entries))
+        .filter(slip => slip.picks.length > 0),
+    };
+  }
+
   function groupMatches(matches) {
     const groups = new Map();
     matches.forEach(match => {
@@ -1454,6 +1742,20 @@
     if (dom.oddFrom) dom.oddFrom.value = formatOdd(state.oddFrom);
     if (dom.oddTo) dom.oddTo.value = formatOdd(state.oddTo);
     if (dom.oddValue) dom.oddValue.textContent = `${formatOdd(state.oddFrom)} - ${formatOdd(state.oddTo)}`;
+
+    if (dom.betMasterProbFrom) dom.betMasterProbFrom.value = String(state.betMaster.probFrom);
+    if (dom.betMasterProbTo) dom.betMasterProbTo.value = String(state.betMaster.probTo);
+    if (dom.betMasterProbValue) dom.betMasterProbValue.textContent = `${state.betMaster.probFrom}% - ${state.betMaster.probTo}%`;
+    if (dom.betMasterOddFrom) dom.betMasterOddFrom.value = formatOdd(state.betMaster.oddFrom);
+    if (dom.betMasterOddTo) dom.betMasterOddTo.value = formatOdd(state.betMaster.oddTo);
+    if (dom.betMasterOddValue) dom.betMasterOddValue.textContent = `${formatOdd(state.betMaster.oddFrom)} - ${formatOdd(state.betMaster.oddTo >= 10 ? 10 : state.betMaster.oddTo)}`;
+    if (dom.betMasterCountValue) dom.betMasterCountValue.textContent = String(state.betMaster.count);
+    if (dom.betMasterCountDisplay) dom.betMasterCountDisplay.textContent = String(state.betMaster.count);
+    if (dom.betMasterTimeFrom) dom.betMasterTimeFrom.value = state.betMaster.timeFrom;
+    if (dom.betMasterTimeTo) dom.betMasterTimeTo.value = state.betMaster.timeTo;
+    if (dom.betMasterTimeSoon) dom.betMasterTimeSoon.classList.toggle("active", state.betMaster.windowMode === "soon");
+    if (dom.betMasterTimeCustom) dom.betMasterTimeCustom.classList.toggle("active", state.betMaster.windowMode === "custom");
+    if (dom.betMasterTimeSelects) dom.betMasterTimeSelects.hidden = state.betMaster.windowMode !== "custom";
   }
 
   function renderFilterChips() {
@@ -1514,6 +1816,77 @@
     if (dom.topPicksWin) dom.topPicksWin.textContent = `${TEXT.wonWord} ${topWins}`;
     if (dom.topPicksLose) dom.topPicksLose.textContent = `${TEXT.lostWord} ${topLoses}`;
     if (matchBadge) matchBadge.textContent = String(matches.length);
+  }
+
+  function renderBetMaster() {
+    if (!dom.betMasterResults) return;
+    const window = betMasterWindow();
+    if (dom.betMasterWindowLabel) dom.betMasterWindowLabel.textContent = window.label;
+    if (dom.betMasterTimeValue) dom.betMasterTimeValue.textContent = window.mode === "soon" ? TEXT.betMasterSoon : `${window.from} - ${window.to}`;
+    if (dom.betMasterNote) {
+      const baseNote = IS_EN
+        ? "Bet Master uses the active markets/outcomes above and only keeps bet365 odds."
+        : "Bet Master usa i mercati/esiti attivi sopra e tiene solo quote bet365.";
+      const extra = window.mode === "soon"
+        ? (IS_EN ? " Window: now to the next 30 minutes." : " Finestra: da adesso ai prossimi 30 minuti.")
+        : (IS_EN ? ` Window: ${window.from}-${window.to}.` : ` Finestra: ${window.from}-${window.to}.`);
+      dom.betMasterNote.textContent = `${baseNote}${extra}`;
+    }
+    renderRangePanels();
+    if (dom.betMasterOddPresets) {
+      dom.betMasterOddPresets.innerHTML = BET_MASTER_ODD_PRESETS.map(preset => `<button type="button" class="preset-chip ${Number(preset.from) === Number(state.betMaster.oddFrom) && Number(preset.to) === Number(state.betMaster.oddTo) ? "active" : ""}" data-bet-master-odd-preset="${preset.id}">${preset.label}</button>`).join("");
+    }
+    if (dom.betMasterProbPresets) {
+      dom.betMasterProbPresets.innerHTML = BET_MASTER_PROB_PRESETS.map(preset => `<button type="button" class="preset-chip ${Number(preset.from) === Number(state.betMaster.probFrom) && Number(preset.to) === Number(state.betMaster.probTo) ? "active" : ""}" data-bet-master-prob-preset="${preset.id}">${preset.label}</button>`).join("");
+    }
+
+    if (!state.betMaster.generated) {
+      dom.betMasterResults.innerHTML = `<div class="empty-state">${TEXT.betMasterEmpty}</div>`;
+      return;
+    }
+    if (!state.groups.size) {
+      dom.betMasterResults.innerHTML = `<div class="bet-master-empty">${TEXT.betMasterNeedMarkets}</div>`;
+      return;
+    }
+    if (!state.betMaster.slips.length) {
+      dom.betMasterResults.innerHTML = `<div class="bet-master-empty">${TEXT.betMasterNoCandidates}</div>`;
+      return;
+    }
+    dom.betMasterResults.innerHTML = state.betMaster.slips.map(slip => `
+      <article class="bet-master-slip bet-master-slip-${slip.id}">
+        <div class="bet-master-slip-head">
+          <div>
+            <span class="bet-master-slip-kicker">${escapeHtml(slip.id)}</span>
+            <h3>${escapeHtml(slip.label)}</h3>
+            <p>${escapeHtml(slip.note)}</p>
+          </div>
+          <span class="bet-master-slip-count">${slip.picks.length}</span>
+        </div>
+        <div class="bet-master-slip-list">
+          ${slip.picks.map((pick, index) => `
+            <article class="bet-master-pick">
+              <div class="bet-master-pick-time">
+                <strong>${escapeHtml(pick.kickoff || "--:--")}</strong>
+                <small>#${index + 1}</small>
+              </div>
+              <div class="bet-master-pick-main">
+                <strong>${escapeHtml(pick.home)} vs ${escapeHtml(pick.away)}</strong>
+                <span>${escapeHtml(pick.label)}</span>
+                <small>${escapeHtml(pick.league)} | ${escapeHtml(pick.country || "")} | ${formatPercent(pick.probability)}</small>
+              </div>
+              <div class="bet-master-pick-odd">
+                <strong>${formatOdd(pick.odd)}</strong>
+                <small>${escapeHtml(pick.tag || pick.title || "")}</small>
+              </div>
+            </article>
+          `).join("")}
+        </div>
+        <div class="bet-master-slip-total">
+          <span>${IS_EN ? "Total odds" : "Quota totale"}</span>
+          <strong>${formatCombinedOdd(slip.totalOdd)}</strong>
+        </div>
+      </article>
+    `).join("");
   }
 
   function renderYesterdayBanner() {
@@ -1743,11 +2116,13 @@
     const matches = getDerivedMatches();
     const orderedMatches = sortMatchesForFeed(matches);
     const topPicks = getTopPicks(matches);
+    if (state.betMaster.generated) state.betMaster.slips = buildBetMasterSlips().slips;
     renderDateTabs();
     renderQuickRanges();
     renderFilterChips();
     renderFeedToolbar(orderedMatches);
     renderSummary(orderedMatches, topPicks);
+    renderBetMaster();
     renderYesterdayBanner();
     renderActiveFilters();
     renderTopPicks(topPicks);
@@ -1849,6 +2224,42 @@
     render();
   }
 
+  function setBetMasterCount(nextValue) {
+    state.betMaster.count = Math.max(1, Math.min(20, Number(nextValue || 1)));
+    render();
+  }
+
+  function applyBetMasterProbability(fromValue, toValue, changedField = "min") {
+    state.betMaster.probFrom = Math.round(clampNumber(fromValue, 45, 99, 60));
+    state.betMaster.probTo = Math.round(clampNumber(toValue, 45, 99, 99));
+    if (state.betMaster.probFrom > state.betMaster.probTo) {
+      if (changedField === "max") state.betMaster.probFrom = state.betMaster.probTo;
+      else state.betMaster.probTo = state.betMaster.probFrom;
+    }
+    render();
+  }
+
+  function applyBetMasterOdds(fromValue, toValue, changedField = "from") {
+    state.betMaster.oddFrom = clampNumber(fromValue, 1.01, 10, 1.2);
+    state.betMaster.oddTo = clampNumber(toValue, 1.01, 10, 2);
+    if (state.betMaster.oddFrom > state.betMaster.oddTo) {
+      if (changedField === "to") state.betMaster.oddFrom = state.betMaster.oddTo;
+      else state.betMaster.oddTo = state.betMaster.oddFrom;
+    }
+    render();
+  }
+
+  function applyBetMasterWindow(mode) {
+    state.betMaster.windowMode = mode === "custom" ? "custom" : "soon";
+    render();
+  }
+
+  function generateBetMaster() {
+    state.betMaster.generated = true;
+    state.betMaster.slips = buildBetMasterSlips().slips;
+    renderBetMaster();
+  }
+
   function scrollToInlineFilters() {
     dom.inlineFilterBoard?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
@@ -1901,6 +2312,21 @@
     if (dom.probabilityMaxInput) dom.probabilityMaxInput.addEventListener("change", () => applyProbabilityRange(state.minProbability, dom.probabilityMaxInput.value, "max"));
     if (dom.oddFrom) dom.oddFrom.addEventListener("change", () => applyOddFilter(dom.oddFrom.value, state.oddTo, "from"));
     if (dom.oddTo) dom.oddTo.addEventListener("change", () => applyOddFilter(state.oddFrom, dom.oddTo.value, "to"));
+    if (dom.betMasterProbFrom) dom.betMasterProbFrom.addEventListener("change", () => applyBetMasterProbability(dom.betMasterProbFrom.value, state.betMaster.probTo, "min"));
+    if (dom.betMasterProbTo) dom.betMasterProbTo.addEventListener("change", () => applyBetMasterProbability(state.betMaster.probFrom, dom.betMasterProbTo.value, "max"));
+    if (dom.betMasterOddFrom) dom.betMasterOddFrom.addEventListener("change", () => applyBetMasterOdds(dom.betMasterOddFrom.value, state.betMaster.oddTo, "from"));
+    if (dom.betMasterOddTo) dom.betMasterOddTo.addEventListener("change", () => applyBetMasterOdds(state.betMaster.oddFrom, dom.betMasterOddTo.value, "to"));
+    if (dom.betMasterTimeFrom) dom.betMasterTimeFrom.addEventListener("change", () => {
+      state.betMaster.timeFrom = dom.betMasterTimeFrom.value;
+      if (state.betMaster.timeFrom > state.betMaster.timeTo) state.betMaster.timeTo = state.betMaster.timeFrom;
+      render();
+    });
+    if (dom.betMasterTimeTo) dom.betMasterTimeTo.addEventListener("change", () => {
+      state.betMaster.timeTo = dom.betMasterTimeTo.value;
+      if (state.betMaster.timeTo < state.betMaster.timeFrom) state.betMaster.timeFrom = state.betMaster.timeTo;
+      render();
+    });
+    if (dom.betMasterGenerate) dom.betMasterGenerate.addEventListener("click", generateBetMaster);
     dom.resetFilters.addEventListener("click", () => {
       state.groups = new Set(GROUPS.map(group => group.id));
       state.outcomeFilters = new Set();
@@ -1969,6 +2395,36 @@
           state.maxProbability = DEFAULTS.maxProbability;
         }
         render();
+        return;
+      }
+      const betMasterStepButton = event.target.closest("[data-bet-master-step]");
+      if (betMasterStepButton) {
+        setBetMasterCount(state.betMaster.count + Number(betMasterStepButton.dataset.betMasterStep || 0));
+        return;
+      }
+      const betMasterOddPresetButton = event.target.closest("[data-bet-master-odd-preset]");
+      if (betMasterOddPresetButton) {
+        const preset = BET_MASTER_ODD_PRESETS.find(item => item.id === betMasterOddPresetButton.dataset.betMasterOddPreset);
+        if (preset) {
+          state.betMaster.oddFrom = preset.from;
+          state.betMaster.oddTo = preset.to;
+          render();
+        }
+        return;
+      }
+      const betMasterProbPresetButton = event.target.closest("[data-bet-master-prob-preset]");
+      if (betMasterProbPresetButton) {
+        const preset = BET_MASTER_PROB_PRESETS.find(item => item.id === betMasterProbPresetButton.dataset.betMasterProbPreset);
+        if (preset) {
+          state.betMaster.probFrom = preset.from;
+          state.betMaster.probTo = preset.to;
+          render();
+        }
+        return;
+      }
+      const betMasterWindowButton = event.target.closest("[data-bet-master-window]");
+      if (betMasterWindowButton) {
+        applyBetMasterWindow(betMasterWindowButton.dataset.betMasterWindow);
         return;
       }
       const quickGroupButton = event.target.closest("[data-quick-group]");

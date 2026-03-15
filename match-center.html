@@ -178,6 +178,109 @@
       </div>
       <select id="date-select" class="sr-only" aria-hidden="true" tabindex="-1"></select>
     </section>
+    <section class="panel section-block bet-master-shell" id="bet-master-shell">
+      <div class="bet-master-head">
+        <div class="bet-master-brand">
+          <span class="bet-master-icon" aria-hidden="true">
+            <span>B</span>
+          </span>
+          <div>
+            <div class="section-kicker">Bet Master</div>
+            <h2 id="bet-master-title">Crea la tua schedina</h2>
+            <p id="bet-master-copy">Usa i mercati gia filtrati sopra. Bet Master prende solo pick ancora giocabili con quota bet365 disponibile.</p>
+          </div>
+        </div>
+        <div class="bet-master-chip" id="bet-master-window-label">Adesso +30m</div>
+      </div>
+      <div class="bet-master-grid">
+        <article class="bet-master-card">
+          <div class="bet-master-card-head">
+            <span class="quick-filter-label">Numero partite</span>
+            <strong class="inline-filter-value" id="bet-master-count-value">4</strong>
+          </div>
+          <div class="bet-master-stepper">
+            <button type="button" class="bet-master-stepper-btn" data-bet-master-step="-1" aria-label="Riduci">-</button>
+            <div class="bet-master-stepper-main">
+              <strong id="bet-master-count-display">4</strong>
+              <small id="bet-master-count-meta">Pick per schedina</small>
+            </div>
+            <button type="button" class="bet-master-stepper-btn" data-bet-master-step="1" aria-label="Aumenta">+</button>
+          </div>
+        </article>
+        <article class="bet-master-card">
+          <div class="bet-master-card-head">
+            <span class="quick-filter-label">Quota per pick</span>
+            <strong class="inline-filter-value" id="bet-master-odd-value">1.20 - 2.00</strong>
+          </div>
+          <div class="chips bet-master-presets" id="bet-master-odd-presets"></div>
+          <div class="range-input-grid compact-grid compact-select-grid">
+            <label class="range-input-card">
+              <span class="mini-label">Quota min</span>
+              <span class="select-shell select-shell-compact">
+                <select id="bet-master-odd-from" class="select select-compact"></select>
+              </span>
+            </label>
+            <label class="range-input-card">
+              <span class="mini-label">Quota max</span>
+              <span class="select-shell select-shell-compact">
+                <select id="bet-master-odd-to" class="select select-compact"></select>
+              </span>
+            </label>
+          </div>
+        </article>
+        <article class="bet-master-card">
+          <div class="bet-master-card-head">
+            <span class="quick-filter-label">Probabilita</span>
+            <strong class="inline-filter-value" id="bet-master-prob-value">60% - 99%</strong>
+          </div>
+          <div class="chips bet-master-presets" id="bet-master-prob-presets"></div>
+          <div class="range-input-grid compact-grid compact-select-grid">
+            <label class="range-input-card">
+              <span class="mini-label">Prob. min</span>
+              <span class="select-shell select-shell-compact">
+                <select id="bet-master-prob-from" class="select select-compact"></select>
+              </span>
+            </label>
+            <label class="range-input-card">
+              <span class="mini-label">Prob. max</span>
+              <span class="select-shell select-shell-compact">
+                <select id="bet-master-prob-to" class="select select-compact"></select>
+              </span>
+            </label>
+          </div>
+        </article>
+        <article class="bet-master-card">
+          <div class="bet-master-card-head">
+            <span class="quick-filter-label">Finestra oraria</span>
+            <strong class="inline-filter-value" id="bet-master-time-value">Adesso - 30m</strong>
+          </div>
+          <div class="chips bet-master-presets">
+            <button type="button" class="preset-chip" id="bet-master-time-soon" data-bet-master-window="soon">Adesso +30m</button>
+            <button type="button" class="preset-chip" id="bet-master-time-custom" data-bet-master-window="custom">Intervallo</button>
+          </div>
+          <div class="time-select-row" id="bet-master-time-selects" hidden>
+            <span class="select-shell select-shell-compact">
+              <select id="bet-master-time-from" class="select select-compact">
+                <option value="00:00">00:00</option>
+              </select>
+            </span>
+            <span class="time-separator">-</span>
+            <span class="select-shell select-shell-compact">
+              <select id="bet-master-time-to" class="select select-compact">
+                <option value="23:59">23:59</option>
+              </select>
+            </span>
+          </div>
+          <div class="bet-master-note" id="bet-master-note">Bet Master usa i mercati/esiti attivi sopra e crea 3 schedine: solida, bilanciata e value.</div>
+        </article>
+      </div>
+      <div class="bet-master-actions">
+        <button type="button" class="action-btn bet-master-generate" id="bet-master-generate">Crea la tua schedina</button>
+      </div>
+      <div class="bet-master-results" id="bet-master-results">
+        <div class="empty-state">Genera per vedere le schedine disponibili nella finestra selezionata.</div>
+      </div>
+    </section>
     <section class="stats-grid">
       <article class="stat-card"><span id="summary-matches-label">Partite visibili</span><strong id="summary-matches">0</strong><small id="summary-matches-meta">Nel blocco corrente</small></article>
       <article class="stat-card"><span id="summary-top-label">Top picks</span><strong id="summary-top">0</strong><small id="summary-top-meta">Edge forti del filtro attivo</small></article>
@@ -425,8 +528,55 @@
     .detail-summary{padding:12px 14px;font-size:.92rem;display:flex;align-items:center;gap:10px}
     .detail-summary>span:first-child{min-width:0;flex:1 1 auto}
     .detail-summary-meta{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.18);background:rgba(15,23,42,.7);color:#dbe7f8;font-size:.72rem;font-weight:700;max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+    .bet-master-shell{gap:12px;padding:14px 16px;overflow:hidden;background:radial-gradient(circle at top right,rgba(250,204,21,.1),transparent 32%),radial-gradient(circle at left center,rgba(59,130,246,.12),transparent 36%),linear-gradient(145deg,rgba(12,19,38,.94),rgba(4,8,19,.99))}
+    .bet-master-head,.bet-master-card-head,.bet-master-meta,.bet-master-slip-head,.bet-master-slip-total{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .bet-master-brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .bet-master-icon{display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:18px;background:linear-gradient(135deg,rgba(250,204,21,.94),rgba(249,115,22,.92));box-shadow:0 14px 28px rgba(249,115,22,.22);flex:0 0 auto;position:relative}
+    .bet-master-icon::before{content:"";position:absolute;inset:5px;border:1px solid rgba(255,248,220,.44);border-radius:14px}
+    .bet-master-icon span{position:relative;font-size:1.25rem;font-weight:900;color:#1f1306;letter-spacing:.02em}
+    .bet-master-head h2{margin:0;font-size:1.16rem;letter-spacing:-.03em}
+    .bet-master-head p{margin:4px 0 0;color:#c6d3e8;font-size:.78rem;line-height:1.35;max-width:760px}
+    .bet-master-chip{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(250,204,21,.28);background:rgba(250,204,21,.08);color:#fde68a;font-size:.76rem;font-weight:800;white-space:nowrap}
+    .bet-master-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .bet-master-card{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:18px;border:1px solid rgba(148,163,184,.12);background:linear-gradient(145deg,rgba(9,15,28,.92),rgba(5,9,20,.98));min-width:0}
+    .bet-master-stepper{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;gap:8px;align-items:center}
+    .bet-master-stepper-btn{width:46px;height:46px;border-radius:16px;border:1px solid rgba(250,204,21,.24);background:rgba(250,204,21,.08);color:#fde68a;font-size:1.4rem;font-weight:800;cursor:pointer}
+    .bet-master-stepper-btn:hover,.bet-master-generate:hover{border-color:rgba(249,115,22,.62);background:linear-gradient(135deg,rgba(249,115,22,.16),rgba(59,130,246,.12))}
+    .bet-master-stepper-main{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:46px;padding:0 10px;border-radius:16px;border:1px solid rgba(148,163,184,.12);background:rgba(255,255,255,.03);text-align:center}
+    .bet-master-stepper-main strong{font-size:1.2rem;letter-spacing:-.04em}
+    .bet-master-stepper-main small,.bet-master-note{color:#9fb0c9;font-size:.72rem;line-height:1.3}
+    .bet-master-presets{display:flex;flex-wrap:wrap;gap:6px}
+    .bet-master-presets .preset-chip{min-height:30px;padding:0 10px;font-size:.7rem}
+    .bet-master-actions{display:flex;justify-content:flex-start}
+    .bet-master-generate{width:auto;min-width:220px;padding:0 18px}
+    .bet-master-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .bet-master-slip{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:18px;border:1px solid rgba(148,163,184,.14);background:linear-gradient(180deg,rgba(9,15,28,.94),rgba(6,10,20,.98));min-width:0}
+    .bet-master-slip-safe{border-color:rgba(34,211,238,.26);box-shadow:inset 0 0 0 1px rgba(34,211,238,.08)}
+    .bet-master-slip-balanced{border-color:rgba(250,204,21,.24);box-shadow:inset 0 0 0 1px rgba(250,204,21,.08)}
+    .bet-master-slip-value{border-color:rgba(249,115,22,.24);box-shadow:inset 0 0 0 1px rgba(249,115,22,.08)}
+    .bet-master-slip-kicker{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.14);background:rgba(255,255,255,.04);font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+    .bet-master-slip h3{margin:0;font-size:1rem;letter-spacing:-.03em}
+    .bet-master-slip-head p{margin:3px 0 0;color:#9fb0c9;font-size:.75rem;line-height:1.25}
+    .bet-master-slip-count{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;border-radius:999px;background:rgba(255,255,255,.05);font-size:.82rem;font-weight:800}
+    .bet-master-slip-list{display:flex;flex-direction:column;gap:8px}
+    .bet-master-pick{display:grid;grid-template-columns:54px minmax(0,1fr) 70px;gap:8px;align-items:center;padding:10px;border-radius:14px;border:1px solid rgba(148,163,184,.1);background:rgba(255,255,255,.03)}
+    .bet-master-pick-time{display:flex;flex-direction:column;gap:2px}
+    .bet-master-pick-time strong{font-size:.82rem}
+    .bet-master-pick-time small{color:#8ea0bd;font-size:.65rem}
+    .bet-master-pick-main{display:flex;flex-direction:column;gap:4px;min-width:0}
+    .bet-master-pick-main strong,.bet-master-pick-main span,.bet-master-pick-main small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .bet-master-pick-main strong{font-size:.8rem}
+    .bet-master-pick-main span{font-size:.9rem;font-weight:800;color:#fff3b7}
+    .bet-master-pick-main small{color:#97a9c6;font-size:.68rem}
+    .bet-master-pick-odd{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+    .bet-master-pick-odd strong{font-size:.9rem}
+    .bet-master-pick-odd small{color:#a9bad3;font-size:.66rem}
+    .bet-master-slip-total{padding-top:4px;border-top:1px solid rgba(148,163,184,.08)}
+    .bet-master-slip-total strong{font-size:1.12rem}
+    .bet-master-empty{padding:14px;border-radius:16px;border:1px dashed rgba(148,163,184,.18);background:rgba(255,255,255,.03);color:#9fb0c9;font-size:.8rem;line-height:1.5}
     @media (max-width:980px){
       .sheet,.detail-sheet{left:0;right:0;width:100vw;max-width:100vw;border-left:0}
+      .bet-master-results{grid-template-columns:1fr}
     }
     @media (min-width:980px){
       .hero-title-row{grid-template-columns:minmax(0,1fr) 260px}
@@ -450,6 +600,14 @@
       .quick-market-chip strong,.quick-outcome-chip strong{font-size:.84rem}
       .inline-filter-board{display:flex;flex-direction:column;gap:8px}
       .inline-filter-card{padding:10px 11px;border-radius:16px}
+      .bet-master-shell{padding:12px}
+      .bet-master-head{flex-direction:column;align-items:stretch}
+      .bet-master-brand{align-items:flex-start}
+      .bet-master-grid{grid-template-columns:1fr}
+      .bet-master-stepper{grid-template-columns:42px minmax(0,1fr) 42px}
+      .bet-master-stepper-btn{width:42px;height:42px}
+      .bet-master-generate{width:100%;min-width:0}
+      .bet-master-pick{grid-template-columns:48px minmax(0,1fr) 62px}
       .inline-filter-value{font-size:.74rem}
       .date-tabs{gap:8px}
       .date-tab{min-width:84px;padding:9px 10px}

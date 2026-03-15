@@ -121,6 +121,18 @@ def half_lines(start, end):
     end_i = int(round(float(end) * 2))
     return [round(value / 2.0, 1) for value in range(start_i, end_i + 1, 2)]
 
+def parse_over_under_label(label):
+    text = str(label or "").strip()
+    match = re.search(r"(over|under)\s*([0-9]+(?:[.,][0-9])?)", text, re.I)
+    if not match:
+        return None, None
+    side = match.group(1).lower()
+    try:
+        line = round(float(match.group(2).replace(",", ".")), 1)
+    except ValueError:
+        return None, None
+    return side, line
+
 
 # ==========================
 # API LAYER
@@ -518,32 +530,74 @@ def get_odds(fixture_id):
 
     chosen = next((b for b in bookmakers if _is_b365(b.get("name"))), bookmakers[0])
     bets = chosen.get("bets", [])
-    res = {"bookmaker": chosen.get("name", "")}
+    res = {"bookmaker": chosen.get("name", ""), "corner_odds": {}, "yellow_odds": {}}
+
+    def _n(s):
+        return str(s or "").strip().lower()
+
+    def _is_first_half(name):
+        n = _n(name)
+        return any(token in n for token in ("1st half", "first half", "1sthalf", "half time", "halftime"))
+
+    def _is_second_half(name):
+        n = _n(name)
+        return any(token in n for token in ("2nd half", "second half", "2ndhalf"))
+
+    def _store_total_odd(container, line, side, odd_value):
+        odd_num = to_float(odd_value)
+        if line is None or side not in {"over", "under"} or odd_num is None:
+            return
+        bucket = container.setdefault(f"{line:.1f}", {})
+        bucket[side] = round(float(odd_num), 3)
 
     for b in bets:
         if b.get("name") == "Match Winner":
             for v in b.get("values", []):
                 val = v.get("value")
-                if val == "Home": res["odd_home"] = v.get("odd", "")
-                elif val == "Draw": res["odd_draw"] = v.get("odd", "")
-                elif val == "Away": res["odd_away"] = v.get("odd", "")
-
-    def _n(s): return str(s or "").strip().lower()
+                if val == "Home":
+                    res["odd_home"] = v.get("odd", "")
+                elif val == "Draw":
+                    res["odd_draw"] = v.get("odd", "")
+                elif val == "Away":
+                    res["odd_away"] = v.get("odd", "")
 
     for b in bets:
-        if _n(b.get("name")) == "goals over/under":
+        name = _n(b.get("name"))
+        is_goal_market = ("goal" in name or "goals" in name or "over/under" in name or "under/over" in name)
+
+        if is_goal_market and not _is_first_half(name) and not _is_second_half(name) and "corner" not in name and "card" not in name and "yellow" not in name:
             for v in b.get("values", []):
                 label = str(v.get("value", "")).strip()
-                if label == "Over 1.5": res["odd_o15"] = v.get("odd", "")
-                elif label == "Under 1.5": res["odd_u15"] = v.get("odd", "")
-                elif label == "Over 2.5": res["odd_o25"] = v.get("odd", "")
-                elif label == "Under 2.5": res["odd_u25"] = v.get("odd", "")
-                elif label == "Over 3.5": res["odd_o35"] = v.get("odd", "")
-                elif label == "Under 3.5": res["odd_u35"] = v.get("odd", "")
+                if label == "Over 1.5":
+                    res["odd_o15"] = v.get("odd", "")
+                elif label == "Under 1.5":
+                    res["odd_u15"] = v.get("odd", "")
+                elif label == "Over 2.5":
+                    res["odd_o25"] = v.get("odd", "")
+                elif label == "Under 2.5":
+                    res["odd_u25"] = v.get("odd", "")
+                elif label == "Over 3.5":
+                    res["odd_o35"] = v.get("odd", "")
+                elif label == "Under 3.5":
+                    res["odd_u35"] = v.get("odd", "")
 
-    for b in bets:
-        n = _n(b.get("name"))
-        if "double chance" in n or "chance double" in n:
+        if _is_first_half(name) and is_goal_market:
+            for v in b.get("values", []):
+                side, line = parse_over_under_label(v.get("value"))
+                if line == 1.5 and side == "over":
+                    res["odd_o15_ht"] = v.get("odd", "")
+                elif line == 1.5 and side == "under":
+                    res["odd_u15_ht"] = v.get("odd", "")
+
+        if _is_second_half(name) and is_goal_market:
+            for v in b.get("values", []):
+                side, line = parse_over_under_label(v.get("value"))
+                if line == 1.5 and side == "over":
+                    res["odd_o15_sh"] = v.get("odd", "")
+                elif line == 1.5 and side == "under":
+                    res["odd_u15_sh"] = v.get("odd", "")
+
+        if "double chance" in name or "chance double" in name:
             for v in b.get("values", []):
                 val = _n(v.get("value")).replace(" ", "")
                 if val in {"home/draw", "homedraw", "1x"}:
@@ -553,13 +607,23 @@ def get_odds(fixture_id):
                 elif val in {"home/away", "homeaway", "12"}:
                     res["odd_12"] = v.get("odd", "")
 
-    for b in bets:
-        n = _n(b.get("name"))
-        if ("both" in n and "team" in n and "score" in n) or "btts" in n:
+        if ("both" in name and "team" in name and "score" in name) or "btts" in name:
             for v in b.get("values", []):
                 val = _n(v.get("value"))
-                if val in {"yes","y","si"}: res["odd_btts_y"] = v.get("odd","")
-                elif val in {"no","n"}: res["odd_btts_n"] = v.get("odd","")
+                if val in {"yes", "y", "si"}:
+                    res["odd_btts_y"] = v.get("odd", "")
+                elif val in {"no", "n"}:
+                    res["odd_btts_n"] = v.get("odd", "")
+
+        if "corner" in name and any(token in name for token in ("over/under", "under/over", "total", "totals")):
+            for v in b.get("values", []):
+                side, line = parse_over_under_label(v.get("value"))
+                _store_total_odd(res["corner_odds"], line, side, v.get("odd"))
+
+        if ("yellow" in name or ("card" in name and "red" not in name)) and any(token in name for token in ("over/under", "under/over", "total", "totals")):
+            for v in b.get("values", []):
+                side, line = parse_over_under_label(v.get("value"))
+                _store_total_odd(res["yellow_odds"], line, side, v.get("odd"))
 
     return res
 
@@ -678,6 +742,10 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     o_u25 = to_float(odds.get("odd_u25"))
     o_o35 = to_float(odds.get("odd_o35"))
     o_u35 = to_float(odds.get("odd_u35"))
+    o_o15_ht = to_float(odds.get("odd_o15_ht"))
+    o_u15_ht = to_float(odds.get("odd_u15_ht"))
+    o_o15_sh = to_float(odds.get("odd_o15_sh"))
+    o_u15_sh = to_float(odds.get("odd_u15_sh"))
     o_by = to_float(odds.get("odd_btts_y"))
     o_bn = to_float(odds.get("odd_btts_n"))
     o_h = to_float(odds.get("odd_home"))
@@ -705,6 +773,8 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     mkt_over15, mkt_under15 = vig_free(o_o15, o_u15)
     mkt_over, mkt_under = vig_free(o_o25, o_u25)
     mkt_over35, mkt_under35 = vig_free(o_o35, o_u35)
+    mkt_over15_ht, mkt_under15_ht = vig_free(o_o15_ht, o_u15_ht)
+    mkt_over15_sh, mkt_under15_sh = vig_free(o_o15_sh, o_u15_sh)
     mkt_btts_y, mkt_btts_n = vig_free(o_by, o_bn)
     mkt_home, mkt_draw, mkt_away = vig_free_three(o_h, o_d, o_a)
 
@@ -737,6 +807,30 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     p_over15 = sum(p * w for _, p, w in ou15_signals) / tw15 if tw15 > 0 else 0.65
     p_over15 = nudge_prob(p_over15, factor=1.05, low=0.12, high=0.975)
     p_under15 = 1.0 - p_over15
+
+    # ============================================================
+    # 1b) OVER / UNDER 1.5 1st half + 2nd half
+    # ============================================================
+    lam_ht = lam_t * 0.46
+    lam_sh = lam_t * 0.54
+
+    ht_signals = [("Poisson", p_over(lam_ht, 2), 0.62)]
+    if mkt_over15_ht is not None:
+        ht_signals.append(("Market", mkt_over15_ht, 0.25))
+    ht_signals.append(("Bridge", clamp_prob((p_over25 * 0.86) - 0.03, 0.08, 0.90), 0.13))
+    tw_ht = sum(weight for _, _, weight in ht_signals)
+    p_over15_ht = sum(prob * weight for _, prob, weight in ht_signals) / tw_ht if tw_ht > 0 else p_over(lam_ht, 2)
+    p_over15_ht = nudge_prob(p_over15_ht, factor=1.035, low=0.06, high=0.92)
+    p_under15_ht = 1.0 - p_over15_ht
+
+    sh_signals = [("Poisson", p_over(lam_sh, 2), 0.60)]
+    if mkt_over15_sh is not None:
+        sh_signals.append(("Market", mkt_over15_sh, 0.25))
+    sh_signals.append(("Bridge", clamp_prob((p_over25 * 0.92) + 0.02, 0.10, 0.94), 0.15))
+    tw_sh = sum(weight for _, _, weight in sh_signals)
+    p_over15_sh = sum(prob * weight for _, prob, weight in sh_signals) / tw_sh if tw_sh > 0 else p_over(lam_sh, 2)
+    p_over15_sh = nudge_prob(p_over15_sh, factor=1.04, low=0.08, high=0.94)
+    p_under15_sh = 1.0 - p_over15_sh
 
     # ============================================================
     # 2) OVER / UNDER 2.5
@@ -1039,6 +1133,20 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
         "ou15_conf": round(max(p_over15, p_under15), 4),
         "odd_o15": o_o15, "odd_u15": o_u15,
 
+        # Over/Under 1.5 1st half
+        "p_over15_ht": round(p_over15_ht, 4),
+        "p_under15_ht": round(p_under15_ht, 4),
+        "ht15_pick": "Over 1.5 HT" if p_over15_ht >= 0.50 else "Under 1.5 HT",
+        "ht15_conf": round(max(p_over15_ht, p_under15_ht), 4),
+        "odd_o15_ht": o_o15_ht, "odd_u15_ht": o_u15_ht,
+
+        # Over/Under 1.5 2nd half
+        "p_over15_sh": round(p_over15_sh, 4),
+        "p_under15_sh": round(p_under15_sh, 4),
+        "sh15_pick": "Over 1.5 2H" if p_over15_sh >= 0.50 else "Under 1.5 2H",
+        "sh15_conf": round(max(p_over15_sh, p_under15_sh), 4),
+        "odd_o15_sh": o_o15_sh, "odd_u15_sh": o_u15_sh,
+
         # Over/Under 2.5
         "p_over25": round(p_over25, 4),
         "p_under25": round(p_under25, 4),
@@ -1083,10 +1191,12 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
         # Corners
         "exp_corners": round(exp_corners, 1) if exp_corners > 0 else None,
         "corner_overs": corner_overs,
+        "corner_odds": odds.get("corner_odds") or {},
 
         # Yellows
         "exp_yellows": round(exp_yellows, 1) if exp_yellows > 0 else None,
         "yellow_overs": yellow_overs,
+        "yellow_odds": odds.get("yellow_odds") or {},
 
         # Shared
         "lam_home": round(lam_h, 3), "lam_away": round(lam_a, 3), "lam_total": round(lam_t, 3),
@@ -1119,6 +1229,7 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
         fx = f.get("fixture", {}) or {}
         league = f.get("league", {}) or {}
         teams = f.get("teams", {}) or {}
+        score = f.get("score", {}) or {}
 
         fid = fx.get("id")
         lid = league.get("id")
@@ -1164,12 +1275,16 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
         results.append({
             "fixture_id": fid, "date": target, "league": lname, "country": country,
             "match_time": mtime, "home": hn, "away": an,
+            "kickoff_at": dateiso,
+            "kickoff_ts": fx.get("timestamp"),
             "home_logo": ht.get("logo", ""), "away_logo": at.get("logo", ""),
             "league_logo": league.get("logo", ""),
             "status_short": str((fx.get("status") or {}).get("short", "")).upper(),
             "status_long": str((fx.get("status") or {}).get("long", "")).strip(),
             "goals_home": f.get("goals", {}).get("home"),
             "goals_away": f.get("goals", {}).get("away"),
+            "ht_goals_home": (score.get("halftime") or {}).get("home"),
+            "ht_goals_away": (score.get("halftime") or {}).get("away"),
             "total_corners": None,
             "total_yellows": None,
             "final_score": (
@@ -1451,11 +1566,16 @@ def update_matches_from_fixture_rows(payload, fixture_rows, fixture_stats=None):
             continue
         fixture = row.get("fixture", {}) or {}
         goals = row.get("goals", {}) or {}
+        score = row.get("score", {}) or {}
         status = fixture.get("status", {}) or {}
         match["status_short"] = str(status.get("short", "")).upper()
         match["status_long"] = str(status.get("long", "")).strip()
+        match["kickoff_at"] = fixture.get("date") or match.get("kickoff_at")
+        match["kickoff_ts"] = fixture.get("timestamp") or match.get("kickoff_ts")
         match["goals_home"] = goals.get("home")
         match["goals_away"] = goals.get("away")
+        match["ht_goals_home"] = (score.get("halftime") or {}).get("home")
+        match["ht_goals_away"] = (score.get("halftime") or {}).get("away")
         if goals.get("home") is not None and goals.get("away") is not None:
             match["final_score"] = f"{goals.get('home')}-{goals.get('away')}"
         else:
