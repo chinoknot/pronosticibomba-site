@@ -974,6 +974,113 @@
       .sort((a, b) => b.score - a.score || Number(b.market.pickProbability || 0) - Number(a.market.pickProbability || 0));
   }
 
+  function marketVarietyKey(market) {
+    return `${market?.group || ""}:${String(market?.pickLabel || "").toUpperCase()}`;
+  }
+
+  function shouldDiversifyFeed() {
+    return state.status === "all"
+      && state.groups.size === GROUPS.length
+      && !state.outcomeFilters.size
+      && !state.search;
+  }
+
+  function diversificationCandidateAllowed(market, current, match, currentScore, counters, config, preferDifferentGroup = false) {
+    if (!market || !current || marketVarietyKey(market) === marketVarietyKey(current)) return false;
+    if (preferDifferentGroup && market.group === current.group) return false;
+
+    const marketScore = marketDisplayScore(market, match);
+    if (marketScore < currentScore - 0.11) return false;
+
+    const odd = pickedOdd(market);
+    if (odd != null && odd > 2.2) return false;
+
+    const probability = Number(market.pickProbability || 0);
+    const label = String(market.pickLabel || "").toUpperCase();
+    const picked = pickedOption(market);
+    const line = Number(picked?.line || 0);
+    const expected = market.group === "corners" ? Number(match?.exp_corners || 0) : Number(match?.exp_yellows || 0);
+
+    if ((counters.labels[marketVarietyKey(market)] || 0) >= config.maxSameLabel) return false;
+    if (market.group === "goals" && (counters.groups.goals || 0) >= config.maxGoals) return false;
+
+    if (market.group === "double") return probability >= 0.69;
+    if (market.group === "btts") return label === "BTTS YES" ? probability >= 0.56 : probability >= 0.6;
+    if (market.group === "combo") return probability >= 0.57 && tempoProfile(match) >= 0.05;
+    if (market.group === "blank") return probability >= 0.6;
+    if (market.group === "corners") {
+      if (probability < 0.58) return false;
+      if (label.startsWith("UNDER ")) return line >= 9.5 && (!Number.isFinite(expected) || expected <= line - 0.6 || line >= 10.5);
+      if (label.startsWith("OVER ")) return line >= 8.5 && (!Number.isFinite(expected) || expected >= line - 0.35);
+      return false;
+    }
+    if (market.group === "yellows") {
+      if (probability < 0.58) return false;
+      if (label.startsWith("UNDER ")) return line >= 4.5 && (!Number.isFinite(expected) || expected <= line - 0.35 || line >= 5.5);
+      if (label.startsWith("OVER ")) return line >= 3.5 && (!Number.isFinite(expected) || expected >= line - 0.2);
+      return false;
+    }
+    if (market.group === "goals") {
+      if (label === "UNDER 3.5") return probability >= 0.72;
+      if (label === "OVER 2.5") return probability >= 0.56;
+      if (label === "UNDER 2.5") return probability >= 0.58;
+      if (label === "OVER 1.5") return probability >= 0.7;
+    }
+    return probability >= 0.6;
+  }
+
+  function diversifyMatchesByLeague(matches) {
+    if (!shouldDiversifyFeed()) return matches;
+
+    const buckets = new Map();
+    matches.forEach(match => {
+      const key = `${match.country || ""}__${match.league || ""}`;
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key).push(match);
+    });
+
+    const replacements = new Map();
+
+    buckets.forEach(groupMatchesList => {
+      const config = {
+        maxSameLabel: groupMatchesList.length >= 5 ? 2 : 1,
+        maxGoals: groupMatchesList.length >= 4 ? 2 : 1,
+      };
+      const counters = { labels: {}, groups: {} };
+
+      groupMatchesList.forEach(match => {
+        const current = match.primaryMarket;
+        if (!current) return;
+
+        const currentKey = marketVarietyKey(current);
+        const currentRepeated = (counters.labels[currentKey] || 0) >= config.maxSameLabel
+          || (current.group === "goals" && (counters.groups.goals || 0) >= config.maxGoals);
+
+        let chosen = current;
+
+        if (currentRepeated) {
+          const ranked = rankedMarkets(match.visibleMarkets, match);
+          const currentScore = ranked.find(entry => marketVarietyKey(entry.market) === currentKey)?.score ?? marketDisplayScore(current, match);
+          const alternatives = ranked.map(entry => entry.market).filter(market => marketVarietyKey(market) !== currentKey);
+          const preferred = alternatives.find(market => diversificationCandidateAllowed(market, current, match, currentScore, counters, config, true));
+          const fallback = alternatives.find(market => diversificationCandidateAllowed(market, current, match, currentScore, counters, config, false));
+          if (preferred) chosen = preferred;
+          else if (fallback) chosen = fallback;
+        }
+
+        replacements.set(String(match.fixture_id), chosen);
+        const chosenKey = marketVarietyKey(chosen);
+        counters.labels[chosenKey] = (counters.labels[chosenKey] || 0) + 1;
+        counters.groups[chosen.group] = (counters.groups[chosen.group] || 0) + 1;
+      });
+    });
+
+    return matches.map(match => {
+      const replacement = replacements.get(String(match.fixture_id));
+      return replacement ? { ...match, primaryMarket: replacement } : match;
+    });
+  }
+
   function conservativeGoalPreference(markets, match = null) {
     const under35 = markets.find(market => market.id === "o35" && String(market.pickLabel || "").toUpperCase() === "UNDER 3.5");
     const over25 = markets.find(market => market.id === "ou25" && String(market.pickLabel || "").toUpperCase() === "OVER 2.5");
@@ -1028,7 +1135,7 @@
   function decorateMatches(rawMatches, keepAll = false) {
     const search = state.search.trim().toLowerCase();
     const oddFilterActive = state.oddActive;
-    return rawMatches
+    const decorated = rawMatches
       .map(match => {
         const markets = buildMarkets(match).map(market => remapMarketForOutcomeFilters(match, market)).filter(Boolean);
         const visibleMarkets = markets
@@ -1050,6 +1157,7 @@
       .filter(match => !search || match.searchBlob.includes(search))
       .filter(match => keepAll || match.visibleMarkets.length > 0)
       .sort((a, b) => `${a.match_time}-${a.league}-${a.home}`.localeCompare(`${b.match_time}-${b.league}-${b.home}`));
+    return diversifyMatchesByLeague(decorated);
   }
 
   function getDerivedMatches() {
@@ -1058,11 +1166,12 @@
 
   function getDetailMatch() {
     if (!state.detailFixtureId) return null;
+    const derivedMatch = getDerivedMatches().find(match => String(match.fixture_id) === String(state.detailFixtureId));
     const rawMatch = (state.cache?.matches || []).find(match => String(match.fixture_id) === String(state.detailFixtureId));
     if (!rawMatch) return null;
     const markets = buildMarkets(rawMatch).filter(market => Number(market.pickProbability || 0) > 0 || (market.options || []).some(option => option.probability != null));
     const filteredMarkets = markets.map(market => remapMarketForOutcomeFilters(rawMatch, market)).filter(Boolean);
-    const primaryMarket = filteredMarkets.length ? selectHeadlineMarket(filteredMarkets, rawMatch) : selectPrimaryMarket(markets, rawMatch);
+    const primaryMarket = derivedMatch?.primaryMarket || (filteredMarkets.length ? selectHeadlineMarket(filteredMarkets, rawMatch) : selectPrimaryMarket(markets, rawMatch));
     return { ...rawMatch, markets, primaryMarket };
   }
 
@@ -1095,7 +1204,7 @@
     }
     const ranked = pool
       .map(match => {
-        const headline = selectHeadlineMarket(match.visibleMarkets, match);
+        const headline = match.primaryMarket || selectHeadlineMarket(match.visibleMarkets, match);
         if (!headline) return null;
         const picked = (headline.options || []).find(option => option.label === headline.pickLabel);
         return {
