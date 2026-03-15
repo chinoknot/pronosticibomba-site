@@ -203,7 +203,7 @@
     finalWord: "finali",
     wonWord: IS_EN ? "Won" : "Vinta",
     lostWord: IS_EN ? "Lost" : "Persa",
-    betMasterEmpty: IS_EN ? "Generate to see the playable slips in the selected window." : "Genera per vedere le schedine disponibili nella finestra selezionata.",
+    betMasterEmpty: IS_EN ? "Generate to see the playable slip in the selected window." : "Genera per vedere la schedina disponibile nella finestra selezionata.",
     betMasterNoCandidates: IS_EN ? "No bet365 picks available in this window with the filters you selected." : "Nessuna pick bet365 disponibile in questa finestra con i filtri scelti.",
     betMasterNeedMarkets: IS_EN ? "Enable at least one market to build a slip." : "Attiva almeno un mercato per creare la schedina.",
     betMasterSoon: IS_EN ? "Now +30m" : "Adesso +30m",
@@ -233,11 +233,13 @@
       oddTo: 2,
       probFrom: 60,
       probTo: 99,
+      selectedProfile: "safe",
       windowMode: "soon",
       timeFrom: "00:00",
       timeTo: "23:59",
+      customSeeded: false,
       generated: false,
-      slips: [],
+      profileMap: {},
     },
   };
   const dom = {
@@ -281,6 +283,7 @@
     betMasterProbValue: document.getElementById("bet-master-prob-value"),
     betMasterTimeValue: document.getElementById("bet-master-time-value"),
     betMasterWindowLabel: document.getElementById("bet-master-window-label"),
+    betMasterProfileChips: document.getElementById("bet-master-profile-chips"),
     betMasterOddPresets: document.getElementById("bet-master-odd-presets"),
     betMasterProbPresets: document.getElementById("bet-master-prob-presets"),
     betMasterOddFrom: document.getElementById("bet-master-odd-from"),
@@ -730,6 +733,20 @@
     const formatter = new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit", hour12: false });
     const parts = Object.fromEntries(formatter.formatToParts(new Date()).filter(part => part.type !== "literal").map(part => [part.type, part.value]));
     return `${parts.hour}:${parts.minute}`;
+  }
+
+  function roundedCurrentTimeSlot() {
+    const minutes = toMinutes(currentTimeInTimezone(activeTimeZone()));
+    const rounded = Math.round(minutes / 30) * 30;
+    if (rounded >= 24 * 60) return "23:59";
+    return minutesToTime(rounded);
+  }
+
+  function seedBetMasterCustomWindow(force = false) {
+    if (!force && state.betMaster.customSeeded && state.betMaster.timeFrom && state.betMaster.timeFrom !== "00:00") return;
+    state.betMaster.timeFrom = roundedCurrentTimeSlot();
+    state.betMaster.timeTo = "23:59";
+    state.betMaster.customSeeded = true;
   }
 
   function leaguePriority(country, league) {
@@ -1593,12 +1610,14 @@
     return (probability * 0.78) + (base * 0.82) + Math.min(0.18, Math.max(-0.1, (odd - 1.45) * 0.16));
   }
 
-  function buildBetMasterSlip(profile, entries) {
+  function buildBetMasterSlip(profile, entries, avoidedFixtures = new Set()) {
     const targetCount = Math.max(1, Math.min(20, Number(state.betMaster.count || 1)));
     const groupLimit = Math.max(2, Math.ceil(targetCount / 3));
     const labelLimit = 1;
     const sorted = [...entries].sort((a, b) => {
-      const diff = betMasterProfileScore(b, profile.id) - betMasterProfileScore(a, profile.id);
+      const aScore = betMasterProfileScore(a, profile.id) - (avoidedFixtures.has(a.fixtureId) ? 0.16 : 0);
+      const bScore = betMasterProfileScore(b, profile.id) - (avoidedFixtures.has(b.fixtureId) ? 0.16 : 0);
+      const diff = bScore - aScore;
       if (Math.abs(diff) > 0.0001) return diff;
       return `${a.kickoffSort}-${a.league}-${a.home}`.localeCompare(`${b.kickoffSort}-${b.league}-${b.home}`);
     });
@@ -1640,14 +1659,19 @@
     };
   }
 
-  function buildBetMasterSlips() {
+  function buildBetMasterProfiles() {
     const { window, entries } = betMasterCandidateEntries();
-    if (!entries.length) return { window, slips: [] };
+    if (!entries.length) return { window, profileMap: {} };
+    const profileMap = {};
+    const previouslyUsedFixtures = new Set();
+    BET_MASTER_PROFILES.forEach(profile => {
+      const slip = buildBetMasterSlip(profile, entries, previouslyUsedFixtures);
+      profileMap[profile.id] = slip;
+      slip.picks.forEach(pick => previouslyUsedFixtures.add(pick.fixtureId));
+    });
     return {
       window,
-      slips: BET_MASTER_PROFILES
-        .map(profile => buildBetMasterSlip(profile, entries))
-        .filter(slip => slip.picks.length > 0),
+      profileMap,
     };
   }
 
@@ -1833,6 +1857,16 @@
       dom.betMasterNote.textContent = `${baseNote}${extra}`;
     }
     renderRangePanels();
+    if (dom.betMasterProfileChips) {
+      dom.betMasterProfileChips.innerHTML = BET_MASTER_PROFILES.map(profile => `
+        <button
+          type="button"
+          class="preset-chip ${state.betMaster.selectedProfile === profile.id ? "active" : ""}"
+          data-bet-master-profile="${profile.id}"
+          aria-pressed="${state.betMaster.selectedProfile === profile.id ? "true" : "false"}"
+        >${escapeHtml(profile.id.toUpperCase())}</button>
+      `).join("");
+    }
     if (dom.betMasterOddPresets) {
       dom.betMasterOddPresets.innerHTML = BET_MASTER_ODD_PRESETS.map(preset => `<button type="button" class="preset-chip ${Number(preset.from) === Number(state.betMaster.oddFrom) && Number(preset.to) === Number(state.betMaster.oddTo) ? "active" : ""}" data-bet-master-odd-preset="${preset.id}">${preset.label}</button>`).join("");
     }
@@ -1848,22 +1882,24 @@
       dom.betMasterResults.innerHTML = `<div class="bet-master-empty">${TEXT.betMasterNeedMarkets}</div>`;
       return;
     }
-    if (!state.betMaster.slips.length) {
+    const selectedSlip = state.betMaster.profileMap[state.betMaster.selectedProfile]
+      || BET_MASTER_PROFILES.map(profile => state.betMaster.profileMap[profile.id]).find(slip => slip && slip.picks.length);
+    if (!selectedSlip || !selectedSlip.picks.length) {
       dom.betMasterResults.innerHTML = `<div class="bet-master-empty">${TEXT.betMasterNoCandidates}</div>`;
       return;
     }
-    dom.betMasterResults.innerHTML = state.betMaster.slips.map(slip => `
-      <article class="bet-master-slip bet-master-slip-${slip.id}">
+    dom.betMasterResults.innerHTML = `
+      <article class="bet-master-slip bet-master-slip-${selectedSlip.id}">
         <div class="bet-master-slip-head">
           <div>
-            <span class="bet-master-slip-kicker">${escapeHtml(slip.id)}</span>
-            <h3>${escapeHtml(slip.label)}</h3>
-            <p>${escapeHtml(slip.note)}</p>
+            <span class="bet-master-slip-kicker">${escapeHtml(selectedSlip.id)}</span>
+            <h3>${escapeHtml(selectedSlip.label)}</h3>
+            <p>${escapeHtml(selectedSlip.note)}</p>
           </div>
-          <span class="bet-master-slip-count">${slip.picks.length}</span>
+          <span class="bet-master-slip-count">${selectedSlip.picks.length}</span>
         </div>
         <div class="bet-master-slip-list">
-          ${slip.picks.map((pick, index) => `
+          ${selectedSlip.picks.map((pick, index) => `
             <article class="bet-master-pick">
               <div class="bet-master-pick-time">
                 <strong>${escapeHtml(pick.kickoff || "--:--")}</strong>
@@ -1883,10 +1919,10 @@
         </div>
         <div class="bet-master-slip-total">
           <span>${IS_EN ? "Total odds" : "Quota totale"}</span>
-          <strong>${formatCombinedOdd(slip.totalOdd)}</strong>
+          <strong>${formatCombinedOdd(selectedSlip.totalOdd)}</strong>
         </div>
       </article>
-    `).join("");
+    `;
   }
 
   function renderYesterdayBanner() {
@@ -2116,7 +2152,7 @@
     const matches = getDerivedMatches();
     const orderedMatches = sortMatchesForFeed(matches);
     const topPicks = getTopPicks(matches);
-    if (state.betMaster.generated) state.betMaster.slips = buildBetMasterSlips().slips;
+    if (state.betMaster.generated) state.betMaster.profileMap = buildBetMasterProfiles().profileMap;
     renderDateTabs();
     renderQuickRanges();
     renderFilterChips();
@@ -2251,13 +2287,14 @@
 
   function applyBetMasterWindow(mode) {
     state.betMaster.windowMode = mode === "custom" ? "custom" : "soon";
+    if (state.betMaster.windowMode === "custom") seedBetMasterCustomWindow();
     render();
   }
 
   function generateBetMaster() {
     state.betMaster.generated = true;
-    state.betMaster.slips = buildBetMasterSlips().slips;
-    renderBetMaster();
+    state.betMaster.profileMap = buildBetMasterProfiles().profileMap;
+    render();
   }
 
   function scrollToInlineFilters() {
@@ -2422,6 +2459,12 @@
         }
         return;
       }
+      const betMasterProfileButton = event.target.closest("[data-bet-master-profile]");
+      if (betMasterProfileButton) {
+        state.betMaster.selectedProfile = betMasterProfileButton.dataset.betMasterProfile || "safe";
+        render();
+        return;
+      }
       const betMasterWindowButton = event.target.closest("[data-bet-master-window]");
       if (betMasterWindowButton) {
         applyBetMasterWindow(betMasterWindowButton.dataset.betMasterWindow);
@@ -2518,6 +2561,7 @@
   }
 
   async function init() {
+    seedBetMasterCustomWindow();
     populateTimeSelects();
     populateProbabilitySelects();
     populateOddSelects();
