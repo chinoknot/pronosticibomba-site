@@ -21,9 +21,10 @@ Usage:
     python match_predictor.py 17:00 21:00               # oggi + intervallo
 """
 
-import os, sys, time, math, json, threading, argparse
+import os, sys, time, math, json, threading, argparse, re
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from urllib.parse import quote
 from zoneinfo import ZoneInfo
 import requests
 
@@ -48,6 +49,13 @@ LOCAL_TZ = ZoneInfo(MATCH_TIMEZONE)
 DEFAULT_CACHE_DIR = Path(__file__).resolve().parent / "assets" / "data" / "match-predictor"
 CACHE_TTL_HOURS = int(os.getenv("MATCH_PREDICTOR_TTL_HOURS", "24"))
 TEAM_STATS_CACHE = {}
+SB_TEAM_STATS_CACHE = {}
+SB_CORNER_STATS_CACHE = {}
+SB_CORNER_H2H_CACHE = {}
+SB_CARDS_TEAM_STATS_CACHE = {}
+SB_CARDS_H2H_CACHE = {}
+SB_REFEREE_CARDS_CACHE = {}
+SB_MATCH_TEAM_STATS_CACHE = {}
 LIVE_STATUSES = {"1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"}
 FINAL_STATUSES = {"FT", "AET", "PEN", "AWD", "WO"}
 
@@ -161,43 +169,293 @@ SB_HEADERS = {
     "Authorization": f"Bearer {SUPABASE_KEY}",
     "Content-Type": "application/json",
 }
+SB_SESSION = requests.Session()
 
 def sb_query(table, params):
     if not SB_REST or not SUPABASE_KEY:
         return []
     url = f"{SB_REST}/{table}"
-    if params: url += "?" + "&".join(f"{k}={v}" for k, v in params.items())
+    if params:
+        query = "&".join(
+            f"{quote(str(k), safe='')}={quote(str(v), safe='.*(),:-_%')}"
+            for k, v in params.items()
+        )
+        url += f"?{query}"
     try:
-        r = requests.get(url, headers=SB_HEADERS, timeout=30)
+        r = SB_SESSION.get(url, headers=SB_HEADERS, timeout=30)
         r.raise_for_status()
         return r.json()
     except:
         return []
 
+def sb_query_first_nonempty(table, params_variants):
+    for params in params_variants:
+        rows = sb_query(table, params)
+        if rows:
+            return rows
+    return []
+
+def mean_or_none(values):
+    vals = [float(v) for v in values if v is not None]
+    return (sum(vals) / len(vals)) if vals else None
+
+def normalize_key(value):
+    return re.sub(r"[^a-z0-9]+", "", str(value or "").lower())
+
+def row_num(row, *keys):
+    if not isinstance(row, dict) or not row:
+        return None
+    for key in keys:
+        num = to_float(row.get(key))
+        if num is not None:
+            return num
+    normalized = {normalize_key(k): v for k, v in row.items()}
+    for key in keys:
+        num = to_float(normalized.get(normalize_key(key)))
+        if num is not None:
+            return num
+    return None
+
+def row_num_tokens(row, include=(), exclude=()):
+    if not isinstance(row, dict) or not row:
+        return None
+    include_norm = [normalize_key(token) for token in include if token]
+    exclude_norm = [normalize_key(token) for token in exclude if token]
+    for raw_key, raw_value in row.items():
+        key = normalize_key(raw_key)
+        if not key:
+            continue
+        if include_norm and any(token not in key for token in include_norm):
+            continue
+        if exclude_norm and any(token in key for token in exclude_norm):
+            continue
+        num = to_float(raw_value)
+        if num is not None:
+            return num
+    return None
+
+def rows_metric_mean(rows, exact_keys=(), include=(), exclude=()):
+    values = []
+    for row in rows or []:
+        num = row_num(row, *exact_keys) if exact_keys else None
+        if num is None and include:
+            num = row_num_tokens(row, include, exclude)
+        if num is not None:
+            values.append(num)
+    return mean_or_none(values)
+
+def side_metric_avg(row, metric, side, against=False):
+    side = str(side or "").lower()
+    if metric == "corners":
+        if against:
+            return (
+                row_num(row, f"avg_corners_against_{side}", f"{side}_corners_against_avg", f"corners_against_{side}_avg")
+                or row_num_tokens(row, include=("corner", side, "against"), exclude=("total", "match"))
+                or row_num_tokens(row, include=("corner", side, "conceded"), exclude=("total", "match"))
+            )
+        return (
+            row_num(row, f"avg_corners_for_{side}", f"{side}_corners_for_avg", f"corners_for_{side}_avg")
+            or row_num_tokens(row, include=("corner", side, "for"), exclude=("total", "match"))
+            or row_num_tokens(row, include=("corner", side), exclude=("against", "conceded", "allowed", "total", "match"))
+        )
+    if metric == "cards":
+        if against:
+            return (
+                row_num(row, f"avg_yellows_against_{side}", f"avg_cards_against_{side}", f"{side}_cards_against_avg")
+                or row_num_tokens(row, include=("card", side, "against"), exclude=("red", "total", "match"))
+                or row_num_tokens(row, include=("yellow", side, "against"), exclude=("total", "match"))
+            )
+        return (
+            row_num(row, f"avg_yellows_for_{side}", f"avg_cards_for_{side}", f"avg_yellow_cards_{side}", f"{side}_cards_avg")
+            or row_num_tokens(row, include=("card", side, "for"), exclude=("red", "total", "match"))
+            or row_num_tokens(row, include=("yellow", side), exclude=("against", "conceded", "allowed", "red", "total", "match"))
+            or row_num_tokens(row, include=("card", side), exclude=("against", "conceded", "allowed", "red", "total", "match"))
+        )
+    return None
+
+def season_corners_avg(row):
+    return (
+        row_num(row, "corners_for_avg", "corners_avg", "avg_corners", "avg_corners_for", "corners_for_pg")
+        or row_num_tokens(row, include=("corner", "avg"), exclude=("against", "conceded", "allowed"))
+    )
+
+def season_yellows_avg(row):
+    return (
+        row_num(row, "yellow_avg", "cards_avg", "yellow_cards_avg", "avg_yellows", "avg_cards")
+        or row_num_tokens(row, include=("yellow", "avg"))
+        or row_num_tokens(row, include=("card", "avg"), exclude=("red",))
+    )
+
+def season_shots_avg(row):
+    return (
+        row_num(row, "shots_for_avg", "shots_avg", "shots_for_pg", "avg_shots", "avg_shots_for")
+        or row_num_tokens(row, include=("shot", "avg"), exclude=("against", "target", "conceded"))
+    )
+
+def season_fouls_avg(row):
+    return (
+        row_num(row, "fouls_for_avg", "fouls_avg", "fouls_for_pg", "avg_fouls", "avg_fouls_for")
+        or row_num_tokens(row, include=("foul", "avg"), exclude=("against", "suffered", "drawn"))
+    )
+
+def recent_metric_mean(rows, metric):
+    if metric == "corners_for":
+        return rows_metric_mean(rows,
+            exact_keys=("corners_for", "team_corners", "corners", "corners_won", "corners_taken"),
+            include=("corner",),
+            exclude=("against", "opp", "opponent", "allowed", "conceded", "red", "yellow", "total"),
+        )
+    if metric == "corners_against":
+        return rows_metric_mean(rows,
+            exact_keys=("corners_against", "opponent_corners", "opp_corners", "corners_allowed", "corners_conceded"),
+            include=("corner", "against"),
+            exclude=("red", "yellow"),
+        )
+    if metric == "cards_for":
+        return rows_metric_mean(rows,
+            exact_keys=("yellow_cards", "cards", "cards_for", "yellow_cards_for", "yellows"),
+            include=("card",),
+            exclude=("red", "against", "opp", "opponent", "allowed", "conceded", "total", "referee"),
+        ) or rows_metric_mean(rows,
+            include=("yellow",),
+            exclude=("red", "against", "opp", "opponent", "allowed", "conceded", "total", "referee"),
+        )
+    if metric == "fouls_for":
+        return rows_metric_mean(rows,
+            exact_keys=("fouls", "fouls_for", "fouls_committed"),
+            include=("foul",),
+            exclude=("against", "suffered", "drawn", "opp", "opponent", "total"),
+        )
+    if metric == "shots_for":
+        return rows_metric_mean(rows,
+            exact_keys=("shots", "shots_for", "team_shots", "total_shots"),
+            include=("shot",),
+            exclude=("target", "against", "opp", "opponent", "allowed"),
+        )
+    return None
+
 def sb_team_stats(team_id, season="2025"):
     """team_season_stats: shots, SoT, fouls, yellows, corners, possession."""
-    r = sb_query("team_season_stats", {"team_id": f"eq.{team_id}", "season": f"eq.{season}", "select": "*"})
-    return r[0] if r else {}
+    key = (team_id, str(season))
+    if key in SB_TEAM_STATS_CACHE:
+        return SB_TEAM_STATS_CACHE[key]
+    rows = sb_query_first_nonempty("team_season_stats", [
+        {"team_id": f"eq.{team_id}", "season": f"eq.{season}", "select": "*"},
+        {"team_id": f"eq.{team_id}", "select": "*", "order": "season.desc", "limit": "1"},
+        {"team_id": f"eq.{team_id}", "select": "*", "limit": "1"},
+    ])
+    SB_TEAM_STATS_CACHE[key] = rows[0] if rows else {}
+    return SB_TEAM_STATS_CACHE[key]
 
 def sb_corner_stats(team_id, league_id=None):
     """corner_team_stats: avg corners for/against home/away."""
-    p = {"team_id": f"eq.{team_id}", "select": "*"}
-    if league_id: p["league_id"] = f"eq.{league_id}"
-    r = sb_query("corner_team_stats", p)
-    if r: return r[0]
-    r = sb_query("corner_team_stats", {"team_id": f"eq.{team_id}", "select": "*", "order": "total_matches.desc", "limit": "1"})
-    return r[0] if r else {}
+    key = (team_id, league_id)
+    if key in SB_CORNER_STATS_CACHE:
+        return SB_CORNER_STATS_CACHE[key]
+    variants = []
+    if league_id:
+        variants.append({"team_id": f"eq.{team_id}", "league_id": f"eq.{league_id}", "select": "*", "limit": "1"})
+    variants.extend([
+        {"team_id": f"eq.{team_id}", "select": "*", "order": "total_matches.desc", "limit": "1"},
+        {"team_id": f"eq.{team_id}", "select": "*", "limit": "1"},
+    ])
+    rows = sb_query_first_nonempty("corner_team_stats", variants)
+    SB_CORNER_STATS_CACHE[key] = rows[0] if rows else {}
+    return SB_CORNER_STATS_CACHE[key]
 
 def sb_corner_h2h(hid, aid, n=5):
     """H2H corner average."""
-    r = sb_query("corner_match_stats", {
+    key = tuple(sorted((hid, aid))) + (n,)
+    if key in SB_CORNER_H2H_CACHE:
+        return SB_CORNER_H2H_CACHE[key]
+    rows = sb_query("corner_match_stats", {
         "or": f"(and(home_team_id.eq.{hid},away_team_id.eq.{aid}),and(home_team_id.eq.{aid},away_team_id.eq.{hid}))",
         "select": "total_corners", "order": "match_date.desc", "limit": str(n),
     })
-    if r:
-        vals = [to_float(m.get("total_corners")) or 0 for m in r]
-        return sum(vals) / len(vals) if vals else None
-    return None
+    values = [to_float(row.get("total_corners")) for row in rows]
+    SB_CORNER_H2H_CACHE[key] = mean_or_none(values)
+    return SB_CORNER_H2H_CACHE[key]
+
+def sb_cards_team_stats(team_id, league_id=None):
+    key = (team_id, league_id)
+    if key in SB_CARDS_TEAM_STATS_CACHE:
+        return SB_CARDS_TEAM_STATS_CACHE[key]
+    variants = []
+    if league_id:
+        variants.append({"team_id": f"eq.{team_id}", "league_id": f"eq.{league_id}", "select": "*", "limit": "1"})
+    variants.extend([
+        {"team_id": f"eq.{team_id}", "select": "*", "order": "total_matches.desc", "limit": "1"},
+        {"team_id": f"eq.{team_id}", "select": "*", "limit": "1"},
+    ])
+    rows = sb_query_first_nonempty("cards_team_stats", variants)
+    SB_CARDS_TEAM_STATS_CACHE[key] = rows[0] if rows else {}
+    return SB_CARDS_TEAM_STATS_CACHE[key]
+
+def sb_cards_h2h(hid, aid, n=5):
+    key = tuple(sorted((hid, aid))) + (n,)
+    if key in SB_CARDS_H2H_CACHE:
+        return SB_CARDS_H2H_CACHE[key]
+    rows = sb_query("cards_match_stats", {
+        "or": f"(and(home_team_id.eq.{hid},away_team_id.eq.{aid}),and(home_team_id.eq.{aid},away_team_id.eq.{hid}))",
+        "select": "*", "order": "match_date.desc", "limit": str(n),
+    })
+    values = []
+    for row in rows:
+        num = (
+            row_num(row, "total_yellows", "yellow_cards_total", "cards_total", "total_cards")
+            or row_num_tokens(row, include=("yellow", "total"))
+            or row_num_tokens(row, include=("card", "total"), exclude=("red",))
+        )
+        if num is not None:
+            values.append(num)
+    SB_CARDS_H2H_CACHE[key] = mean_or_none(values)
+    return SB_CARDS_H2H_CACHE[key]
+
+def sb_referee_cards(referee_name, league_id=None):
+    clean_name = str(referee_name or "").strip()
+    if not clean_name:
+        return None
+    key = (clean_name.lower(), league_id)
+    if key in SB_REFEREE_CARDS_CACHE:
+        return SB_REFEREE_CARDS_CACHE[key]
+    variants = []
+    for column in ("referee", "referee_name", "name"):
+        if league_id:
+            variants.append({column: f"ilike.*{clean_name}*", "league_id": f"eq.{league_id}", "select": "*", "limit": "1"})
+        variants.append({column: f"ilike.*{clean_name}*", "select": "*", "limit": "1"})
+    rows = sb_query_first_nonempty("cards_referee_stats", variants)
+    row = rows[0] if rows else {}
+    value = (
+        row_num(row, "yellow_avg", "cards_avg", "avg_yellow_cards", "avg_cards_total", "avg_cards", "yellow_cards_avg", "cards_per_match")
+        or row_num_tokens(row, include=("yellow", "avg"))
+        or row_num_tokens(row, include=("card", "avg"), exclude=("red",))
+    )
+    SB_REFEREE_CARDS_CACHE[key] = value
+    return value
+
+def sb_recent_match_team_stats(team_id, league_id=None, n=8):
+    key = (team_id, league_id, n)
+    if key in SB_MATCH_TEAM_STATS_CACHE:
+        return SB_MATCH_TEAM_STATS_CACHE[key]
+    variants = []
+    if league_id:
+        variants.extend([
+            {"team_id": f"eq.{team_id}", "league_id": f"eq.{league_id}", "select": "*", "order": "match_date.desc", "limit": str(n)},
+            {"team_id": f"eq.{team_id}", "league_id": f"eq.{league_id}", "select": "*", "limit": str(n)},
+        ])
+    variants.extend([
+        {"team_id": f"eq.{team_id}", "select": "*", "order": "match_date.desc", "limit": str(n)},
+        {"team_id": f"eq.{team_id}", "select": "*", "limit": str(n)},
+    ])
+    rows = sb_query_first_nonempty("match_team_stats", variants)
+    if rows:
+        rows = sorted(
+            rows,
+            key=lambda row: str(row.get("match_date") or row.get("date") or ""),
+            reverse=True,
+        )[:n]
+    SB_MATCH_TEAM_STATS_CACHE[key] = rows or []
+    return SB_MATCH_TEAM_STATS_CACHE[key]
 def get_all_fixtures(target_date, time_min, time_max):
     resp = api_get("/fixtures", params={"date": target_date, "timezone": MATCH_TIMEZONE}, timeout=30)
     print(f"# Fixtures totali per {target_date}: {len(resp)}", file=sys.stderr)
@@ -364,7 +622,8 @@ def grid(lh, la, mx=7):
 # ==========================
 # PREDICTION ENGINE — ALL 3 MARKETS
 # ==========================
-def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, h_crn=None, a_crn=None, h2h_c=None):
+def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, h_crn=None, a_crn=None, h2h_c=None,
+                h_cards=None, a_cards=None, h2h_y=None, ref_cards=None, h_recent=None, a_recent=None):
     """
     Returns dict with ALL markets:
     Over/Under 2.5, Over 3.5, BTTS, No Goal, O2.5+BTTS combo, Corners, Yellows.
@@ -373,6 +632,10 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     a_sb = a_sb or {}
     h_crn = h_crn or {}
     a_crn = a_crn or {}
+    h_cards = h_cards or {}
+    a_cards = a_cards or {}
+    h_recent = h_recent or []
+    a_recent = a_recent or []
 
     # --- BUILD LAMBDAS ---
     gh = to_float(pred.get("goals_home")) or 0.0
@@ -662,31 +925,48 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
             p_o25_btts += p
 
     # ============================================================
-    # 6) CORNERS — expected total + Over 7.5 / 8.5 / 9.5 / 10.5
-    # From Supabase corner_team_stats (home corners for + away corners for)
-    # Fallback: team_season_stats corners_for_avg
+    # 6) CORNERS — blended from season, recent matches and H2H
+    # Uses Supabase corner_team_stats + match_team_stats + team_season_stats
     # ============================================================
-    h_cpg_home = to_float(h_crn.get("avg_corners_for_home")) or to_float(h_sb.get("corners_for_avg")) or 0.0
-    a_cpg_away = to_float(a_crn.get("avg_corners_for_away")) or to_float(a_sb.get("corners_for_avg")) or 0.0
-    h_cpg_against = to_float(h_crn.get("avg_corners_against_home")) or 0.0
-    a_cpg_against = to_float(a_crn.get("avg_corners_against_away")) or 0.0
+    h_season_corners = season_corners_avg(h_sb) or 0.0
+    a_season_corners = season_corners_avg(a_sb) or 0.0
+    h_cpg_home = side_metric_avg(h_crn, "corners", "home", against=False) or h_season_corners or 0.0
+    a_cpg_away = side_metric_avg(a_crn, "corners", "away", against=False) or a_season_corners or 0.0
+    h_cpg_against = side_metric_avg(h_crn, "corners", "home", against=True) or 0.0
+    a_cpg_against = side_metric_avg(a_crn, "corners", "away", against=True) or 0.0
+    h_recent_corners_for = recent_metric_mean(h_recent, "corners_for") or 0.0
+    a_recent_corners_for = recent_metric_mean(a_recent, "corners_for") or 0.0
+    h_recent_corners_against = recent_metric_mean(h_recent, "corners_against") or 0.0
+    a_recent_corners_against = recent_metric_mean(a_recent, "corners_against") or 0.0
 
-    # Expected corners: average of (home_for + away_for) and (home_against + away_against)
+    corner_components = []
     if h_cpg_home > 0 and a_cpg_away > 0:
-        exp_corners_attack = h_cpg_home + a_cpg_away
-        if h_cpg_against > 0 and a_cpg_against > 0:
-            exp_corners_defense = h_cpg_against + a_cpg_against
-            exp_corners = (exp_corners_attack + exp_corners_defense) / 2.0
-        else:
-            exp_corners = exp_corners_attack
-    elif to_float(h_sb.get("corners_for_avg")) and to_float(a_sb.get("corners_for_avg")):
-        exp_corners = (to_float(h_sb.get("corners_for_avg")) or 0) + (to_float(a_sb.get("corners_for_avg")) or 0)
-    else:
-        exp_corners = 0.0
+        corner_components.append((h_cpg_home + a_cpg_away, 0.42))
+    if h_cpg_against > 0 and a_cpg_against > 0:
+        corner_components.append((h_cpg_against + a_cpg_against, 0.16))
+    if h_recent_corners_for > 0 and a_recent_corners_for > 0:
+        corner_components.append((h_recent_corners_for + a_recent_corners_for, 0.18))
+    if h_recent_corners_against > 0 and a_recent_corners_against > 0:
+        corner_components.append((h_recent_corners_against + a_recent_corners_against, 0.10))
+    if h_season_corners > 0 and a_season_corners > 0:
+        corner_components.append((h_season_corners + a_season_corners, 0.14))
+    total_corner_weight = sum(weight for _, weight in corner_components)
+    exp_corners = (sum(value * weight for value, weight in corner_components) / total_corner_weight) if total_corner_weight > 0 else 0.0
 
-    # H2H adjustment
+    h_shots = recent_metric_mean(h_recent, "shots_for") or season_shots_avg(h_sb) or 0.0
+    a_shots = recent_metric_mean(a_recent, "shots_for") or season_shots_avg(a_sb) or 0.0
+    shots_total = h_shots + a_shots
+    if shots_total >= 29:
+        exp_corners += 0.6
+    elif shots_total >= 25:
+        exp_corners += 0.3
+    elif 0 < shots_total <= 17:
+        exp_corners -= 0.2
+
     if h2h_c and exp_corners > 0:
-        exp_corners = exp_corners * 0.75 + h2h_c * 0.25
+        exp_corners = exp_corners * 0.80 + h2h_c * 0.20
+    if exp_corners > 0:
+        exp_corners = max(4.0, min(16.0, exp_corners))
 
     # Corner over probabilities using normal approximation (std ≈ 3.0 for corners)
     corner_std = 3.0
@@ -700,12 +980,46 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
             corner_overs[str(line)] = None
 
     # ============================================================
-    # 7) YELLOWS — expected total + Over 2.5 / 3.5 / 4.5
-    # From Supabase team_season_stats: yellow_avg
+    # 7) YELLOWS — blended from cards tables, recent matches and referee
+    # Uses cards_team_stats + cards_match_stats + cards_referee_stats + match_team_stats
     # ============================================================
-    h_yel = to_float(h_sb.get("yellow_avg")) or 0.0
-    a_yel = to_float(a_sb.get("yellow_avg")) or 0.0
-    exp_yellows = h_yel + a_yel
+    h_yel = season_yellows_avg(h_sb) or 0.0
+    a_yel = season_yellows_avg(a_sb) or 0.0
+    h_cards_home = side_metric_avg(h_cards, "cards", "home", against=False) or h_yel or 0.0
+    a_cards_away = side_metric_avg(a_cards, "cards", "away", against=False) or a_yel or 0.0
+    h_cards_against = side_metric_avg(h_cards, "cards", "home", against=True) or 0.0
+    a_cards_against = side_metric_avg(a_cards, "cards", "away", against=True) or 0.0
+    h_recent_cards = recent_metric_mean(h_recent, "cards_for") or 0.0
+    a_recent_cards = recent_metric_mean(a_recent, "cards_for") or 0.0
+
+    yellow_components = []
+    if h_cards_home > 0 and a_cards_away > 0:
+        yellow_components.append((h_cards_home + a_cards_away, 0.44))
+    if h_recent_cards > 0 and a_recent_cards > 0:
+        yellow_components.append((h_recent_cards + a_recent_cards, 0.22))
+    if h_yel > 0 and a_yel > 0:
+        yellow_components.append((h_yel + a_yel, 0.18))
+    if h_cards_against > 0 and a_cards_against > 0:
+        yellow_components.append((h_cards_against + a_cards_against, 0.08))
+    total_yellow_weight = sum(weight for _, weight in yellow_components)
+    exp_yellows = (sum(value * weight for value, weight in yellow_components) / total_yellow_weight) if total_yellow_weight > 0 else 0.0
+
+    h_fouls = recent_metric_mean(h_recent, "fouls_for") or season_fouls_avg(h_sb) or 0.0
+    a_fouls = recent_metric_mean(a_recent, "fouls_for") or season_fouls_avg(a_sb) or 0.0
+    fouls_total = h_fouls + a_fouls
+    if fouls_total >= 29:
+        exp_yellows += 0.45
+    elif fouls_total >= 24:
+        exp_yellows += 0.22
+    elif 0 < fouls_total <= 18:
+        exp_yellows -= 0.12
+
+    if h2h_y and exp_yellows > 0:
+        exp_yellows = exp_yellows * 0.82 + h2h_y * 0.18
+    if ref_cards and ref_cards > 0:
+        exp_yellows = (exp_yellows * 0.72 + ref_cards * 0.28) if exp_yellows > 0 else ref_cards
+    if exp_yellows > 0:
+        exp_yellows = max(1.5, min(7.2, exp_yellows))
 
     # Yellow over probabilities using Poisson
     yellow_overs = {}
@@ -817,6 +1131,7 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
         mtime = dateiso[11:16] if len(dateiso) >= 16 else ""
         lname = league.get("name", "")
         country = league.get("country", "")
+        referee = str(fx.get("referee") or "").strip()
 
         if idx % 20 == 0 or idx == 1:
             print(f"# Progresso: {idx}/{total}...", file=sys.stderr)
@@ -834,9 +1149,17 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
         h_crn = sb_corner_stats(hid, lid) if hid else {}
         a_crn = sb_corner_stats(aid, lid) if aid else {}
         h2h_c = sb_corner_h2h(hid, aid) if (hid and aid) else None
+        h_cards = sb_cards_team_stats(hid, lid) if hid else {}
+        a_cards = sb_cards_team_stats(aid, lid) if aid else {}
+        h2h_y = sb_cards_h2h(hid, aid) if (hid and aid) else None
+        ref_cards = sb_referee_cards(referee, lid) if referee else None
+        h_recent = sb_recent_match_team_stats(hid, lid) if hid else []
+        a_recent = sb_recent_match_team_stats(aid, lid) if aid else []
 
         result = predict_all(hp_, ap_, pred, odds, hn, an,
-                             h_sb=h_sb, a_sb=a_sb, h_crn=h_crn, a_crn=a_crn, h2h_c=h2h_c)
+                             h_sb=h_sb, a_sb=a_sb, h_crn=h_crn, a_crn=a_crn, h2h_c=h2h_c,
+                             h_cards=h_cards, a_cards=a_cards, h2h_y=h2h_y, ref_cards=ref_cards,
+                             h_recent=h_recent, a_recent=a_recent)
 
         results.append({
             "fixture_id": fid, "date": target, "league": lname, "country": country,

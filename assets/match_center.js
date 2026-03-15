@@ -52,7 +52,7 @@
     { id: "goals_o35", group: "goals", marketId: "o35", label: "Over 3.5" },
     { id: "goals_u35", group: "goals", marketId: "o35", label: "Under 3.5" },
     ...[7.5, 8.5, 9.5, 10.5, 11.5, 12.5].map(line => ({ id: `corners_o_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Over ${line.toFixed(1)}` })),
-    ...[12.5, 11.5, 10.5, 9.5].map(line => ({ id: `corners_u_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Under ${line.toFixed(1)}` })),
+    ...[10.5, 9.5].map(line => ({ id: `corners_u_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Under ${line.toFixed(1)}` })),
     ...[1.5, 2.5, 3.5, 4.5, 5.5].map(line => ({ id: `yellows_o_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Over ${line.toFixed(1)}` })),
     ...[5.5, 4.5, 3.5, 2.5, 1.5].map(line => ({ id: `yellows_u_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Under ${line.toFixed(1)}` })),
   ];
@@ -906,7 +906,7 @@
       .filter(item => marketId !== "yellows" || Number(item.line) <= 5.5)
       .flatMap(item => {
       const underProbability = Math.max(0.02, Math.min(0.98, 1 - Number(item.value)));
-      return [
+      const options = [
         {
           label: `Over ${item.key}`,
           probability: item.value,
@@ -915,15 +915,19 @@
           highImpact: isImpactLine(marketId, item.line),
           impactLabel: impactLabel(marketId, item.line),
         },
-        {
+      ];
+      const allowUnder = marketId !== "corners" || Number(item.line) <= 10.5;
+      if (allowUnder) {
+        options.push({
           label: `Under ${item.key}`,
           probability: Number(underProbability.toFixed(4)),
           odd: null,
           line: item.line,
           highImpact: isImpactLine(marketId, item.line),
           impactLabel: impactLabel(marketId, item.line),
-        },
-      ];
+        });
+      }
+      return options;
     });
   }
 
