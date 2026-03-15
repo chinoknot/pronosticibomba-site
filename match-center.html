@@ -299,9 +299,19 @@
             <div class="bet-master-dropdown-panel" id="bet-master-outcome-panel" hidden>
               <div class="bet-master-dropdown-top">
                 <button type="button" class="preset-chip" data-bet-master-outcome="all">Tutti</button>
-                <button type="button" class="preset-chip" data-bet-master-outcome-close>Chiudi</button>
+                <div class="bet-master-dropdown-top-actions">
+                  <span class="bet-master-dropdown-summary" id="bet-master-outcome-summary">Mix libero</span>
+                  <button type="button" class="preset-chip" data-bet-master-outcome-close>Chiudi</button>
+                </div>
               </div>
-              <div class="bet-master-outcome-groups" id="bet-master-outcome-groups"></div>
+              <div class="bet-master-outcome-categories" id="bet-master-outcome-categories"></div>
+              <section class="bet-master-outcome-stage">
+                <div class="bet-master-outcome-stage-head">
+                  <strong id="bet-master-outcome-stage-title">Goal</strong>
+                  <small id="bet-master-outcome-stage-meta">Scegli il taglio della schedina</small>
+                </div>
+                <div class="bet-master-outcome-options" id="bet-master-outcome-options"></div>
+              </section>
             </div>
           </div>
         </article>
@@ -583,12 +593,33 @@
     .bet-master-dropdown-copy small{color:#9fb0c9;font-size:.72rem}
     .bet-master-dropdown-icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;border:1px solid rgba(249,115,22,.24);background:rgba(249,115,22,.08);color:#fde68a;font-size:1rem;font-weight:900;transition:transform .18s ease}
     .bet-master-dropdown-toggle.open .bet-master-dropdown-icon{transform:rotate(45deg)}
-    .bet-master-dropdown-panel{display:flex;flex-direction:column;gap:12px;padding:12px;border-radius:16px;border:1px solid rgba(148,163,184,.12);background:rgba(5,9,20,.88)}
+    .bet-master-dropdown-panel{display:flex;flex-direction:column;gap:12px;padding:12px;border-radius:16px;border:1px solid rgba(148,163,184,.12);background:linear-gradient(180deg,rgba(7,12,24,.96),rgba(4,7,16,.98));box-shadow:0 16px 40px rgba(0,0,0,.28)}
     .bet-master-dropdown-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-    .bet-master-outcome-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-    .bet-master-outcome-group{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:14px;border:1px solid rgba(148,163,184,.1);background:rgba(255,255,255,.03)}
-    .bet-master-outcome-group h4{margin:0;font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:#9fb0c9}
-    .bet-master-outcome-grid{display:flex;flex-wrap:wrap;gap:6px}
+    .bet-master-dropdown-top-actions{display:flex;align-items:center;gap:8px;min-width:0}
+    .bet-master-dropdown-summary{display:inline-flex;align-items:center;min-height:30px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.14);background:rgba(255,255,255,.04);color:#cbd5e1;font-size:.72rem;font-weight:700;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+    .bet-master-outcome-categories{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+    .bet-master-outcome-categories::-webkit-scrollbar{display:none}
+    .bet-master-outcome-group-btn{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;min-width:138px;padding:10px 12px;border-radius:16px;border:1px solid rgba(148,163,184,.12);background:rgba(255,255,255,.03);color:#dbe7f6;text-align:left;cursor:pointer;transition:border-color .18s ease,transform .18s ease,background .18s ease}
+    .bet-master-outcome-group-btn:hover{border-color:rgba(249,115,22,.34);transform:translateY(-1px)}
+    .bet-master-outcome-group-btn.active{border-color:rgba(249,115,22,.56);background:linear-gradient(135deg,rgba(249,115,22,.14),rgba(59,130,246,.1))}
+    .bet-master-outcome-group-badge{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 8px;border-radius:12px;border:1px solid rgba(148,163,184,.16);background:rgba(15,23,42,.82);color:#fde68a;font-size:.7rem;font-weight:900;letter-spacing:.04em}
+    .bet-master-outcome-group-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+    .bet-master-outcome-group-copy strong{font-size:.8rem;color:#fff7ed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .bet-master-outcome-group-copy small{font-size:.68rem;color:#9fb0c9}
+    .bet-master-outcome-group-count{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 7px;border-radius:999px;background:rgba(255,255,255,.06);color:#f8fafc;font-size:.68rem;font-weight:800}
+    .bet-master-outcome-stage{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:16px;border:1px solid rgba(148,163,184,.1);background:rgba(255,255,255,.03)}
+    .bet-master-outcome-stage-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .bet-master-outcome-stage-head strong{font-size:.92rem;color:#fff7ed}
+    .bet-master-outcome-stage-head small{color:#9fb0c9;font-size:.72rem;text-align:right}
+    .bet-master-outcome-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .bet-master-outcome-option{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;padding:10px 12px;border-radius:14px;border:1px solid rgba(148,163,184,.12);background:rgba(10,16,30,.88);color:#e5eefb;cursor:pointer;transition:border-color .18s ease,transform .18s ease,background .18s ease}
+    .bet-master-outcome-option:hover{border-color:rgba(249,115,22,.32);transform:translateY(-1px)}
+    .bet-master-outcome-option.active{border-color:rgba(249,115,22,.56);background:linear-gradient(135deg,rgba(249,115,22,.14),rgba(59,130,246,.12))}
+    .bet-master-outcome-option-copy{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:left}
+    .bet-master-outcome-option-copy strong{font-size:.84rem;color:#fff7ed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .bet-master-outcome-option-copy small{font-size:.68rem;color:#9fb0c9}
+    .bet-master-outcome-option-check{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;border:1px solid rgba(148,163,184,.18);background:rgba(255,255,255,.03);color:transparent;font-size:.82rem;font-weight:900;flex:0 0 auto}
+    .bet-master-outcome-option.active .bet-master-outcome-option-check{border-color:rgba(249,115,22,.5);background:rgba(249,115,22,.18);color:#fde68a}
     .bet-master-stepper{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;gap:8px;align-items:center}
     .bet-master-stepper-btn{width:46px;height:46px;border-radius:16px;border:1px solid rgba(250,204,21,.24);background:rgba(250,204,21,.08);color:#fde68a;font-size:1.4rem;font-weight:800;cursor:pointer}
     .bet-master-stepper-btn:hover,.bet-master-generate:hover{border-color:rgba(249,115,22,.62);background:linear-gradient(135deg,rgba(249,115,22,.16),rgba(59,130,246,.12))}
@@ -657,7 +688,9 @@
       .bet-master-mode-chips{justify-content:flex-start}
       .bet-master-brand{align-items:flex-start}
       .bet-master-grid{grid-template-columns:1fr}
-      .bet-master-outcome-groups{grid-template-columns:1fr}
+      .bet-master-dropdown-summary{max-width:120px}
+      .bet-master-outcome-options{grid-template-columns:1fr}
+      .bet-master-outcome-group-btn{min-width:120px}
       .bet-master-stepper{grid-template-columns:42px minmax(0,1fr) 42px}
       .bet-master-stepper-btn{width:42px;height:42px}
       .bet-master-generate{width:100%;min-width:0}
@@ -699,6 +732,6 @@
       .compact-select-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
   </style>
-  <script src="/assets/match_center.js?v=20260315c"></script>
+  <script src="/assets/match_center.js?v=20260315d"></script>
 </body>
 </html>
