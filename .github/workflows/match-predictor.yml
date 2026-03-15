@@ -30,7 +30,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  MATCH_PREDICTOR_TIMEZONE: Europe/Dublin
+  MATCH_PREDICTOR_TIMEZONE: Europe/Rome
   PYTHONUTF8: "1"
 
 jobs:
@@ -73,7 +73,7 @@ jobs:
           if [ -n "$INPUT_DATE" ]; then
             TARGET_DATE="$INPUT_DATE"
           else
-            TARGET_DATE="$(python -c "from datetime import datetime; from zoneinfo import ZoneInfo; print(datetime.now(ZoneInfo('Europe/Dublin')).strftime('%Y-%m-%d'))")"
+            TARGET_DATE="$(python -c "import os; from datetime import datetime; from zoneinfo import ZoneInfo; tz=os.getenv('MATCH_PREDICTOR_TIMEZONE', 'Europe/Rome'); print(datetime.now(ZoneInfo(tz)).strftime('%Y-%m-%d'))")"
           fi
 
           SHOULD_BUILD=false
