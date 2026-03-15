@@ -34,6 +34,9 @@
     { id: "bm_prob_65", label: "65%+", from: 65, to: 99 },
     { id: "bm_prob_70", label: "70%+", from: 70, to: 99 },
     { id: "bm_prob_75", label: "75%+", from: 75, to: 99 },
+    { id: "bm_prob_80", label: "80%+", from: 80, to: 99 },
+    { id: "bm_prob_85", label: "85%+", from: 85, to: 99 },
+    { id: "bm_prob_90", label: "90%+", from: 90, to: 99 },
   ];
   const BET_MASTER_PROFILES = [
     { id: "safe", label: IS_EN ? "Safe Slip" : "Schedina solida", note: IS_EN ? "Highest hit-rate first" : "Prima la probabilita piu alta" },
@@ -208,6 +211,7 @@
     betMasterNeedMarkets: IS_EN ? "Enable at least one market to build a slip." : "Attiva almeno un mercato per creare la schedina.",
     betMasterSoon: IS_EN ? "Now +30m" : "Adesso +30m",
     betMasterCustom: IS_EN ? "Custom slot" : "Intervallo",
+    estimatedOdd: IS_EN ? "Est." : "Stima",
   };
   const state = {
     manifest: null,
@@ -742,11 +746,23 @@
     return minutesToTime(rounded);
   }
 
+  function soonStartTimeSlot() {
+    const roundedMinutes = toMinutes(roundedCurrentTimeSlot());
+    const safeMinutes = Math.min((23 * 60) + 59, roundedMinutes + 30);
+    return minutesToTime(safeMinutes);
+  }
+
   function seedBetMasterCustomWindow(force = false) {
     if (!force && state.betMaster.customSeeded && state.betMaster.timeFrom && state.betMaster.timeFrom !== "00:00") return;
     state.betMaster.timeFrom = roundedCurrentTimeSlot();
     state.betMaster.timeTo = "23:59";
     state.betMaster.customSeeded = true;
+  }
+
+  function estimateFallbackOdd(probabilityValue) {
+    const probability = Math.max(0.3, Math.min(0.92, Number(probabilityValue || 0)));
+    const fairOdd = 1 / probability;
+    return Number(Math.min(4, Math.max(1.08, fairOdd * 1.04)).toFixed(2));
   }
 
   function leaguePriority(country, league) {
@@ -1515,11 +1531,11 @@
         label: `${state.timeFrom} - ${state.timeTo}`,
       };
     }
-    const nowMinutes = toMinutes(currentTimeInTimezone(zone));
-    const endMinutes = Math.min((23 * 60) + 59, nowMinutes + 30);
+    const startMinutes = toMinutes(soonStartTimeSlot());
+    const endMinutes = (23 * 60) + 59;
     return {
       mode: "soon",
-      from: minutesToTime(nowMinutes),
+      from: minutesToTime(startMinutes),
       to: minutesToTime(endMinutes),
       label: TEXT.betMasterSoon,
     };
@@ -1545,6 +1561,9 @@
     const window = betMasterWindow();
     const fromMinutes = toMinutes(window.from);
     const toMinutesValue = toMinutes(window.to);
+    const softProbFloor = Math.max(45, state.betMaster.probFrom - 2);
+    const softOddFloor = Math.max(1.01, state.betMaster.oddFrom - 0.08);
+    const softOddCeil = Math.min(10, state.betMaster.oddTo + 0.25);
     const matches = buildBetMasterMatches()
       .filter(match => {
         const fixtureStatus = String(match.status_short || "").toUpperCase();
@@ -1557,12 +1576,22 @@
     matches.forEach(match => {
       match.markets.forEach(market => {
         (market.options || []).forEach(option => {
-          const odd = Number(option.odd);
           const probability = Number(option.probability || 0) * 100;
-          if (!Number.isFinite(odd)) return;
           if (!Number.isFinite(probability)) return;
-          if (probability < state.betMaster.probFrom || probability > state.betMaster.probTo) return;
-          if (odd < state.betMaster.oddFrom || odd > state.betMaster.oddTo) return;
+          const rawOdd = Number(option.odd);
+          const hasBet365Odd = Number.isFinite(rawOdd);
+          const odd = hasBet365Odd ? rawOdd : estimateFallbackOdd(Number(option.probability || 0));
+          const strictProb = probability >= state.betMaster.probFrom && probability <= state.betMaster.probTo;
+          const softProb = probability >= softProbFloor && probability <= state.betMaster.probTo;
+          const strictOdd = hasBet365Odd && rawOdd >= state.betMaster.oddFrom && rawOdd <= state.betMaster.oddTo;
+          const softOdd = hasBet365Odd && rawOdd >= softOddFloor && rawOdd <= softOddCeil;
+          let tier = 99;
+          if (strictProb && strictOdd) tier = 0;
+          else if (softProb && strictOdd) tier = 1;
+          else if (strictProb && softOdd) tier = 2;
+          else if (softProb && softOdd) tier = 3;
+          else if (softProb && !hasBet365Odd) tier = 4;
+          if (tier === 99) return;
           const pickMarket = {
             ...market,
             pickLabel: option.label,
@@ -1594,6 +1623,9 @@
             match,
             market: pickMarket,
             diversityKey: `${market.group}:${String(option.label || "").toUpperCase()}`,
+            hasBet365Odd,
+            syntheticOdd: !hasBet365Odd,
+            tier,
           });
         });
       });
@@ -1615,6 +1647,8 @@
     const groupLimit = Math.max(2, Math.ceil(targetCount / 3));
     const labelLimit = 1;
     const sorted = [...entries].sort((a, b) => {
+      const tierDiff = Number(a.tier || 99) - Number(b.tier || 99);
+      if (tierDiff) return tierDiff;
       const aScore = betMasterProfileScore(a, profile.id) - (avoidedFixtures.has(a.fixtureId) ? 0.16 : 0);
       const bScore = betMasterProfileScore(b, profile.id) - (avoidedFixtures.has(b.fixtureId) ? 0.16 : 0);
       const diff = bScore - aScore;
@@ -1766,7 +1800,12 @@
     if (dom.oddFrom) dom.oddFrom.value = formatOdd(state.oddFrom);
     if (dom.oddTo) dom.oddTo.value = formatOdd(state.oddTo);
     if (dom.oddValue) dom.oddValue.textContent = `${formatOdd(state.oddFrom)} - ${formatOdd(state.oddTo)}`;
+  }
 
+  function renderBetMasterControls(window = betMasterWindow()) {
+    populateProbabilitySelects();
+    populateOddSelects();
+    populateTimeSelects();
     if (dom.betMasterProbFrom) dom.betMasterProbFrom.value = String(state.betMaster.probFrom);
     if (dom.betMasterProbTo) dom.betMasterProbTo.value = String(state.betMaster.probTo);
     if (dom.betMasterProbValue) dom.betMasterProbValue.textContent = `${state.betMaster.probFrom}% - ${state.betMaster.probTo}%`;
@@ -1780,6 +1819,33 @@
     if (dom.betMasterTimeSoon) dom.betMasterTimeSoon.classList.toggle("active", state.betMaster.windowMode === "soon");
     if (dom.betMasterTimeCustom) dom.betMasterTimeCustom.classList.toggle("active", state.betMaster.windowMode === "custom");
     if (dom.betMasterTimeSelects) dom.betMasterTimeSelects.hidden = state.betMaster.windowMode !== "custom";
+    if (dom.betMasterWindowLabel) dom.betMasterWindowLabel.textContent = window.label;
+    if (dom.betMasterTimeValue) dom.betMasterTimeValue.textContent = `${window.from} - ${window.to}`;
+    if (dom.betMasterProfileChips) {
+      dom.betMasterProfileChips.innerHTML = BET_MASTER_PROFILES.map(profile => `
+        <button
+          type="button"
+          class="preset-chip ${state.betMaster.selectedProfile === profile.id ? "active" : ""}"
+          data-bet-master-profile="${profile.id}"
+          aria-pressed="${state.betMaster.selectedProfile === profile.id ? "true" : "false"}"
+        >${escapeHtml(profile.id.toUpperCase())}</button>
+      `).join("");
+    }
+    if (dom.betMasterOddPresets) {
+      dom.betMasterOddPresets.innerHTML = BET_MASTER_ODD_PRESETS.map(preset => `<button type="button" class="preset-chip ${Number(preset.from) === Number(state.betMaster.oddFrom) && Number(preset.to) === Number(state.betMaster.oddTo) ? "active" : ""}" data-bet-master-odd-preset="${preset.id}">${preset.label}</button>`).join("");
+    }
+    if (dom.betMasterProbPresets) {
+      dom.betMasterProbPresets.innerHTML = BET_MASTER_PROB_PRESETS.map(preset => `<button type="button" class="preset-chip ${Number(preset.from) === Number(state.betMaster.probFrom) && Number(preset.to) === Number(state.betMaster.probTo) ? "active" : ""}" data-bet-master-prob-preset="${preset.id}">${preset.label}</button>`).join("");
+    }
+    if (dom.betMasterNote) {
+      const baseNote = IS_EN
+        ? "Bet Master uses the active markets/outcomes above and keeps bet365 odds first."
+        : "Bet Master usa i mercati/esiti attivi sopra e prova prima le quote bet365.";
+      const extra = window.mode === "soon"
+        ? (IS_EN ? ` Window: from ${window.from} onward.` : ` Finestra: da ${window.from} in poi.`)
+        : (IS_EN ? ` Window: ${window.from}-${window.to}.` : ` Finestra: ${window.from}-${window.to}.`);
+      dom.betMasterNote.textContent = `${baseNote}${extra}`;
+    }
   }
 
   function renderFilterChips() {
@@ -1845,34 +1911,7 @@
   function renderBetMaster() {
     if (!dom.betMasterResults) return;
     const window = betMasterWindow();
-    if (dom.betMasterWindowLabel) dom.betMasterWindowLabel.textContent = window.label;
-    if (dom.betMasterTimeValue) dom.betMasterTimeValue.textContent = window.mode === "soon" ? TEXT.betMasterSoon : `${window.from} - ${window.to}`;
-    if (dom.betMasterNote) {
-      const baseNote = IS_EN
-        ? "Bet Master uses the active markets/outcomes above and only keeps bet365 odds."
-        : "Bet Master usa i mercati/esiti attivi sopra e tiene solo quote bet365.";
-      const extra = window.mode === "soon"
-        ? (IS_EN ? " Window: now to the next 30 minutes." : " Finestra: da adesso ai prossimi 30 minuti.")
-        : (IS_EN ? ` Window: ${window.from}-${window.to}.` : ` Finestra: ${window.from}-${window.to}.`);
-      dom.betMasterNote.textContent = `${baseNote}${extra}`;
-    }
-    renderRangePanels();
-    if (dom.betMasterProfileChips) {
-      dom.betMasterProfileChips.innerHTML = BET_MASTER_PROFILES.map(profile => `
-        <button
-          type="button"
-          class="preset-chip ${state.betMaster.selectedProfile === profile.id ? "active" : ""}"
-          data-bet-master-profile="${profile.id}"
-          aria-pressed="${state.betMaster.selectedProfile === profile.id ? "true" : "false"}"
-        >${escapeHtml(profile.id.toUpperCase())}</button>
-      `).join("");
-    }
-    if (dom.betMasterOddPresets) {
-      dom.betMasterOddPresets.innerHTML = BET_MASTER_ODD_PRESETS.map(preset => `<button type="button" class="preset-chip ${Number(preset.from) === Number(state.betMaster.oddFrom) && Number(preset.to) === Number(state.betMaster.oddTo) ? "active" : ""}" data-bet-master-odd-preset="${preset.id}">${preset.label}</button>`).join("");
-    }
-    if (dom.betMasterProbPresets) {
-      dom.betMasterProbPresets.innerHTML = BET_MASTER_PROB_PRESETS.map(preset => `<button type="button" class="preset-chip ${Number(preset.from) === Number(state.betMaster.probFrom) && Number(preset.to) === Number(state.betMaster.probTo) ? "active" : ""}" data-bet-master-prob-preset="${preset.id}">${preset.label}</button>`).join("");
-    }
+    renderBetMasterControls(window);
 
     if (!state.betMaster.generated) {
       dom.betMasterResults.innerHTML = `<div class="empty-state">${TEXT.betMasterEmpty}</div>`;
@@ -1912,7 +1951,7 @@
               </div>
               <div class="bet-master-pick-odd">
                 <strong>${formatOdd(pick.odd)}</strong>
-                <small>${escapeHtml(pick.tag || pick.title || "")}</small>
+                <small>${escapeHtml(`${pick.tag || pick.title || ""}${pick.syntheticOdd ? ` | ${TEXT.estimatedOdd}` : ""}`)}</small>
               </div>
             </article>
           `).join("")}
@@ -1923,6 +1962,11 @@
         </div>
       </article>
     `;
+  }
+
+  function renderBetMasterSection() {
+    if (state.betMaster.generated) state.betMaster.profileMap = buildBetMasterProfiles().profileMap;
+    renderBetMaster();
   }
 
   function renderYesterdayBanner() {
@@ -2262,7 +2306,7 @@
 
   function setBetMasterCount(nextValue) {
     state.betMaster.count = Math.max(1, Math.min(20, Number(nextValue || 1)));
-    render();
+    renderBetMasterSection();
   }
 
   function applyBetMasterProbability(fromValue, toValue, changedField = "min") {
@@ -2272,7 +2316,7 @@
       if (changedField === "max") state.betMaster.probFrom = state.betMaster.probTo;
       else state.betMaster.probTo = state.betMaster.probFrom;
     }
-    render();
+    renderBetMasterSection();
   }
 
   function applyBetMasterOdds(fromValue, toValue, changedField = "from") {
@@ -2282,19 +2326,19 @@
       if (changedField === "to") state.betMaster.oddFrom = state.betMaster.oddTo;
       else state.betMaster.oddTo = state.betMaster.oddFrom;
     }
-    render();
+    renderBetMasterSection();
   }
 
   function applyBetMasterWindow(mode) {
     state.betMaster.windowMode = mode === "custom" ? "custom" : "soon";
     if (state.betMaster.windowMode === "custom") seedBetMasterCustomWindow();
-    render();
+    renderBetMasterSection();
   }
 
   function generateBetMaster() {
     state.betMaster.generated = true;
     state.betMaster.profileMap = buildBetMasterProfiles().profileMap;
-    render();
+    renderBetMaster();
   }
 
   function scrollToInlineFilters() {
@@ -2356,12 +2400,12 @@
     if (dom.betMasterTimeFrom) dom.betMasterTimeFrom.addEventListener("change", () => {
       state.betMaster.timeFrom = dom.betMasterTimeFrom.value;
       if (state.betMaster.timeFrom > state.betMaster.timeTo) state.betMaster.timeTo = state.betMaster.timeFrom;
-      render();
+      renderBetMasterSection();
     });
     if (dom.betMasterTimeTo) dom.betMasterTimeTo.addEventListener("change", () => {
       state.betMaster.timeTo = dom.betMasterTimeTo.value;
       if (state.betMaster.timeTo < state.betMaster.timeFrom) state.betMaster.timeFrom = state.betMaster.timeTo;
-      render();
+      renderBetMasterSection();
     });
     if (dom.betMasterGenerate) dom.betMasterGenerate.addEventListener("click", generateBetMaster);
     dom.resetFilters.addEventListener("click", () => {
@@ -2445,7 +2489,7 @@
         if (preset) {
           state.betMaster.oddFrom = preset.from;
           state.betMaster.oddTo = preset.to;
-          render();
+          renderBetMasterSection();
         }
         return;
       }
@@ -2455,14 +2499,14 @@
         if (preset) {
           state.betMaster.probFrom = preset.from;
           state.betMaster.probTo = preset.to;
-          render();
+          renderBetMasterSection();
         }
         return;
       }
       const betMasterProfileButton = event.target.closest("[data-bet-master-profile]");
       if (betMasterProfileButton) {
         state.betMaster.selectedProfile = betMasterProfileButton.dataset.betMasterProfile || "safe";
-        render();
+        renderBetMaster();
         return;
       }
       const betMasterWindowButton = event.target.closest("[data-bet-master-window]");
