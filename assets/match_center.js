@@ -474,6 +474,53 @@
     return [...options].sort((a, b) => b.value - a.value || b.line - a.line)[0] || null;
   }
 
+  function dynamicTotalOptionScore(option, marketId, expectedValue = null) {
+    const probability = Number(option?.probability || 0);
+    const line = Number(option?.line || 0);
+    const expected = Number(expectedValue || 0);
+    const label = String(option?.label || "").toUpperCase();
+    const isOver = label.startsWith("OVER ");
+    const isUnder = label.startsWith("UNDER ");
+    let score = probability;
+
+    if (marketId === "corners") {
+      if (isOver) {
+        if (line < 8.5) score -= 0.07;
+        else if (line >= 9.5) score += 0.02;
+        if (Number.isFinite(expected) && expected > 0) score += Math.max(-0.08, Math.min(0.14, (expected - line) * 0.05));
+      }
+      if (isUnder) {
+        if (line < 9.5) score -= 0.08;
+        else if (line >= 10.5) score += 0.045;
+        if (Number.isFinite(expected) && expected > 0) score += Math.max(-0.08, Math.min(0.14, (line - expected) * 0.05));
+      }
+      if (probability < 0.56) score -= 0.05;
+    }
+
+    if (marketId === "yellows") {
+      if (isOver) {
+        if (line < 2.5) score -= 0.06;
+        else if (line >= 3.5) score += 0.02;
+        if (Number.isFinite(expected) && expected > 0) score += Math.max(-0.08, Math.min(0.14, (expected - line) * 0.08));
+      }
+      if (isUnder) {
+        if (line < 3.5) score -= 0.04;
+        else if (line >= 4.5) score += 0.035;
+        if (Number.isFinite(expected) && expected > 0) score += Math.max(-0.08, Math.min(0.14, (line - expected) * 0.08));
+      }
+      if (probability < 0.58) score -= 0.05;
+    }
+
+    if (option?.highImpact) score += 0.02;
+    return score;
+  }
+
+  function pickDynamicTotalOption(options, marketId, expectedValue = null) {
+    if (!options.length) return null;
+    return [...options]
+      .sort((a, b) => dynamicTotalOptionScore(b, marketId, expectedValue) - dynamicTotalOptionScore(a, marketId, expectedValue) || Number(b.line || 0) - Number(a.line || 0))[0] || null;
+  }
+
   function marketGroup(groupId) {
     return GROUPS.find(group => group.id === groupId);
   }
@@ -725,19 +772,43 @@
     const odd = Number(picked?.odd);
     let score = Number(market.pickProbability || 0);
     const label = String(market.pickLabel || "").toUpperCase();
+    const line = Number(picked?.line || 0);
     const tempoBoost = tempoProfile(match);
     const lamTotal = Number(match?.lam_total || 0);
     if (market.id === "ou15") score -= 0.07;
-    if (market.id === "dc") score -= 0.06;
+    if (market.id === "dc") {
+      score -= 0.04;
+      if (Number(market.pickProbability || 0) >= 0.74) score += 0.06;
+      if (Number(market.pickProbability || 0) >= 0.8) score += 0.04;
+    }
     if (market.id === "combo") {
       score -= 0.12;
       if (Number(market.pickProbability || 0) < 0.62) score -= 0.14;
       if (Number(market.pickProbability || 0) < 0.58) score -= 0.10;
+      if (tempoBoost >= 0.06 && Number(market.pickProbability || 0) >= 0.58) score += 0.08;
     }
-    if (market.id === "btts") score += 0.03;
+    if (market.id === "btts") {
+      score += 0.03;
+      if (label === "BTTS YES" && tempoBoost >= 0.04 && Number(market.pickProbability || 0) >= 0.57) score += 0.07;
+      if (label === "BTTS NO" && tempoBoost < 0.03 && Number(market.pickProbability || 0) >= 0.6) score += 0.05;
+    }
     if (market.id === "ou25" || market.id === "o35") score += 0.02;
-    if (market.id === "corners" || market.id === "yellows") score += 0.035;
-    if (market.id === "nogol") score += 0.015;
+    if (market.id === "corners") {
+      score += 0.02;
+      if (picked) score += dynamicTotalOptionScore(picked, "corners", match?.exp_corners) - Number(picked.probability || 0);
+      if (label.startsWith("UNDER ") && line >= 10.5) score += 0.05;
+      if (label.startsWith("OVER ") && line >= 9.5) score += 0.03;
+    }
+    if (market.id === "yellows") {
+      score += 0.02;
+      if (picked) score += dynamicTotalOptionScore(picked, "yellows", match?.exp_yellows) - Number(picked.probability || 0);
+      if (label.startsWith("UNDER ") && line >= 4.5) score += 0.03;
+      if (label.startsWith("OVER ") && line >= 3.5) score += 0.03;
+    }
+    if (market.id === "nogol") {
+      score += 0.015;
+      if (tempoBoost < 0.03 && Number(market.pickProbability || 0) >= 0.62) score += 0.055;
+    }
     if (label === "OVER 1.5") score += 0.03 + tempoBoost;
     if (label === "OVER 2.5") score += 0.02 + (tempoBoost * 0.8);
     if (label === "BTTS YES") score += 0.015 + (tempoBoost * 0.65);
@@ -751,12 +822,15 @@
       if (Number(market.pickProbability || 0) >= 0.72) score += 0.04;
       if (Number(market.pickProbability || 0) >= 0.86 && lamTotal <= 2.3) score += 0.04;
     }
+    if (label === "UNDER 3.5" && Number(market.pickProbability || 0) < 0.74 && Number.isFinite(odd) && odd <= 1.25) score -= 0.055;
+    if (label === "OVER 2.5" && Number.isFinite(odd) && odd >= 1.45 && odd <= 1.9 && Number(market.pickProbability || 0) >= 0.58) score += 0.035;
     if (label === "UNDER 2.5" && tempoBoost > 0.04) score -= 0.05;
     if (label === "BTTS NO" && tempoBoost > 0.05) score -= 0.04;
     if (label.includes("NON SEGNA") && tempoBoost > 0.05) score -= 0.03;
     if (Number.isFinite(odd)) {
       if (odd < 1.22) score -= 0.12;
       else if (odd < 1.35) score -= 0.06;
+      else if (odd >= 1.45 && odd <= 2.15) score += 0.03;
       else if (odd > 4.5) score -= 0.02;
     }
     return score;
@@ -875,8 +949,8 @@
   function buildMarkets(match) {
     const cornerOptions = buildTotalMarketOptions(match.corner_overs, "corners");
     const yellowOptions = buildTotalMarketOptions(match.yellow_overs, "yellows");
-    const cornerLine = bestLine(match.corner_overs, "corners");
-    const yellowLine = bestLine(match.yellow_overs, "yellows");
+    const cornerPick = pickDynamicTotalOption(cornerOptions, "corners", match.exp_corners);
+    const yellowPick = pickDynamicTotalOption(yellowOptions, "yellows", match.exp_yellows);
     return [
       { id: "ou15", group: "goals", title: "Over / Under 1.5", pickLabel: match.ou15_pick, pickProbability: match.ou15_conf, options: [{ label: "Over 1.5", probability: match.p_over15, odd: match.odd_o15 }, { label: "Under 1.5", probability: match.p_under15, odd: match.odd_u15 }] },
       { id: "ou25", group: "goals", title: "Over / Under 2.5", pickLabel: match.ou_pick, pickProbability: match.ou_conf, options: [{ label: "Over 2.5", probability: match.p_over25, odd: match.odd_o25 }, { label: "Under 2.5", probability: match.p_under25, odd: match.odd_u25 }] },
@@ -885,13 +959,19 @@
       { id: "btts", group: "btts", title: "Both Teams To Score", pickLabel: match.btts_pick, pickProbability: match.btts_conf, options: [{ label: "BTTS YES", probability: match.p_btts_yes, odd: match.odd_btts_y }, { label: "BTTS NO", probability: match.p_btts_no, odd: match.odd_btts_n }] },
       { id: "combo", group: "combo", title: "Combo Goals", pickLabel: "Over 2.5 + BTTS", pickProbability: match.p_o25_btts, options: [{ label: "Over 2.5 + BTTS", probability: match.p_o25_btts, odd: null }] },
       { id: "nogol", group: "blank", title: "No goal", pickLabel: `${match.nogol_team} ${TEXT.teamBlank}`, pickProbability: Math.max(Number(match.p_home_blanked || 0), Number(match.p_away_blanked || 0)), options: [{ label: `${match.home} ${TEXT.teamBlank}`, probability: match.p_home_blanked, odd: null }, { label: `${match.away} ${TEXT.teamBlank}`, probability: match.p_away_blanked, odd: null }] },
-      { id: "corners", group: "corners", title: "Corner", pickLabel: cornerLine ? `Over ${cornerLine.key}` : "", pickProbability: cornerLine ? cornerLine.value : null, expected: match.exp_corners, actual: match.total_corners, highImpact: Boolean(cornerLine && isImpactLine("corners", cornerLine.line)), impactLabel: cornerLine ? impactLabel("corners", cornerLine.line) : "", options: cornerOptions },
-      { id: "yellows", group: "yellows", title: "Cartellini", pickLabel: yellowLine ? `Over ${yellowLine.key}` : "", pickProbability: yellowLine ? yellowLine.value : null, expected: match.exp_yellows, actual: match.total_yellows, highImpact: Boolean(yellowLine && isImpactLine("yellows", yellowLine.line)), impactLabel: yellowLine ? impactLabel("yellows", yellowLine.line) : "", options: yellowOptions },
+      { id: "corners", group: "corners", title: "Corner", pickLabel: cornerPick ? cornerPick.label : "", pickProbability: cornerPick ? cornerPick.probability : null, expected: match.exp_corners, actual: match.total_corners, highImpact: Boolean(cornerPick?.highImpact), impactLabel: cornerPick?.impactLabel || "", options: cornerOptions },
+      { id: "yellows", group: "yellows", title: "Cartellini", pickLabel: yellowPick ? yellowPick.label : "", pickProbability: yellowPick ? yellowPick.probability : null, expected: match.exp_yellows, actual: match.total_yellows, highImpact: Boolean(yellowPick?.highImpact), impactLabel: yellowPick?.impactLabel || "", options: yellowOptions },
     ].map(market => ({ ...market, status: resolveMarketStatus(match, market), tag: marketGroup(market.group)?.short || market.group.toUpperCase() }));
   }
 
   function selectPrimaryMarket(markets, match = null) {
     return [...markets].sort((a, b) => marketDisplayScore(b, match) - marketDisplayScore(a, match))[0] || null;
+  }
+
+  function rankedMarkets(markets, match = null) {
+    return [...markets]
+      .map(market => ({ market, score: marketDisplayScore(market, match) }))
+      .sort((a, b) => b.score - a.score || Number(b.market.pickProbability || 0) - Number(a.market.pickProbability || 0));
   }
 
   function conservativeGoalPreference(markets, match = null) {
@@ -906,6 +986,9 @@
   function selectHeadlineMarket(markets, match = null) {
     const viableMarkets = markets.filter(market => !(market.id === "combo" && Number(market.pickProbability || 0) < 0.6));
     const pool = viableMarkets.length ? viableMarkets : markets;
+    const ranked = rankedMarkets(pool, match);
+    const best = ranked[0]?.market || null;
+    const bestScore = ranked[0]?.score ?? -999;
     const conservativeGoalPick = conservativeGoalPreference(pool, match);
     if (conservativeGoalPick && (
       (state.groups.size === 1 && state.groups.has("goals"))
@@ -913,12 +996,33 @@
     )) {
       return conservativeGoalPick;
     }
-    if (state.outcomeFilters.size) return selectPrimaryMarket(pool, match);
+    if (state.outcomeFilters.size) return best;
+
+    if (best && ["goals", "blank"].includes(best.group)) {
+      const alternative = ranked.find(({ market, score }) => {
+        if (!market || market.group === best.group) return false;
+        if (score < bestScore - 0.045) return false;
+        if (market.group === "double") return Number(market.pickProbability || 0) >= 0.72;
+        if (market.group === "btts") return Number(market.pickProbability || 0) >= 0.57;
+        if (market.group === "combo") return Number(market.pickProbability || 0) >= 0.58 && tempoProfile(match) >= 0.05;
+        if (market.group === "corners") return Number(market.pickProbability || 0) >= 0.6;
+        if (market.group === "yellows") return Number(market.pickProbability || 0) >= 0.6;
+        return false;
+      });
+      if (alternative) return alternative.market;
+    }
+
     const withoutSoftProps = pool.filter(market => !["corners", "yellows"].includes(market.group) && market.id !== "ou15");
-    if (withoutSoftProps.length) return selectPrimaryMarket(withoutSoftProps, match);
+    if (withoutSoftProps.length) {
+      const variedBest = rankedMarkets(withoutSoftProps, match)[0]?.market;
+      if (variedBest) return variedBest;
+    }
     const withoutProps = pool.filter(market => !["corners", "yellows"].includes(market.group));
-    if (withoutProps.length) return selectPrimaryMarket(withoutProps, match);
-    return selectPrimaryMarket(pool, match);
+    if (withoutProps.length) {
+      const safeBest = rankedMarkets(withoutProps, match)[0]?.market;
+      if (safeBest) return safeBest;
+    }
+    return best;
   }
 
   function decorateMatches(rawMatches, keepAll = false) {
@@ -989,7 +1093,7 @@
         if (featuredPool.length) pool = featuredPool;
       }
     }
-    return pool
+    const ranked = pool
       .map(match => {
         const headline = selectHeadlineMarket(match.visibleMarkets, match);
         if (!headline) return null;
@@ -1004,6 +1108,7 @@
           pickLabel: headline.pickLabel,
           pickProbability: headline.pickProbability,
           status: headline.status,
+          group: headline.group,
           tag: headline.tag,
           impactLabel: headline.impactLabel || "",
           highImpact: Boolean(headline.highImpact),
@@ -1021,7 +1126,30 @@
         if (Math.abs(scoreDiff) > 0.0001) return scoreDiff;
         return timeDiff;
       })
-      .slice(0, 12);
+      ;
+
+    const quotas = { goals: 4, double: 2, btts: 2, combo: 2, corners: 2, yellows: 2, blank: 1 };
+    const used = {};
+    const diversified = [];
+
+    ranked.forEach(pick => {
+      if (diversified.length >= 12) return;
+      const limit = quotas[pick.group] ?? 2;
+      const current = used[pick.group] || 0;
+      if (current >= limit) return;
+      diversified.push(pick);
+      used[pick.group] = current + 1;
+    });
+
+    if (diversified.length < 12) {
+      ranked.forEach(pick => {
+        if (diversified.length >= 12) return;
+        if (diversified.some(item => item.fixtureId === pick.fixtureId && item.pickLabel === pick.pickLabel)) return;
+        diversified.push(pick);
+      });
+    }
+
+    return diversified.slice(0, 12);
   }
 
   function groupMatches(matches) {
