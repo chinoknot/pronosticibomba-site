@@ -547,7 +547,17 @@
     .detail-summary{padding:12px 14px;font-size:.92rem;display:flex;align-items:center;gap:10px}
     .detail-summary>span:first-child{min-width:0;flex:1 1 auto}
     .detail-summary-meta{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.18);background:rgba(15,23,42,.7);color:#dbe7f8;font-size:.72rem;font-weight:700;max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
-    .bet-master-shell{gap:12px;padding:14px 16px;overflow:hidden;background:radial-gradient(circle at top right,rgba(250,204,21,.1),transparent 32%),radial-gradient(circle at left center,rgba(59,130,246,.12),transparent 36%),linear-gradient(145deg,rgba(12,19,38,.94),rgba(4,8,19,.99))}
+    .bet-master-shell{position:relative;gap:12px;padding:18px 16px 16px;overflow:hidden;border:1px solid rgba(250,204,21,.18);background:
+      linear-gradient(180deg,rgba(250,204,21,.14),rgba(250,204,21,0) 54px),
+      radial-gradient(circle at top right,rgba(250,204,21,.12),transparent 28%),
+      radial-gradient(circle at left center,rgba(249,115,22,.1),transparent 34%),
+      linear-gradient(145deg,rgba(18,14,22,.98),rgba(9,11,20,.99));
+      box-shadow:
+      inset 0 1px 0 rgba(255,244,180,.08),
+      0 0 0 1px rgba(250,204,21,.04),
+      0 18px 40px rgba(0,0,0,.22)}
+    .bet-master-shell::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,rgba(249,115,22,.92),rgba(250,204,21,.9),rgba(59,130,246,.78))}
+    .bet-master-shell::after{content:"BET MASTER";position:absolute;top:9px;right:16px;font-size:.62rem;font-weight:900;letter-spacing:.22em;color:rgba(255,233,163,.56);pointer-events:none}
     .bet-master-head,.bet-master-card-head,.bet-master-meta,.bet-master-slip-head,.bet-master-slip-total,.bet-master-mode-bar{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .bet-master-brand{display:flex;align-items:center;gap:12px;min-width:0}
     .bet-master-icon{display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:18px;background:linear-gradient(135deg,rgba(250,204,21,.94),rgba(249,115,22,.92));box-shadow:0 14px 28px rgba(249,115,22,.22);flex:0 0 auto;position:relative}
