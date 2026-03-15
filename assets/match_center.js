@@ -311,10 +311,10 @@
     betMasterOutcomeToggleLabel: document.getElementById("bet-master-outcome-toggle-label"),
     betMasterOutcomeMeta: document.getElementById("bet-master-outcome-meta"),
     betMasterOutcomePanel: document.getElementById("bet-master-outcome-panel"),
+    betMasterOutcomePanelTitle: document.getElementById("bet-master-outcome-panel-title"),
+    betMasterOutcomePanelMeta: document.getElementById("bet-master-outcome-panel-meta"),
     betMasterOutcomeSummary: document.getElementById("bet-master-outcome-summary"),
     betMasterOutcomeCategories: document.getElementById("bet-master-outcome-categories"),
-    betMasterOutcomeStageTitle: document.getElementById("bet-master-outcome-stage-title"),
-    betMasterOutcomeStageMeta: document.getElementById("bet-master-outcome-stage-meta"),
     betMasterOutcomeOptions: document.getElementById("bet-master-outcome-options"),
     betMasterResults: document.getElementById("bet-master-results"),
     betMasterNote: document.getElementById("bet-master-note"),
@@ -2054,6 +2054,16 @@
         ? (IS_EN ? `Refine from ${activeLabel}` : `Rifinisci da ${activeLabel}`)
         : (IS_EN ? "Mix goals, DC, BTTS, corners and cards" : "Mischia goal, doppie chance, BTTS, corner e cartellini");
     }
+    if (dom.betMasterOutcomePanelTitle) {
+      dom.betMasterOutcomePanelTitle.textContent = activeOutcomeGroup
+        ? (IS_EN ? `Choose ${activeOutcomeGroup.label.toLowerCase()} outcomes` : `Scegli esiti ${activeOutcomeGroup.label.toLowerCase()}`)
+        : (IS_EN ? "Choose slip outcomes" : "Scegli gli esiti della schedina");
+    }
+    if (dom.betMasterOutcomePanelMeta) {
+      dom.betMasterOutcomePanelMeta.textContent = state.betMaster.outcomeFilters.size
+        ? (IS_EN ? "Tap again to remove an outcome from the mix." : "Tocca di nuovo per togliere un esito dal mix.")
+        : (IS_EN ? "Pick a market tab, then choose one or more outcomes." : "Scegli un mercato e poi uno o piu esiti.");
+    }
     if (dom.betMasterOutcomeSummary) {
       if (!selectedOutcomeLabels.length) {
         dom.betMasterOutcomeSummary.textContent = IS_EN ? "Free mix" : "Mix libero";
@@ -2065,39 +2075,15 @@
     }
     if (dom.betMasterOutcomeCategories) {
       dom.betMasterOutcomeCategories.innerHTML = groupedOutcomes.map(group => {
-        const selectedCount = group.options.filter(option => state.betMaster.outcomeFilters.has(option.id)).length;
-        const note = selectedCount
-          ? (IS_EN ? `${selectedCount} selected` : `${selectedCount} scelti`)
-          : (IS_EN ? `${group.options.length} options` : `${group.options.length} opzioni`);
         return `
           <button
             type="button"
             class="bet-master-outcome-group-btn ${state.betMaster.outcomeGroup === group.id ? "active" : ""}"
             data-bet-master-outcome-group="${group.id}"
             aria-pressed="${state.betMaster.outcomeGroup === group.id ? "true" : "false"}"
-          >
-            <span class="bet-master-outcome-group-badge">${escapeHtml(group.short)}</span>
-            <span class="bet-master-outcome-group-copy">
-              <strong>${escapeHtml(group.label)}</strong>
-              <small>${escapeHtml(note)}</small>
-            </span>
-            <span class="bet-master-outcome-group-count">${selectedCount || group.options.length}</span>
-          </button>
+          >${escapeHtml(group.label)}</button>
         `;
       }).join("");
-    }
-    if (dom.betMasterOutcomeStageTitle) {
-      dom.betMasterOutcomeStageTitle.textContent = activeOutcomeGroup?.label || (IS_EN ? "Outcomes" : "Esiti");
-    }
-    if (dom.betMasterOutcomeStageMeta) {
-      if (!activeOutcomeGroup) {
-        dom.betMasterOutcomeStageMeta.textContent = IS_EN ? "No outcomes available with current market filters." : "Nessun esito disponibile con i mercati attivi.";
-      } else {
-        const selectedCount = activeOutcomeGroup.options.filter(option => state.betMaster.outcomeFilters.has(option.id)).length;
-        dom.betMasterOutcomeStageMeta.textContent = selectedCount
-          ? (IS_EN ? `${selectedCount}/${activeOutcomeGroup.options.length} selected` : `${selectedCount}/${activeOutcomeGroup.options.length} scelti`)
-          : (IS_EN ? "Tap to add to the slip mix" : "Tocca per aggiungerli al mix");
-      }
     }
     if (dom.betMasterOutcomeOptions) {
       dom.betMasterOutcomeOptions.innerHTML = activeOutcomeGroup
@@ -2112,7 +2098,7 @@
             >
               <span class="bet-master-outcome-option-copy">
                 <strong>${escapeHtml(option.label)}</strong>
-                <small>${active ? (IS_EN ? "Included in the slip" : "Incluso nella schedina") : (IS_EN ? "Tap to include" : "Tocca per includere")}</small>
+                <small>${active ? (IS_EN ? "Selected" : "Selezionato") : (IS_EN ? "Tap to add" : "Tocca per aggiungere")}</small>
               </span>
               <span class="bet-master-outcome-option-check" aria-hidden="true">${active ? "✓" : "+"}</span>
             </button>
@@ -2810,6 +2796,7 @@
         const outcomeId = betMasterOutcomeButton.dataset.betMasterOutcome;
         if (outcomeId === "all") {
           state.betMaster.outcomeFilters = new Set();
+          state.betMaster.outcomeMenuOpen = false;
         } else if (outcomeId) {
           if (state.betMaster.outcomeFilters.has(outcomeId)) state.betMaster.outcomeFilters.delete(outcomeId);
           else state.betMaster.outcomeFilters.add(outcomeId);
