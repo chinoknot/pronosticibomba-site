@@ -1023,7 +1023,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
 
     # Yellow over probabilities using Poisson
     yellow_overs = {}
-    for line in half_lines(1.5, 5.5):
+    for line in half_lines(1.5, 4.5):
         line_int = int(math.floor(line))
         if exp_yellows > 0:
             p_y_over = p_over(exp_yellows, line_int + 1)

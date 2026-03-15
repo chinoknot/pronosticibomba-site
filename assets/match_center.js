@@ -22,7 +22,7 @@
   const ODD_OPTIONS = [1.01, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.25, 2.5, 3, 4, 5, 7.5, 10];
   const TOTAL_MARKET_RULES = {
     corners: { strongMin: 0.50, softMin: 0.44, impactLine: 12.5 },
-    yellows: { strongMin: 0.50, softMin: 0.42, impactLine: 5.5 },
+    yellows: { strongMin: 0.50, softMin: 0.42, impactLine: 4.5 },
   };
   const GROUPS = [
     { id: "goals", short: "O/U", label: "Goal" },
@@ -53,8 +53,8 @@
     { id: "goals_u35", group: "goals", marketId: "o35", label: "Under 3.5" },
     ...[7.5, 8.5, 9.5, 10.5, 11.5, 12.5].map(line => ({ id: `corners_o_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Over ${line.toFixed(1)}` })),
     ...[10.5, 9.5].map(line => ({ id: `corners_u_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Under ${line.toFixed(1)}` })),
-    ...[1.5, 2.5, 3.5, 4.5, 5.5].map(line => ({ id: `yellows_o_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Over ${line.toFixed(1)}` })),
-    ...[5.5, 4.5, 3.5, 2.5, 1.5].map(line => ({ id: `yellows_u_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Under ${line.toFixed(1)}` })),
+    ...[1.5, 2.5, 3.5, 4.5].map(line => ({ id: `yellows_o_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Over ${line.toFixed(1)}` })),
+    ...[4.5, 3.5, 2.5, 1.5].map(line => ({ id: `yellows_u_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Under ${line.toFixed(1)}` })),
   ];
   const STATUS_OPTIONS = [
     { id: "all", label: IS_EN ? "All" : "Tutti" },
@@ -903,7 +903,7 @@
 
   function buildTotalMarketOptions(raw, marketId) {
     return normalizeMap(raw)
-      .filter(item => marketId !== "yellows" || Number(item.line) <= 5.5)
+      .filter(item => marketId !== "yellows" || Number(item.line) <= 4.5)
       .flatMap(item => {
       const underProbability = Math.max(0.02, Math.min(0.98, 1 - Number(item.value)));
       const options = [
@@ -1020,7 +1020,7 @@
     }
     if (market.group === "yellows") {
       if (probability < 0.58) return false;
-      if (label.startsWith("UNDER ")) return line >= 4.5 && (!Number.isFinite(expected) || expected <= line - 0.35 || line >= 5.5);
+      if (label.startsWith("UNDER ")) return line >= 4.5 && (!Number.isFinite(expected) || expected <= line - 0.35);
       if (label.startsWith("OVER ")) return line >= 3.5 && (!Number.isFinite(expected) || expected >= line - 0.2);
       return false;
     }
