@@ -36,7 +36,6 @@
     { id: "bm_prob_75", label: "75%+", from: 75, to: 99 },
     { id: "bm_prob_80", label: "80%+", from: 80, to: 99 },
     { id: "bm_prob_85", label: "85%+", from: 85, to: 99 },
-    { id: "bm_prob_90", label: "90%+", from: 90, to: 99 },
   ];
   const BET_MASTER_PROFILES = [
     { id: "safe", label: IS_EN ? "Safe Slip" : "Schedina solida", note: IS_EN ? "Highest hit-rate first" : "Prima la probabilita piu alta" },
@@ -239,8 +238,7 @@
       probTo: 99,
       selectedProfile: "safe",
       outcomeFilters: new Set(),
-      outcomeGroup: "goals",
-      outcomeMenuOpen: false,
+      outcomeGroup: "all",
       windowMode: "soon",
       timeFrom: "00:00",
       timeTo: "23:59",
@@ -306,15 +304,9 @@
     betMasterTimeTo: document.getElementById("bet-master-time-to"),
     betMasterGenerate: document.getElementById("bet-master-generate"),
     betMasterOutcomeValue: document.getElementById("bet-master-outcome-value"),
-    betMasterOutcomeDropdown: document.getElementById("bet-master-outcome-dropdown"),
-    betMasterOutcomeToggle: document.getElementById("bet-master-outcome-toggle"),
-    betMasterOutcomeToggleLabel: document.getElementById("bet-master-outcome-toggle-label"),
     betMasterOutcomeMeta: document.getElementById("bet-master-outcome-meta"),
-    betMasterOutcomePanel: document.getElementById("bet-master-outcome-panel"),
-    betMasterOutcomePanelTitle: document.getElementById("bet-master-outcome-panel-title"),
-    betMasterOutcomePanelMeta: document.getElementById("bet-master-outcome-panel-meta"),
     betMasterOutcomeSummary: document.getElementById("bet-master-outcome-summary"),
-    betMasterOutcomeCategories: document.getElementById("bet-master-outcome-categories"),
+    betMasterOutcomeGroups: document.getElementById("bet-master-outcome-groups"),
     betMasterOutcomeOptions: document.getElementById("bet-master-outcome-options"),
     betMasterResults: document.getElementById("bet-master-results"),
     betMasterNote: document.getElementById("bet-master-note"),
@@ -408,10 +400,9 @@
 
   function groupedBetMasterOutcomes() {
     const labels = new Map(GROUPS.map(group => [group.id, group.label]));
-    const shorts = new Map(GROUPS.map(group => [group.id, group.short]));
     const groups = new Map();
     availableBetMasterOutcomes().forEach(option => {
-      if (!groups.has(option.group)) groups.set(option.group, { id: option.group, label: labels.get(option.group) || option.group, short: shorts.get(option.group) || option.group.toUpperCase(), options: [] });
+      if (!groups.has(option.group)) groups.set(option.group, { id: option.group, label: labels.get(option.group) || option.group, options: [] });
       groups.get(option.group).options.push(option);
     });
     const order = new Map(GROUPS.map((group, index) => [group.id, index]));
@@ -423,23 +414,30 @@
     state.betMaster.outcomeFilters = new Set([...state.betMaster.outcomeFilters].filter(id => allowed.has(id)));
   }
 
-  function ensureBetMasterOutcomeGroup(groupedOutcomes) {
+  function activeBetMasterOutcomeGroup(groupedOutcomes = groupedBetMasterOutcomes()) {
     if (!groupedOutcomes.length) {
-      state.betMaster.outcomeGroup = "";
+      state.betMaster.outcomeGroup = "all";
       return null;
     }
     const availableIds = new Set(groupedOutcomes.map(group => group.id));
-    if (!availableIds.has(state.betMaster.outcomeGroup)) {
-      const selectedGroup = groupedOutcomes.find(group => group.options.some(option => state.betMaster.outcomeFilters.has(option.id)));
-      state.betMaster.outcomeGroup = selectedGroup?.id || groupedOutcomes[0].id;
+    if (state.betMaster.outcomeGroup !== "all" && !availableIds.has(state.betMaster.outcomeGroup)) {
+      state.betMaster.outcomeGroup = "all";
+      state.betMaster.outcomeFilters = new Set();
     }
-    return groupedOutcomes.find(group => group.id === state.betMaster.outcomeGroup) || groupedOutcomes[0];
+    return groupedOutcomes.find(group => group.id === state.betMaster.outcomeGroup) || null;
   }
 
-  function syncBetMasterOutcomeDropdown() {
-    if (dom.betMasterOutcomeToggle) dom.betMasterOutcomeToggle.classList.toggle("open", state.betMaster.outcomeMenuOpen);
-    if (dom.betMasterOutcomeToggle) dom.betMasterOutcomeToggle.setAttribute("aria-expanded", state.betMaster.outcomeMenuOpen ? "true" : "false");
-    if (dom.betMasterOutcomePanel) dom.betMasterOutcomePanel.hidden = !state.betMaster.outcomeMenuOpen;
+  function defaultMainTimeWindow(date = state.selectedDate) {
+    const today = todayIso(activeTimeZone());
+    if (date && date === today) return { from: roundedCurrentTimeSlot(), to: "23:59" };
+    return { from: DEFAULTS.timeFrom, to: DEFAULTS.timeTo };
+  }
+
+  function seedMainTimeWindow(force = false) {
+    const defaults = defaultMainTimeWindow(state.selectedDate);
+    if (!force && state.timeFrom && state.timeTo && !(state.timeFrom === DEFAULTS.timeFrom && state.timeTo === DEFAULTS.timeTo)) return;
+    state.timeFrom = defaults.from;
+    state.timeTo = defaults.to;
   }
 
   function visibleOutcomeGroups() {
@@ -1691,6 +1689,7 @@
       search: state.search,
       groups: [...state.groups].sort(),
       outcomes: [...state.outcomeFilters].sort(),
+      betMasterOutcomeGroup: state.betMaster.outcomeGroup,
       betMasterOutcomes: [...state.betMaster.outcomeFilters].sort(),
       windowMode: window.mode,
       from: window.from,
@@ -1715,6 +1714,7 @@
     const softOddFloor = Math.max(1.01, state.betMaster.oddFrom - 0.08);
     const softOddCeil = Math.min(10, state.betMaster.oddTo + 0.25);
     const availableOutcomes = availableBetMasterOutcomes();
+    const selectedGroupId = state.betMaster.outcomeGroup !== "all" ? state.betMaster.outcomeGroup : "";
     const outcomeLookup = new Map();
     availableOutcomes.forEach(item => {
       const key = `${item.group}::${item.label}`;
@@ -1732,6 +1732,7 @@
     const entries = [];
     matches.forEach(match => {
       match.markets.forEach(market => {
+        if (selectedGroupId && market.group !== selectedGroupId) return;
         (market.options || []).forEach(option => {
           const probability = Number(option.probability || 0) * 100;
           if (!Number.isFinite(probability)) return;
@@ -1948,7 +1949,8 @@
   function activeFilterCount() {
     let count = 0;
     if (state.search) count += 1;
-    if (state.timeFrom !== DEFAULTS.timeFrom || state.timeTo !== DEFAULTS.timeTo) count += 1;
+    const defaultWindow = defaultMainTimeWindow(state.selectedDate);
+    if (state.timeFrom !== defaultWindow.from || state.timeTo !== defaultWindow.to) count += 1;
     if (state.minProbability !== DEFAULTS.minProbability || state.maxProbability !== DEFAULTS.maxProbability) count += 1;
     if (state.oddActive) count += 1;
     if (state.status !== "all") count += 1;
@@ -2036,77 +2038,71 @@
     }
     const outcomeOptions = availableBetMasterOutcomes();
     const groupedOutcomes = groupedBetMasterOutcomes();
-    const activeOutcomeGroup = ensureBetMasterOutcomeGroup(groupedOutcomes);
-    const selectedOutcomeLabels = outcomeOptions
-      .filter(option => state.betMaster.outcomeFilters.has(option.id))
-      .map(option => option.label);
+    const activeOutcomeGroup = activeBetMasterOutcomeGroup(groupedOutcomes);
+    const selectedOutcomeLabels = outcomeOptions.filter(option => state.betMaster.outcomeFilters.has(option.id)).map(option => option.label);
     if (dom.betMasterOutcomeValue) {
-      dom.betMasterOutcomeValue.textContent = selectedOutcomeLabels.length
-        ? (selectedOutcomeLabels.length <= 2 ? selectedOutcomeLabels.join(" | ") : (IS_EN ? `${selectedOutcomeLabels.length} outcomes` : `${selectedOutcomeLabels.length} esiti`))
-        : (IS_EN ? "All" : "Tutti");
-    }
-    if (dom.betMasterOutcomeToggleLabel) {
-      dom.betMasterOutcomeToggleLabel.textContent = dom.betMasterOutcomeValue?.textContent || (IS_EN ? "All" : "Tutti");
+      if (selectedOutcomeLabels.length) {
+        dom.betMasterOutcomeValue.textContent = selectedOutcomeLabels.length <= 2 ? selectedOutcomeLabels.join(" | ") : (IS_EN ? `${selectedOutcomeLabels.length} outcomes` : `${selectedOutcomeLabels.length} esiti`);
+      } else if (activeOutcomeGroup) {
+        dom.betMasterOutcomeValue.textContent = activeOutcomeGroup.label;
+      } else {
+        dom.betMasterOutcomeValue.textContent = IS_EN ? "All" : "Tutti";
+      }
     }
     if (dom.betMasterOutcomeMeta) {
-      const activeLabel = activeOutcomeGroup?.label || (IS_EN ? "Outcomes" : "Esiti");
-      dom.betMasterOutcomeMeta.textContent = state.betMaster.outcomeFilters.size
-        ? (IS_EN ? `Refine from ${activeLabel}` : `Rifinisci da ${activeLabel}`)
-        : (IS_EN ? "Mix goals, DC, BTTS, corners and cards" : "Mischia goal, doppie chance, BTTS, corner e cartellini");
-    }
-    if (dom.betMasterOutcomePanelTitle) {
-      dom.betMasterOutcomePanelTitle.textContent = activeOutcomeGroup
-        ? (IS_EN ? `Choose ${activeOutcomeGroup.label.toLowerCase()} outcomes` : `Scegli esiti ${activeOutcomeGroup.label.toLowerCase()}`)
-        : (IS_EN ? "Choose slip outcomes" : "Scegli gli esiti della schedina");
-    }
-    if (dom.betMasterOutcomePanelMeta) {
-      dom.betMasterOutcomePanelMeta.textContent = state.betMaster.outcomeFilters.size
-        ? (IS_EN ? "Tap again to remove an outcome from the mix." : "Tocca di nuovo per togliere un esito dal mix.")
-        : (IS_EN ? "Pick a market tab, then choose one or more outcomes." : "Scegli un mercato e poi uno o piu esiti.");
+      if (selectedOutcomeLabels.length) {
+        dom.betMasterOutcomeMeta.textContent = IS_EN ? "Only the selected outcomes will be used." : "Usa solo gli esiti selezionati.";
+      } else if (activeOutcomeGroup) {
+        dom.betMasterOutcomeMeta.textContent = IS_EN ? `All ${activeOutcomeGroup.label.toLowerCase()} outcomes` : `Tutti gli esiti ${activeOutcomeGroup.label.toLowerCase()}`;
+      } else {
+        dom.betMasterOutcomeMeta.textContent = IS_EN ? "Mix goals, DC, BTTS, corners and cards" : "Mischia goal, doppie chance, BTTS, corner e cartellini";
+      }
     }
     if (dom.betMasterOutcomeSummary) {
       if (!selectedOutcomeLabels.length) {
-        dom.betMasterOutcomeSummary.textContent = IS_EN ? "Free mix" : "Mix libero";
+        dom.betMasterOutcomeSummary.textContent = activeOutcomeGroup
+          ? (IS_EN ? `${activeOutcomeGroup.label} only` : `Solo ${activeOutcomeGroup.label}`)
+          : (IS_EN ? "Free mix" : "Mix libero");
       } else if (selectedOutcomeLabels.length <= 2) {
         dom.betMasterOutcomeSummary.textContent = selectedOutcomeLabels.join(" | ");
       } else {
         dom.betMasterOutcomeSummary.textContent = IS_EN ? `${selectedOutcomeLabels.length} active` : `${selectedOutcomeLabels.length} attivi`;
       }
     }
-    if (dom.betMasterOutcomeCategories) {
-      dom.betMasterOutcomeCategories.innerHTML = groupedOutcomes.map(group => {
+    if (dom.betMasterOutcomeGroups) {
+      dom.betMasterOutcomeGroups.innerHTML = [
+        `<button type="button" class="quick-market-chip ${!activeOutcomeGroup ? "active" : ""}" data-bet-master-outcome-group="all"><strong>${escapeHtml(IS_EN ? "All" : "Tutti")}</strong><small>${escapeHtml(IS_EN ? "Free mix" : "Mix libero")}</small></button>`,
+        ...groupedOutcomes.map(group => {
         return `
           <button
             type="button"
-            class="bet-master-outcome-group-btn ${state.betMaster.outcomeGroup === group.id ? "active" : ""}"
+            class="quick-market-chip ${state.betMaster.outcomeGroup === group.id ? "active" : ""}"
             data-bet-master-outcome-group="${group.id}"
             aria-pressed="${state.betMaster.outcomeGroup === group.id ? "true" : "false"}"
-          >${escapeHtml(group.label)}</button>
+          >
+            <strong>${escapeHtml(group.label)}</strong>
+            <small>${escapeHtml(group.short || marketGroup(group.id)?.short || "")}</small>
+          </button>
         `;
-      }).join("");
+      }),
+      ].join("");
     }
     if (dom.betMasterOutcomeOptions) {
-      dom.betMasterOutcomeOptions.innerHTML = activeOutcomeGroup
-        ? activeOutcomeGroup.options.map(option => {
-          const active = state.betMaster.outcomeFilters.has(option.id);
-          return `
-            <button
-              type="button"
-              class="bet-master-outcome-option ${active ? "active" : ""}"
-              data-bet-master-outcome="${option.id}"
-              aria-pressed="${active ? "true" : "false"}"
-            >
-              <span class="bet-master-outcome-option-copy">
-                <strong>${escapeHtml(option.label)}</strong>
-                <small>${active ? (IS_EN ? "Selected" : "Selezionato") : (IS_EN ? "Tap to add" : "Tocca per aggiungere")}</small>
-              </span>
-              <span class="bet-master-outcome-option-check" aria-hidden="true">${active ? "✓" : "+"}</span>
-            </button>
-          `;
-        }).join("")
-        : `<div class="empty-state">${escapeHtml(IS_EN ? "No outcomes available right now." : "Nessun esito disponibile al momento.")}</div>`;
+      if (!activeOutcomeGroup) {
+        dom.betMasterOutcomeOptions.hidden = true;
+        dom.betMasterOutcomeOptions.innerHTML = "";
+      } else {
+        const selectedInGroup = activeOutcomeGroup.options.filter(option => state.betMaster.outcomeFilters.has(option.id));
+        dom.betMasterOutcomeOptions.hidden = false;
+        dom.betMasterOutcomeOptions.innerHTML = [
+          `<button type="button" class="quick-outcome-chip ${selectedInGroup.length === 0 ? "active" : ""}" data-bet-master-outcome="all"><strong>${escapeHtml(IS_EN ? "All lines" : "Tutte le linee")}</strong><small>${escapeHtml(activeOutcomeGroup.label)}</small></button>`,
+          ...activeOutcomeGroup.options.map(option => {
+            const active = state.betMaster.outcomeFilters.has(option.id);
+            return `<button type="button" class="quick-outcome-chip ${active ? "active" : ""}" data-bet-master-outcome="${option.id}" aria-pressed="${active ? "true" : "false"}"><strong>${escapeHtml(option.label)}</strong><small>${escapeHtml(activeOutcomeGroup.label)}</small></button>`;
+          }),
+        ].join("");
+      }
     }
-    syncBetMasterOutcomeDropdown();
     if (dom.betMasterNote) {
       const baseNote = IS_EN
         ? "Bet Master uses the active markets/outcomes above and keeps bet365 odds first."
@@ -2261,7 +2257,8 @@
   function renderActiveFilters() {
     const chips = [];
     if (state.search) chips.push({ key: "search", label: `${TEXT.filterSearch}: ${state.search}` });
-    if (state.timeFrom !== DEFAULTS.timeFrom || state.timeTo !== DEFAULTS.timeTo) chips.push({ key: "time", label: `${TEXT.filterTime}: ${state.timeFrom}-${state.timeTo}` });
+    const defaultWindow = defaultMainTimeWindow(state.selectedDate);
+    if (state.timeFrom !== defaultWindow.from || state.timeTo !== defaultWindow.to) chips.push({ key: "time", label: `${TEXT.filterTime}: ${state.timeFrom}-${state.timeTo}` });
     if (state.minProbability !== DEFAULTS.minProbability || state.maxProbability !== DEFAULTS.maxProbability) chips.push({ key: "probability", label: `${TEXT.filterProbability}: ${formatProbabilityRange(state.minProbability, state.maxProbability)}` });
     if (state.oddActive) chips.push({ key: "odd", label: `${TEXT.filterOdd}: ${formatOddRange(state.oddFrom, state.oddTo)}` });
     if (state.status !== "all") chips.push({ key: "status", label: `${TEXT.filterStatus}: ${statusLabel(state.status)}` });
@@ -2487,8 +2484,9 @@
       dom.searchInput.value = "";
     }
     if (key === "time") {
-      state.timeFrom = DEFAULTS.timeFrom;
-      state.timeTo = DEFAULTS.timeTo;
+      const defaultWindow = defaultMainTimeWindow(state.selectedDate);
+      state.timeFrom = defaultWindow.from;
+      state.timeTo = defaultWindow.to;
     }
     if (key === "probability") {
       state.minProbability = DEFAULTS.minProbability;
@@ -2512,7 +2510,9 @@
     state.manifest = await fetchJson(`${CACHE_BASE}/manifest.json`);
     const dates = Array.isArray(state.manifest?.dates) ? state.manifest.dates : [];
     const available = new Set(dates.map(item => item.date));
+    const previousDate = state.selectedDate;
     if (!available.has(state.selectedDate)) state.selectedDate = state.manifest.latest_date || dates[0]?.date || "";
+    if (previousDate !== state.selectedDate) seedMainTimeWindow(true);
     dom.dateSelect.innerHTML = dates.map(entry => `<option value="${entry.date}">${formatDate(entry.date, { weekday: "short", day: "2-digit", month: "short", year: "numeric" })}</option>`).join("");
     dom.dateSelect.value = state.selectedDate;
   }
@@ -2528,6 +2528,7 @@
 
   async function selectDate(date) {
     state.selectedDate = date;
+    seedMainTimeWindow(true);
     await loadCacheForDate(date);
     render();
   }
@@ -2544,8 +2545,9 @@
   }
 
   function applyTimeFilter(fromValue, toValue) {
-    state.timeFrom = fromValue || DEFAULTS.timeFrom;
-    state.timeTo = toValue || DEFAULTS.timeTo;
+    const defaultWindow = defaultMainTimeWindow(state.selectedDate);
+    state.timeFrom = fromValue || defaultWindow.from;
+    state.timeTo = toValue || defaultWindow.to;
     if (state.timeFrom > state.timeTo) {
       if (toValue != null) state.timeFrom = state.timeTo;
       else state.timeTo = state.timeFrom;
@@ -2688,8 +2690,11 @@
       state.oddFrom = DEFAULTS.oddFrom;
       state.oddTo = DEFAULTS.oddTo;
       state.search = "";
-      state.timeFrom = DEFAULTS.timeFrom;
-      state.timeTo = DEFAULTS.timeTo;
+      {
+        const defaultWindow = defaultMainTimeWindow(state.selectedDate);
+        state.timeFrom = defaultWindow.from;
+        state.timeTo = defaultWindow.to;
+      }
       dom.searchInput.value = "";
       render();
     });
@@ -2773,21 +2778,19 @@
         }
         return;
       }
-      const betMasterOutcomeToggle = event.target.closest("#bet-master-outcome-toggle");
-      if (betMasterOutcomeToggle) {
-        state.betMaster.outcomeMenuOpen = !state.betMaster.outcomeMenuOpen;
-        syncBetMasterOutcomeDropdown();
-        return;
-      }
-      const betMasterOutcomeClose = event.target.closest("[data-bet-master-outcome-close]");
-      if (betMasterOutcomeClose) {
-        state.betMaster.outcomeMenuOpen = false;
-        syncBetMasterOutcomeDropdown();
-        return;
-      }
       const betMasterOutcomeGroupButton = event.target.closest("[data-bet-master-outcome-group]");
       if (betMasterOutcomeGroupButton) {
-        state.betMaster.outcomeGroup = betMasterOutcomeGroupButton.dataset.betMasterOutcomeGroup || state.betMaster.outcomeGroup;
+        const nextGroup = betMasterOutcomeGroupButton.dataset.betMasterOutcomeGroup || "all";
+        state.betMaster.outcomeGroup = nextGroup;
+        if (nextGroup === "all") {
+          state.betMaster.outcomeFilters = new Set();
+        } else {
+          const allowed = new Set(outcomeFiltersForGroup(nextGroup).map(filter => `bm_${filter.id}`));
+          if (nextGroup === "double") ["bm_dc_1x", "bm_dc_x2"].forEach(id => allowed.add(id));
+          if (nextGroup === "btts") ["bm_btts_yes", "bm_btts_no"].forEach(id => allowed.add(id));
+          if (nextGroup === "combo") ["bm_combo_o25_btts"].forEach(id => allowed.add(id));
+          state.betMaster.outcomeFilters = new Set([...state.betMaster.outcomeFilters].filter(id => allowed.has(id)));
+        }
         renderBetMasterSection();
         return;
       }
@@ -2796,7 +2799,6 @@
         const outcomeId = betMasterOutcomeButton.dataset.betMasterOutcome;
         if (outcomeId === "all") {
           state.betMaster.outcomeFilters = new Set();
-          state.betMaster.outcomeMenuOpen = false;
         } else if (outcomeId) {
           if (state.betMaster.outcomeFilters.has(outcomeId)) state.betMaster.outcomeFilters.delete(outcomeId);
           else state.betMaster.outcomeFilters.add(outcomeId);
@@ -2886,21 +2888,12 @@
         state.detailFixtureId = openButton.dataset.fixtureOpen || openButton.getAttribute("data-fixture-open");
         renderDetail();
         syncModalState();
-        state.betMaster.outcomeMenuOpen = false;
-        syncBetMasterOutcomeDropdown();
         return;
-      }
-      if (state.betMaster.outcomeMenuOpen && dom.betMasterOutcomeDropdown && !event.target.closest("#bet-master-outcome-dropdown")) {
-        state.betMaster.outcomeMenuOpen = false;
-        syncBetMasterOutcomeDropdown();
       }
     });
     document.addEventListener("keydown", event => {
       if (event.key !== "Escape") return;
-      if (state.betMaster.outcomeMenuOpen) {
-        state.betMaster.outcomeMenuOpen = false;
-        syncBetMasterOutcomeDropdown();
-      } else if (state.detailFixtureId) state.detailFixtureId = null;
+      if (state.detailFixtureId) state.detailFixtureId = null;
       else if (state.filterOpen) state.filterOpen = false;
       syncModalState();
     });
@@ -2917,6 +2910,7 @@
 
   async function init() {
     seedBetMasterCustomWindow();
+    seedMainTimeWindow(true);
     populateTimeSelects();
     populateProbabilitySelects();
     populateOddSelects();
