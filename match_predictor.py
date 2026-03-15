@@ -777,6 +777,11 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     mkt_over15_sh, mkt_under15_sh = vig_free(o_o15_sh, o_u15_sh)
     mkt_btts_y, mkt_btts_n = vig_free(o_by, o_bn)
     mkt_home, mkt_draw, mkt_away = vig_free_three(o_h, o_d, o_a)
+    p_over25_bridge = clamp_prob(
+        (p_over25_poi * 0.62) + ((mkt_over if mkt_over is not None else p_over25_poi) * 0.38),
+        0.08,
+        0.94,
+    )
 
     api_home = normalize_percent(pred.get("prob_home"))
     api_draw = normalize_percent(pred.get("prob_draw"))
@@ -817,7 +822,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     ht_signals = [("Poisson", p_over(lam_ht, 2), 0.62)]
     if mkt_over15_ht is not None:
         ht_signals.append(("Market", mkt_over15_ht, 0.25))
-    ht_signals.append(("Bridge", clamp_prob((p_over25 * 0.86) - 0.03, 0.08, 0.90), 0.13))
+    ht_signals.append(("Bridge", clamp_prob((p_over25_bridge * 0.86) - 0.03, 0.08, 0.90), 0.13))
     tw_ht = sum(weight for _, _, weight in ht_signals)
     p_over15_ht = sum(prob * weight for _, prob, weight in ht_signals) / tw_ht if tw_ht > 0 else p_over(lam_ht, 2)
     p_over15_ht = nudge_prob(p_over15_ht, factor=1.035, low=0.06, high=0.92)
@@ -826,7 +831,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     sh_signals = [("Poisson", p_over(lam_sh, 2), 0.60)]
     if mkt_over15_sh is not None:
         sh_signals.append(("Market", mkt_over15_sh, 0.25))
-    sh_signals.append(("Bridge", clamp_prob((p_over25 * 0.92) + 0.02, 0.10, 0.94), 0.15))
+    sh_signals.append(("Bridge", clamp_prob((p_over25_bridge * 0.92) + 0.02, 0.10, 0.94), 0.15))
     tw_sh = sum(weight for _, _, weight in sh_signals)
     p_over15_sh = sum(prob * weight for _, prob, weight in sh_signals) / tw_sh if tw_sh > 0 else p_over(lam_sh, 2)
     p_over15_sh = nudge_prob(p_over15_sh, factor=1.04, low=0.08, high=0.94)
