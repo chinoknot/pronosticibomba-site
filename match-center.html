@@ -277,6 +277,13 @@
           </div>
           <div class="bet-master-note" id="bet-master-note">Bet Master usa i mercati/esiti attivi sopra e genera una schedina in base alla modalita scelta.</div>
         </article>
+        <article class="bet-master-card bet-master-card-wide">
+          <div class="bet-master-card-head">
+            <span class="quick-filter-label">Esiti schedina</span>
+            <strong class="inline-filter-value" id="bet-master-outcome-value">Tutti</strong>
+          </div>
+          <div class="chips bet-master-presets bet-master-outcome-chips" id="bet-master-outcome-chips"></div>
+        </article>
       </div>
       <div class="bet-master-actions">
         <button type="button" class="action-btn bet-master-generate" id="bet-master-generate">Crea la tua schedina</button>
@@ -545,6 +552,7 @@
     .bet-master-mode-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
     .bet-master-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
     .bet-master-card{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:18px;border:1px solid rgba(148,163,184,.12);background:linear-gradient(145deg,rgba(9,15,28,.92),rgba(5,9,20,.98));min-width:0}
+    .bet-master-card-wide{grid-column:1 / -1}
     .bet-master-stepper{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;gap:8px;align-items:center}
     .bet-master-stepper-btn{width:46px;height:46px;border-radius:16px;border:1px solid rgba(250,204,21,.24);background:rgba(250,204,21,.08);color:#fde68a;font-size:1.4rem;font-weight:800;cursor:pointer}
     .bet-master-stepper-btn:hover,.bet-master-generate:hover{border-color:rgba(249,115,22,.62);background:linear-gradient(135deg,rgba(249,115,22,.16),rgba(59,130,246,.12))}
@@ -553,6 +561,7 @@
     .bet-master-stepper-main small,.bet-master-note{color:#9fb0c9;font-size:.72rem;line-height:1.3}
     .bet-master-presets{display:flex;flex-wrap:wrap;gap:6px}
     .bet-master-presets .preset-chip{min-height:30px;padding:0 10px;font-size:.7rem}
+    .bet-master-outcome-chips{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding-bottom:2px}
     .bet-master-actions{display:flex;justify-content:flex-start}
     .bet-master-generate{width:auto;min-width:220px;padding:0 18px}
     .bet-master-results{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
@@ -565,7 +574,8 @@
     .bet-master-slip-head p{margin:3px 0 0;color:#9fb0c9;font-size:.75rem;line-height:1.25}
     .bet-master-slip-count{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;border-radius:999px;background:rgba(255,255,255,.05);font-size:.82rem;font-weight:800}
     .bet-master-slip-list{display:flex;flex-direction:column;gap:8px}
-    .bet-master-pick{display:grid;grid-template-columns:54px minmax(0,1fr) 70px;gap:8px;align-items:center;padding:10px;border-radius:14px;border:1px solid rgba(148,163,184,.1);background:rgba(255,255,255,.03)}
+    .bet-master-pick{display:grid;grid-template-columns:54px minmax(0,1fr) 70px;gap:8px;align-items:center;padding:10px;border-radius:14px;border:1px solid rgba(148,163,184,.1);background:rgba(255,255,255,.03);cursor:pointer}
+    .bet-master-pick:hover{border-color:rgba(250,204,21,.28);background:rgba(255,255,255,.05)}
     .bet-master-pick-time{display:flex;flex-direction:column;gap:2px}
     .bet-master-pick-time strong{font-size:.82rem}
     .bet-master-pick-time small{color:#8ea0bd;font-size:.65rem}
@@ -653,6 +663,6 @@
       .compact-select-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
   </style>
-  <script src="/assets/match_center.js?v=20260315b"></script>
+  <script src="/assets/match_center.js?v=20260315c"></script>
 </body>
 </html>

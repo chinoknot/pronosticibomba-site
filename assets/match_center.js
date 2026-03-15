@@ -43,6 +43,11 @@
     { id: "balanced", label: IS_EN ? "Balanced Slip" : "Schedina bilanciata", note: IS_EN ? "Balanced between hit-rate and odds" : "Equilibrata tra probabilita e quota" },
     { id: "value", label: IS_EN ? "Value Slip" : "Schedina value", note: IS_EN ? "Slightly bolder but still playable" : "Un po piu coraggiosa ma ancora giocabile" },
   ];
+  const BET_MASTER_PROFILE_RULES = {
+    safe: { preferredOddMin: 1.08, preferredOddMax: 1.55, hardOddMin: 1.01, hardOddMax: 1.9, reusePenalty: 0.1 },
+    balanced: { preferredOddMin: 1.28, preferredOddMax: 1.95, hardOddMin: 1.12, hardOddMax: 2.35, reusePenalty: 0.24 },
+    value: { preferredOddMin: 1.55, preferredOddMax: 3.2, hardOddMin: 1.3, hardOddMax: 4, reusePenalty: 0.42 },
+  };
   const TOTAL_MARKET_RULES = {
     corners: { strongMin: 0.50, softMin: 0.44, impactLine: 12.5 },
     yellows: { strongMin: 0.50, softMin: 0.42, impactLine: 4.5 },
@@ -238,12 +243,15 @@
       probFrom: 60,
       probTo: 99,
       selectedProfile: "safe",
+      outcomeFilters: new Set(),
       windowMode: "soon",
       timeFrom: "00:00",
       timeTo: "23:59",
       customSeeded: false,
       generated: false,
       profileMap: {},
+      entryCacheKey: "",
+      entryCacheResult: null,
     },
   };
   const dom = {
@@ -300,6 +308,8 @@
     betMasterTimeFrom: document.getElementById("bet-master-time-from"),
     betMasterTimeTo: document.getElementById("bet-master-time-to"),
     betMasterGenerate: document.getElementById("bet-master-generate"),
+    betMasterOutcomeValue: document.getElementById("bet-master-outcome-value"),
+    betMasterOutcomeChips: document.getElementById("bet-master-outcome-chips"),
     betMasterResults: document.getElementById("bet-master-results"),
     betMasterNote: document.getElementById("bet-master-note"),
     resetFilters: document.getElementById("reset-filters"),
@@ -364,6 +374,35 @@
 
   function selectedOutcomeFiltersForGroup(groupId) {
     return outcomeFiltersForGroup(groupId).filter(filter => state.outcomeFilters.has(filter.id));
+  }
+
+  function betMasterOutcomeCatalog() {
+    const dynamic = OUTCOME_FILTERS.map(filter => ({ id: `bm_${filter.id}`, group: filter.group, marketId: filter.marketId, label: filter.label }));
+    const staticEntries = [
+      { id: "bm_dc_1x", group: "double", marketId: "dc", label: "1X" },
+      { id: "bm_dc_x2", group: "double", marketId: "dc", label: "X2" },
+      { id: "bm_btts_yes", group: "btts", marketId: "btts", label: "BTTS YES" },
+      { id: "bm_btts_no", group: "btts", marketId: "btts", label: "BTTS NO" },
+      { id: "bm_combo_o25_btts", group: "combo", marketId: "combo", label: "Over 2.5 + BTTS" },
+    ];
+    const seen = new Set();
+    return [...dynamic, ...staticEntries].filter(option => {
+      const key = `${option.group}:${option.label}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function availableBetMasterOutcomes() {
+    if (!state.groups.size) return [];
+    const allowedGroups = new Set([...state.groups]);
+    return betMasterOutcomeCatalog().filter(option => allowedGroups.has(option.group));
+  }
+
+  function pruneBetMasterOutcomeFilters() {
+    const allowed = new Set(availableBetMasterOutcomes().map(option => option.id));
+    state.betMaster.outcomeFilters = new Set([...state.betMaster.outcomeFilters].filter(id => allowed.has(id)));
   }
 
   function visibleOutcomeGroups() {
@@ -763,6 +802,11 @@
     const probability = Math.max(0.3, Math.min(0.92, Number(probabilityValue || 0)));
     const fairOdd = 1 / probability;
     return Number(Math.min(4, Math.max(1.08, fairOdd * 1.04)).toFixed(2));
+  }
+
+  function invalidateBetMasterCache() {
+    state.betMaster.entryCacheKey = "";
+    state.betMaster.entryCacheResult = null;
   }
 
   function leaguePriority(country, league) {
@@ -1556,14 +1600,43 @@
       .filter(match => !search || match.searchBlob.includes(search));
   }
 
+  function betMasterEntryCacheKey(window) {
+    return JSON.stringify({
+      date: state.selectedDate,
+      cacheStamp: state.cache?.refreshed_at || state.cache?.generated_at || "",
+      search: state.search,
+      groups: [...state.groups].sort(),
+      outcomes: [...state.outcomeFilters].sort(),
+      betMasterOutcomes: [...state.betMaster.outcomeFilters].sort(),
+      windowMode: window.mode,
+      from: window.from,
+      to: window.to,
+      probFrom: state.betMaster.probFrom,
+      probTo: state.betMaster.probTo,
+      oddFrom: state.betMaster.oddFrom,
+      oddTo: state.betMaster.oddTo,
+    });
+  }
+
   function betMasterCandidateEntries() {
     if (!state.groups.size) return { window: betMasterWindow(), entries: [] };
     const window = betMasterWindow();
+    const cacheKey = betMasterEntryCacheKey(window);
+    if (state.betMaster.entryCacheKey === cacheKey && state.betMaster.entryCacheResult) {
+      return state.betMaster.entryCacheResult;
+    }
     const fromMinutes = toMinutes(window.from);
     const toMinutesValue = toMinutes(window.to);
     const softProbFloor = Math.max(45, state.betMaster.probFrom - 2);
     const softOddFloor = Math.max(1.01, state.betMaster.oddFrom - 0.08);
     const softOddCeil = Math.min(10, state.betMaster.oddTo + 0.25);
+    const availableOutcomes = availableBetMasterOutcomes();
+    const outcomeLookup = new Map();
+    availableOutcomes.forEach(item => {
+      const key = `${item.group}::${item.label}`;
+      if (!outcomeLookup.has(key)) outcomeLookup.set(key, []);
+      outcomeLookup.get(key).push(item.id);
+    });
     const matches = buildBetMasterMatches()
       .filter(match => {
         const fixtureStatus = String(match.status_short || "").toUpperCase();
@@ -1592,6 +1665,8 @@
           else if (softProb && softOdd) tier = 3;
           else if (softProb && !hasBet365Odd) tier = 4;
           if (tier === 99) return;
+          const betMasterOutcomeIds = outcomeLookup.get(`${market.group}::${option.label}`) || [];
+          if (state.betMaster.outcomeFilters.size && !betMasterOutcomeIds.some(id => state.betMaster.outcomeFilters.has(id))) return;
           const pickMarket = {
             ...market,
             pickLabel: option.label,
@@ -1630,31 +1705,58 @@
         });
       });
     });
-    return { window, entries };
+    const result = { window, entries };
+    state.betMaster.entryCacheKey = cacheKey;
+    state.betMaster.entryCacheResult = result;
+    return result;
   }
 
   function betMasterProfileScore(entry, profileId) {
     const probability = Number(entry.probability || 0);
     const odd = Number(entry.odd || 0);
     const base = Number(entry.displayScore || 0);
-    if (profileId === "safe") return (probability * 1.25) + (base * 0.75) - Math.max(0, odd - 1.55) * 0.05;
-    if (profileId === "balanced") return (probability * 0.95) + (base * 0.85) - (Math.abs(odd - 1.6) * 0.08) + (odd >= 1.35 && odd <= 1.95 ? 0.05 : 0);
-    return (probability * 0.78) + (base * 0.82) + Math.min(0.18, Math.max(-0.1, (odd - 1.45) * 0.16));
+    const rules = BET_MASTER_PROFILE_RULES[profileId] || BET_MASTER_PROFILE_RULES.safe;
+    let score = 0;
+    if (profileId === "safe") {
+      score = (probability * 1.45) + (base * 0.88);
+      if (odd > 1.6) score -= (odd - 1.6) * 0.22;
+      if (odd < 1.16) score -= (1.16 - odd) * 0.06;
+      if (entry.group === "double") score += 0.05;
+      if (entry.group === "combo") score -= 0.08;
+    } else if (profileId === "balanced") {
+      score = (probability * 1.08) + (base * 0.92);
+      if (odd >= 1.38 && odd <= 2.02) score += 0.08;
+      score -= Math.abs(odd - 1.68) * 0.07;
+      if (["btts", "corners", "yellows"].includes(entry.group)) score += 0.03;
+    } else {
+      score = (probability * 0.88) + (base * 0.9);
+      if (odd >= 1.7 && odd <= 2.8) score += 0.16;
+      else if (odd >= 2.8 && odd <= 4) score += 0.09;
+      else if (odd < 1.42) score -= 0.2;
+      if (["btts", "combo", "corners", "yellows"].includes(entry.group)) score += 0.05;
+      if (entry.group === "double") score -= 0.04;
+    }
+    if (odd < rules.hardOddMin || odd > rules.hardOddMax) score -= 0.2;
+    if (entry.syntheticOdd) score -= profileId === "value" ? 0.08 : 0.16;
+    return score;
   }
 
   function buildBetMasterSlip(profile, entries, avoidedFixtures = new Set()) {
     const targetCount = Math.max(1, Math.min(20, Number(state.betMaster.count || 1)));
     const groupLimit = Math.max(2, Math.ceil(targetCount / 3));
     const labelLimit = 1;
+    const rules = BET_MASTER_PROFILE_RULES[profile.id] || BET_MASTER_PROFILE_RULES.safe;
     const sorted = [...entries].sort((a, b) => {
       const tierDiff = Number(a.tier || 99) - Number(b.tier || 99);
       if (tierDiff) return tierDiff;
-      const aScore = betMasterProfileScore(a, profile.id) - (avoidedFixtures.has(a.fixtureId) ? 0.16 : 0);
-      const bScore = betMasterProfileScore(b, profile.id) - (avoidedFixtures.has(b.fixtureId) ? 0.16 : 0);
+      const aScore = betMasterProfileScore(a, profile.id) - (avoidedFixtures.has(a.fixtureId) ? rules.reusePenalty : 0);
+      const bScore = betMasterProfileScore(b, profile.id) - (avoidedFixtures.has(b.fixtureId) ? rules.reusePenalty : 0);
       const diff = bScore - aScore;
       if (Math.abs(diff) > 0.0001) return diff;
       return `${a.kickoffSort}-${a.league}-${a.home}`.localeCompare(`${b.kickoffSort}-${b.league}-${b.home}`);
     });
+    const preferred = sorted.filter(entry => entry.odd >= rules.preferredOddMin && entry.odd <= rules.preferredOddMax);
+    const secondary = sorted.filter(entry => !preferred.includes(entry));
 
     const selected = [];
     const usedFixtures = new Set();
@@ -1674,7 +1776,11 @@
       return true;
     };
 
-    sorted.forEach(entry => {
+    preferred.forEach(entry => {
+      if (selected.length >= targetCount) return;
+      tryAdd(entry, true);
+    });
+    secondary.forEach(entry => {
       if (selected.length >= targetCount) return;
       tryAdd(entry, true);
     });
@@ -1803,6 +1909,7 @@
   }
 
   function renderBetMasterControls(window = betMasterWindow()) {
+    pruneBetMasterOutcomeFilters();
     populateProbabilitySelects();
     populateOddSelects();
     populateTimeSelects();
@@ -1836,6 +1943,21 @@
     }
     if (dom.betMasterProbPresets) {
       dom.betMasterProbPresets.innerHTML = BET_MASTER_PROB_PRESETS.map(preset => `<button type="button" class="preset-chip ${Number(preset.from) === Number(state.betMaster.probFrom) && Number(preset.to) === Number(state.betMaster.probTo) ? "active" : ""}" data-bet-master-prob-preset="${preset.id}">${preset.label}</button>`).join("");
+    }
+    const outcomeOptions = availableBetMasterOutcomes();
+    if (dom.betMasterOutcomeValue) {
+      const labels = outcomeOptions
+        .filter(option => state.betMaster.outcomeFilters.has(option.id))
+        .map(option => option.label);
+      dom.betMasterOutcomeValue.textContent = labels.length
+        ? (labels.length <= 2 ? labels.join(" | ") : (IS_EN ? `${labels.length} outcomes` : `${labels.length} esiti`))
+        : (IS_EN ? "All" : "Tutti");
+    }
+    if (dom.betMasterOutcomeChips) {
+      dom.betMasterOutcomeChips.innerHTML = [
+        `<button type="button" class="preset-chip ${state.betMaster.outcomeFilters.size === 0 ? "active" : ""}" data-bet-master-outcome="all">${IS_EN ? "All" : "Tutti"}</button>`,
+        ...outcomeOptions.map(option => `<button type="button" class="preset-chip ${state.betMaster.outcomeFilters.has(option.id) ? "active" : ""}" data-bet-master-outcome="${option.id}">${escapeHtml(option.label)}</button>`),
+      ].join("");
     }
     if (dom.betMasterNote) {
       const baseNote = IS_EN
@@ -1939,7 +2061,7 @@
         </div>
         <div class="bet-master-slip-list">
           ${selectedSlip.picks.map((pick, index) => `
-            <article class="bet-master-pick">
+            <article class="bet-master-pick" data-fixture-open="${escapeHtml(pick.fixtureId)}">
               <div class="bet-master-pick-time">
                 <strong>${escapeHtml(pick.kickoff || "--:--")}</strong>
                 <small>#${index + 1}</small>
@@ -2501,6 +2623,18 @@
           state.betMaster.probTo = preset.to;
           renderBetMasterSection();
         }
+        return;
+      }
+      const betMasterOutcomeButton = event.target.closest("[data-bet-master-outcome]");
+      if (betMasterOutcomeButton) {
+        const outcomeId = betMasterOutcomeButton.dataset.betMasterOutcome;
+        if (outcomeId === "all") {
+          state.betMaster.outcomeFilters = new Set();
+        } else if (outcomeId) {
+          if (state.betMaster.outcomeFilters.has(outcomeId)) state.betMaster.outcomeFilters.delete(outcomeId);
+          else state.betMaster.outcomeFilters.add(outcomeId);
+        }
+        renderBetMasterSection();
         return;
       }
       const betMasterProfileButton = event.target.closest("[data-bet-master-profile]");
