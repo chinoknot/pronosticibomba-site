@@ -211,7 +211,7 @@
 
     .hero-main{
       padding:34px;
-      min-height:520px;
+      min-height:420px;
       display:flex;
       flex-direction:column;
       justify-content:space-between;
@@ -272,11 +272,11 @@
     }
 
     .hero-sub{
-      margin:18px 0 0;
-      max-width:42rem;
+      margin:14px 0 0;
+      max-width:28rem;
       color:var(--muted);
-      font-size:1.02rem;
-      line-height:1.45;
+      font-size:.95rem;
+      line-height:1.35;
     }
 
     .hero-actions{
@@ -324,14 +324,14 @@
 
     .hero-strip{
       display:grid;
-      grid-template-columns:repeat(3, minmax(0,1fr));
-      gap:12px;
-      margin-top:28px;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:10px;
+      margin-top:22px;
     }
 
     .hero-pill{
-      padding:14px 16px;
-      border-radius:22px;
+      padding:12px 14px;
+      border-radius:18px;
       border:1px solid rgba(255,255,255,.08);
       background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.025));
     }
@@ -339,7 +339,7 @@
     .hero-pill strong{
       display:block;
       font-family:"Sora",sans-serif;
-      font-size:1rem;
+      font-size:.92rem;
       letter-spacing:-.04em;
     }
 
@@ -347,7 +347,7 @@
       display:block;
       margin-top:4px;
       color:var(--muted);
-      font-size:.78rem;
+      font-size:.74rem;
     }
 
     .hero-stage{
@@ -391,8 +391,8 @@
     .stage-card{
       position:relative;
       overflow:hidden;
-      padding:16px 16px 15px;
-      border-radius:24px;
+      padding:14px 14px 13px;
+      border-radius:22px;
       border:1px solid rgba(255,255,255,.08);
       background:
         linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.02));
@@ -448,10 +448,10 @@
 
     .match-row{
       display:grid;
-      grid-template-columns:72px minmax(0,1fr) auto;
-      gap:12px;
+      grid-template-columns:62px minmax(0,1fr) auto;
+      gap:10px;
       align-items:center;
-      padding:12px 0;
+      padding:10px 0;
       border-top:1px solid rgba(255,255,255,.06);
     }
 
@@ -460,7 +460,7 @@
     .match-time{
       color:#ffd897;
       font-family:"Sora",sans-serif;
-      font-size:1rem;
+      font-size:.92rem;
       letter-spacing:-.04em;
     }
 
@@ -473,22 +473,22 @@
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-      font-size:.98rem;
+      font-size:.9rem;
     }
 
     .match-body span{
       display:block;
-      margin-top:4px;
+      margin-top:2px;
       color:var(--muted);
-      font-size:.78rem;
+      font-size:.72rem;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
     }
 
     .pick-tag{
-      min-height:42px;
-      padding:0 16px;
+      min-height:36px;
+      padding:0 12px;
       border-radius:999px;
       border:1px solid rgba(255,200,61,.3);
       background:rgba(255,200,61,.08);
@@ -496,7 +496,7 @@
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      font-size:.82rem;
+      font-size:.74rem;
       font-weight:800;
       white-space:nowrap;
     }
@@ -547,17 +547,17 @@
       text-align:right;
     }
 
-    .lane-grid{
+    .roi-grid{
       display:grid;
-      grid-template-columns:repeat(4, minmax(0,1fr));
+      grid-template-columns:repeat(2, minmax(0,1fr));
       gap:14px;
     }
 
-    .lane{
+    .roi-card{
       position:relative;
-      min-height:250px;
+      min-height:200px;
       padding:18px;
-      border-radius:26px;
+      border-radius:24px;
       border:1px solid rgba(255,255,255,.08);
       overflow:hidden;
       background:
@@ -569,7 +569,7 @@
       gap:14px;
     }
 
-    .lane::before{
+    .roi-card::before{
       content:"";
       position:absolute;
       inset:0 auto 0 0;
@@ -578,7 +578,7 @@
       opacity:.9;
     }
 
-    .lane-eyebrow{
+    .roi-eyebrow{
       font-size:.72rem;
       color:#ffe7a4;
       letter-spacing:.16em;
@@ -586,21 +586,21 @@
       font-weight:800;
     }
 
-    .lane h3{
+    .roi-card h3{
       margin:8px 0 0;
       font-family:"Sora",sans-serif;
-      font-size:1.3rem;
+      font-size:1.2rem;
       letter-spacing:-.04em;
     }
 
-    .lane p{
+    .roi-card p{
       margin:0;
       color:var(--muted);
-      font-size:.88rem;
-      line-height:1.45;
+      font-size:.82rem;
+      line-height:1.4;
     }
 
-    .lane-metric{
+    .roi-metric{
       display:inline-flex;
       align-items:center;
       gap:8px;
@@ -614,156 +614,12 @@
       font-weight:700;
     }
 
-    .lane-cta{
+    .roi-cta{
       display:inline-flex;
       align-items:center;
       gap:8px;
       font-weight:800;
       color:#fff0cd;
-    }
-
-    .impact{
-      margin-top:16px;
-      display:grid;
-      grid-template-columns:1.05fr .95fr;
-      gap:16px;
-    }
-
-    .impact-box,
-    .route-box{
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:28px;
-      padding:22px;
-      background:
-        linear-gradient(180deg, rgba(9,14,28,.94), rgba(5,9,19,.98));
-      box-shadow:var(--shadow);
-    }
-
-    .impact-box h3,
-    .route-box h3{
-      margin:0;
-      font-family:"Sora",sans-serif;
-      font-size:1.4rem;
-      letter-spacing:-.04em;
-    }
-
-    .impact-box p,
-    .route-box p{
-      margin:10px 0 0;
-      color:var(--muted);
-      font-size:.9rem;
-      line-height:1.45;
-    }
-
-    .impact-grid{
-      display:grid;
-      grid-template-columns:repeat(2, minmax(0,1fr));
-      gap:12px;
-      margin-top:18px;
-    }
-
-    .impact-card{
-      padding:16px;
-      border-radius:22px;
-      background:rgba(255,255,255,.035);
-      border:1px solid rgba(255,255,255,.08);
-    }
-
-    .impact-card strong{
-      display:block;
-      font-family:"Sora",sans-serif;
-      font-size:1.05rem;
-      letter-spacing:-.03em;
-    }
-
-    .impact-card span{
-      display:block;
-      margin-top:6px;
-      color:var(--muted);
-      font-size:.8rem;
-    }
-
-    .route{
-      display:grid;
-      gap:12px;
-      margin-top:18px;
-    }
-
-    .route-step{
-      display:grid;
-      grid-template-columns:52px minmax(0,1fr);
-      gap:12px;
-      align-items:start;
-      padding:14px;
-      border-radius:22px;
-      background:rgba(255,255,255,.035);
-      border:1px solid rgba(255,255,255,.08);
-    }
-
-    .route-step strong{
-      width:52px;
-      height:52px;
-      border-radius:18px;
-      display:grid;
-      place-items:center;
-      font-family:"Sora",sans-serif;
-      font-size:1.05rem;
-      background:linear-gradient(135deg, rgba(255,122,24,.18), rgba(255,200,61,.12));
-      border:1px solid rgba(255,122,24,.3);
-      color:#ffe8bc;
-    }
-
-    .route-step h4{
-      margin:2px 0 4px;
-      font-size:1rem;
-      letter-spacing:-.03em;
-    }
-
-    .route-step p{
-      margin:0;
-      color:var(--muted);
-      font-size:.82rem;
-      line-height:1.4;
-    }
-
-    .closing{
-      padding:18px 0 42px;
-    }
-
-    .closing-box{
-      display:grid;
-      grid-template-columns:minmax(0,1fr) auto;
-      gap:18px;
-      align-items:center;
-      padding:24px;
-      border-radius:30px;
-      border:1px solid rgba(255,255,255,.08);
-      background:
-        linear-gradient(135deg, rgba(255,122,24,.13), rgba(255,200,61,.07), rgba(5,9,19,.96));
-      box-shadow:var(--shadow);
-    }
-
-    .closing-box h2{
-      margin:0;
-      font-family:"Sora",sans-serif;
-      font-size:clamp(2rem, 4vw, 3.5rem);
-      line-height:.95;
-      letter-spacing:-.07em;
-      text-transform:uppercase;
-    }
-
-    .closing-box p{
-      margin:8px 0 0;
-      color:#d7e1f2;
-      max-width:34rem;
-      font-size:.94rem;
-    }
-
-    .closing-actions{
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-      gap:12px;
     }
 
     footer{
@@ -805,11 +661,11 @@
     }
 
     .section-copy{
-      margin:8px 0 0;
+      margin:6px 0 0;
       color:var(--muted);
-      font-size:.92rem;
-      line-height:1.45;
-      max-width:38rem;
+      font-size:.84rem;
+      line-height:1.35;
+      max-width:32rem;
     }
 
     .feed-summary-strip{
@@ -845,9 +701,9 @@
     .summary-pill.live strong{color:#ffd47a}
 
     .live-shell{
-      padding:22px;
+      padding:18px;
       border:1px solid rgba(255,255,255,.08);
-      border-radius:30px;
+      border-radius:26px;
       background:
         radial-gradient(circle at top right, rgba(255,122,24,.1), transparent 26%),
         linear-gradient(180deg, rgba(9,14,28,.96), rgba(5,9,19,.99));
@@ -859,8 +715,8 @@
       align-items:center;
       justify-content:space-between;
       gap:14px;
-      margin-bottom:18px;
-      padding-bottom:14px;
+      margin-bottom:14px;
+      padding-bottom:12px;
       border-bottom:1px solid rgba(255,255,255,.07);
     }
 
@@ -927,7 +783,7 @@
       align-items:center;
       justify-content:space-between;
       gap:14px;
-      padding:16px 18px;
+      padding:14px 16px;
       background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
       border-bottom:1px solid rgba(255,255,255,.06);
     }
@@ -935,14 +791,14 @@
     .live-category-head h3{
       margin:0;
       font-family:"Sora",sans-serif;
-      font-size:1.14rem;
+      font-size:1rem;
       letter-spacing:-.04em;
     }
 
     .live-category-head p{
       margin:4px 0 0;
       color:var(--muted);
-      font-size:.8rem;
+      font-size:.74rem;
     }
 
     .live-category-meta{
@@ -968,17 +824,17 @@
 
     .live-list{
       display:grid;
-      gap:12px;
-      padding:16px;
+      gap:10px;
+      padding:12px;
     }
 
     .live-pick{
       display:grid;
       grid-template-columns:82px minmax(0, 1fr) auto;
-      gap:14px;
+      gap:12px;
       align-items:center;
-      padding:16px;
-      border-radius:22px;
+      padding:13px;
+      border-radius:18px;
       border:1px solid rgba(255,255,255,.07);
       background:rgba(5,10,20,.72);
       box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
@@ -1070,7 +926,7 @@
     .live-pick-teams{
       display:block;
       font-family:"Sora",sans-serif;
-      font-size:1.06rem;
+      font-size:.94rem;
       letter-spacing:-.04em;
       line-height:1.15;
     }
@@ -1078,20 +934,20 @@
     .live-pick-sub{
       display:flex;
       flex-wrap:wrap;
-      gap:8px;
-      margin-top:10px;
+      gap:6px;
+      margin-top:8px;
     }
 
     .pick-chip,
     .odd-chip,
     .confidence-chip{
-      min-height:34px;
-      padding:0 12px;
+      min-height:30px;
+      padding:0 10px;
       border-radius:999px;
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      font-size:.78rem;
+      font-size:.72rem;
       font-weight:800;
       white-space:nowrap;
     }
@@ -1112,18 +968,18 @@
     .live-pick-side{
       display:grid;
       justify-items:end;
-      gap:8px;
-      min-width:128px;
+      gap:6px;
+      min-width:112px;
     }
 
     .status-badge{
-      min-height:38px;
-      padding:0 14px;
+      min-height:34px;
+      padding:0 12px;
       border-radius:999px;
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      font-size:.8rem;
+      font-size:.74rem;
       font-weight:900;
       letter-spacing:.01em;
       border:1px solid rgba(255,255,255,.08);
@@ -1164,7 +1020,7 @@
 
     .status-note{
       color:var(--muted);
-      font-size:.76rem;
+      font-size:.7rem;
       text-align:right;
     }
 
@@ -1233,25 +1089,16 @@
     }
 
     @media (max-width: 1080px){
-      .hero-grid,
-      .impact{
+      .hero-grid{
         grid-template-columns:1fr;
-      }
-
-      .lane-grid{
-        grid-template-columns:repeat(2, minmax(0,1fr));
       }
 
       .hero-main{
         min-height:auto;
       }
 
-      .closing-box{
-        grid-template-columns:1fr;
-      }
-
-      .closing-actions{
-        justify-content:flex-start;
+      .roi-grid{
+        grid-template-columns:repeat(2, minmax(0,1fr));
       }
 
       .live-pick{
@@ -1304,16 +1151,16 @@
       .nav::-webkit-scrollbar{display:none}
 
       .hero{
-        padding-top:20px;
+        padding-top:14px;
       }
 
       .hero-main,
       .hero-stage{
-        border-radius:26px;
+        border-radius:22px;
       }
 
       .hero-main{
-        padding:22px;
+        padding:18px;
       }
 
       h1{
@@ -1322,15 +1169,11 @@
       }
 
       .hero-sub{
-        font-size:.94rem;
+        font-size:.82rem;
       }
 
       .hero-strip{
-        grid-template-columns:1fr;
-      }
-
-      .lane-grid{
-        grid-template-columns:1fr;
+        grid-template-columns:1fr 1fr;
       }
 
       .section-head{
@@ -1342,57 +1185,116 @@
         text-align:left;
       }
 
-      .impact-grid{
-        grid-template-columns:1fr;
-      }
-
       .live-shell{
-        padding:18px;
-        border-radius:26px;
+        padding:14px;
+        border-radius:22px;
       }
 
       .live-list{
-        padding:12px;
+        padding:10px 0 0;
       }
 
       .live-pick{
         grid-template-columns:1fr;
-        gap:12px;
+        gap:8px;
+        padding:11px;
       }
 
       .live-pick-time{
         grid-auto-flow:column;
         justify-content:flex-start;
         align-items:center;
-        gap:10px;
+        gap:8px;
       }
 
       .live-pick-side{
         grid-column:auto;
+        justify-items:start;
       }
 
       .live-pick-sub{
-        gap:6px;
+        gap:5px;
       }
 
       .pick-chip,
       .odd-chip,
       .confidence-chip{
-        font-size:.73rem;
-        padding:0 10px;
+        font-size:.68rem;
+        padding:0 8px;
       }
 
       .hero-score-strip{
         grid-template-columns:1fr;
       }
 
-      .closing-box{
-        padding:20px;
-      }
-
       .footer-row{
         flex-direction:column;
         align-items:flex-start;
+      }
+
+      .section-head{
+        gap:10px;
+      }
+
+      .section-head h2{
+        font-size:1.45rem;
+      }
+
+      .section-copy,
+      .live-category-head p,
+      .toolbar-note,
+      .status-note{
+        display:none;
+      }
+
+      .summary-pill{
+        min-height:36px;
+        padding:0 10px;
+        font-size:.74rem;
+      }
+
+      .legend-inline{
+        gap:6px;
+      }
+
+      .legend-chip{
+        min-height:30px;
+        padding:0 10px;
+        font-size:.7rem;
+      }
+
+      .live-category{
+        border-radius:18px;
+      }
+
+      .live-category-head{
+        padding:12px;
+      }
+
+      .live-category-count{
+        min-height:30px;
+        padding:0 10px;
+        font-size:.72rem;
+      }
+
+      .stage-card{
+        padding:12px;
+        border-radius:18px;
+      }
+
+      .match-row{
+        grid-template-columns:54px minmax(0,1fr) auto;
+        gap:8px;
+      }
+
+      .pick-tag{
+        min-height:32px;
+        padding:0 10px;
+        font-size:.68rem;
+      }
+
+      .roi-grid{
+        grid-template-columns:1fr;
       }
     }
   </style>
@@ -1430,26 +1332,21 @@
               Senza fuffa.
             </h1>
             <p class="hero-sub">
-              Apri. Filtra. Leggi la pick. Vai sul match. Tutto il resto e rumore.
+              Picks davanti. Storico ROI a un tap. Fine.
             </p>
             <div class="hero-actions">
-              <a class="cta primary" href="/match-center.html">Entra nel Match Center</a>
-              <a class="cta ghost" href="https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba" target="_blank" rel="noopener">Scarica l'app</a>
-              <a class="cta ghost" href="/storico.html">Guarda lo storico</a>
+              <a class="cta primary" href="/storico.html">Storico ROI</a>
+              <a class="cta ghost" href="/match-center.html">Match Center</a>
             </div>
           </div>
           <div class="hero-strip">
             <div class="hero-pill">
-              <strong>Match Center</strong>
-              <span>Filtri, quote, picks, schedine</span>
+              <strong>ROI live</strong>
+              <span>Vinte, perse, live</span>
             </div>
             <div class="hero-pill">
-              <strong>Storico ROI</strong>
-              <span>Numeri pubblici, risultati chiusi</span>
-            </div>
-            <div class="hero-pill">
-              <strong>App Android</strong>
-              <span>Bet Master, notifiche, flusso rapido</span>
+              <strong>Picks vere</strong>
+              <span>Stesso feed, stile nuovo</span>
             </div>
           </div>
         </article>
@@ -1510,7 +1407,7 @@
       <div class="section-head">
         <div>
           <h2>Picks del giorno</h2>
-          <p class="section-copy">Le stesse picks della home attuale, ma dentro il look nuovo: badge live, win/lose e tag ROI davanti.</p>
+          <p class="section-copy">Feed reale, stato reale, badge chiari.</p>
         </div>
         <div id="index2-board-summary" class="feed-summary-strip">
           <span class="summary-pill"><strong>-</strong> loading</span>
@@ -1538,126 +1435,34 @@
     <section class="section" data-reveal>
       <div class="section-head">
         <div>
-          <h2>Entra dove serve</h2>
+          <h2>Storico ROI</h2>
         </div>
-        <p>Tutto piu frontale. Nessun blocco "serioso". Solo ingressi chiari.</p>
+        <p class="section-copy">Qui resta il secondo core del sito: storico compatto, diretto, senza spiegoni.</p>
       </div>
-      <div class="lane-grid">
-        <a class="lane" href="/match-center.html">
+      <div class="roi-grid">
+        <a class="roi-card" href="/storico.html">
           <div>
-            <span class="lane-eyebrow">01</span>
-            <h3>Match Center</h3>
-            <p>La giornata intera, filtrata bene. Partite, props, dettagli, stato pick.</p>
-          </div>
-          <div>
-            <span class="lane-metric">Feed attivo</span>
-            <div class="lane-cta">Apri adesso</div>
-          </div>
-        </a>
-
-        <a class="lane" href="/storico.html">
-          <div>
-            <span class="lane-eyebrow">02</span>
+            <span class="roi-eyebrow">01</span>
             <h3>Storico ROI</h3>
-            <p>Risultati chiusi, resa nel tempo, numeri senza giri.</p>
+            <p>Andamento reale, bilancio chiuso, numeri netti.</p>
           </div>
           <div>
-            <span class="lane-metric">Pubblico</span>
-            <div class="lane-cta">Vai ai risultati</div>
+            <span class="roi-metric">Core</span>
+            <div class="roi-cta">Apri storico</div>
           </div>
         </a>
 
-        <a class="lane" href="/storico_picks.html">
+        <a class="roi-card" href="/storico_picks.html">
           <div>
-            <span class="lane-eyebrow">03</span>
-            <h3>Storico Picks</h3>
-            <p>Vedi la singola giocata, non solo il totale.</p>
+            <span class="roi-eyebrow">02</span>
+            <h3>Storico picks</h3>
+            <p>Singola pick, dettaglio match, badge e resa puntuale.</p>
           </div>
           <div>
-            <span class="lane-metric">Granulare</span>
-            <div class="lane-cta">Apri il dettaglio</div>
+            <span class="roi-metric">Dettaglio</span>
+            <div class="roi-cta">Apri picks</div>
           </div>
         </a>
-
-        <a class="lane" href="https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba" target="_blank" rel="noopener">
-          <div>
-            <span class="lane-eyebrow">04</span>
-            <h3>App Android</h3>
-            <p>Bet Master, notifiche, accesso rapido quando vuoi spingere.</p>
-          </div>
-          <div>
-            <span class="lane-metric">Mobile first</span>
-            <div class="lane-cta">Scarica l'app</div>
-          </div>
-        </a>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="impact" data-reveal>
-        <article class="impact-box">
-          <h3>Taglio nuovo</h3>
-          <p>Piu movimento, piu impatto, piu sensazione "app". Meno tutorial, meno spiegoni.</p>
-          <div class="impact-grid">
-            <div class="impact-card">
-              <strong>Colpo visivo</strong>
-              <span>contrasti piu forti, bagliori arancio, linee pulite</span>
-            </div>
-            <div class="impact-card">
-              <strong>Ingresso rapido</strong>
-              <span>match center, app, storico: subito visibili</span>
-            </div>
-            <div class="impact-card">
-              <strong>Look giovane</strong>
-              <span>meno "dashboard da ufficio", piu energia da prodotto sport</span>
-            </div>
-            <div class="impact-card">
-              <strong>Brand coerente</strong>
-              <span>nero, arancio, oro, tocchi freddi per spingere il contrasto</span>
-            </div>
-          </div>
-        </article>
-
-        <article class="route-box">
-          <h3>Route rapida</h3>
-          <p>La logica resta questa: entri, filtri, leggi, giochi. Fine.</p>
-          <div class="route">
-            <div class="route-step">
-              <strong>01</strong>
-              <div>
-                <h4>Apri il feed</h4>
-                <p>Vai nel match center e pulisci il rumore con orario, quota, probabilita.</p>
-              </div>
-            </div>
-            <div class="route-step">
-              <strong>02</strong>
-              <div>
-                <h4>Scegli il ritmo</h4>
-                <p>Single, props, o Bet Master se vuoi una schedina gia costruita.</p>
-              </div>
-            </div>
-            <div class="route-step">
-              <strong>03</strong>
-              <div>
-                <h4>Controlla lo storico</h4>
-                <p>Quando vuoi vedere cosa ha chiuso bene e cosa no, entri li. Diretto.</p>
-              </div>
-            </div>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section class="closing" data-reveal>
-      <div class="closing-box">
-        <div>
-          <h2>Apri. Filtra. Spingi.</h2>
-          <p>Questa e la versione piu aggressiva del brand. Se ti piace, da qui possiamo evolvere tutta la home vera senza toccare l'attuale finche non sei convinto.</p>
-        </div>
-        <div class="closing-actions">
-          <a class="cta primary" href="/match-center.html">Vai al Match Center</a>
-          <a class="cta ghost" href="https://www.buymeacoffee.com/pronosticibomba" target="_blank" rel="noopener">Supporta il progetto</a>
-        </div>
       </div>
     </section>
   </main>
