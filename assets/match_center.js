@@ -2024,7 +2024,7 @@
   }
 
   function renderDateTabs() {
-    const timezone = state.manifest?.timezone || "UTC";
+    const timezone = activeTimeZone();
     const today = todayIso(timezone);
     const dates = Array.isArray(state.manifest?.dates) ? state.manifest.dates : [];
     dom.dateTabs.innerHTML = dates.map(entry => {
@@ -2580,7 +2580,8 @@
 
   async function selectDate(date) {
     state.selectedDate = date;
-    seedMainTimeWindow(true);
+    state.timeFrom = DEFAULTS.timeFrom;
+    state.timeTo = DEFAULTS.timeTo;
     await loadCacheForDate(date);
     render();
   }
