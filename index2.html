@@ -784,6 +784,11 @@
       gap:10px;
     }
 
+    .service-card > div:last-child{
+      display:grid;
+      gap:10px;
+    }
+
     .service-card::before{
       content:"";
       position:absolute;
@@ -906,10 +911,16 @@
     .service-card strong{
       display:block;
       font-family:"Sora",sans-serif;
-      font-size:1.08rem;
-      letter-spacing:-.04em;
-      line-height:1.08;
+      font-size:1.14rem;
+      letter-spacing:-.05em;
+      line-height:1.04;
+      color:#fdf6e7;
+      max-width:18ch;
     }
+
+    .service-card.roi strong{color:#fff1c9}
+    .service-card.builder strong{color:#dff7ff}
+    .service-card.center strong{color:#ffe3c9}
 
     .service-card p{
       margin:6px 0 0;
@@ -983,28 +994,29 @@
     }
 
     .service-link{
-      min-height:36px;
-      width:max-content;
+      min-height:44px;
+      width:100%;
       padding:0 14px;
-      border-radius:999px;
-      border:1px solid rgba(255,122,24,.38);
-      background:linear-gradient(135deg, rgba(255,122,24,.22), rgba(255,200,61,.16));
-      color:#fff0cd;
+      border-radius:14px;
+      border:1px solid rgba(255,200,61,.34);
+      background:
+        linear-gradient(135deg, rgba(255,122,24,.22), rgba(255,200,61,.14));
+      color:#fff4db;
       display:inline-flex;
       align-items:center;
-      justify-content:center;
-      font-size:.76rem;
-      font-weight:800;
+      justify-content:space-between;
+      font-size:.78rem;
+      font-weight:900;
       white-space:nowrap;
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,.04),
-        0 10px 24px rgba(255,122,24,.12);
+        0 12px 28px rgba(255,122,24,.16);
     }
 
     .service-link::after{
       content:">";
-      margin-left:8px;
-      font-size:.82rem;
+      margin-left:10px;
+      font-size:.92rem;
     }
 
     .service-app-cta{
@@ -2449,7 +2461,7 @@
       }
 
       .service-card strong{
-        font-size:.96rem;
+        font-size:1.02rem;
       }
 
       .service-card p{
@@ -2482,11 +2494,11 @@
       }
 
       .service-link{
-        min-height:32px;
+        min-height:40px;
         width:100%;
-        padding:0 11px;
-        font-size:.68rem;
-        justify-content:center;
+        padding:0 12px;
+        font-size:.7rem;
+        justify-content:space-between;
       }
 
       .service-app-cta{
@@ -2865,18 +2877,18 @@
         serviceRoiKicker: "Le bombe del giorno",
         serviceBuilderKicker: "Bet Builder",
         serviceCenterKicker: "Match Center",
-        serviceRoiTitle: "La selezione principale del giorno, gia segnata live.",
-        serviceRoiCopy: "Picks secche, stato reale, badge chiari e impatto immediato sul feed.",
+        serviceRoiTitle: "Le pick che aprono davvero la giornata.",
+        serviceRoiCopy: "Le migliori letture del giorno, gia segnate live e gia leggibili al primo colpo.",
         serviceRoiStatA: "ROI picks",
         serviceRoiStatB: "Live",
         serviceRoiStatC: "Chiuse",
         serviceRoiPointA: "ROI pick",
         serviceRoiPointB: "Live",
         serviceRoiPointC: "Vinte / perse",
-        serviceRoiLink: "Vai alle picks",
+        serviceRoiLink: "Apri il feed",
         serviceBuilderBadge: "Solo Android",
-        serviceBuilderTitle: "Combo smart sui top campionati con mercati extra.",
-        serviceBuilderCopy: "La parte piu esclusiva: build guidata su tiri, corner, cartellini e linee piu tecniche.",
+        serviceBuilderTitle: "La build esclusiva sui campionati che contano.",
+        serviceBuilderCopy: "Combo guidata su top leghe, mercati extra e linee piu tecniche che trovi solo in app.",
         serviceBuilderStatA: "Campionati",
         serviceBuilderStatB: "Mercati",
         serviceBuilderStatC: "Combo pronta",
@@ -2886,13 +2898,13 @@
         serviceBuilderSub: "Bet Builder esclusivo in app",
         serviceBuilderStore: "Android",
         serviceCenterBadge: "Explorer",
-        serviceCenterTitle: "Il palinsesto completo per filtrare e costruire.",
-        serviceCenterCopy: "Tutta la giornata, props, dettagli match, Bet Master e filtri su quota, probabilita, esito e orario.",
+        serviceCenterTitle: "Il quadro completo per filtrare, leggere, costruire.",
+        serviceCenterCopy: "Tutto il palinsesto in una vista sola: props, dettagli match, Bet Master e filtri seri.",
         serviceCenterStatA: "Il feed",
         serviceCenterStatB: "Dettagli",
         serviceCenterStatC: "Master",
         serviceCenterPointA: "Filtri",
-        serviceCenterLink: "Apri Match Center",
+        serviceCenterLink: "Entra nel Match Center",
         comboTitle: "Schedine pronte",
         comboCopy: "Combo tickets del giorno gia costruite, con quota totale e stato live su ogni gamba.",
         comboLoading: "Carico le schedine del giorno...",
@@ -2970,18 +2982,18 @@
         serviceRoiKicker: "Top picks",
         serviceBuilderKicker: "Bet Builder",
         serviceCenterKicker: "Match Center",
-        serviceRoiTitle: "The main daily feed, already marked live.",
-        serviceRoiCopy: "Straight picks, real status, clear badges and instant impact on the board.",
+        serviceRoiTitle: "The picks that really set the day.",
+        serviceRoiCopy: "The strongest daily reads, already marked live and easy to read at a glance.",
         serviceRoiStatA: "ROI picks",
         serviceRoiStatB: "Live",
         serviceRoiStatC: "Closed",
         serviceRoiPointA: "ROI pick",
         serviceRoiPointB: "Live",
         serviceRoiPointC: "Won / lost",
-        serviceRoiLink: "Open picks",
+        serviceRoiLink: "Open the feed",
         serviceBuilderBadge: "Android only",
-        serviceBuilderTitle: "Smart combos on top leagues and extra markets.",
-        serviceBuilderCopy: "The app exclusive: guided builds on shots, corners, cards and sharper stat lines.",
+        serviceBuilderTitle: "The exclusive build on the leagues that matter.",
+        serviceBuilderCopy: "Guided combos on top leagues, extra markets and sharper stat lines only inside the app.",
         serviceBuilderStatA: "Leagues",
         serviceBuilderStatB: "Markets",
         serviceBuilderStatC: "Ready combo",
@@ -2991,13 +3003,13 @@
         serviceBuilderSub: "Bet Builder exclusive in app",
         serviceBuilderStore: "Android",
         serviceCenterBadge: "Explorer",
-        serviceCenterTitle: "The full board to filter, compare and build.",
-        serviceCenterCopy: "The whole day, props, match detail, Bet Master and filters by odds, probability, outcome and time.",
+        serviceCenterTitle: "The full board to filter, read and build.",
+        serviceCenterCopy: "The whole slate in one place: props, match detail, Bet Master and serious filters.",
         serviceCenterStatA: "Board",
         serviceCenterStatB: "Details",
         serviceCenterStatC: "Master",
         serviceCenterPointA: "Filters",
-        serviceCenterLink: "Open Match Center",
+        serviceCenterLink: "Enter Match Center",
         comboTitle: "Ready-made tickets",
         comboCopy: "Today combo tickets already built, with total odds and live status on every leg.",
         comboLoading: "Loading today's combo tickets...",
