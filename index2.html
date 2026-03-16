@@ -840,6 +840,10 @@
       color:var(--muted);
       font-size:.78rem;
       line-height:1.35;
+      display:-webkit-box;
+      -webkit-box-orient:vertical;
+      -webkit-line-clamp:3;
+      overflow:hidden;
     }
 
     .service-stats{
@@ -1635,12 +1639,9 @@
       .nav{
         width:100%;
         justify-content:flex-start;
-        overflow:auto;
-        flex-wrap:nowrap;
-        scrollbar-width:none;
+        flex-wrap:wrap;
+        overflow:visible;
       }
-
-      .nav::-webkit-scrollbar{display:none}
 
       .section-head{
         align-items:flex-start;
@@ -1713,6 +1714,12 @@
         display:none;
       }
 
+      .services-section .section-copy{
+        display:block;
+        font-size:.74rem;
+        line-height:1.35;
+      }
+
       .summary-pill{
         min-height:32px;
         padding:0 9px;
@@ -1772,22 +1779,14 @@
       }
 
       .services-grid{
-        display:grid;
-        grid-auto-flow:column;
-        grid-auto-columns:minmax(240px, 84%);
-        overflow:auto;
+        grid-template-columns:1fr;
         gap:8px;
-        scrollbar-width:none;
-        scroll-snap-type:x proximity;
       }
 
-      .services-grid::-webkit-scrollbar{display:none}
-
       .service-card{
-        min-height:164px;
+        min-height:auto;
         padding:13px;
         border-radius:18px;
-        scroll-snap-align:start;
       }
 
       .service-card strong{
@@ -1796,6 +1795,7 @@
 
       .service-card p{
         font-size:.7rem;
+        -webkit-line-clamp:2;
       }
 
       .service-stats{
@@ -1824,8 +1824,10 @@
 
       .service-link{
         min-height:32px;
+        width:100%;
         padding:0 11px;
         font-size:.68rem;
+        justify-content:center;
       }
 
       .service-note{
@@ -1916,7 +1918,6 @@
         </a>
         <nav class="nav" aria-label="Collegamenti principali">
           <a id="index2-nav-match-center" class="nav-link" href="/match-center.html">Match Center</a>
-          <a id="index2-nav-roi" class="nav-link" href="/storico.html">Storico ROI</a>
           <a id="index2-nav-picks" class="nav-link" href="/storico_picks.html">Storico Picks</a>
           <a id="index2-nav-app" class="nav-link primary" href="https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba" target="_blank" rel="noopener">Apri App</a>
           <div class="lang-switch" aria-label="Language switch">
@@ -1932,14 +1933,15 @@
     <section class="section services-section" data-reveal>
       <div class="section-head">
         <div>
-          <h2 id="index2-services-title">Choose your play</h2>
+          <h2 id="index2-services-title">Scegli la tua strategia</h2>
+          <p id="index2-services-copy" class="section-copy">Le bombe del giorno, il Bet Builder e il Match Center: tre modi diversi per leggere la giornata.</p>
         </div>
       </div>
       <div class="services-grid">
         <a class="service-card roi" href="#picks-oggi">
           <div class="service-body">
             <div class="service-top">
-              <span class="service-kicker"><span class="service-icon">R</span>ROI Picks</span>
+              <span class="service-kicker"><span class="service-icon">R</span><span id="index2-service-roi-kicker">Le bombe del giorno</span></span>
               <span id="index2-service-roi-badge" class="service-badge">Core</span>
             </div>
             <strong id="index2-service-roi-title">The main daily feed, already marked live.</strong>
@@ -1972,7 +1974,7 @@
         <a class="service-card builder" href="https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba" target="_blank" rel="noopener">
           <div class="service-body">
             <div class="service-top">
-              <span class="service-kicker"><span class="service-icon">B</span>Bet Builder</span>
+              <span class="service-kicker"><span class="service-icon">B</span><span id="index2-service-builder-kicker">Bet Builder</span></span>
               <span id="index2-service-builder-badge" class="service-badge">App only</span>
             </div>
             <strong id="index2-service-builder-title">Smart combos on top leagues and extra markets.</strong>
@@ -2005,7 +2007,7 @@
         <a class="service-card center" href="/match-center.html">
           <div class="service-body">
             <div class="service-top">
-              <span class="service-kicker"><span class="service-icon">M</span>Match Center</span>
+              <span class="service-kicker"><span class="service-icon">M</span><span id="index2-service-center-kicker">Match Center</span></span>
               <span id="index2-service-center-badge" class="service-badge">Explorer</span>
             </div>
             <strong id="index2-service-center-title">The full board to filter, compare and build.</strong>
@@ -2132,12 +2134,15 @@
     const I18N = {
       it: {
         title: "Pronostici Bomba | Home",
-        brandSubtitle: "ROI Picks | Bet Builder | Match Center",
+        brandSubtitle: "Le bombe del giorno | Bet Builder | Match Center",
         navMatchCenter: "Match Center",
-        navRoi: "Storico ROI",
         navPicks: "Storico Picks",
         navApp: "Apri App",
-        servicesTitle: "Scegli il tuo gioco",
+        servicesTitle: "Scegli la tua strategia",
+        servicesCopy: "Le bombe del giorno, il Bet Builder e il Match Center: tre modi diversi per leggere la giornata.",
+        serviceRoiKicker: "Le bombe del giorno",
+        serviceBuilderKicker: "Bet Builder",
+        serviceCenterKicker: "Match Center",
         serviceRoiTitle: "La selezione principale del giorno, gia segnata live.",
         serviceRoiCopy: "Picks secche, stato reale, badge chiari e impatto immediato sul feed.",
         serviceRoiStatA: "ROI picks",
@@ -2218,12 +2223,15 @@
       },
       en: {
         title: "Pronostici Bomba | Home",
-        brandSubtitle: "ROI Picks | Bet Builder | Match Center",
+        brandSubtitle: "Top picks | Bet Builder | Match Center",
         navMatchCenter: "Match Center",
-        navRoi: "ROI History",
         navPicks: "Pick Archive",
         navApp: "Open App",
-        servicesTitle: "Choose your play",
+        servicesTitle: "Choose your strategy",
+        servicesCopy: "Top picks, Bet Builder and Match Center: three different ways to read the day.",
+        serviceRoiKicker: "Top picks",
+        serviceBuilderKicker: "Bet Builder",
+        serviceCenterKicker: "Match Center",
         serviceRoiTitle: "The main daily feed, already marked live.",
         serviceRoiCopy: "Straight picks, real status, clear badges and instant impact on the board.",
         serviceRoiStatA: "ROI picks",
@@ -2347,10 +2355,13 @@
       document.title = t("title");
       setNodeText("index2-brand-subtitle", t("brandSubtitle"));
       setNodeText("index2-nav-match-center", t("navMatchCenter"));
-      setNodeText("index2-nav-roi", t("navRoi"));
       setNodeText("index2-nav-picks", t("navPicks"));
       setNodeText("index2-nav-app", t("navApp"));
       setNodeText("index2-services-title", t("servicesTitle"));
+      setNodeText("index2-services-copy", t("servicesCopy"));
+      setNodeText("index2-service-roi-kicker", t("serviceRoiKicker"));
+      setNodeText("index2-service-builder-kicker", t("serviceBuilderKicker"));
+      setNodeText("index2-service-center-kicker", t("serviceCenterKicker"));
       setNodeText("index2-service-roi-title", t("serviceRoiTitle"));
       setNodeText("index2-service-roi-copy", t("serviceRoiCopy"));
       setNodeText("index2-service-roi-stat-a", t("serviceRoiStatA"));
