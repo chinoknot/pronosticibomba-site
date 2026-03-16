@@ -444,6 +444,30 @@
     state.timeTo = defaults.to;
   }
 
+  function usesRollingCurrentWindow() {
+    const zone = activeTimeZone();
+    const today = todayIso(zone);
+    if (!(state.selectedDate === today && state.timeTo === "23:59" && state.timeFrom !== "00:00")) return false;
+    const defaultWindow = defaultMainTimeWindow(state.selectedDate);
+    return toMinutes(state.timeFrom) >= toMinutes(defaultWindow.from);
+  }
+
+  function matchStartsAfterCurrentWindow(match, fromTime) {
+    const zone = activeTimeZone();
+    const startUtc = zonedDateToUtc(state.selectedDate, fromTime, zone);
+    const kickoff = kickoffDate(match);
+    if (!startUtc || !kickoff) return false;
+    return kickoff.getTime() >= startUtc.getTime();
+  }
+
+  function matchWithinMainTimeWindow(match) {
+    if (usesRollingCurrentWindow()) {
+      return matchStartsAfterCurrentWindow(match, state.timeFrom);
+    }
+    const matchTime = match.localMatchTime || match.match_time || "00:00";
+    return matchTime >= state.timeFrom && matchTime <= state.timeTo;
+  }
+
   function visibleOutcomeGroups() {
     const allowed = new Set(["goals", "halves", "corners", "yellows"]);
     if (state.groups.size === GROUPS.length) return GROUPS.filter(group => allowed.has(group.id));
@@ -1523,7 +1547,7 @@
         const searchBlob = `${match.home} ${match.away} ${match.league} ${match.country} ${markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" ")}`.toLowerCase();
         return withLocalKickoff({ ...match, markets, visibleMarkets, primaryMarket: selectHeadlineMarket(visibleMarkets, match), searchBlob });
       })
-      .filter(match => (match.localMatchTime || match.match_time || "00:00") >= state.timeFrom && (match.localMatchTime || match.match_time || "23:59") <= state.timeTo)
+      .filter(match => matchWithinMainTimeWindow(match))
       .filter(match => !search || match.searchBlob.includes(search))
       .filter(match => keepAll || match.visibleMarkets.length > 0)
       .sort((a, b) => `${a.localKickoffSort || a.match_time}-${a.league}-${a.home}`.localeCompare(`${b.localKickoffSort || b.match_time}-${b.league}-${b.home}`));
@@ -1548,17 +1572,30 @@
   function getTopPicks(matches) {
     const timezone = activeTimeZone();
     const today = todayIso(timezone);
-    const nowMinutes = toMinutes(currentTimeInTimezone(timezone));
+    const nowTs = Date.now();
     let pool = matches.filter(match => !FINAL_STATUSES.has(String(match.status_short || "").toUpperCase()) && match.primaryMarket);
     if (state.selectedDate === today) {
       const imminent = pool.filter(match => {
-        const kickoff = Number(match.localKickoffMinutes || toMinutes(match.match_time));
-        return kickoff >= nowMinutes && kickoff <= nowMinutes + 30;
+        const kickoff = kickoffDate(match);
+        if (!kickoff) {
+          const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.match_time));
+          const nowMinutes = toMinutes(currentTimeInTimezone(timezone));
+          return kickoffMinutes >= nowMinutes && kickoffMinutes <= nowMinutes + 30;
+        }
+        return kickoff.getTime() >= nowTs && kickoff.getTime() <= nowTs + (30 * 60 * 1000);
       });
       if (imminent.length) {
         pool = imminent;
       } else {
-        const nextUp = pool.filter(match => Number(match.localKickoffMinutes || toMinutes(match.match_time)) >= nowMinutes);
+        const nextUp = pool.filter(match => {
+          const kickoff = kickoffDate(match);
+          if (!kickoff) {
+            const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.match_time));
+            const nowMinutes = toMinutes(currentTimeInTimezone(timezone));
+            return kickoffMinutes >= nowMinutes;
+          }
+          return kickoff.getTime() >= nowTs;
+        });
         if (nextUp.length) pool = nextUp;
       }
     }
@@ -1666,11 +1703,10 @@
       };
     }
     const startMinutes = toMinutes(soonStartTimeSlot());
-    const endMinutes = (23 * 60) + 59;
     return {
       mode: "soon",
       from: minutesToTime(startMinutes),
-      to: minutesToTime(endMinutes),
+      to: "23:59",
       label: TEXT.betMasterSoon,
     };
   }
@@ -1718,6 +1754,9 @@
     }
     const fromMinutes = toMinutes(window.from);
     const toMinutesValue = toMinutes(window.to);
+    const soonStartUtc = window.mode === "soon"
+      ? zonedDateToUtc(todayIso(activeTimeZone()), window.from, activeTimeZone())
+      : null;
     const softProbFloor = Math.max(45, state.betMaster.probFrom - 2);
     const softOddFloor = Math.max(1.01, state.betMaster.oddFrom - 0.08);
     const softOddCeil = Math.min(10, state.betMaster.oddTo + 0.25);
@@ -1733,6 +1772,10 @@
       .filter(match => {
         const fixtureStatus = String(match.status_short || "").toUpperCase();
         if (FINAL_STATUSES.has(fixtureStatus) || LIVE_STATUSES.has(fixtureStatus)) return false;
+        if (window.mode === "soon" && soonStartUtc) {
+          const kickoff = kickoffDate(match);
+          if (kickoff) return kickoff.getTime() >= soonStartUtc.getTime();
+        }
         const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.localMatchTime || match.match_time));
         return kickoffMinutes >= fromMinutes && kickoffMinutes <= toMinutesValue;
       });
@@ -2028,7 +2071,7 @@
     if (dom.betMasterTimeCustom) dom.betMasterTimeCustom.classList.toggle("active", state.betMaster.windowMode === "custom");
     if (dom.betMasterTimeSelects) dom.betMasterTimeSelects.hidden = state.betMaster.windowMode !== "custom";
     if (dom.betMasterWindowLabel) dom.betMasterWindowLabel.textContent = window.label;
-    if (dom.betMasterTimeValue) dom.betMasterTimeValue.textContent = `${window.from} - ${window.to}`;
+    if (dom.betMasterTimeValue) dom.betMasterTimeValue.textContent = window.mode === "soon" ? `${window.from}+` : `${window.from} - ${window.to}`;
     if (dom.betMasterProfileChips) {
       dom.betMasterProfileChips.innerHTML = BET_MASTER_PROFILES.map(profile => `
         <button
