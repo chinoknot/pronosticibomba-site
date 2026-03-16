@@ -48,6 +48,7 @@
   };
   const GROUPS = [
     { id: "goals", short: "O/U", label: "Goal" },
+    { id: "halves", short: "1T/2T", label: "1T / 2T" },
     { id: "double", short: "DC", label: "Doppia chance" },
     { id: "btts", short: "BTTS", label: "BTTS" },
     { id: "combo", short: "COMBO", label: "Combo" },
@@ -58,6 +59,7 @@
   const QUICK_GROUPS = [
     { id: "all", label: "Top pronostici", note: "Tutti" },
     { id: "goals", label: "Goal", note: "O/U" },
+    { id: "halves", label: "1T / 2T", note: "Tempi" },
     { id: "double", label: "1X2 / DC", note: "Doppia" },
     { id: "btts", label: "Entrambe segnano", note: "BTTS" },
     { id: "corners", label: "Corner", note: "Linee" },
@@ -73,10 +75,10 @@
     { id: "goals_u25", group: "goals", marketId: "ou25", label: "Under 2.5" },
     { id: "goals_o35", group: "goals", marketId: "o35", label: "Over 3.5" },
     { id: "goals_u35", group: "goals", marketId: "o35", label: "Under 3.5" },
-    { id: "goals_ht_o15", group: "goals", marketId: "ht15", label: "Over 1.5 HT" },
-    { id: "goals_ht_u15", group: "goals", marketId: "ht15", label: "Under 1.5 HT" },
-    { id: "goals_sh_o15", group: "goals", marketId: "sh15", label: "Over 1.5 2H" },
-    { id: "goals_sh_u15", group: "goals", marketId: "sh15", label: "Under 1.5 2H" },
+    { id: "halves_ht_o15", group: "halves", marketId: "ht15", label: "Over 1.5 HT" },
+    { id: "halves_ht_u15", group: "halves", marketId: "ht15", label: "Under 1.5 HT" },
+    { id: "halves_sh_o15", group: "halves", marketId: "sh15", label: "Over 1.5 2H" },
+    { id: "halves_sh_u15", group: "halves", marketId: "sh15", label: "Under 1.5 2H" },
     ...[7.5, 8.5, 9.5, 10.5, 11.5, 12.5].map(line => ({ id: `corners_o_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Over ${line.toFixed(1)}` })),
     ...[10.5, 9.5].map(line => ({ id: `corners_u_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Under ${line.toFixed(1)}` })),
     ...[1.5, 2.5, 3.5, 4.5].map(line => ({ id: `yellows_o_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Over ${line.toFixed(1)}` })),
@@ -443,7 +445,7 @@
   }
 
   function visibleOutcomeGroups() {
-    const allowed = new Set(["goals", "corners", "yellows"]);
+    const allowed = new Set(["goals", "halves", "corners", "yellows"]);
     if (state.groups.size === GROUPS.length) return GROUPS.filter(group => allowed.has(group.id));
     const active = GROUPS.filter(group => allowed.has(group.id) && state.groups.has(group.id));
     return active.length ? active : GROUPS.filter(group => allowed.has(group.id));
@@ -649,7 +651,7 @@
   function focusedOutcomeGroup() {
     if (state.groups.size === 1) {
       const [groupId] = [...state.groups];
-      if (["goals", "corners", "yellows"].includes(groupId)) return groupId;
+      if (["goals", "halves", "corners", "yellows"].includes(groupId)) return groupId;
     }
     if (state.outcomeFilters.size) {
       const activeGroups = [...new Set(OUTCOME_FILTERS.filter(filter => state.outcomeFilters.has(filter.id)).map(filter => filter.group))];
@@ -1317,8 +1319,8 @@
       { id: "ou15", group: "goals", title: "Over / Under 1.5", pickLabel: match.ou15_pick, pickProbability: match.ou15_conf, options: [{ label: "Over 1.5", probability: match.p_over15, odd: match.odd_o15 }, { label: "Under 1.5", probability: match.p_under15, odd: match.odd_u15 }] },
       { id: "ou25", group: "goals", title: "Over / Under 2.5", pickLabel: match.ou_pick, pickProbability: match.ou_conf, options: [{ label: "Over 2.5", probability: match.p_over25, odd: match.odd_o25 }, { label: "Under 2.5", probability: match.p_under25, odd: match.odd_u25 }] },
       { id: "o35", group: "goals", title: "Over / Under 3.5", pickLabel: match.ou35_pick || (Number(match.p_over35 || 0) >= 0.5 ? "Over 3.5" : "Under 3.5"), pickProbability: match.ou35_conf ?? Math.max(Number(match.p_over35 || 0), Number(match.p_under35 || 0)), options: [{ label: "Over 3.5", probability: match.p_over35, odd: match.odd_o35 }, { label: "Under 3.5", probability: match.p_under35, odd: match.odd_u35 }] },
-      { id: "ht15", group: "goals", title: "1T Goals 1.5", pickLabel: match.ht15_pick, pickProbability: match.ht15_conf, options: [{ label: "Over 1.5 HT", probability: match.p_over15_ht, odd: match.odd_o15_ht }, { label: "Under 1.5 HT", probability: match.p_under15_ht, odd: match.odd_u15_ht }] },
-      { id: "sh15", group: "goals", title: "2T Goals 1.5", pickLabel: match.sh15_pick, pickProbability: match.sh15_conf, options: [{ label: "Over 1.5 2H", probability: match.p_over15_sh, odd: match.odd_o15_sh }, { label: "Under 1.5 2H", probability: match.p_under15_sh, odd: match.odd_u15_sh }] },
+      { id: "ht15", group: "halves", title: "1T Goals 1.5", pickLabel: match.ht15_pick, pickProbability: match.ht15_conf, options: [{ label: "Over 1.5 HT", probability: match.p_over15_ht, odd: match.odd_o15_ht }, { label: "Under 1.5 HT", probability: match.p_under15_ht, odd: match.odd_u15_ht }] },
+      { id: "sh15", group: "halves", title: "2T Goals 1.5", pickLabel: match.sh15_pick, pickProbability: match.sh15_conf, options: [{ label: "Over 1.5 2H", probability: match.p_over15_sh, odd: match.odd_o15_sh }, { label: "Under 1.5 2H", probability: match.p_under15_sh, odd: match.odd_u15_sh }] },
       { id: "dc", group: "double", title: "Doppia chance", pickLabel: match.dc_pick, pickProbability: match.dc_conf, options: [{ label: "1X", probability: match.p_1x, odd: match.odd_1x }, { label: "X2", probability: match.p_x2, odd: match.odd_x2 }] },
       { id: "btts", group: "btts", title: "Both Teams To Score", pickLabel: match.btts_pick, pickProbability: match.btts_conf, options: [{ label: "BTTS YES", probability: match.p_btts_yes, odd: match.odd_btts_y }, { label: "BTTS NO", probability: match.p_btts_no, odd: match.odd_btts_n }] },
       { id: "combo", group: "combo", title: "Combo Goals", pickLabel: "Over 2.5 + BTTS", pickProbability: match.p_o25_btts, options: [{ label: "Over 2.5 + BTTS", probability: match.p_o25_btts, odd: null }] },
@@ -1601,7 +1603,7 @@
       })
       ;
 
-    const quotas = { goals: 4, double: 2, btts: 2, combo: 2, corners: 2, yellows: 2, blank: 1 };
+    const quotas = { goals: 4, halves: 2, double: 2, btts: 2, combo: 2, corners: 2, yellows: 2, blank: 1 };
     const used = {};
     const diversified = [];
 
@@ -2057,7 +2059,7 @@
       } else if (activeOutcomeGroup) {
         dom.betMasterOutcomeMeta.textContent = IS_EN ? `All ${activeOutcomeGroup.label.toLowerCase()} outcomes` : `Tutti gli esiti ${activeOutcomeGroup.label.toLowerCase()}`;
       } else {
-        dom.betMasterOutcomeMeta.textContent = IS_EN ? "Mix goals, DC, BTTS, corners and cards" : "Mischia goal, doppie chance, BTTS, corner e cartellini";
+        dom.betMasterOutcomeMeta.textContent = IS_EN ? "Mix goals, halves, DC, BTTS, corners and cards" : "Mischia goal, tempi, doppie chance, BTTS, corner e cartellini";
       }
     }
     if (dom.betMasterOutcomeSummary) {

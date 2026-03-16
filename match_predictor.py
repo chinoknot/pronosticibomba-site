@@ -60,6 +60,14 @@ LIVE_STATUSES = {"1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"}
 FINAL_STATUSES = {"FT", "AET", "PEN", "AWD", "WO"}
 
 PREFERRED_BOOKMAKER_NAMES = {"Bet365", "bet365", "bet365.com", "Bet 365"}
+ODDS_API_IO_KEY = os.getenv("ODDS_API_IO_KEY", "").strip()
+ODDS_API_IO_BASE_URL = "https://api.odds-api.io/v3"
+ODDS_API_IO_TIMEOUT_SEC = int(os.getenv("ODDS_API_IO_TIMEOUT_SEC", "25"))
+ODDS_API_IO_BOOKMAKERS = [item.strip() for item in os.getenv("ODDS_API_IO_BOOKMAKERS", "Bet365,Unibet").split(",") if item.strip()]
+ODDS_API_IO_SESSION = requests.Session()
+ODDS_API_IO_DAY_EVENTS = {}
+ODDS_API_IO_DAY_PRIMED = set()
+ODDS_API_IO_ODDS_CACHE = {}
 
 # ==========================
 # UTILS
@@ -132,6 +140,265 @@ def parse_over_under_label(label):
     except ValueError:
         return None, None
     return side, line
+
+def oddsapi_request(path, params=None, timeout=ODDS_API_IO_TIMEOUT_SEC):
+    if not ODDS_API_IO_KEY:
+        return None
+    query = dict(params or {})
+    query["apiKey"] = ODDS_API_IO_KEY
+    try:
+        resp = ODDS_API_IO_SESSION.get(f"{ODDS_API_IO_BASE_URL}{path}", params=query, timeout=timeout)
+        resp.raise_for_status()
+        return resp.json()
+    except Exception:
+        return None
+
+def chunked(items, size):
+    seq = list(items or [])
+    for index in range(0, len(seq), size):
+        yield seq[index:index + size]
+
+def team_name_variants(name):
+    raw = str(name or "").strip().lower().replace("&", "and")
+    tokens = [token for token in re.split(r"[^a-z0-9]+", raw) if token]
+    stopwords = {"fc", "cf", "sc", "ac", "afc", "fk", "sk", "club"}
+    slim_tokens = [token for token in tokens if token not in stopwords]
+    variants = {normalize_key(raw)}
+    if slim_tokens:
+        variants.add("".join(slim_tokens))
+    if tokens:
+        variants.add("".join(tokens))
+    return {variant for variant in variants if variant}
+
+def team_name_match_score(left, right):
+    left_variants = team_name_variants(left)
+    right_variants = team_name_variants(right)
+    if not left_variants or not right_variants:
+        return 0
+    if left_variants & right_variants:
+        return 3
+    for lval in left_variants:
+        for rval in right_variants:
+            if min(len(lval), len(rval)) >= 6 and (lval in rval or rval in lval):
+                return 2
+    return 0
+
+def oddsapi_fixture_dates(kickoff_at, target_date=None):
+    dates = []
+    kickoff = parse_iso_dt(kickoff_at)
+    if kickoff:
+        utc_day = kickoff.astimezone(timezone.utc).strftime("%Y-%m-%d")
+        local_day = kickoff.astimezone(LOCAL_TZ).strftime("%Y-%m-%d")
+        dates.extend([utc_day, local_day])
+    if target_date:
+        dates.append(str(target_date))
+    seen = []
+    for item in dates:
+        if item and item not in seen:
+            seen.append(item)
+    return seen[:3]
+
+def oddsapi_prime_day(date_str):
+    if not ODDS_API_IO_KEY or not date_str or date_str in ODDS_API_IO_DAY_PRIMED:
+        return
+    events_by_id = {}
+    for bookmaker in ODDS_API_IO_BOOKMAKERS:
+        rows = oddsapi_request("/events", {
+            "sport": "football",
+            "status": "pending,live,settled",
+            "bookmaker": bookmaker,
+            "from": f"{date_str}T00:00:00Z",
+            "to": f"{date_str}T23:59:59Z",
+            "limit": 500,
+        }) or []
+        if isinstance(rows, list):
+            for row in rows:
+                event_id = row.get("id")
+                if event_id is not None:
+                    events_by_id[int(event_id)] = row
+    ODDS_API_IO_DAY_EVENTS[date_str] = list(events_by_id.values())
+    for batch in chunked(sorted(events_by_id.keys()), 10):
+        rows = oddsapi_request("/odds/multi", {
+            "eventIds": ",".join(str(item) for item in batch),
+            "bookmakers": ",".join(ODDS_API_IO_BOOKMAKERS),
+        }) or []
+        if isinstance(rows, list):
+            for row in rows:
+                event_id = row.get("id")
+                if event_id is not None:
+                    ODDS_API_IO_ODDS_CACHE[int(event_id)] = row
+    ODDS_API_IO_DAY_PRIMED.add(date_str)
+
+def oddsapi_find_event(home, away, kickoff_at, target_date=None):
+    kickoff = parse_iso_dt(kickoff_at)
+    best = None
+    best_score = -1
+    for date_str in oddsapi_fixture_dates(kickoff_at, target_date):
+        oddsapi_prime_day(date_str)
+        for event in ODDS_API_IO_DAY_EVENTS.get(date_str, []):
+            home_score = team_name_match_score(home, event.get("home"))
+            away_score = team_name_match_score(away, event.get("away"))
+            if not home_score or not away_score:
+                continue
+            score = home_score + away_score
+            if kickoff:
+                event_dt = parse_iso_dt(event.get("date"))
+                if event_dt:
+                    diff_min = abs((event_dt - kickoff).total_seconds()) / 60.0
+                    if diff_min > 720:
+                        continue
+                    if diff_min <= 5:
+                        score += 8
+                    elif diff_min <= 30:
+                        score += 6
+                    elif diff_min <= 90:
+                        score += 4
+                    elif diff_min <= 240:
+                        score += 2
+            if score > best_score:
+                best = event
+                best_score = score
+    return best
+
+def _store_scalar_if_missing(container, key, odd_value, bookmaker, source_name="oddsapi"):
+    if container.get(key):
+        return
+    odd_num = to_float(odd_value)
+    if odd_num is None:
+        return
+    container[key] = round(float(odd_num), 3)
+    container.setdefault("market_sources", {})[key] = {"source": source_name, "bookmaker": bookmaker}
+
+def _store_total_if_missing(container, source_container, line, side, odd_value, bookmaker, source_name="oddsapi"):
+    odd_num = to_float(odd_value)
+    if line is None or side not in {"over", "under"} or odd_num is None:
+        return
+    line_key = f"{float(line):.1f}"
+    bucket = container.setdefault(line_key, {})
+    if side in bucket and bucket.get(side):
+        return
+    bucket[side] = round(float(odd_num), 3)
+    source_container.setdefault(line_key, {})[side] = {"source": source_name, "bookmaker": bookmaker}
+
+def oddsapi_parse_event_odds(payload):
+    res = {
+        "bookmaker": "",
+        "corner_odds": {},
+        "yellow_odds": {},
+        "market_sources": {},
+        "corner_odds_sources": {},
+        "yellow_odds_sources": {},
+    }
+    bookmakers = (payload or {}).get("bookmakers") or {}
+    for bookmaker in ODDS_API_IO_BOOKMAKERS:
+        markets = bookmakers.get(bookmaker) or []
+        for market in markets:
+            name = str(market.get("name") or "").strip().lower()
+            rows = market.get("odds") or []
+            if name == "ml":
+                for row in rows:
+                    _store_scalar_if_missing(res, "odd_home", row.get("home"), bookmaker)
+                    _store_scalar_if_missing(res, "odd_draw", row.get("draw"), bookmaker)
+                    _store_scalar_if_missing(res, "odd_away", row.get("away"), bookmaker)
+            elif "double chance" in name:
+                for row in rows:
+                    label = normalize_key(row.get("label"))
+                    odd_value = row.get("under") or row.get("odd") or row.get("value")
+                    if label in {"1x", "homedraw"} or "ordraw" in label:
+                        _store_scalar_if_missing(res, "odd_1x", odd_value, bookmaker)
+                    elif label in {"x2", "drawaway"} or "drawor" in label:
+                        _store_scalar_if_missing(res, "odd_x2", odd_value, bookmaker)
+                    elif label in {"12", "homeaway"} or ("or" in label and "draw" not in label):
+                        _store_scalar_if_missing(res, "odd_12", odd_value, bookmaker)
+            elif "both teams to score" in name:
+                for row in rows:
+                    _store_scalar_if_missing(res, "odd_btts_y", row.get("yes"), bookmaker)
+                    _store_scalar_if_missing(res, "odd_btts_n", row.get("no"), bookmaker)
+            elif ("goals over/under" in name or name == "totals") and "corners" not in name and "bookings" not in name:
+                for row in rows:
+                    line = round(float(row.get("hdp")), 1) if to_float(row.get("hdp")) is not None else None
+                    if line == 1.5:
+                        _store_scalar_if_missing(res, "odd_o15", row.get("over"), bookmaker)
+                        _store_scalar_if_missing(res, "odd_u15", row.get("under"), bookmaker)
+                    elif line == 2.5:
+                        _store_scalar_if_missing(res, "odd_o25", row.get("over"), bookmaker)
+                        _store_scalar_if_missing(res, "odd_u25", row.get("under"), bookmaker)
+                    elif line == 3.5:
+                        _store_scalar_if_missing(res, "odd_o35", row.get("over"), bookmaker)
+                        _store_scalar_if_missing(res, "odd_u35", row.get("under"), bookmaker)
+            elif "totals ht" in name or ("first half" in name and "totals" in name):
+                for row in rows:
+                    line = round(float(row.get("hdp")), 1) if to_float(row.get("hdp")) is not None else None
+                    if line == 1.5:
+                        _store_scalar_if_missing(res, "odd_o15_ht", row.get("over"), bookmaker)
+                        _store_scalar_if_missing(res, "odd_u15_ht", row.get("under"), bookmaker)
+            elif "totals 2h" in name or "totals sh" in name or ("second half" in name and "totals" in name):
+                for row in rows:
+                    line = round(float(row.get("hdp")), 1) if to_float(row.get("hdp")) is not None else None
+                    if line == 1.5:
+                        _store_scalar_if_missing(res, "odd_o15_sh", row.get("over"), bookmaker)
+                        _store_scalar_if_missing(res, "odd_u15_sh", row.get("under"), bookmaker)
+            elif "corners totals" in name and "ht" not in name:
+                for row in rows:
+                    line = round(float(row.get("hdp")), 1) if to_float(row.get("hdp")) is not None else None
+                    _store_total_if_missing(res["corner_odds"], res["corner_odds_sources"], line, "over", row.get("over"), bookmaker)
+                    _store_total_if_missing(res["corner_odds"], res["corner_odds_sources"], line, "under", row.get("under"), bookmaker)
+            elif "bookings totals" in name:
+                for row in rows:
+                    line = round(float(row.get("hdp")), 1) if to_float(row.get("hdp")) is not None else None
+                    _store_total_if_missing(res["yellow_odds"], res["yellow_odds_sources"], line, "over", row.get("over"), bookmaker)
+                    _store_total_if_missing(res["yellow_odds"], res["yellow_odds_sources"], line, "under", row.get("under"), bookmaker)
+    return res
+
+def merge_odds(primary, fallback):
+    if not fallback:
+        return primary
+    merged = dict(primary or {})
+    merged.setdefault("corner_odds", {})
+    merged.setdefault("yellow_odds", {})
+    merged.setdefault("market_sources", dict((primary or {}).get("market_sources") or {}))
+    merged.setdefault("corner_odds_sources", dict((primary or {}).get("corner_odds_sources") or {}))
+    merged.setdefault("yellow_odds_sources", dict((primary or {}).get("yellow_odds_sources") or {}))
+    for key, value in (fallback.get("market_sources") or {}).items():
+        merged["market_sources"].setdefault(key, value)
+    for line_key, sides in (fallback.get("corner_odds_sources") or {}).items():
+        target = merged["corner_odds_sources"].setdefault(line_key, {})
+        for side, meta in sides.items():
+            target.setdefault(side, meta)
+    for line_key, sides in (fallback.get("yellow_odds_sources") or {}).items():
+        target = merged["yellow_odds_sources"].setdefault(line_key, {})
+        for side, meta in sides.items():
+            target.setdefault(side, meta)
+    for key, value in fallback.items():
+        if key in {"corner_odds", "yellow_odds", "market_sources", "corner_odds_sources", "yellow_odds_sources"}:
+            continue
+        if not merged.get(key) and value not in (None, "", {}):
+            merged[key] = value
+    for map_key in ("corner_odds", "yellow_odds"):
+        source_map = fallback.get(map_key) or {}
+        target_map = merged.setdefault(map_key, {})
+        for line_key, sides in source_map.items():
+            bucket = target_map.setdefault(line_key, {})
+            for side, odd in (sides or {}).items():
+                if side not in bucket or not bucket.get(side):
+                    bucket[side] = odd
+    return merged
+
+def get_oddsapi_fallback(home, away, kickoff_at, target_date=None):
+    if not ODDS_API_IO_KEY:
+        return {}
+    event = oddsapi_find_event(home, away, kickoff_at, target_date=target_date)
+    if not event:
+        return {}
+    payload = ODDS_API_IO_ODDS_CACHE.get(int(event.get("id") or 0))
+    if not payload:
+        payload = oddsapi_request("/odds", {
+            "eventId": event.get("id"),
+            "bookmakers": ",".join(ODDS_API_IO_BOOKMAKERS),
+        }) or {}
+        if payload and payload.get("id") is not None:
+            ODDS_API_IO_ODDS_CACHE[int(payload["id"])] = payload
+    return oddsapi_parse_event_odds(payload)
 
 
 # ==========================
@@ -504,10 +771,11 @@ def get_prediction(fixture_id):
     }
 
 
-def get_odds(fixture_id):
+def get_odds(fixture_id, home=None, away=None, kickoff_at=None, target_date=None):
     data0 = api_request("/odds", {"fixture": fixture_id, "page": 1})
     resp0 = data0.get("response", []) if isinstance(data0, dict) else []
-    if not resp0: return {}
+    if not resp0:
+        return get_oddsapi_fallback(home, away, kickoff_at, target_date=target_date)
 
     bookmakers = list(resp0[0].get("bookmakers") or [])
     paging = (data0.get("paging") or {}) if isinstance(data0, dict) else {}
@@ -526,7 +794,8 @@ def get_odds(fixture_id):
                 if nm and nm not in seen: bookmakers.append(bm); seen.add(nm)
             if any(_is_b365((b or {}).get("name")) for b in bookmakers): break
 
-    if not bookmakers: return {}
+    if not bookmakers:
+        return get_oddsapi_fallback(home, away, kickoff_at, target_date=target_date)
 
     chosen = next((b for b in bookmakers if _is_b365(b.get("name"))), bookmakers[0])
     bets = chosen.get("bets", [])
@@ -625,7 +894,7 @@ def get_odds(fixture_id):
                 side, line = parse_over_under_label(v.get("value"))
                 _store_total_odd(res["yellow_odds"], line, side, v.get("odd"))
 
-    return res
+    return merge_odds(res, get_oddsapi_fallback(home, away, kickoff_at, target_date=target_date))
 
 
 def get_team_stats(league_id, season, team_id):
@@ -1253,7 +1522,7 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
             print(f"# Progresso: {idx}/{total}...", file=sys.stderr)
 
         pred = get_prediction(fid)
-        odds = get_odds(fid)
+        odds = get_odds(fid, home=hn, away=an, kickoff_at=dateiso, target_date=target)
         h_ts = get_team_stats(lid, season, hid)
         a_ts = get_team_stats(lid, season, aid)
         hp_ = profile(h_ts, "home")
