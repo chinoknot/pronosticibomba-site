@@ -1067,23 +1067,32 @@
     }
 
     .combo-ticket.win{
-      border-color:rgba(37,219,169,.42);
+      border-color:rgba(34,211,238,.34);
+      background:
+        radial-gradient(circle at right center, rgba(45,212,191,.16), transparent 42%),
+        linear-gradient(180deg, rgba(7,44,45,.98), rgba(6,20,30,.99));
       box-shadow:
-        inset 0 0 0 1px rgba(37,219,169,.12),
+        inset 0 0 0 1px rgba(34,211,238,.22),
         0 12px 32px rgba(0,0,0,.28);
     }
 
     .combo-ticket.lose{
-      border-color:rgba(240,90,182,.42);
+      border-color:rgba(244,114,182,.38);
+      background:
+        repeating-linear-gradient(135deg, rgba(190,24,93,.10) 0 10px, rgba(88,28,135,.12) 10px 20px),
+        linear-gradient(180deg, rgba(67,12,41,.98), rgba(27,9,31,.99));
       box-shadow:
-        inset 0 0 0 1px rgba(240,90,182,.12),
+        inset 0 0 0 1px rgba(244,114,182,.24),
         0 12px 32px rgba(0,0,0,.28);
     }
 
     .combo-ticket.live{
-      border-color:rgba(248,192,77,.34);
+      border-color:rgba(56,189,248,.34);
+      background:
+        radial-gradient(circle at right center, rgba(56,189,248,.12), transparent 42%),
+        linear-gradient(180deg, rgba(12,40,72,.98), rgba(9,18,34,.99));
       box-shadow:
-        inset 0 0 0 1px rgba(248,192,77,.1),
+        inset 0 0 0 1px rgba(56,189,248,.18),
         0 12px 32px rgba(0,0,0,.28);
     }
 
@@ -1172,6 +1181,27 @@
     .combo-ticket-body{
       padding:0 14px 14px;
       border-top:1px solid rgba(255,255,255,.06);
+    }
+
+    .combo-ticket.win .combo-ticket-label,
+    .combo-ticket.win .combo-ticket-meta,
+    .combo-ticket.win .combo-leg-teams,
+    .combo-ticket.win .combo-leg-time strong{
+      color:#ccfbf1;
+    }
+
+    .combo-ticket.lose .combo-ticket-label,
+    .combo-ticket.lose .combo-ticket-meta,
+    .combo-ticket.lose .combo-leg-teams,
+    .combo-ticket.lose .combo-leg-time strong{
+      color:#ffe4ef;
+    }
+
+    .combo-ticket.live .combo-ticket-label,
+    .combo-ticket.live .combo-ticket-meta,
+    .combo-ticket.live .combo-leg-teams,
+    .combo-ticket.live .combo-leg-time strong{
+      color:#dbeafe;
     }
 
     .combo-legs{
@@ -1779,42 +1809,60 @@
     }
 
     .live-pick.win{
-      border-color:rgba(37,219,169,.46);
+      border-color:rgba(34,211,238,.34);
       background:
-        linear-gradient(90deg, rgba(37,219,169,.24), rgba(5,10,20,.84) 24%),
-        rgba(5,10,20,.84);
+        radial-gradient(circle at right center, rgba(45,212,191,.16), transparent 38%),
+        linear-gradient(180deg, rgba(7,44,45,.96), rgba(6,20,30,.98));
       box-shadow:
-        inset 0 0 0 1px rgba(37,219,169,.18),
-        0 0 0 1px rgba(37,219,169,.05);
+        inset 0 0 0 1px rgba(34,211,238,.22),
+        0 0 0 1px rgba(34,211,238,.04);
     }
 
     .live-pick.win::before{
-      background:linear-gradient(180deg, #26dbab, #8ffff0);
+      background:linear-gradient(180deg, rgba(45,212,191,.98), rgba(34,211,238,.98));
     }
 
     .live-pick.lose{
-      border-color:rgba(240,90,182,.48);
+      border-color:rgba(244,114,182,.36);
       background:
-        linear-gradient(90deg, rgba(240,90,182,.24), rgba(5,10,20,.84) 24%),
-        rgba(5,10,20,.84);
+        repeating-linear-gradient(135deg, rgba(190,24,93,.10) 0 10px, rgba(88,28,135,.12) 10px 20px),
+        linear-gradient(180deg, rgba(67,12,41,.96), rgba(27,9,31,.99));
       box-shadow:
-        inset 0 0 0 1px rgba(240,90,182,.18),
-        0 0 0 1px rgba(240,90,182,.05);
+        inset 0 0 0 1px rgba(244,114,182,.24),
+        0 0 0 1px rgba(244,114,182,.04);
     }
 
     .live-pick.lose::before{
-      background:linear-gradient(180deg, #ff66be, #ffb7e7);
+      background:linear-gradient(180deg, rgba(251,113,133,.98), rgba(244,114,182,.98));
     }
 
     .live-pick.live{
-      border-color:rgba(248,192,77,.3);
+      border-color:rgba(56,189,248,.32);
       background:
-        linear-gradient(90deg, rgba(248,192,77,.1), rgba(5,10,20,.78) 18%),
-        rgba(5,10,20,.78);
+        radial-gradient(circle at right center, rgba(56,189,248,.12), transparent 38%),
+        linear-gradient(180deg, rgba(12,40,72,.94), rgba(8,17,32,.98));
     }
 
     .live-pick.live::before{
-      background:linear-gradient(180deg, #f8c04d, #ffe6aa);
+      background:linear-gradient(180deg, rgba(56,189,248,.98), rgba(125,211,252,.98));
+    }
+
+    .live-pick.win .live-pick-time span,
+    .live-pick.win .status-note,
+    .live-pick.win .league-chip{
+      color:#ccfbf1;
+    }
+
+    .live-pick.lose .live-pick-time span,
+    .live-pick.lose .status-note,
+    .live-pick.lose .league-chip{
+      color:#ffe4ef;
+    }
+
+    .live-pick.live .live-pick-time span,
+    .live-pick.live .status-note,
+    .live-pick.live .league-chip{
+      color:#dbeafe;
     }
 
     .live-pick-time{
