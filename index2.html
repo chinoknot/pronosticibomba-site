@@ -90,6 +90,11 @@
       background:linear-gradient(180deg, rgba(3,6,15,.88), rgba(3,6,15,.28));
     }
 
+    main{
+      margin:16px auto 30px;
+      padding:0 0 20px;
+    }
+
     .topbar-inner{
       display:flex;
       align-items:center;
@@ -520,7 +525,7 @@
     }
 
     .section{
-      padding:14px 0;
+      padding:10px 0;
     }
 
     .section-head{
@@ -528,7 +533,7 @@
       align-items:end;
       justify-content:space-between;
       gap:14px;
-      margin-bottom:18px;
+      margin-bottom:12px;
     }
 
     .section-head h2{
@@ -550,14 +555,14 @@
     .roi-grid{
       display:grid;
       grid-template-columns:repeat(2, minmax(0,1fr));
-      gap:14px;
+      gap:10px;
     }
 
     .roi-card{
       position:relative;
-      min-height:200px;
-      padding:18px;
-      border-radius:24px;
+      min-height:156px;
+      padding:14px;
+      border-radius:20px;
       border:1px solid rgba(255,255,255,.08);
       overflow:hidden;
       background:
@@ -589,15 +594,15 @@
     .roi-card h3{
       margin:8px 0 0;
       font-family:"Sora",sans-serif;
-      font-size:1.2rem;
+      font-size:1.02rem;
       letter-spacing:-.04em;
     }
 
     .roi-card p{
       margin:0;
       color:var(--muted);
-      font-size:.82rem;
-      line-height:1.4;
+      font-size:.74rem;
+      line-height:1.3;
     }
 
     .roi-metric{
@@ -657,7 +662,7 @@
     }
 
     .picks-section{
-      padding-top:10px;
+      padding-top:4px;
     }
 
     .section-copy{
@@ -672,7 +677,7 @@
       display:flex;
       flex-wrap:wrap;
       justify-content:flex-end;
-      gap:10px;
+      gap:8px;
     }
 
     .summary-pill{
@@ -701,9 +706,9 @@
     .summary-pill.live strong{color:#ffd47a}
 
     .live-shell{
-      padding:18px;
+      padding:14px;
       border:1px solid rgba(255,255,255,.08);
-      border-radius:26px;
+      border-radius:22px;
       background:
         radial-gradient(circle at top right, rgba(255,122,24,.1), transparent 26%),
         linear-gradient(180deg, rgba(9,14,28,.96), rgba(5,9,19,.99));
@@ -715,8 +720,8 @@
       align-items:center;
       justify-content:space-between;
       gap:14px;
-      margin-bottom:14px;
-      padding-bottom:12px;
+      margin-bottom:10px;
+      padding-bottom:10px;
       border-bottom:1px solid rgba(255,255,255,.07);
     }
 
@@ -768,7 +773,7 @@
 
     .categories-live{
       display:grid;
-      gap:16px;
+      gap:10px;
     }
 
     .live-category{
@@ -1134,10 +1139,14 @@
       }
 
       .topbar-inner{
-        border-radius:26px;
-        padding:14px;
+        border-radius:20px;
+        padding:12px;
         align-items:flex-start;
         flex-direction:column;
+      }
+
+      main{
+        margin-top:8px;
       }
 
       .nav{
@@ -1150,32 +1159,6 @@
 
       .nav::-webkit-scrollbar{display:none}
 
-      .hero{
-        padding-top:14px;
-      }
-
-      .hero-main,
-      .hero-stage{
-        border-radius:22px;
-      }
-
-      .hero-main{
-        padding:18px;
-      }
-
-      h1{
-        max-width:none;
-        font-size:clamp(2.7rem, 16vw, 4.6rem);
-      }
-
-      .hero-sub{
-        font-size:.82rem;
-      }
-
-      .hero-strip{
-        grid-template-columns:1fr 1fr;
-      }
-
       .section-head{
         align-items:flex-start;
         flex-direction:column;
@@ -1186,12 +1169,12 @@
       }
 
       .live-shell{
-        padding:14px;
-        border-radius:22px;
+        padding:12px;
+        border-radius:18px;
       }
 
       .live-list{
-        padding:10px 0 0;
+        padding:8px 0 0;
       }
 
       .live-pick{
@@ -1233,11 +1216,11 @@
       }
 
       .section-head{
-        gap:10px;
+        gap:8px;
       }
 
       .section-head h2{
-        font-size:1.45rem;
+        font-size:1.22rem;
       }
 
       .section-copy,
@@ -1248,19 +1231,23 @@
       }
 
       .summary-pill{
-        min-height:36px;
-        padding:0 10px;
-        font-size:.74rem;
+        min-height:32px;
+        padding:0 9px;
+        font-size:.68rem;
       }
+
+      .feed-summary-strip{
+        width:100%;
+        flex-wrap:nowrap;
+        justify-content:flex-start;
+        overflow:auto;
+        scrollbar-width:none;
+      }
+
+      .feed-summary-strip::-webkit-scrollbar{display:none}
 
       .legend-inline{
-        gap:6px;
-      }
-
-      .legend-chip{
-        min-height:30px;
-        padding:0 10px;
-        font-size:.7rem;
+        display:none;
       }
 
       .live-category{
@@ -1277,24 +1264,36 @@
         font-size:.72rem;
       }
 
-      .stage-card{
-        padding:12px;
-        border-radius:18px;
-      }
-
-      .match-row{
-        grid-template-columns:54px minmax(0,1fr) auto;
+      .roi-grid{
+        grid-template-columns:repeat(2, minmax(0,1fr));
         gap:8px;
       }
 
-      .pick-tag{
-        min-height:32px;
-        padding:0 10px;
+      .roi-card{
+        min-height:124px;
+        padding:12px;
+      }
+
+      .roi-card h3{
+        font-size:.9rem;
+      }
+
+      .roi-card p{
         font-size:.68rem;
       }
 
-      .roi-grid{
-        grid-template-columns:1fr;
+      .roi-metric{
+        min-height:28px;
+        padding:0 8px;
+        font-size:.66rem;
+      }
+
+      .roi-cta{
+        font-size:.74rem;
+      }
+
+      .league-chip{
+        display:none;
       }
     }
   </style>
@@ -1321,93 +1320,11 @@
   </header>
 
   <main class="shell">
-    <section class="hero">
-      <div class="hero-grid">
-        <article class="hero-main" data-reveal>
-          <div>
-            <span class="hero-kicker">Pronostici calcio</span>
-            <h1>
-              <span class="hero-accent">Diretti.</span><br>
-              Veloci.<br>
-              Senza fuffa.
-            </h1>
-            <p class="hero-sub">
-              Picks davanti. Storico ROI a un tap. Fine.
-            </p>
-            <div class="hero-actions">
-              <a class="cta primary" href="/storico.html">Storico ROI</a>
-              <a class="cta ghost" href="/match-center.html">Match Center</a>
-            </div>
-          </div>
-          <div class="hero-strip">
-            <div class="hero-pill">
-              <strong>ROI live</strong>
-              <span>Vinte, perse, live</span>
-            </div>
-            <div class="hero-pill">
-              <strong>Picks vere</strong>
-              <span>Stesso feed, stile nuovo</span>
-            </div>
-          </div>
-        </article>
-
-        <aside class="hero-stage" data-reveal>
-          <div class="stage-bar">
-            <div>
-              <strong>Oggi si entra cosi</strong>
-              <span>poco testo, picks davanti</span>
-            </div>
-            <span class="stage-badge" id="hero-day-badge">Live</span>
-          </div>
-
-          <div class="stage-stack">
-            <article class="stage-card">
-              <div class="stage-card-top">
-                <div>
-                  <strong>ROI picks del momento</strong>
-                  <span>stato live, win/lose e pick vera davanti</span>
-                </div>
-                <span class="stage-badge">Hot</span>
-              </div>
-              <div id="index2-stage-feed" class="empty-board">Carico le picks del giorno...</div>
-            </article>
-
-            <article class="stage-card">
-              <div class="stage-card-top">
-                <div>
-                  <strong>Quadro rapido</strong>
-                  <span>conta reale, live, vinte, perse e ROI picks</span>
-                </div>
-                <span class="stage-badge">Board</span>
-              </div>
-              <div id="index2-stage-summary" class="hero-score-strip">
-                <div class="hero-score-card">
-                  <span>Picks</span>
-                  <strong>-</strong>
-                  <em>In caricamento</em>
-                </div>
-                <div class="hero-score-card">
-                  <span>Live</span>
-                  <strong>-</strong>
-                  <em>Partite aperte</em>
-                </div>
-              </div>
-              <div class="mini-legend">
-                <span class="status-badge win">Vinta</span>
-                <span class="status-badge lose">Persa</span>
-                <span class="status-badge live">Live</span>
-              </div>
-            </article>
-          </div>
-        </aside>
-      </div>
-    </section>
-
     <section class="section picks-section" data-reveal>
       <div class="section-head">
         <div>
-          <h2>Picks del giorno</h2>
-          <p class="section-copy">Feed reale, stato reale, badge chiari.</p>
+          <h2>Picks oggi</h2>
+          <p class="section-copy">Live, win, lose, ROI pick.</p>
         </div>
         <div id="index2-board-summary" class="feed-summary-strip">
           <span class="summary-pill"><strong>-</strong> loading</span>
@@ -1435,16 +1352,16 @@
     <section class="section" data-reveal>
       <div class="section-head">
         <div>
-          <h2>Storico ROI</h2>
+          <h2>ROI</h2>
         </div>
-        <p class="section-copy">Qui resta il secondo core del sito: storico compatto, diretto, senza spiegoni.</p>
+        <p class="section-copy">Storico pulito, senza rumore.</p>
       </div>
       <div class="roi-grid">
         <a class="roi-card" href="/storico.html">
           <div>
             <span class="roi-eyebrow">01</span>
             <h3>Storico ROI</h3>
-            <p>Andamento reale, bilancio chiuso, numeri netti.</p>
+            <p>Bilancio, resa, chiusure.</p>
           </div>
           <div>
             <span class="roi-metric">Core</span>
@@ -1456,7 +1373,7 @@
           <div>
             <span class="roi-eyebrow">02</span>
             <h3>Storico picks</h3>
-            <p>Singola pick, dettaglio match, badge e resa puntuale.</p>
+            <p>Singola pick e dettaglio.</p>
           </div>
           <div>
             <span class="roi-metric">Dettaglio</span>
