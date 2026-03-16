@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-03-16T16:14:43.108412+00:00",
+  "generated_at": "2026-03-16T16:56:04.000978+00:00",
   "timezone": "Europe/Rome",
   "latest_date": "2026-03-16",
   "dates": [
     {
       "date": "2026-03-16",
       "file": "2026-03-16.json",
-      "generated_at": "2026-03-15T23:52:00.829763+00:00",
-      "expires_at": "2026-03-16T23:52:00.829785+00:00",
-      "matches": 144,
-      "final_matches": 68
+      "generated_at": "2026-03-16T16:55:27.950734+00:00",
+      "expires_at": "2026-03-17T16:55:27.950753+00:00",
+      "matches": 148,
+      "final_matches": 72
     }
   ]
 }
