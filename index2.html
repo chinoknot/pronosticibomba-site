@@ -501,6 +501,24 @@
       white-space:nowrap;
     }
 
+    .pick-tag.win{
+      border-color:rgba(37,219,169,.4);
+      background:rgba(37,219,169,.12);
+      color:#93ffe1;
+    }
+
+    .pick-tag.lose{
+      border-color:rgba(240,90,182,.4);
+      background:rgba(240,90,182,.12);
+      color:#ffc4e9;
+    }
+
+    .pick-tag.live{
+      border-color:rgba(248,192,77,.36);
+      background:rgba(248,192,77,.12);
+      color:#ffe0a1;
+    }
+
     .section{
       padding:14px 0;
     }
@@ -782,6 +800,438 @@
       transform:none;
     }
 
+    .picks-section{
+      padding-top:10px;
+    }
+
+    .section-copy{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:.92rem;
+      line-height:1.45;
+      max-width:38rem;
+    }
+
+    .feed-summary-strip{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      gap:10px;
+    }
+
+    .summary-pill{
+      min-height:42px;
+      padding:0 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      color:#e8efff;
+      font-size:.82rem;
+      font-weight:700;
+      white-space:nowrap;
+    }
+
+    .summary-pill strong{
+      font-family:"Sora",sans-serif;
+      font-size:.92rem;
+      letter-spacing:-.03em;
+    }
+
+    .summary-pill.win strong{color:#73f6d0}
+    .summary-pill.lose strong{color:#ff8fcb}
+    .summary-pill.live strong{color:#ffd47a}
+
+    .live-shell{
+      padding:22px;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:30px;
+      background:
+        radial-gradient(circle at top right, rgba(255,122,24,.1), transparent 26%),
+        linear-gradient(180deg, rgba(9,14,28,.96), rgba(5,9,19,.99));
+      box-shadow:var(--shadow);
+    }
+
+    .live-toolbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:18px;
+      padding-bottom:14px;
+      border-bottom:1px solid rgba(255,255,255,.07);
+    }
+
+    .live-toolbar-left{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:10px;
+    }
+
+    .toolbar-note{
+      color:var(--muted);
+      font-size:.84rem;
+    }
+
+    .legend-inline{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      gap:8px;
+    }
+
+    .legend-chip{
+      min-height:34px;
+      padding:0 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      background:rgba(255,255,255,.03);
+      font-size:.78rem;
+      font-weight:700;
+      color:#eaf1ff;
+      white-space:nowrap;
+    }
+
+    .legend-dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      flex:0 0 auto;
+    }
+
+    .legend-dot.win{background:#25dba9}
+    .legend-dot.lose{background:#f05ab6}
+    .legend-dot.live{background:#f8c04d}
+    .legend-dot.roi{background:linear-gradient(135deg, var(--gold), var(--orange))}
+
+    .categories-live{
+      display:grid;
+      gap:16px;
+    }
+
+    .live-category{
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:26px;
+      overflow:hidden;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+    }
+
+    .live-category-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:16px 18px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+
+    .live-category-head h3{
+      margin:0;
+      font-family:"Sora",sans-serif;
+      font-size:1.14rem;
+      letter-spacing:-.04em;
+    }
+
+    .live-category-head p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:.8rem;
+    }
+
+    .live-category-meta{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      gap:8px;
+    }
+
+    .live-category-count{
+      min-height:34px;
+      padding:0 12px;
+      border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      color:#f7fbff;
+      font-size:.78rem;
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    .live-list{
+      display:grid;
+      gap:12px;
+      padding:16px;
+    }
+
+    .live-pick{
+      display:grid;
+      grid-template-columns:82px minmax(0, 1fr) auto;
+      gap:14px;
+      align-items:center;
+      padding:16px;
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.07);
+      background:rgba(5,10,20,.72);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    }
+
+    .live-pick.win{
+      border-color:rgba(37,219,169,.34);
+      background:
+        linear-gradient(90deg, rgba(37,219,169,.12), rgba(5,10,20,.78) 18%),
+        rgba(5,10,20,.78);
+    }
+
+    .live-pick.lose{
+      border-color:rgba(240,90,182,.34);
+      background:
+        linear-gradient(90deg, rgba(240,90,182,.13), rgba(5,10,20,.78) 18%),
+        rgba(5,10,20,.78);
+    }
+
+    .live-pick.live{
+      border-color:rgba(248,192,77,.3);
+      background:
+        linear-gradient(90deg, rgba(248,192,77,.1), rgba(5,10,20,.78) 18%),
+        rgba(5,10,20,.78);
+    }
+
+    .live-pick-time{
+      display:grid;
+      gap:4px;
+      align-content:start;
+    }
+
+    .live-pick-time strong{
+      color:#ffe39e;
+      font-family:"Sora",sans-serif;
+      font-size:1rem;
+      letter-spacing:-.04em;
+    }
+
+    .live-pick-time span{
+      color:var(--muted);
+      font-size:.76rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .live-pick-main{
+      min-width:0;
+    }
+
+    .live-pick-top{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:8px;
+      margin-bottom:8px;
+    }
+
+    .league-chip,
+    .roi-pill{
+      min-height:28px;
+      padding:0 10px;
+      border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      font-size:.72rem;
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    .league-chip{
+      border:1px solid rgba(255,255,255,.09);
+      background:rgba(255,255,255,.04);
+      color:#e6efff;
+    }
+
+    .roi-pill{
+      border:1px solid rgba(255,122,24,.36);
+      background:linear-gradient(135deg, rgba(255,122,24,.15), rgba(255,200,61,.12));
+      color:#ffe7b3;
+    }
+
+    .roi-pill.backup{
+      border-color:rgba(61,213,243,.24);
+      background:rgba(61,213,243,.08);
+      color:#bfefff;
+    }
+
+    .live-pick-teams{
+      display:block;
+      font-family:"Sora",sans-serif;
+      font-size:1.06rem;
+      letter-spacing:-.04em;
+      line-height:1.15;
+    }
+
+    .live-pick-sub{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .pick-chip,
+    .odd-chip,
+    .confidence-chip{
+      min-height:34px;
+      padding:0 12px;
+      border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:.78rem;
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    .pick-chip{
+      border:1px solid rgba(255,200,61,.3);
+      background:rgba(255,200,61,.08);
+      color:#fff0c8;
+    }
+
+    .odd-chip,
+    .confidence-chip{
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      color:#e7eeff;
+    }
+
+    .live-pick-side{
+      display:grid;
+      justify-items:end;
+      gap:8px;
+      min-width:128px;
+    }
+
+    .status-badge{
+      min-height:38px;
+      padding:0 14px;
+      border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.01em;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.05);
+      color:#f2f6ff;
+      white-space:nowrap;
+    }
+
+    .status-badge.win{
+      border-color:rgba(37,219,169,.45);
+      background:rgba(37,219,169,.12);
+      color:#90ffe0;
+    }
+
+    .status-badge.lose{
+      border-color:rgba(240,90,182,.45);
+      background:rgba(240,90,182,.12);
+      color:#ffc4e9;
+    }
+
+    .status-badge.live{
+      border-color:rgba(248,192,77,.4);
+      background:rgba(248,192,77,.12);
+      color:#ffe3a1;
+    }
+
+    .status-badge.finished{
+      border-color:rgba(159,176,208,.2);
+      background:rgba(159,176,208,.09);
+      color:#d5dff5;
+    }
+
+    .status-badge.pending{
+      border-color:rgba(59,130,246,.32);
+      background:rgba(59,130,246,.12);
+      color:#bfd7ff;
+    }
+
+    .status-note{
+      color:var(--muted);
+      font-size:.76rem;
+      text-align:right;
+    }
+
+    .empty-board{
+      padding:26px 18px;
+      border-radius:22px;
+      border:1px dashed rgba(255,255,255,.12);
+      color:var(--muted);
+      text-align:center;
+      font-size:.94rem;
+    }
+
+    .hero-score-strip{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:10px;
+      margin-top:6px;
+    }
+
+    .hero-score-card{
+      padding:14px;
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.035);
+    }
+
+    .hero-score-card span{
+      display:block;
+      color:var(--muted);
+      font-size:.74rem;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+    }
+
+    .hero-score-card strong{
+      display:block;
+      margin-top:8px;
+      font-family:"Sora",sans-serif;
+      font-size:1.36rem;
+      letter-spacing:-.05em;
+    }
+
+    .hero-score-card em{
+      display:block;
+      margin-top:6px;
+      color:#d7e1f2;
+      font-style:normal;
+      font-size:.8rem;
+    }
+
+    .hero-score-card.win strong{color:#73f6d0}
+    .hero-score-card.lose strong{color:#ff8fcb}
+    .hero-score-card.live strong{color:#ffe39e}
+
+    .mini-legend{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:12px;
+    }
+
+    .mini-legend .status-badge{
+      min-height:30px;
+      padding:0 10px;
+      font-size:.74rem;
+    }
+
     @media (max-width: 1080px){
       .hero-grid,
       .impact{
@@ -801,6 +1251,28 @@
       }
 
       .closing-actions{
+        justify-content:flex-start;
+      }
+
+      .live-pick{
+        grid-template-columns:74px minmax(0,1fr);
+      }
+
+      .live-pick-side{
+        grid-column:2;
+        justify-items:start;
+        min-width:0;
+      }
+
+      .live-category-head,
+      .live-toolbar{
+        align-items:flex-start;
+        flex-direction:column;
+      }
+
+      .feed-summary-strip,
+      .legend-inline,
+      .live-category-meta{
         justify-content:flex-start;
       }
     }
@@ -871,6 +1343,46 @@
       }
 
       .impact-grid{
+        grid-template-columns:1fr;
+      }
+
+      .live-shell{
+        padding:18px;
+        border-radius:26px;
+      }
+
+      .live-list{
+        padding:12px;
+      }
+
+      .live-pick{
+        grid-template-columns:1fr;
+        gap:12px;
+      }
+
+      .live-pick-time{
+        grid-auto-flow:column;
+        justify-content:flex-start;
+        align-items:center;
+        gap:10px;
+      }
+
+      .live-pick-side{
+        grid-column:auto;
+      }
+
+      .live-pick-sub{
+        gap:6px;
+      }
+
+      .pick-chip,
+      .odd-chip,
+      .confidence-chip{
+        font-size:.73rem;
+        padding:0 10px;
+      }
+
+      .hero-score-strip{
         grid-template-columns:1fr;
       }
 
@@ -945,74 +1457,81 @@
         <aside class="hero-stage" data-reveal>
           <div class="stage-bar">
             <div>
-                  <strong>Oggi si entra cosi</strong>
+              <strong>Oggi si entra cosi</strong>
               <span>poco testo, picks davanti</span>
             </div>
-            <span class="stage-badge">Live mood</span>
+            <span class="stage-badge" id="hero-day-badge">Live</span>
           </div>
 
           <div class="stage-stack">
             <article class="stage-card">
               <div class="stage-card-top">
                 <div>
-                  <strong>Partite da colpire</strong>
-                  <span>finestra rapida, selezione dura</span>
+                  <strong>ROI picks del momento</strong>
+                  <span>stato live, win/lose e pick vera davanti</span>
                 </div>
                 <span class="stage-badge">Hot</span>
               </div>
-              <div class="match-row">
-                <div class="match-time">17:30</div>
-                <div class="match-body">
-                  <strong>Leverkusen vs Mainz</strong>
-                  <span>Bundesliga | linea da spingere</span>
-                </div>
-                <div class="pick-tag">BTTS</div>
-              </div>
-              <div class="match-row">
-                <div class="match-time">20:00</div>
-                <div class="match-body">
-                  <strong>Fiorentina vs Torino</strong>
-                  <span>Serie A | partita sporca</span>
-                </div>
-                <div class="pick-tag">Under 3.5</div>
-              </div>
-              <div class="match-row">
-                <div class="match-time">21:00</div>
-                <div class="match-body">
-                  <strong>Bet Master</strong>
-                  <span>safe | balanced | value</span>
-                </div>
-                <div class="pick-tag">Build</div>
-              </div>
+              <div id="index2-stage-feed" class="empty-board">Carico le picks del giorno...</div>
             </article>
 
             <article class="stage-card">
               <div class="stage-card-top">
                 <div>
-                  <strong>Vista piu cattiva</strong>
-                  <span>palette logo, ritmo app, taglio rapido</span>
+                  <strong>Quadro rapido</strong>
+                  <span>conta reale, live, vinte, perse e ROI picks</span>
                 </div>
-                <span class="stage-badge">New</span>
+                <span class="stage-badge">Board</span>
               </div>
-              <div class="match-row">
-                <div class="match-time">MC</div>
-                <div class="match-body">
-                  <strong>Corner, cartellini, HT/2H</strong>
-                  <span>meno teoria, piu selezione</span>
+              <div id="index2-stage-summary" class="hero-score-strip">
+                <div class="hero-score-card">
+                  <span>Picks</span>
+                  <strong>-</strong>
+                  <em>In caricamento</em>
                 </div>
-                <div class="pick-tag">Props</div>
+                <div class="hero-score-card">
+                  <span>Live</span>
+                  <strong>-</strong>
+                  <em>Partite aperte</em>
+                </div>
               </div>
-              <div class="match-row">
-                <div class="match-time">ROI</div>
-                <div class="match-body">
-                  <strong>Storico leggibile</strong>
-                  <span>subito, senza scavare</span>
-                </div>
-                <div class="pick-tag">Track</div>
+              <div class="mini-legend">
+                <span class="status-badge win">Vinta</span>
+                <span class="status-badge lose">Persa</span>
+                <span class="status-badge live">Live</span>
               </div>
             </article>
           </div>
         </aside>
+      </div>
+    </section>
+
+    <section class="section picks-section" data-reveal>
+      <div class="section-head">
+        <div>
+          <h2>Picks del giorno</h2>
+          <p class="section-copy">Le stesse picks della home attuale, ma dentro il look nuovo: badge live, win/lose e tag ROI davanti.</p>
+        </div>
+        <div id="index2-board-summary" class="feed-summary-strip">
+          <span class="summary-pill"><strong>-</strong> loading</span>
+        </div>
+      </div>
+      <div class="live-shell">
+        <div class="live-toolbar">
+          <div class="live-toolbar-left">
+            <span class="hero-kicker" id="index2-date-kicker">caricamento</span>
+            <span class="toolbar-note" id="index2-updated-note">Recupero picks e stati live...</span>
+          </div>
+          <div class="legend-inline">
+            <span class="legend-chip"><span class="legend-dot roi"></span>ROI pick</span>
+            <span class="legend-chip"><span class="legend-dot live"></span>Live</span>
+            <span class="legend-chip"><span class="legend-dot win"></span>Vinta</span>
+            <span class="legend-chip"><span class="legend-dot lose"></span>Persa</span>
+          </div>
+        </div>
+        <div id="index2-categories" class="categories-live">
+          <div class="empty-board">Carico le picks del giorno...</div>
+        </div>
       </div>
     </section>
 
@@ -1167,6 +1686,774 @@
 
       document.querySelectorAll("[data-reveal]").forEach(node => observer.observe(node));
     })();
+
+    const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
+    const API_FOOTBALL_BASE = "https://v3.football.api-sports.io";
+    const API_FOOTBALL_KEY = "daaf29bc97d50f28aa64816c7cc203bc";
+    const LIVE_REFRESH_MS = 60000;
+    const LIVE_STATUSES = new Set(["1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"]);
+    const FINAL_STATUSES = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
+    const CATEGORY_LABELS = {
+      BEST_TIPS_OF_DAY: "Elite picks",
+      SINGLE_GAME: "Pick esclusiva",
+      SAFE_PICKS: "Picks affidabili",
+      SAFE_GOALS: "Safe goals",
+      COMBO_DOPPIA_O15: "Doppia + Over 1.5",
+      GG_SPECIAL: "BTTS special",
+      HT_GOAL_ENGINE: "HT goal engine",
+      DNB_ENGINE: "DNB engine",
+      OVER_UNDER_TIPS: "Goal trends",
+      VALUE_PICKS: "Value picks",
+    };
+    const CATEGORY_NOTES = {
+      BEST_TIPS_OF_DAY: "Le piu forti del blocco giornaliero.",
+      SINGLE_GAME: "Una sola pick regina per match.",
+      SAFE_PICKS: "Taglio piu prudente e lineare.",
+      SAFE_GOALS: "Linee goal piu facili da tenere.",
+      COMBO_DOPPIA_O15: "Build da multipla, non da single.",
+      GG_SPECIAL: "Quando il BTTS ha senso vero.",
+      HT_GOAL_ENGINE: "Mercati tempo e spinta veloce.",
+      DNB_ENGINE: "Copertura sul pareggio, rischio piu pulito.",
+      OVER_UNDER_TIPS: "O/U e letture da punteggio.",
+      VALUE_PICKS: "Prezzi piu alti ma ancora leggibili.",
+    };
+    let liveRefreshTimer = null;
+
+    async function sbFetch(table, query) {
+      const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        },
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`Supabase ${res.status}: ${text.slice(0, 160)}`);
+      }
+      return await res.json();
+    }
+
+    async function apiFootballFetch(path, params) {
+      const url = new URL(API_FOOTBALL_BASE + path);
+      Object.entries(params || {}).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          url.searchParams.set(key, value);
+        }
+      });
+
+      const res = await fetch(url.toString(), {
+        headers: {
+          "x-apisports-key": API_FOOTBALL_KEY,
+          "Accept": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`Live API ${res.status}: ${text.slice(0, 120)}`);
+      }
+
+      return await res.json();
+    }
+
+    function pad2(n) {
+      return n < 10 ? "0" + n : "" + n;
+    }
+
+    function safeOdd(value) {
+      const n = Number(value);
+      return Number.isFinite(n) && n > 1 ? n : 0;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function formatDateLabel(dateStr) {
+      const [year, month, day] = String(dateStr || "").split("-").map(Number);
+      if (!year || !month || !day) return dateStr || "-";
+      const dt = new Date(year, month - 1, day);
+      return dt.toLocaleDateString(undefined, {
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+      });
+    }
+
+    function getTimeZoneOffsetMinutes(timeZone, dateUtc) {
+      const dtf = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        hour12: false,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      const parts = dtf.formatToParts(dateUtc);
+      const map = {};
+      for (const part of parts) {
+        if (part.type !== "literal") map[part.type] = part.value;
+      }
+      const asUtc = Date.UTC(
+        Number(map.year),
+        Number(map.month) - 1,
+        Number(map.day),
+        Number(map.hour),
+        Number(map.minute),
+        Number(map.second)
+      );
+      return (asUtc - dateUtc.getTime()) / 60000;
+    }
+
+    function parseMatchDateTime(row) {
+      const dateStr = row?.match_date;
+      const timeStr = row?.match_time;
+      if (!dateStr || !timeStr) return null;
+      const [year, month, day] = String(dateStr).split("-").map(Number);
+      const [hour, minute] = String(timeStr).split(":").map(Number);
+      if (!year || !month || !day || Number.isNaN(hour) || Number.isNaN(minute)) return null;
+      const utcGuess = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
+      const sourceOffsetMin = getTimeZoneOffsetMinutes("Europe/Dublin", utcGuess);
+      return new Date(utcGuess.getTime() - sourceOffsetMin * 60000);
+    }
+
+    function formatKickoff(row) {
+      const dt = parseMatchDateTime(row);
+      if (!dt) return row?.match_time || "-";
+      return dt.toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    function normalizeCategory(rawCat) {
+      const raw = (rawCat || "").toString().trim();
+      const up = raw.toUpperCase();
+      if (!up) return "OTHER";
+      const canonical = new Set([
+        "BEST_TIPS_OF_DAY",
+        "SAFE_PICKS",
+        "SAFE_GOALS",
+        "OVER_UNDER_TIPS",
+        "VALUE_PICKS",
+        "SINGLE_GAME",
+        "DNB_ENGINE",
+        "HT_GOAL_ENGINE",
+      ]);
+      if (canonical.has(up)) return up;
+      if (up === "GG SPECIAL" || up === "GG_SPECIAL" || up === "BTTS" || up === "BTTS_TIPS") return "GG_SPECIAL";
+      if ((up.includes("COMBODOPPIA") || (up.includes("DOPPIA") && up.includes("O1.5"))) || up === "COMBO_DOPPIA_O15") {
+        return "COMBO_DOPPIA_O15";
+      }
+      return up.replace(/\s+/g, "_");
+    }
+
+    function groupByCategory(picks) {
+      const map = new Map();
+      for (const pick of picks) {
+        const cat = normalizeCategory(pick.category);
+        if (!map.has(cat)) map.set(cat, []);
+        map.get(cat).push(pick);
+      }
+      return map;
+    }
+
+    function sortCategoriesOrder(categories) {
+      const preferred = [
+        "BEST_TIPS_OF_DAY",
+        "SINGLE_GAME",
+        "SAFE_PICKS",
+        "SAFE_GOALS",
+        "COMBO_DOPPIA_O15",
+        "GG_SPECIAL",
+        "HT_GOAL_ENGINE",
+        "DNB_ENGINE",
+        "OVER_UNDER_TIPS",
+        "VALUE_PICKS",
+      ];
+
+      return categories.sort((a, b) => {
+        const ia = preferred.indexOf(a);
+        const ib = preferred.indexOf(b);
+        if (ia === -1 && ib === -1) return a.localeCompare(b);
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
+    }
+
+    function isExcludedCategory(cat) {
+      const key = normalizeCategory(cat);
+      return key.startsWith("CORNER") || key.startsWith("PATTERN_OVER") || key === "BURN_CLOWN_BURN";
+    }
+
+    function isCornerLikePick(pickRow, explicitCategory) {
+      const category = explicitCategory ?? pickRow?.category;
+      const pickText = typeof pickRow === "string" ? pickRow : String(pickRow?.pick || "");
+      return isExcludedCategory(category) || /CORNER/i.test(pickText);
+    }
+
+    function evalResolvedPick(pickText, homeGoals, awayGoals) {
+      const total = Number(homeGoals) + Number(awayGoals);
+      const pickUpper = String(pickText || "").toUpperCase().trim();
+      if (!pickUpper) return "UNKNOWN";
+
+      if (pickUpper.includes("&")) {
+        const parts = pickUpper.split("&").map(part => part.trim()).filter(Boolean);
+        if (!parts.length) return "UNKNOWN";
+        const sub = parts.map(part => evalResolvedPick(part, homeGoals, awayGoals));
+        if (sub.includes("LOSE")) return "LOSE";
+        if (sub.every(result => result === "WIN")) return "WIN";
+        return "UNKNOWN";
+      }
+
+      const pickNorm = pickUpper.replace(/\([^)]*\)/g, "").trim();
+
+      if (pickNorm.includes("AWAY WINS") || pickNorm === "2") return awayGoals > homeGoals ? "WIN" : "LOSE";
+      if (pickNorm.includes("HOME WINS") || pickNorm === "1") return homeGoals > awayGoals ? "WIN" : "LOSE";
+      if (pickNorm.includes("DRAW") || pickNorm === "X") return homeGoals === awayGoals ? "WIN" : "LOSE";
+
+      if (pickNorm.includes("OVER")) {
+        const match = pickNorm.match(/OVER\s+(\d+(?:\.\d+)?)/);
+        if (!match) return "UNKNOWN";
+        return total > Number(match[1]) ? "WIN" : "LOSE";
+      }
+
+      if (pickNorm.includes("UNDER")) {
+        const match = pickNorm.match(/UNDER\s+(\d+(?:\.\d+)?)/);
+        if (!match) return "UNKNOWN";
+        return total < Number(match[1]) ? "WIN" : "LOSE";
+      }
+
+      if (pickNorm.includes("1X")) return homeGoals >= awayGoals ? "WIN" : "LOSE";
+      if (pickNorm.includes("X2")) return awayGoals >= homeGoals ? "WIN" : "LOSE";
+
+      if (pickNorm.includes("BOTH") || pickNorm.includes("BTTS")) {
+        if (pickNorm.includes("NO")) return !(homeGoals > 0 && awayGoals > 0) ? "WIN" : "LOSE";
+        return homeGoals > 0 && awayGoals > 0 ? "WIN" : "LOSE";
+      }
+
+      if (pickNorm === "GG" || (pickNorm.startsWith("GG") && !pickNorm.includes("NG") && !pickNorm.includes("NO"))) {
+        return homeGoals > 0 && awayGoals > 0 ? "WIN" : "LOSE";
+      }
+      if (pickNorm === "NG" || pickNorm.includes("GG NO") || (pickNorm.includes("NG") && !pickNorm.includes("SINGLE"))) {
+        return !(homeGoals > 0 && awayGoals > 0) ? "WIN" : "LOSE";
+      }
+
+      if (pickNorm.includes("DNB")) {
+        const isHome = pickNorm.includes("1") || pickNorm.includes("HOME");
+        const isAway = pickNorm.includes("2") || pickNorm.includes("AWAY");
+        if (isHome) {
+          if (homeGoals > awayGoals) return "WIN";
+          if (homeGoals === awayGoals) return "UNKNOWN";
+          return "LOSE";
+        }
+        if (isAway) {
+          if (awayGoals > homeGoals) return "WIN";
+          if (homeGoals === awayGoals) return "UNKNOWN";
+          return "LOSE";
+        }
+      }
+
+      return "UNKNOWN";
+    }
+
+    function deriveResolvedResultRow(pickRow, resultRow, liveFixture) {
+      const currentResult = String(resultRow?.result || "").toUpperCase();
+      if (currentResult === "WIN" || currentResult === "LOSE" || currentResult === "VOID") {
+        return resultRow;
+      }
+
+      if (!liveFixture) return resultRow || null;
+
+      const baseRow = {
+        ...(resultRow || {}),
+        final_score: liveFixture.score || (resultRow?.final_score || ""),
+        status_short: liveFixture.statusShort || (resultRow?.status_short || ""),
+      };
+
+      if (!liveFixture.isFinal || isCornerLikePick(pickRow)) {
+        return baseRow;
+      }
+
+      const derivedResult = evalResolvedPick(
+        typeof pickRow === "string" ? pickRow : pickRow?.pick,
+        liveFixture.homeGoals,
+        liveFixture.awayGoals
+      );
+
+      if (derivedResult !== "WIN" && derivedResult !== "LOSE") {
+        return baseRow;
+      }
+
+      return {
+        ...baseRow,
+        result: derivedResult,
+      };
+    }
+
+    function classifyResult(resultRaw) {
+      const res = String(resultRaw || "").toUpperCase();
+      if (res === "WIN") return "win";
+      if (res === "LOSE") return "lose";
+      if (res === "PENDING") return "pending";
+      if (res === "VOID") return "unknown";
+      if (res === "UNKNOWN") return "unknown";
+      return "";
+    }
+
+    function resultRank(row) {
+      let score = 0;
+      const res = String(row?.result || "").toUpperCase();
+      const status = String(row?.status_short || "").toUpperCase();
+      if (res === "WIN" || res === "LOSE") score += 4;
+      else if (res === "PENDING") score += 1;
+      if (["FT", "AET", "PEN"].includes(status)) score += 4;
+      else if (["2H", "HT"].includes(status)) score += 2;
+      if (res === "WIN") score += 2;
+      if (res === "LOSE") score += 1;
+      return score;
+    }
+
+    async function fetchLiveFixtureMap(dateStr) {
+      try {
+        const json = await apiFootballFetch("/fixtures", { date: dateStr });
+        const map = new Map();
+        const rows = Array.isArray(json?.response) ? json.response : [];
+        for (const row of rows) {
+          const fixtureId = String(row?.fixture?.id ?? "").trim();
+          if (!fixtureId) continue;
+          const statusShort = String(row?.fixture?.status?.short ?? "").toUpperCase();
+          const elapsed = Number(row?.fixture?.status?.elapsed ?? 0) || 0;
+          const homeGoals = Number(row?.goals?.home ?? 0) || 0;
+          const awayGoals = Number(row?.goals?.away ?? 0) || 0;
+          map.set(fixtureId, {
+            fixtureId,
+            statusShort,
+            elapsed,
+            homeGoals,
+            awayGoals,
+            score: `${homeGoals}-${awayGoals}`,
+            isLive: LIVE_STATUSES.has(statusShort),
+            isFinal: FINAL_STATUSES.has(statusShort),
+          });
+        }
+        return map;
+      } catch (err) {
+        console.warn("Live fixtures error:", err);
+        return new Map();
+      }
+    }
+
+    function buildLiveBadgeState(liveFixture) {
+      if (!liveFixture) return null;
+      if (liveFixture.isLive) {
+        let liveLabel = "LIVE";
+        if (liveFixture.statusShort === "HT") liveLabel = "HT";
+        else if (liveFixture.statusShort === "BT") liveLabel = "BT";
+        else if (liveFixture.statusShort === "P") liveLabel = "PEN";
+        else if (liveFixture.elapsed > 0) liveLabel = `${liveFixture.elapsed}'`;
+        return {
+          label: "LIVE",
+          className: "live",
+          text: `${liveLabel} ${liveFixture.score}`,
+        };
+      }
+      if (liveFixture.isFinal) {
+        const finalLabel = liveFixture.statusShort || "FT";
+        return {
+          label: finalLabel,
+          className: "finished",
+          text: `${finalLabel} ${liveFixture.score}`,
+        };
+      }
+      return null;
+    }
+
+    function buildResultBadgeState(resultRow) {
+      const resultLabel = String(resultRow?.result || "").toUpperCase();
+      const statusShort = String(resultRow?.status_short || "").toUpperCase();
+      const finalScore = resultRow?.final_score || "";
+
+      if (!resultLabel) return { label: "", className: "", text: "" };
+      if (resultLabel === "PENDING" && !LIVE_STATUSES.has(statusShort) && !FINAL_STATUSES.has(statusShort)) {
+        return { label: "", className: "", text: "" };
+      }
+
+      let displayLabel = resultLabel;
+      let className = classifyResult(resultLabel);
+      if (displayLabel === "PENDING" && LIVE_STATUSES.has(statusShort)) {
+        displayLabel = "LIVE";
+        className = "live";
+      }
+
+      const translated =
+        displayLabel === "WIN" ? "VINTA" :
+        displayLabel === "LOSE" ? "PERSA" :
+        displayLabel === "PENDING" ? "IN ATTESA" :
+        displayLabel === "VOID" ? "ANNULLATA" :
+        displayLabel;
+
+      return {
+        label: translated,
+        className,
+        text: finalScore ? `${translated} ${finalScore}` : translated,
+      };
+    }
+
+    function resolveBadgeState(resultRow, liveFixture, pickRow) {
+      const effectiveRow = deriveResolvedResultRow(pickRow, resultRow, liveFixture);
+      const resultLabel = String(effectiveRow?.result || "").toUpperCase();
+      if (resultLabel === "WIN" || resultLabel === "LOSE" || resultLabel === "VOID") {
+        return buildResultBadgeState(effectiveRow);
+      }
+      const liveBadge = buildLiveBadgeState(liveFixture);
+      if (liveBadge) return liveBadge;
+      return buildResultBadgeState(effectiveRow || resultRow);
+    }
+
+    function categoryLabel(category) {
+      return CATEGORY_LABELS[normalizeCategory(category)] || normalizeCategory(category).replace(/_/g, " ");
+    }
+
+    function categoryNote(category) {
+      return CATEGORY_NOTES[normalizeCategory(category)] || "Lettura diretta del blocco.";
+    }
+
+    async function resolveLatestDate() {
+      const rows = await sbFetch(
+        "picks",
+        "?select=run_date,match_date&order=match_date.desc,run_date.desc&limit=1"
+      );
+      if (!Array.isArray(rows) || !rows.length) return null;
+      const row = rows[0] || {};
+      return {
+        runDate: row.run_date || row.match_date,
+        matchDate: row.match_date || row.run_date,
+      };
+    }
+
+    function buildResultMap(results) {
+      const resultMap = new Map();
+      if (!Array.isArray(results)) return resultMap;
+      for (const row of results) {
+        const fixtureId = String(row?.fixture_id || "").trim();
+        const pickText = String(row?.pick || "").trim();
+        if (!fixtureId || !pickText) continue;
+        const key = `${fixtureId}__${pickText}`;
+        const current = resultMap.get(key);
+        if (!current || resultRank(row) > resultRank(current)) {
+          resultMap.set(key, row);
+        }
+      }
+      return resultMap;
+    }
+
+    function tagRoiPicks(picks) {
+      const bestByFixture = new Map();
+      for (const pick of picks) {
+        const fixtureId = String(pick?.fixture_id || "").trim();
+        if (!fixtureId || isCornerLikePick(pick)) continue;
+        const score = Number(pick?.score || 0);
+        const current = bestByFixture.get(fixtureId);
+        if (!current || score > current.score) {
+          bestByFixture.set(fixtureId, { score, ref: pick });
+        }
+      }
+      for (const pick of picks) {
+        const fixtureId = String(pick?.fixture_id || "").trim();
+        if (!fixtureId || isCornerLikePick(pick)) {
+          pick.roi_tag = "";
+          continue;
+        }
+        const best = bestByFixture.get(fixtureId);
+        if (best && best.ref === pick) pick.roi_tag = "ROI_PICK";
+        else if (best) pick.roi_tag = "BACKUP";
+        else pick.roi_tag = "";
+      }
+      return picks;
+    }
+
+    function pickOutcome(pick, resultMap, liveMap) {
+      const key = `${String(pick.fixture_id || "").trim()}__${String(pick.pick || "").trim()}`;
+      const resultRow = resultMap.get(key);
+      const liveFixture = liveMap.get(String(pick.fixture_id || "").trim());
+      return {
+        badge: resolveBadgeState(resultRow, liveFixture, pick),
+        liveFixture,
+      };
+    }
+
+    function buildBoardSummary(picks, resultMap, liveMap) {
+      let wins = 0;
+      let loses = 0;
+      let live = 0;
+      let roi = 0;
+      for (const pick of picks) {
+        const state = pickOutcome(pick, resultMap, liveMap).badge;
+        if (pick.roi_tag === "ROI_PICK") roi += 1;
+        if (state.className === "win") wins += 1;
+        else if (state.className === "lose") loses += 1;
+        else if (state.className === "live") live += 1;
+      }
+      return { total: picks.length, wins, loses, live, roi };
+    }
+
+    function featuredPicks(picks, resultMap, liveMap) {
+      const list = [...picks];
+      list.sort((a, b) => {
+        const aBadge = pickOutcome(a, resultMap, liveMap).badge;
+        const bBadge = pickOutcome(b, resultMap, liveMap).badge;
+        const aRoi = a.roi_tag === "ROI_PICK" ? 1 : 0;
+        const bRoi = b.roi_tag === "ROI_PICK" ? 1 : 0;
+        if (bRoi !== aRoi) return bRoi - aRoi;
+        const aLive = aBadge.className === "live" ? 1 : 0;
+        const bLive = bBadge.className === "live" ? 1 : 0;
+        if (bLive !== aLive) return bLive - aLive;
+        return Number(b.score || 0) - Number(a.score || 0);
+      });
+      return list.slice(0, 3);
+    }
+
+    function renderStageFeed(picks, resultMap, liveMap) {
+      const host = document.getElementById("index2-stage-feed");
+      if (!host) return;
+      if (!picks.length) {
+        host.innerHTML = '<div class="empty-board">Nessuna pick disponibile.</div>';
+        return;
+      }
+      host.innerHTML = picks.map(pick => {
+        const { badge } = pickOutcome(pick, resultMap, liveMap);
+        const badgeClass = badge.className ? ` ${badge.className}` : "";
+        return `
+          <div class="match-row">
+            <div class="match-time">${escapeHtml(formatKickoff(pick))}</div>
+            <div class="match-body">
+              <strong>${escapeHtml(`${pick.home || ""} vs ${pick.away || ""}`)}</strong>
+              <span>${escapeHtml(categoryLabel(pick.category))}${pick.roi_tag === "ROI_PICK" ? " | ROI PICK" : ""}</span>
+            </div>
+            <div class="pick-tag${badgeClass}">${escapeHtml(pick.pick || "-")}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderStageSummary(summary) {
+      const host = document.getElementById("index2-stage-summary");
+      if (!host) return;
+      host.innerHTML = `
+        <div class="hero-score-card">
+          <span>Picks</span>
+          <strong>${summary.total}</strong>
+          <em>Blocco del giorno</em>
+        </div>
+        <div class="hero-score-card">
+          <span>ROI picks</span>
+          <strong>${summary.roi}</strong>
+          <em>Quelle che contano nel ROI</em>
+        </div>
+        <div class="hero-score-card live">
+          <span>Live</span>
+          <strong>${summary.live}</strong>
+          <em>Match aperti ora</em>
+        </div>
+        <div class="hero-score-card win">
+          <span>Vinte / Perse</span>
+          <strong>${summary.wins}-${summary.loses}</strong>
+          <em>Chiusura reale del feed</em>
+        </div>
+      `;
+    }
+
+    function renderBoardSummary(summary) {
+      const host = document.getElementById("index2-board-summary");
+      if (!host) return;
+      host.innerHTML = `
+        <span class="summary-pill"><strong>${summary.total}</strong> picks</span>
+        <span class="summary-pill"><strong>${summary.roi}</strong> ROI</span>
+        <span class="summary-pill live"><strong>${summary.live}</strong> live</span>
+        <span class="summary-pill win"><strong>${summary.wins}</strong> vinte</span>
+        <span class="summary-pill lose"><strong>${summary.loses}</strong> perse</span>
+      `;
+    }
+
+    function renderCategories(picks, resultMap, liveMap) {
+      const host = document.getElementById("index2-categories");
+      if (!host) return;
+      const grouped = groupByCategory(picks);
+      const categories = sortCategoriesOrder(Array.from(grouped.keys()));
+      if (!categories.length) {
+        host.innerHTML = '<div class="empty-board">Nessuna pick disponibile per questa giornata.</div>';
+        return;
+      }
+
+      const html = categories.map(category => {
+        const list = grouped.get(category) || [];
+        list.sort((a, b) => {
+          const da = parseMatchDateTime(a);
+          const db = parseMatchDateTime(b);
+          if (da && db) return da - db;
+          if (da) return -1;
+          if (db) return 1;
+          return 0;
+        });
+
+        let wins = 0;
+        let loses = 0;
+        for (const pick of list) {
+          const state = pickOutcome(pick, resultMap, liveMap).badge;
+          if (state.className === "win") wins += 1;
+          if (state.className === "lose") loses += 1;
+        }
+
+        const cards = list.map(pick => {
+          const { badge } = pickOutcome(pick, resultMap, liveMap);
+          const badgeClass = badge.className ? ` ${badge.className}` : "";
+          const resultClass = badge.className ? ` ${badge.className}` : "";
+          const oddNum = safeOdd(pick.odd);
+          const oddText = oddNum ? `@ ${oddNum.toFixed(2)}` : "@ -";
+          const conf = Number(pick.score || 0);
+          const confText = Number.isFinite(conf) ? `${Math.round(conf * 100)}%` : "-";
+          const roiHtml = pick.roi_tag === "ROI_PICK"
+            ? '<span class="roi-pill">ROI PICK</span>'
+            : (pick.roi_tag === "BACKUP" ? '<span class="roi-pill backup">BACKUP</span>' : "");
+
+          return `
+            <article class="live-pick${resultClass}">
+              <div class="live-pick-time">
+                <strong>${escapeHtml(formatKickoff(pick))}</strong>
+                <span>${escapeHtml(formatDateLabel(pick.match_date || ""))}</span>
+              </div>
+              <div class="live-pick-main">
+                <div class="live-pick-top">
+                  <span class="league-chip">${escapeHtml(pick.league || categoryLabel(category))}</span>
+                  ${roiHtml}
+                </div>
+                <strong class="live-pick-teams">${escapeHtml(`${pick.home || ""} vs ${pick.away || ""}`)}</strong>
+                <div class="live-pick-sub">
+                  <span class="pick-chip">${escapeHtml(pick.pick || "-")}</span>
+                  <span class="odd-chip">${escapeHtml(oddText)}</span>
+                  <span class="confidence-chip">Conf. ${escapeHtml(confText)}</span>
+                </div>
+              </div>
+              <div class="live-pick-side">
+                ${badge.text ? `<span class="status-badge${badgeClass}">${escapeHtml(badge.text)}</span>` : '<span class="status-badge pending">DA GIOCARE</span>'}
+                <span class="status-note">${escapeHtml(categoryLabel(category))}</span>
+              </div>
+            </article>
+          `;
+        }).join("");
+
+        return `
+          <section class="live-category">
+            <div class="live-category-head">
+              <div>
+                <h3>${escapeHtml(categoryLabel(category))}</h3>
+                <p>${escapeHtml(categoryNote(category))}</p>
+              </div>
+              <div class="live-category-meta">
+                <span class="live-category-count">${list.length} picks</span>
+                <span class="live-category-count">${wins}W / ${loses}L</span>
+              </div>
+            </div>
+            <div class="live-list">
+              ${cards}
+            </div>
+          </section>
+        `;
+      }).join("");
+
+      host.innerHTML = html;
+    }
+
+    async function loadIndex2Feed() {
+      const dateKicker = document.getElementById("index2-date-kicker");
+      const updatedNote = document.getElementById("index2-updated-note");
+      const heroDayBadge = document.getElementById("hero-day-badge");
+
+      try {
+        const latest = await resolveLatestDate();
+        if (!latest || !latest.matchDate) {
+          throw new Error("No picks date available");
+        }
+
+        let picks = await sbFetch(
+          "picks",
+          `?run_date=eq.${latest.runDate}&match_date=eq.${latest.matchDate}&select=*`
+        );
+        if (!Array.isArray(picks) || !picks.length) {
+          picks = await sbFetch(
+            "picks",
+            `?match_date=eq.${latest.matchDate}&select=*`
+          );
+        }
+
+        const results = await sbFetch(
+          "results",
+          `?picks_date=eq.${latest.matchDate}&select=*`
+        );
+        const liveMap = await fetchLiveFixtureMap(latest.matchDate);
+        const resultMap = buildResultMap(results);
+
+        const exclusiveList = picks.filter(pick => normalizeCategory(pick.category) === "SINGLE_GAME");
+        const exclusiveFixtureIds = new Set(
+          exclusiveList.map(pick => String(pick.fixture_id || "").trim()).filter(Boolean)
+        );
+        const picksForDisplay = picks.filter(pick => {
+          const fixtureId = String(pick.fixture_id || "").trim();
+          const category = normalizeCategory(pick.category);
+          if (category === "SINGLE_GAME") return true;
+          if (!fixtureId) return true;
+          return !exclusiveFixtureIds.has(fixtureId);
+        });
+
+        tagRoiPicks(picksForDisplay);
+        const summary = buildBoardSummary(picksForDisplay, resultMap, liveMap);
+        const featured = featuredPicks(picksForDisplay, resultMap, liveMap);
+
+        if (dateKicker) dateKicker.textContent = `Picks ${formatDateLabel(latest.matchDate)}`;
+        if (updatedNote) updatedNote.textContent = `Run ${latest.runDate} | live refresh ogni minuto`;
+        if (heroDayBadge) heroDayBadge.textContent = formatDateLabel(latest.matchDate);
+
+        renderStageFeed(featured, resultMap, liveMap);
+        renderStageSummary(summary);
+        renderBoardSummary(summary);
+        renderCategories(picksForDisplay, resultMap, liveMap);
+      } catch (err) {
+        console.error("Index2 feed error:", err);
+        const fallback = '<div class="empty-board">Errore nel caricamento delle picks. Riprova tra poco.</div>';
+        const stageFeed = document.getElementById("index2-stage-feed");
+        const categories = document.getElementById("index2-categories");
+        const stageSummary = document.getElementById("index2-stage-summary");
+        if (stageFeed) stageFeed.innerHTML = fallback;
+        if (categories) categories.innerHTML = fallback;
+        if (stageSummary) {
+          stageSummary.innerHTML = `
+            <div class="hero-score-card"><span>Stato</span><strong>Errore</strong><em>Refresh tra poco</em></div>
+          `;
+        }
+      }
+    }
+
+    function setupLiveRefresh() {
+      if (liveRefreshTimer) clearInterval(liveRefreshTimer);
+      liveRefreshTimer = setInterval(() => {
+        loadIndex2Feed().catch(err => console.warn("Index2 live refresh error:", err));
+      }, LIVE_REFRESH_MS);
+    }
+
+    loadIndex2Feed().catch(err => console.error("Index2 init error:", err));
+    setupLiveRefresh();
   </script>
 </body>
 </html>
