@@ -1062,6 +1062,18 @@
       white-space:nowrap;
     }
 
+    .summary-pill.win{
+      border-color:rgba(37,219,169,.42);
+      background:rgba(37,219,169,.14);
+      color:#f2fffb;
+    }
+
+    .summary-pill.lose{
+      border-color:rgba(240,90,182,.42);
+      background:rgba(240,90,182,.14);
+      color:#fff3fb;
+    }
+
     .summary-pill strong{
       font-family:"Sora",sans-serif;
       font-size:.92rem;
@@ -1203,6 +1215,18 @@
       white-space:nowrap;
     }
 
+    .live-category-count.win{
+      border-color:rgba(37,219,169,.42);
+      background:rgba(37,219,169,.16);
+      color:#98ffe6;
+    }
+
+    .live-category-count.lose{
+      border-color:rgba(240,90,182,.42);
+      background:rgba(240,90,182,.16);
+      color:#ffc3e8;
+    }
+
     .live-category-chevron{
       width:30px;
       height:30px;
@@ -1243,20 +1267,44 @@
       border:1px solid rgba(255,255,255,.07);
       background:rgba(5,10,20,.72);
       box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .live-pick::before{
+      content:"";
+      position:absolute;
+      inset:0 auto 0 0;
+      width:5px;
+      background:rgba(255,255,255,.08);
     }
 
     .live-pick.win{
-      border-color:rgba(37,219,169,.34);
+      border-color:rgba(37,219,169,.46);
       background:
-        linear-gradient(90deg, rgba(37,219,169,.12), rgba(5,10,20,.78) 18%),
-        rgba(5,10,20,.78);
+        linear-gradient(90deg, rgba(37,219,169,.24), rgba(5,10,20,.84) 24%),
+        rgba(5,10,20,.84);
+      box-shadow:
+        inset 0 0 0 1px rgba(37,219,169,.18),
+        0 0 0 1px rgba(37,219,169,.05);
+    }
+
+    .live-pick.win::before{
+      background:linear-gradient(180deg, #26dbab, #8ffff0);
     }
 
     .live-pick.lose{
-      border-color:rgba(240,90,182,.34);
+      border-color:rgba(240,90,182,.48);
       background:
-        linear-gradient(90deg, rgba(240,90,182,.13), rgba(5,10,20,.78) 18%),
-        rgba(5,10,20,.78);
+        linear-gradient(90deg, rgba(240,90,182,.24), rgba(5,10,20,.84) 24%),
+        rgba(5,10,20,.84);
+      box-shadow:
+        inset 0 0 0 1px rgba(240,90,182,.18),
+        0 0 0 1px rgba(240,90,182,.05);
+    }
+
+    .live-pick.lose::before{
+      background:linear-gradient(180deg, #ff66be, #ffb7e7);
     }
 
     .live-pick.live{
@@ -1264,6 +1312,10 @@
       background:
         linear-gradient(90deg, rgba(248,192,77,.1), rgba(5,10,20,.78) 18%),
         rgba(5,10,20,.78);
+    }
+
+    .live-pick.live::before{
+      background:linear-gradient(180deg, #f8c04d, #ffe6aa);
     }
 
     .live-pick-time{
@@ -1394,15 +1446,15 @@
     }
 
     .status-badge.win{
-      border-color:rgba(37,219,169,.45);
-      background:rgba(37,219,169,.12);
-      color:#90ffe0;
+      border-color:rgba(37,219,169,.58);
+      background:linear-gradient(135deg, rgba(17,118,94,.96), rgba(37,219,169,.42));
+      color:#f4fffb;
     }
 
     .status-badge.lose{
-      border-color:rgba(240,90,182,.45);
-      background:rgba(240,90,182,.12);
-      color:#ffc4e9;
+      border-color:rgba(240,90,182,.58);
+      background:linear-gradient(135deg, rgba(118,26,82,.96), rgba(240,90,182,.42));
+      color:#fff4fb;
     }
 
     .status-badge.live{
@@ -1828,7 +1880,7 @@
           <span class="brand-mark"><img src="/favicon.png" alt="" /></span>
           <span class="brand-copy">
             <strong>Pronostici Bomba</strong>
-            <span>Home 2 | piu veloce | piu cattiva</span>
+            <span>ROI Picks | Bet Builder | Match Center</span>
           </span>
         </a>
         <nav class="nav" aria-label="Collegamenti principali">
@@ -1842,11 +1894,118 @@
   </header>
 
   <main class="shell">
+    <section class="section services-section" data-reveal>
+      <div class="section-head">
+        <div>
+          <h2>3 motori</h2>
+        </div>
+      </div>
+      <div class="services-grid">
+        <a class="service-card roi" href="#picks-oggi">
+          <div class="service-body">
+            <div class="service-top">
+              <span class="service-kicker"><span class="service-icon">R</span>ROI Picks</span>
+              <span id="index2-service-roi-badge" class="service-badge">Core</span>
+            </div>
+            <strong>La selezione principale del giorno, gia segnata live.</strong>
+            <p>Picks secche, stato reale, badge chiari e impatto immediato sul feed.</p>
+            <div class="service-stats">
+              <div class="service-stat">
+                <strong id="index2-service-roi-picks">-</strong>
+                <span>ROI picks</span>
+              </div>
+              <div class="service-stat">
+                <strong id="index2-service-live">-</strong>
+                <span>live</span>
+              </div>
+              <div class="service-stat">
+                <strong id="index2-service-closed">-</strong>
+                <span>chiuse</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="service-points">
+              <span class="service-point">ROI pick</span>
+              <span class="service-point">Live</span>
+              <span class="service-point">Vinte / perse</span>
+            </div>
+            <span class="service-link">Vai alle picks</span>
+          </div>
+        </a>
+
+        <a class="service-card builder" href="https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba" target="_blank" rel="noopener">
+          <div class="service-body">
+            <div class="service-top">
+              <span class="service-kicker"><span class="service-icon">B</span>Bet Builder</span>
+              <span class="service-badge">Solo app</span>
+            </div>
+            <strong>Combo smart sui top campionati con mercati extra.</strong>
+            <p>La parte piu esclusiva: build guidata su tiri, corner, cartellini e linee piu tecniche.</p>
+            <div class="service-stats">
+              <div class="service-stat">
+                <strong>Top</strong>
+                <span>campionati</span>
+              </div>
+              <div class="service-stat">
+                <strong>Extra</strong>
+                <span>mercati</span>
+              </div>
+              <div class="service-stat">
+                <strong>1x</strong>
+                <span>combo pronta</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="service-points">
+              <span class="service-point">Top leagues</span>
+              <span class="service-point">Combo guidata</span>
+              <span class="service-point">Mercati extra</span>
+            </div>
+            <span class="service-link">Apri in app</span>
+          </div>
+        </a>
+
+        <a class="service-card center" href="/match-center.html">
+          <div class="service-body">
+            <div class="service-top">
+              <span class="service-kicker"><span class="service-icon">M</span>Match Center</span>
+              <span class="service-badge">Explorer</span>
+            </div>
+            <strong>Il palinsesto completo per filtrare e costruire.</strong>
+            <p>Tutta la giornata, props, dettagli match, Bet Master e filtri su quota, probabilita, esito e orario.</p>
+            <div class="service-stats">
+              <div class="service-stat">
+                <strong>Tutto</strong>
+                <span>il feed</span>
+              </div>
+              <div class="service-stat">
+                <strong>Props</strong>
+                <span>e dettagli</span>
+              </div>
+              <div class="service-stat">
+                <strong>Bet</strong>
+                <span>master</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="service-points">
+              <span class="service-point">Filtri</span>
+              <span class="service-point">Props</span>
+              <span class="service-point">Bet Master</span>
+            </div>
+            <span class="service-link">Apri Match Center</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
     <section id="picks-oggi" class="section picks-section" data-reveal>
       <div class="section-head">
         <div>
           <h2>Picks oggi</h2>
-          <p class="section-copy">Live, win, lose, ROI pick.</p>
         </div>
         <div id="index2-board-summary" class="feed-summary-strip sticky-mobile">
           <span class="summary-pill"><strong>-</strong> loading</span>
@@ -1871,124 +2030,11 @@
       </div>
     </section>
 
-    <section class="section services-section" data-reveal>
-      <div class="section-head">
-        <div>
-          <h2>3 motori</h2>
-          <p class="section-copy">Tre prodotti diversi: picks ROI, builder da app e match center filtrabile.</p>
-        </div>
-      </div>
-      <div class="services-grid">
-        <a class="service-card roi" href="#picks-oggi">
-          <div class="service-body">
-            <div class="service-top">
-              <span class="service-kicker"><span class="service-icon">R</span>ROI Picks</span>
-              <span id="index2-service-roi-badge" class="service-badge">Core</span>
-            </div>
-            <strong>La selezione principale del giorno, gia segnata live.</strong>
-            <p>Qui vedi subito le picks ROI con badge live, vinta e persa, senza nascondere il risultato.</p>
-            <div class="service-stats">
-              <div class="service-stat">
-                <strong id="index2-service-roi-picks">-</strong>
-                <span>ROI picks</span>
-              </div>
-              <div class="service-stat">
-                <strong id="index2-service-live">-</strong>
-                <span>live</span>
-              </div>
-              <div class="service-stat">
-                <strong id="index2-service-closed">-</strong>
-                <span>chiuse</span>
-              </div>
-            </div>
-          </div>
-          <div>
-            <div class="service-points">
-              <span class="service-point">ROI pick</span>
-              <span class="service-point">Live</span>
-              <span class="service-point">Win / lose</span>
-            </div>
-            <div class="service-note">Il blocco piu diretto: apri e vedi subito cosa sta reggendo e cosa no.</div>
-            <span class="service-link">Vai alle picks</span>
-          </div>
-        </a>
-
-        <a class="service-card builder" href="https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba" target="_blank" rel="noopener">
-          <div class="service-body">
-            <div class="service-top">
-              <span class="service-kicker"><span class="service-icon">B</span>Bet Builder</span>
-              <span class="service-badge">Solo app</span>
-            </div>
-            <strong>Combo smart sui top campionati con mercati extra.</strong>
-            <p>Esclusiva in app: scegli il match e ottieni una build su tiri, corner, cartellini e linee piu particolari.</p>
-            <div class="service-stats">
-              <div class="service-stat">
-                <strong>Top</strong>
-                <span>campionati</span>
-              </div>
-              <div class="service-stat">
-                <strong>Extra</strong>
-                <span>mercati</span>
-              </div>
-              <div class="service-stat">
-                <strong>1x</strong>
-                <span>combo pronta</span>
-              </div>
-            </div>
-          </div>
-          <div>
-            <div class="service-points">
-              <span class="service-point">Top leagues</span>
-              <span class="service-point">Combo guidata</span>
-              <span class="service-point">Mercati extra</span>
-            </div>
-            <div class="service-note">Piu verticale e piu tecnica: nata per chi vuole costruire la schedina e non solo copiarla.</div>
-            <span class="service-link">Apri in app</span>
-          </div>
-        </a>
-
-        <a class="service-card center" href="/match-center.html">
-          <div class="service-body">
-            <div class="service-top">
-              <span class="service-kicker"><span class="service-icon">M</span>Match Center</span>
-              <span class="service-badge">Explorer</span>
-            </div>
-            <strong>Il palinsesto completo per filtrare e costruire.</strong>
-            <p>Apri tutta la giornata, filtra quote e probabilita, guarda props, dettagli match e usa Bet Master quando vuoi mischiare.</p>
-            <div class="service-stats">
-              <div class="service-stat">
-                <strong>Tutto</strong>
-                <span>il feed</span>
-              </div>
-              <div class="service-stat">
-                <strong>Props</strong>
-                <span>e dettagli</span>
-              </div>
-              <div class="service-stat">
-                <strong>Bet</strong>
-                <span>master</span>
-              </div>
-            </div>
-          </div>
-          <div>
-            <div class="service-points">
-              <span class="service-point">Filtri</span>
-              <span class="service-point">Props</span>
-              <span class="service-point">Bet Master</span>
-            </div>
-            <div class="service-note">Quando vuoi uscire dalla home secca e lavorare davvero su quota, probabilita, esito e orario.</div>
-            <span class="service-link">Apri Match Center</span>
-          </div>
-        </a>
-      </div>
-    </section>
-
     <section class="section" data-reveal>
       <div class="section-head">
         <div>
           <h2>Storico ROI</h2>
         </div>
-        <p class="section-copy">Stesso numero di storico.html, utile per vedere anche le perdite e tenere il quadro onesto.</p>
       </div>
       <div class="roi-grid">
         <a class="roi-card" href="/storico.html">
@@ -2934,7 +2980,8 @@
               </div>
               <div class="live-category-meta">
                 <span class="live-category-count">${list.length} picks</span>
-                <span class="live-category-count">${wins}W / ${loses}L</span>
+                <span class="live-category-count win">${wins} vinte</span>
+                <span class="live-category-count lose">${loses} perse</span>
                 <span class="live-category-chevron">></span>
               </div>
             </summary>
