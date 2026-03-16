@@ -747,29 +747,42 @@
       width:100%;
       padding:18px 20px 16px;
       border-radius:26px;
-      border:1px solid rgba(255,122,24,.28);
+      border:1px solid rgba(255,255,255,.1);
       background:
-        radial-gradient(circle at top left, rgba(255,122,24,.2), transparent 34%),
-        linear-gradient(135deg, rgba(255,200,61,.12), rgba(255,122,24,.08), rgba(7,12,25,.98));
+        radial-gradient(circle at top left, rgba(255,122,24,.16), transparent 32%),
+        radial-gradient(circle at top right, rgba(61,213,243,.1), transparent 28%),
+        linear-gradient(135deg, rgba(9,15,29,.99), rgba(6,10,22,.995));
       box-shadow:
-        0 18px 42px rgba(0,0,0,.3),
+        0 18px 42px rgba(0,0,0,.32),
         inset 0 0 0 1px rgba(255,255,255,.04);
     }
 
     .services-section .section-head h2{
-      display:inline-flex;
-      align-items:center;
-      min-height:48px;
-      padding:0 16px;
-      border-radius:16px;
-      border:1px solid rgba(255,200,61,.4);
-      background:
-        linear-gradient(135deg, rgba(255,122,24,.18), rgba(255,200,61,.12));
-      color:#fff0c7;
-      text-shadow:0 0 18px rgba(255,122,24,.18);
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,.05),
-        0 10px 28px rgba(255,122,24,.12);
+      position:relative;
+      display:block;
+      width:max-content;
+      max-width:100%;
+      min-height:0;
+      padding:0 0 12px;
+      border:0;
+      border-radius:0;
+      background:none;
+      color:#fff4d7;
+      text-shadow:0 0 22px rgba(255,122,24,.12);
+      box-shadow:none;
+      overflow-wrap:anywhere;
+    }
+
+    .services-section .section-head h2::after{
+      content:"";
+      position:absolute;
+      left:0;
+      bottom:0;
+      width:min(180px, 72%);
+      height:4px;
+      border-radius:999px;
+      background:linear-gradient(90deg, var(--gold), var(--orange), rgba(61,213,243,.24));
+      box-shadow:0 0 18px rgba(255,122,24,.18);
     }
 
     .services-section .section-copy{
@@ -2170,10 +2183,8 @@
       }
 
       .services-section .section-head h2{
-        min-height:42px;
-        padding:0 12px;
-        border-radius:14px;
-        font-size:1.08rem;
+        padding:0 0 10px;
+        font-size:1.18rem;
       }
 
       .live-shell{
@@ -2657,23 +2668,6 @@
       </div>
     </section>
 
-    <section class="section combo-home-section" data-reveal>
-      <div class="section-head">
-        <div>
-          <h2 id="index2-combo-title">Schedine pronte</h2>
-          <p id="index2-combo-copy" class="section-copy">Combo tickets del giorno gia costruite, con quota totale e stato live su ogni gamba.</p>
-        </div>
-        <div id="index2-combo-summary" class="feed-summary-strip">
-          <span class="summary-pill"><strong>-</strong> loading</span>
-        </div>
-      </div>
-      <div class="combo-home-shell">
-        <div id="index2-combo-list" class="combo-home-list">
-          <div class="empty-board">Carico le schedine del giorno...</div>
-        </div>
-      </div>
-    </section>
-
     <section id="picks-oggi" class="section picks-section" data-reveal>
       <div class="section-head">
         <div>
@@ -2698,6 +2692,23 @@
         </div>
         <div id="index2-categories" class="categories-live">
           <div class="empty-board">Carico le picks del giorno...</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section combo-home-section" data-reveal>
+      <div class="section-head">
+        <div>
+          <h2 id="index2-combo-title">Schedine pronte</h2>
+          <p id="index2-combo-copy" class="section-copy">Combo tickets del giorno gia costruite, con quota totale e stato live su ogni gamba.</p>
+        </div>
+        <div id="index2-combo-summary" class="feed-summary-strip">
+          <span class="summary-pill"><strong>-</strong> loading</span>
+        </div>
+      </div>
+      <div class="combo-home-shell">
+        <div id="index2-combo-list" class="combo-home-list">
+          <div class="empty-board">Carico le schedine del giorno...</div>
         </div>
       </div>
     </section>
