@@ -162,6 +162,37 @@
       justify-content:flex-end;
     }
 
+    .lang-switch{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      padding:4px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+    }
+
+    .lang-btn{
+      min-width:42px;
+      min-height:34px;
+      padding:0 10px;
+      border:0;
+      border-radius:999px;
+      background:transparent;
+      color:#c8d4eb;
+      font-family:"Sora",sans-serif;
+      font-size:.72rem;
+      font-weight:800;
+      cursor:pointer;
+      transition:background .16s ease, color .16s ease, transform .16s ease;
+    }
+
+    .lang-btn.is-active{
+      background:linear-gradient(135deg, rgba(255,122,24,.2), rgba(255,200,61,.14));
+      color:#fff2d0;
+      box-shadow:0 0 0 1px rgba(255,122,24,.18) inset;
+    }
+
     .nav-link{
       min-height:42px;
       padding:0 15px;
@@ -1880,14 +1911,18 @@
           <span class="brand-mark"><img src="/favicon.png" alt="" /></span>
           <span class="brand-copy">
             <strong>Pronostici Bomba</strong>
-            <span>ROI Picks | Bet Builder | Match Center</span>
+            <span id="index2-brand-subtitle">ROI Picks | Bet Builder | Match Center</span>
           </span>
         </a>
         <nav class="nav" aria-label="Collegamenti principali">
-          <a class="nav-link" href="/match-center.html">Match Center</a>
-          <a class="nav-link" href="/storico.html">Storico ROI</a>
-          <a class="nav-link" href="/storico_picks.html">Storico Picks</a>
-          <a class="nav-link primary" href="https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba" target="_blank" rel="noopener">Apri App</a>
+          <a id="index2-nav-match-center" class="nav-link" href="/match-center.html">Match Center</a>
+          <a id="index2-nav-roi" class="nav-link" href="/storico.html">Storico ROI</a>
+          <a id="index2-nav-picks" class="nav-link" href="/storico_picks.html">Storico Picks</a>
+          <a id="index2-nav-app" class="nav-link primary" href="https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba" target="_blank" rel="noopener">Apri App</a>
+          <div class="lang-switch" aria-label="Language switch">
+            <button id="index2-lang-it" class="lang-btn" type="button">IT</button>
+            <button id="index2-lang-en" class="lang-btn" type="button">EN</button>
+          </div>
         </nav>
       </div>
     </div>
@@ -1897,7 +1932,7 @@
     <section class="section services-section" data-reveal>
       <div class="section-head">
         <div>
-          <h2>3 motori</h2>
+          <h2 id="index2-services-title">Choose your play</h2>
         </div>
       </div>
       <div class="services-grid">
@@ -1907,30 +1942,30 @@
               <span class="service-kicker"><span class="service-icon">R</span>ROI Picks</span>
               <span id="index2-service-roi-badge" class="service-badge">Core</span>
             </div>
-            <strong>La selezione principale del giorno, gia segnata live.</strong>
-            <p>Picks secche, stato reale, badge chiari e impatto immediato sul feed.</p>
+            <strong id="index2-service-roi-title">The main daily feed, already marked live.</strong>
+            <p id="index2-service-roi-copy">Straight picks, real status, clear badges and instant impact on the board.</p>
             <div class="service-stats">
               <div class="service-stat">
                 <strong id="index2-service-roi-picks">-</strong>
-                <span>ROI picks</span>
+                <span id="index2-service-roi-stat-a">ROI picks</span>
               </div>
               <div class="service-stat">
                 <strong id="index2-service-live">-</strong>
-                <span>live</span>
+                <span id="index2-service-roi-stat-b">Live</span>
               </div>
               <div class="service-stat">
                 <strong id="index2-service-closed">-</strong>
-                <span>chiuse</span>
+                <span id="index2-service-roi-stat-c">Closed</span>
               </div>
             </div>
           </div>
           <div>
             <div class="service-points">
-              <span class="service-point">ROI pick</span>
-              <span class="service-point">Live</span>
-              <span class="service-point">Vinte / perse</span>
+              <span id="index2-service-roi-point-a" class="service-point">ROI pick</span>
+              <span id="index2-service-roi-point-b" class="service-point">Live</span>
+              <span id="index2-service-roi-point-c" class="service-point">Won / lost</span>
             </div>
-            <span class="service-link">Vai alle picks</span>
+            <span id="index2-service-roi-link" class="service-link">Open picks</span>
           </div>
         </a>
 
@@ -1938,32 +1973,32 @@
           <div class="service-body">
             <div class="service-top">
               <span class="service-kicker"><span class="service-icon">B</span>Bet Builder</span>
-              <span class="service-badge">Solo app</span>
+              <span id="index2-service-builder-badge" class="service-badge">App only</span>
             </div>
-            <strong>Combo smart sui top campionati con mercati extra.</strong>
-            <p>La parte piu esclusiva: build guidata su tiri, corner, cartellini e linee piu tecniche.</p>
+            <strong id="index2-service-builder-title">Smart combos on top leagues and extra markets.</strong>
+            <p id="index2-service-builder-copy">The app exclusive: guided builds on shots, corners, cards and sharper stat lines.</p>
             <div class="service-stats">
               <div class="service-stat">
-                <strong>Top</strong>
-                <span>campionati</span>
+                <strong id="index2-service-builder-stat-a-top">Top</strong>
+                <span id="index2-service-builder-stat-a">Leagues</span>
               </div>
               <div class="service-stat">
-                <strong>Extra</strong>
-                <span>mercati</span>
+                <strong id="index2-service-builder-stat-b-top">Extra</strong>
+                <span id="index2-service-builder-stat-b">Markets</span>
               </div>
               <div class="service-stat">
-                <strong>1x</strong>
-                <span>combo pronta</span>
+                <strong id="index2-service-builder-stat-c-top">1x</strong>
+                <span id="index2-service-builder-stat-c">Ready combo</span>
               </div>
             </div>
           </div>
           <div>
             <div class="service-points">
               <span class="service-point">Top leagues</span>
-              <span class="service-point">Combo guidata</span>
-              <span class="service-point">Mercati extra</span>
+              <span id="index2-service-builder-point-b" class="service-point">Guided combo</span>
+              <span id="index2-service-builder-point-c" class="service-point">Extra markets</span>
             </div>
-            <span class="service-link">Apri in app</span>
+            <span id="index2-service-builder-link" class="service-link">Open app</span>
           </div>
         </a>
 
@@ -1971,32 +2006,32 @@
           <div class="service-body">
             <div class="service-top">
               <span class="service-kicker"><span class="service-icon">M</span>Match Center</span>
-              <span class="service-badge">Explorer</span>
+              <span id="index2-service-center-badge" class="service-badge">Explorer</span>
             </div>
-            <strong>Il palinsesto completo per filtrare e costruire.</strong>
-            <p>Tutta la giornata, props, dettagli match, Bet Master e filtri su quota, probabilita, esito e orario.</p>
+            <strong id="index2-service-center-title">The full board to filter, compare and build.</strong>
+            <p id="index2-service-center-copy">The whole day, props, match detail, Bet Master and filters by odds, probability, outcome and time.</p>
             <div class="service-stats">
               <div class="service-stat">
-                <strong>Tutto</strong>
-                <span>il feed</span>
+                <strong id="index2-service-center-stat-a-top">Full</strong>
+                <span id="index2-service-center-stat-a">Board</span>
               </div>
               <div class="service-stat">
                 <strong>Props</strong>
-                <span>e dettagli</span>
+                <span id="index2-service-center-stat-b">Details</span>
               </div>
               <div class="service-stat">
                 <strong>Bet</strong>
-                <span>master</span>
+                <span id="index2-service-center-stat-c">Master</span>
               </div>
             </div>
           </div>
           <div>
             <div class="service-points">
-              <span class="service-point">Filtri</span>
+              <span id="index2-service-center-point-a" class="service-point">Filters</span>
               <span class="service-point">Props</span>
               <span class="service-point">Bet Master</span>
             </div>
-            <span class="service-link">Apri Match Center</span>
+            <span id="index2-service-center-link" class="service-link">Open Match Center</span>
           </div>
         </a>
       </div>
@@ -2005,7 +2040,7 @@
     <section id="picks-oggi" class="section picks-section" data-reveal>
       <div class="section-head">
         <div>
-          <h2>Picks oggi</h2>
+          <h2 id="index2-picks-title">Picks today</h2>
         </div>
         <div id="index2-board-summary" class="feed-summary-strip sticky-mobile">
           <span class="summary-pill"><strong>-</strong> loading</span>
@@ -2018,10 +2053,10 @@
             <span class="toolbar-note" id="index2-updated-note">Recupero picks e stati live...</span>
           </div>
           <div class="legend-inline">
-            <span class="legend-chip"><span class="legend-dot roi"></span>ROI pick</span>
-            <span class="legend-chip"><span class="legend-dot live"></span>Live</span>
-            <span class="legend-chip"><span class="legend-dot win"></span>Vinta</span>
-            <span class="legend-chip"><span class="legend-dot lose"></span>Persa</span>
+            <span id="index2-legend-roi" class="legend-chip"><span class="legend-dot roi"></span>ROI pick</span>
+            <span id="index2-legend-live" class="legend-chip"><span class="legend-dot live"></span>Live</span>
+            <span id="index2-legend-win" class="legend-chip"><span class="legend-dot win"></span>Won</span>
+            <span id="index2-legend-lose" class="legend-chip"><span class="legend-dot lose"></span>Lost</span>
           </div>
         </div>
         <div id="index2-categories" class="categories-live">
@@ -2033,15 +2068,15 @@
     <section class="section" data-reveal>
       <div class="section-head">
         <div>
-          <h2>Storico ROI</h2>
+          <h2 id="index2-roi-title">ROI history</h2>
         </div>
       </div>
       <div class="roi-grid">
         <a class="roi-card" href="/storico.html">
           <div>
             <span class="roi-eyebrow">01</span>
-            <h3>Storico ROI</h3>
-            <p>Stesso numero della pagina storico, stesso criterio.</p>
+            <h3 id="index2-roi-card-title">ROI history</h3>
+            <p id="index2-roi-card-copy">Public monthly record, same method used in the history page.</p>
             <div class="roi-live-stats">
               <strong id="index2-roi-value" class="roi-live-value">-</strong>
               <span id="index2-roi-meta" class="roi-live-meta">Carico ROI mensile...</span>
@@ -2050,19 +2085,19 @@
           </div>
           <div>
             <span id="index2-roi-period" class="roi-metric">Mese corrente</span>
-            <div class="roi-cta">Apri storico</div>
+            <div id="index2-roi-card-link" class="roi-cta">Open history</div>
           </div>
         </a>
 
         <a class="roi-card" href="/storico_picks.html">
           <div>
             <span class="roi-eyebrow">02</span>
-            <h3>Storico picks</h3>
-            <p>Singola pick e dettaglio.</p>
+            <h3 id="index2-picks-card-title">Pick archive</h3>
+            <p id="index2-picks-card-copy">Single picks and deeper review.</p>
           </div>
           <div>
-            <span class="roi-metric">Dettaglio</span>
-            <div class="roi-cta">Apri picks</div>
+            <span id="index2-picks-card-metric" class="roi-metric">Details</span>
+            <div id="index2-picks-card-link" class="roi-cta">Open picks</div>
           </div>
         </a>
       </div>
@@ -2071,12 +2106,12 @@
 
   <footer class="shell">
     <div class="footer-row">
-      <span>Pronostici Bomba | Home 2 concept</span>
+      <span id="index2-footer-copy">Pronostici Bomba</span>
       <div class="footer-links">
-        <a href="/index.html">Home attuale</a>
-        <a href="/match-center.html">Match Center</a>
-        <a href="/storico.html">Storico ROI</a>
-        <a href="/privacy-policy.html">Privacy</a>
+        <a id="index2-footer-home" href="/index.html">Current home</a>
+        <a id="index2-footer-match" href="/match-center.html">Match Center</a>
+        <a id="index2-footer-roi" href="/storico.html">ROI history</a>
+        <a id="index2-footer-privacy" href="/privacy-policy.html">Privacy</a>
       </div>
     </div>
   </footer>
@@ -2093,6 +2128,299 @@
 
       document.querySelectorAll("[data-reveal]").forEach(node => observer.observe(node));
     })();
+
+    const I18N = {
+      it: {
+        title: "Pronostici Bomba | Home",
+        brandSubtitle: "ROI Picks | Bet Builder | Match Center",
+        navMatchCenter: "Match Center",
+        navRoi: "Storico ROI",
+        navPicks: "Storico Picks",
+        navApp: "Apri App",
+        servicesTitle: "Scegli il tuo gioco",
+        serviceRoiTitle: "La selezione principale del giorno, gia segnata live.",
+        serviceRoiCopy: "Picks secche, stato reale, badge chiari e impatto immediato sul feed.",
+        serviceRoiStatA: "ROI picks",
+        serviceRoiStatB: "Live",
+        serviceRoiStatC: "Chiuse",
+        serviceRoiPointA: "ROI pick",
+        serviceRoiPointB: "Live",
+        serviceRoiPointC: "Vinte / perse",
+        serviceRoiLink: "Vai alle picks",
+        serviceBuilderBadge: "Solo app",
+        serviceBuilderTitle: "Combo smart sui top campionati con mercati extra.",
+        serviceBuilderCopy: "La parte piu esclusiva: build guidata su tiri, corner, cartellini e linee piu tecniche.",
+        serviceBuilderStatA: "Campionati",
+        serviceBuilderStatB: "Mercati",
+        serviceBuilderStatC: "Combo pronta",
+        serviceBuilderPointB: "Combo guidata",
+        serviceBuilderPointC: "Mercati extra",
+        serviceBuilderLink: "Apri in app",
+        serviceCenterBadge: "Explorer",
+        serviceCenterTitle: "Il palinsesto completo per filtrare e costruire.",
+        serviceCenterCopy: "Tutta la giornata, props, dettagli match, Bet Master e filtri su quota, probabilita, esito e orario.",
+        serviceCenterStatA: "Il feed",
+        serviceCenterStatB: "Dettagli",
+        serviceCenterStatC: "Master",
+        serviceCenterPointA: "Filtri",
+        serviceCenterLink: "Apri Match Center",
+        picksTitle: "Picks oggi",
+        loading: "caricamento",
+        loadingBoard: "Carico le picks del giorno...",
+        legendRoi: "ROI pick",
+        legendLive: "Live",
+        legendWin: "Vinta",
+        legendLose: "Persa",
+        roiTitle: "Storico ROI",
+        roiCardTitle: "Storico ROI",
+        roiCardCopy: "Record mensile pubblico, stesso metodo della pagina storico.",
+        roiCardLink: "Apri storico",
+        picksCardTitle: "Archivio picks",
+        picksCardCopy: "Singola pick e revisione dettagliata.",
+        picksCardMetric: "Dettaglio",
+        picksCardLink: "Apri picks",
+        footerCopy: "Pronostici Bomba",
+        footerHome: "Home attuale",
+        footerMatch: "Match Center",
+        footerRoi: "Storico ROI",
+        footerPrivacy: "Privacy",
+        summaryPicks: "picks",
+        summaryRoiPicks: "ROI picks",
+        summaryRoiMonth: "ROI mese",
+        summaryLive: "live",
+        summaryWon: "vinte",
+        summaryLost: "perse",
+        serviceCore: "Core",
+        serviceMonth: "mese",
+        closed: "chiuse",
+        won: "vinte",
+        lost: "perse",
+        pending: "DA GIOCARE",
+        badgeWin: "VINTA",
+        badgeLose: "PERSA",
+        badgePending: "IN ATTESA",
+        badgeVoid: "ANNULLATA",
+        conf: "Conf.",
+        picksWord: "picks",
+        noPicksDay: "Nessuna pick disponibile per questa giornata.",
+        noPicksNow: "Nessuna pick disponibile al momento.",
+        fetchNote: "Recupero picks e stati live...",
+        updatedRun: "Run {runDate} | live refresh ogni minuto",
+        dateKicker: "Picks {date}",
+        dateError: "Errore feed",
+        dateErrorNote: "Impossibile caricare le picks adesso.",
+        roiUnavailable: "ROI non disponibile.",
+        roiSameMethod: "Stesso criterio di storico.html.",
+        currentMonth: "Mese corrente",
+        roiMeta: "{wins}W / {loses}L | Profitto {profit}u | Winrate {winrate}",
+        roiNote: "Periodo {monthLabel} | {activeDays} giorni con picks | quota media {avgOdd}",
+        categoryDefault: "Lettura diretta del blocco.",
+      },
+      en: {
+        title: "Pronostici Bomba | Home",
+        brandSubtitle: "ROI Picks | Bet Builder | Match Center",
+        navMatchCenter: "Match Center",
+        navRoi: "ROI History",
+        navPicks: "Pick Archive",
+        navApp: "Open App",
+        servicesTitle: "Choose your play",
+        serviceRoiTitle: "The main daily feed, already marked live.",
+        serviceRoiCopy: "Straight picks, real status, clear badges and instant impact on the board.",
+        serviceRoiStatA: "ROI picks",
+        serviceRoiStatB: "Live",
+        serviceRoiStatC: "Closed",
+        serviceRoiPointA: "ROI pick",
+        serviceRoiPointB: "Live",
+        serviceRoiPointC: "Won / lost",
+        serviceRoiLink: "Open picks",
+        serviceBuilderBadge: "App only",
+        serviceBuilderTitle: "Smart combos on top leagues and extra markets.",
+        serviceBuilderCopy: "The app exclusive: guided builds on shots, corners, cards and sharper stat lines.",
+        serviceBuilderStatA: "Leagues",
+        serviceBuilderStatB: "Markets",
+        serviceBuilderStatC: "Ready combo",
+        serviceBuilderPointB: "Guided combo",
+        serviceBuilderPointC: "Extra markets",
+        serviceBuilderLink: "Open app",
+        serviceCenterBadge: "Explorer",
+        serviceCenterTitle: "The full board to filter, compare and build.",
+        serviceCenterCopy: "The whole day, props, match detail, Bet Master and filters by odds, probability, outcome and time.",
+        serviceCenterStatA: "Board",
+        serviceCenterStatB: "Details",
+        serviceCenterStatC: "Master",
+        serviceCenterPointA: "Filters",
+        serviceCenterLink: "Open Match Center",
+        picksTitle: "Picks today",
+        loading: "loading",
+        loadingBoard: "Loading today's picks...",
+        legendRoi: "ROI pick",
+        legendLive: "Live",
+        legendWin: "Won",
+        legendLose: "Lost",
+        roiTitle: "ROI history",
+        roiCardTitle: "ROI history",
+        roiCardCopy: "Public monthly record, same method used in the history page.",
+        roiCardLink: "Open history",
+        picksCardTitle: "Pick archive",
+        picksCardCopy: "Single picks and deeper review.",
+        picksCardMetric: "Details",
+        picksCardLink: "Open picks",
+        footerCopy: "Pronostici Bomba",
+        footerHome: "Current home",
+        footerMatch: "Match Center",
+        footerRoi: "ROI history",
+        footerPrivacy: "Privacy",
+        summaryPicks: "picks",
+        summaryRoiPicks: "ROI picks",
+        summaryRoiMonth: "monthly ROI",
+        summaryLive: "live",
+        summaryWon: "won",
+        summaryLost: "lost",
+        serviceCore: "Core",
+        serviceMonth: "month",
+        closed: "closed",
+        won: "won",
+        lost: "lost",
+        pending: "NOT STARTED",
+        badgeWin: "WON",
+        badgeLose: "LOST",
+        badgePending: "PENDING",
+        badgeVoid: "VOID",
+        conf: "Conf.",
+        picksWord: "picks",
+        noPicksDay: "No picks available for this day.",
+        noPicksNow: "No picks available right now.",
+        fetchNote: "Loading picks and live states...",
+        updatedRun: "Run {runDate} | live refresh every minute",
+        dateKicker: "Picks {date}",
+        dateError: "Feed error",
+        dateErrorNote: "Unable to load picks right now.",
+        roiUnavailable: "ROI unavailable.",
+        roiSameMethod: "Same method as storico.html.",
+        currentMonth: "Current month",
+        roiMeta: "{wins}W / {loses}L | Profit {profit}u | Winrate {winrate}",
+        roiNote: "Period {monthLabel} | {activeDays} active pick days | avg odds {avgOdd}",
+        categoryDefault: "Direct read of the block.",
+      }
+    };
+
+    let currentLang = "it";
+    let latestBoardSummaryState = null;
+    let latestRoiSummaryState = null;
+    let latestPicksState = null;
+    let latestResultMapState = null;
+    let latestLiveMapState = null;
+    let latestRunState = null;
+
+    function detectInitialLang() {
+      const saved = localStorage.getItem("pb-index2-lang");
+      if (saved === "it" || saved === "en") return saved;
+      const browser = String(navigator.language || "").toLowerCase();
+      return browser.startsWith("it") ? "it" : "en";
+    }
+
+    function t(key, vars) {
+      const dict = I18N[currentLang] || I18N.it;
+      let value = dict[key] || I18N.it[key] || key;
+      if (vars && typeof value === "string") {
+        Object.entries(vars).forEach(([name, replacement]) => {
+          value = value.replace(new RegExp(`\\{${name}\\}`, "g"), String(replacement));
+        });
+      }
+      return value;
+    }
+
+    function setNodeText(id, value) {
+      const node = document.getElementById(id);
+      if (node) node.textContent = value;
+    }
+
+    function updateLanguageButtons() {
+      const itBtn = document.getElementById("index2-lang-it");
+      const enBtn = document.getElementById("index2-lang-en");
+      if (itBtn) itBtn.classList.toggle("is-active", currentLang === "it");
+      if (enBtn) enBtn.classList.toggle("is-active", currentLang === "en");
+    }
+
+    function applyStaticTranslations() {
+      document.documentElement.lang = currentLang;
+      document.title = t("title");
+      setNodeText("index2-brand-subtitle", t("brandSubtitle"));
+      setNodeText("index2-nav-match-center", t("navMatchCenter"));
+      setNodeText("index2-nav-roi", t("navRoi"));
+      setNodeText("index2-nav-picks", t("navPicks"));
+      setNodeText("index2-nav-app", t("navApp"));
+      setNodeText("index2-services-title", t("servicesTitle"));
+      setNodeText("index2-service-roi-title", t("serviceRoiTitle"));
+      setNodeText("index2-service-roi-copy", t("serviceRoiCopy"));
+      setNodeText("index2-service-roi-stat-a", t("serviceRoiStatA"));
+      setNodeText("index2-service-roi-stat-b", t("serviceRoiStatB"));
+      setNodeText("index2-service-roi-stat-c", t("serviceRoiStatC"));
+      setNodeText("index2-service-roi-point-a", t("serviceRoiPointA"));
+      setNodeText("index2-service-roi-point-b", t("serviceRoiPointB"));
+      setNodeText("index2-service-roi-point-c", t("serviceRoiPointC"));
+      setNodeText("index2-service-roi-link", t("serviceRoiLink"));
+      setNodeText("index2-service-builder-badge", t("serviceBuilderBadge"));
+      setNodeText("index2-service-builder-title", t("serviceBuilderTitle"));
+      setNodeText("index2-service-builder-copy", t("serviceBuilderCopy"));
+      setNodeText("index2-service-builder-stat-a", t("serviceBuilderStatA"));
+      setNodeText("index2-service-builder-stat-b", t("serviceBuilderStatB"));
+      setNodeText("index2-service-builder-stat-c", t("serviceBuilderStatC"));
+      setNodeText("index2-service-builder-point-b", t("serviceBuilderPointB"));
+      setNodeText("index2-service-builder-point-c", t("serviceBuilderPointC"));
+      setNodeText("index2-service-builder-link", t("serviceBuilderLink"));
+      setNodeText("index2-service-center-badge", t("serviceCenterBadge"));
+      setNodeText("index2-service-center-title", t("serviceCenterTitle"));
+      setNodeText("index2-service-center-copy", t("serviceCenterCopy"));
+      setNodeText("index2-service-center-stat-a", t("serviceCenterStatA"));
+      setNodeText("index2-service-center-stat-b", t("serviceCenterStatB"));
+      setNodeText("index2-service-center-stat-c", t("serviceCenterStatC"));
+      setNodeText("index2-service-center-point-a", t("serviceCenterPointA"));
+      setNodeText("index2-service-center-link", t("serviceCenterLink"));
+      setNodeText("index2-picks-title", t("picksTitle"));
+      setNodeText("index2-legend-roi", t("legendRoi"));
+      setNodeText("index2-legend-live", t("legendLive"));
+      setNodeText("index2-legend-win", t("legendWin"));
+      setNodeText("index2-legend-lose", t("legendLose"));
+      setNodeText("index2-roi-title", t("roiTitle"));
+      setNodeText("index2-roi-card-title", t("roiCardTitle"));
+      setNodeText("index2-roi-card-copy", t("roiCardCopy"));
+      setNodeText("index2-roi-card-link", t("roiCardLink"));
+      setNodeText("index2-picks-card-title", t("picksCardTitle"));
+      setNodeText("index2-picks-card-copy", t("picksCardCopy"));
+      setNodeText("index2-picks-card-metric", t("picksCardMetric"));
+      setNodeText("index2-picks-card-link", t("picksCardLink"));
+      setNodeText("index2-footer-copy", t("footerCopy"));
+      setNodeText("index2-footer-home", t("footerHome"));
+      setNodeText("index2-footer-match", t("footerMatch"));
+      setNodeText("index2-footer-roi", t("footerRoi"));
+      setNodeText("index2-footer-privacy", t("footerPrivacy"));
+      const updated = document.getElementById("index2-updated-note");
+      if (updated && !latestRunState) updated.textContent = t("fetchNote");
+      const dateKicker = document.getElementById("index2-date-kicker");
+      if (dateKicker && !latestRunState) dateKicker.textContent = t("loading");
+      const board = document.getElementById("index2-categories");
+      if (board && !latestPicksState) board.innerHTML = `<div class="empty-board">${t("loadingBoard")}</div>`;
+      updateLanguageButtons();
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang === "en" ? "en" : "it";
+      localStorage.setItem("pb-index2-lang", currentLang);
+      applyStaticTranslations();
+      if (latestBoardSummaryState) renderBoardSummary(latestBoardSummaryState, latestRoiSummaryState);
+      if (latestBoardSummaryState) renderServiceCardsSummary(latestBoardSummaryState, latestRoiSummaryState);
+      if (latestRoiSummaryState || latestRoiSummaryState === null) renderRoiSummary(latestRoiSummaryState);
+      if (latestPicksState && latestResultMapState && latestLiveMapState) {
+        renderCategories(latestPicksState, latestResultMapState, latestLiveMapState);
+      }
+      if (latestRunState) {
+        const dateKicker = document.getElementById("index2-date-kicker");
+        const updated = document.getElementById("index2-updated-note");
+        if (dateKicker) dateKicker.textContent = t("dateKicker", { date: formatDateLabel(latestRunState.matchDate) });
+        if (updated) updated.textContent = t("updatedRun", { runDate: latestRunState.runDate });
+      }
+    }
 
     const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
     const SUPABASE_ANON_KEY =
@@ -2547,10 +2875,10 @@
       }
 
       const translated =
-        displayLabel === "WIN" ? "VINTA" :
-        displayLabel === "LOSE" ? "PERSA" :
-        displayLabel === "PENDING" ? "IN ATTESA" :
-        displayLabel === "VOID" ? "ANNULLATA" :
+        displayLabel === "WIN" ? t("badgeWin") :
+        displayLabel === "LOSE" ? t("badgeLose") :
+        displayLabel === "PENDING" ? t("badgePending") :
+        displayLabel === "VOID" ? t("badgeVoid") :
         displayLabel;
 
       return {
@@ -2576,7 +2904,7 @@
     }
 
     function categoryNote(category) {
-      return CATEGORY_NOTES[normalizeCategory(category)] || "Lettura diretta del blocco.";
+      return CATEGORY_NOTES[normalizeCategory(category)] || t("categoryDefault");
     }
 
     async function resolveLatestDate() {
@@ -2861,12 +3189,12 @@
       if (!host) return;
       const roiText = roiSummary && roiSummary.roi !== "-" ? `${roiSummary.roi}%` : "-";
       host.innerHTML = `
-        <span class="summary-pill"><strong>${summary.total}</strong> picks</span>
-        <span class="summary-pill"><strong>${summary.roiPicks}</strong> ROI picks</span>
-        <span class="summary-pill ${roiSummary && roiSummary.roi !== "-" && parseFloat(roiSummary.roi) < 0 ? "lose" : "win"}"><strong>${roiText}</strong> ROI mese</span>
-        <span class="summary-pill live"><strong>${summary.live}</strong> live</span>
-        <span class="summary-pill win"><strong>${summary.wins}</strong> vinte</span>
-        <span class="summary-pill lose"><strong>${summary.loses}</strong> perse</span>
+        <span class="summary-pill"><strong>${summary.total}</strong> ${t("summaryPicks")}</span>
+        <span class="summary-pill"><strong>${summary.roiPicks}</strong> ${t("summaryRoiPicks")}</span>
+        <span class="summary-pill ${roiSummary && roiSummary.roi !== "-" && parseFloat(roiSummary.roi) < 0 ? "lose" : "win"}"><strong>${roiText}</strong> ${t("summaryRoiMonth")}</span>
+        <span class="summary-pill live"><strong>${summary.live}</strong> ${t("summaryLive")}</span>
+        <span class="summary-pill win"><strong>${summary.wins}</strong> ${t("summaryWon")}</span>
+        <span class="summary-pill lose"><strong>${summary.loses}</strong> ${t("summaryLost")}</span>
       `;
     }
 
@@ -2878,7 +3206,7 @@
       if (roiPicksEl) roiPicksEl.textContent = summary ? String(summary.roiPicks) : "-";
       if (liveEl) liveEl.textContent = summary ? String(summary.live) : "-";
       if (closedEl) closedEl.textContent = summary ? String((summary.wins || 0) + (summary.loses || 0)) : "-";
-      if (badgeEl) badgeEl.textContent = roiSummary && roiSummary.roi !== "-" ? `${roiSummary.roi}% mese` : "Core";
+      if (badgeEl) badgeEl.textContent = roiSummary && roiSummary.roi !== "-" ? `${roiSummary.roi}% ${t("serviceMonth")}` : t("serviceCore");
     }
 
     function renderRoiSummary(roiSummary) {
@@ -2890,16 +3218,25 @@
       if (!roiSummary) {
         valueEl.textContent = "-";
         valueEl.className = "roi-live-value";
-        metaEl.textContent = "ROI non disponibile.";
-        noteEl.textContent = "Stesso criterio di storico.html.";
-        periodEl.textContent = "Mese corrente";
+        metaEl.textContent = t("roiUnavailable");
+        noteEl.textContent = t("roiSameMethod");
+        periodEl.textContent = t("currentMonth");
         return;
       }
 
       valueEl.textContent = roiSummary.roi === "-" ? "-" : `${roiSummary.roi}%`;
       valueEl.className = `roi-live-value${roiSummary.roi !== "-" && parseFloat(roiSummary.roi) >= 0 ? " pos" : roiSummary.roi !== "-" ? " neg" : ""}`;
-      metaEl.textContent = `${roiSummary.totalWins}W / ${roiSummary.totalLoses}L | Profitto ${roiSummary.totalProfit >= 0 ? "+" : ""}${roiSummary.totalProfit.toFixed(2)}u | Winrate ${roiSummary.winrate === "-" ? "-" : roiSummary.winrate + "%"}`;
-      noteEl.textContent = `Periodo ${roiSummary.monthLabel} | ${roiSummary.activeDays} giorni con picks | quota media ${roiSummary.avgOdd}`;
+      metaEl.textContent = t("roiMeta", {
+        wins: roiSummary.totalWins,
+        loses: roiSummary.totalLoses,
+        profit: `${roiSummary.totalProfit >= 0 ? "+" : ""}${roiSummary.totalProfit.toFixed(2)}`,
+        winrate: roiSummary.winrate === "-" ? "-" : roiSummary.winrate + "%",
+      });
+      noteEl.textContent = t("roiNote", {
+        monthLabel: roiSummary.monthLabel,
+        activeDays: roiSummary.activeDays,
+        avgOdd: roiSummary.avgOdd,
+      });
       periodEl.textContent = roiSummary.monthLabel;
     }
 
@@ -2909,7 +3246,7 @@
       const grouped = groupByCategory(picks);
       const categories = sortCategoriesOrder(Array.from(grouped.keys()));
       if (!categories.length) {
-        host.innerHTML = '<div class="empty-board">Nessuna pick disponibile per questa giornata.</div>';
+        host.innerHTML = `<div class="empty-board">${t("noPicksDay")}</div>`;
         return;
       }
 
@@ -2960,11 +3297,11 @@
                 <div class="live-pick-sub">
                   <span class="pick-chip">${escapeHtml(pick.pick || "-")}</span>
                   <span class="odd-chip">${escapeHtml(oddText)}</span>
-                  <span class="confidence-chip">Conf. ${escapeHtml(confText)}</span>
+                  <span class="confidence-chip">${escapeHtml(t("conf"))} ${escapeHtml(confText)}</span>
                 </div>
               </div>
               <div class="live-pick-side">
-                ${badge.text ? `<span class="status-badge${badgeClass}">${escapeHtml(badge.text)}</span>` : '<span class="status-badge pending">DA GIOCARE</span>'}
+                ${badge.text ? `<span class="status-badge${badgeClass}">${escapeHtml(badge.text)}</span>` : `<span class="status-badge pending">${escapeHtml(t("pending"))}</span>`}
                 <span class="status-note">${escapeHtml(categoryLabel(category))}</span>
               </div>
             </article>
@@ -2979,9 +3316,9 @@
                 <p>${escapeHtml(categoryNote(category))}</p>
               </div>
               <div class="live-category-meta">
-                <span class="live-category-count">${list.length} picks</span>
-                <span class="live-category-count win">${wins} vinte</span>
-                <span class="live-category-count lose">${loses} perse</span>
+                <span class="live-category-count">${list.length} ${escapeHtml(t("picksWord"))}</span>
+                <span class="live-category-count win">${wins} ${escapeHtml(t("won"))}</span>
+                <span class="live-category-count lose">${loses} ${escapeHtml(t("lost"))}</span>
                 <span class="live-category-chevron">></span>
               </div>
             </summary>
@@ -3043,9 +3380,15 @@
         tagRoiPicks(picksForDisplay);
         const summary = buildBoardSummary(picksForDisplay, resultMap, liveMap);
         const featured = featuredPicks(picksForDisplay, resultMap, liveMap);
+        latestBoardSummaryState = summary;
+        latestRoiSummaryState = roiSummary;
+        latestPicksState = picksForDisplay;
+        latestResultMapState = resultMap;
+        latestLiveMapState = liveMap;
+        latestRunState = latest;
 
-        if (dateKicker) dateKicker.textContent = `Picks ${formatDateLabel(latest.matchDate)}`;
-        if (updatedNote) updatedNote.textContent = `Run ${latest.runDate} | live refresh ogni minuto`;
+        if (dateKicker) dateKicker.textContent = t("dateKicker", { date: formatDateLabel(latest.matchDate) });
+        if (updatedNote) updatedNote.textContent = t("updatedRun", { runDate: latest.runDate });
 
         renderStageFeed(featured, resultMap, liveMap);
         renderStageSummary(summary);
@@ -3055,17 +3398,23 @@
         renderCategories(picksForDisplay, resultMap, liveMap);
       } catch (err) {
         console.error("Index2 feed error:", err);
-        const fallback = '<div class="empty-board">Errore nel caricamento delle picks. Riprova tra poco.</div>';
+        const fallback = `<div class="empty-board">${t("dateErrorNote")}</div>`;
         const stageFeed = document.getElementById("index2-stage-feed");
         const categories = document.getElementById("index2-categories");
         const stageSummary = document.getElementById("index2-stage-summary");
         if (stageFeed) stageFeed.innerHTML = fallback;
         if (categories) categories.innerHTML = fallback;
+        latestBoardSummaryState = null;
+        latestRoiSummaryState = null;
+        latestPicksState = null;
+        latestResultMapState = null;
+        latestLiveMapState = null;
+        latestRunState = null;
         renderServiceCardsSummary(null, null);
         renderRoiSummary(null);
         if (stageSummary) {
           stageSummary.innerHTML = `
-            <div class="hero-score-card"><span>Stato</span><strong>Errore</strong><em>Refresh tra poco</em></div>
+            <div class="hero-score-card"><span>Status</span><strong>${escapeHtml(t("dateError"))}</strong><em>${escapeHtml(t("dateErrorNote"))}</em></div>
           `;
         }
       }
@@ -3077,6 +3426,13 @@
         loadIndex2Feed().catch(err => console.warn("Index2 live refresh error:", err));
       }, LIVE_REFRESH_MS);
     }
+
+    currentLang = detectInitialLang();
+    applyStaticTranslations();
+    const langItBtn = document.getElementById("index2-lang-it");
+    const langEnBtn = document.getElementById("index2-lang-en");
+    if (langItBtn) langItBtn.addEventListener("click", () => setLanguage("it"));
+    if (langEnBtn) langEnBtn.addEventListener("click", () => setLanguage("en"));
 
     loadIndex2Feed().catch(err => console.error("Index2 init error:", err));
     setupLiveRefresh();
