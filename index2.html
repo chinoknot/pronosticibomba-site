@@ -692,6 +692,13 @@
       overflow:hidden;
     }
 
+    .service-body{
+      position:relative;
+      z-index:1;
+      display:grid;
+      gap:10px;
+    }
+
     .service-card::before{
       content:"";
       position:absolute;
@@ -774,9 +781,23 @@
       white-space:nowrap;
     }
 
+    .service-icon{
+      width:34px;
+      height:34px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.1);
+      background:rgba(255,255,255,.05);
+      color:#fff3d1;
+      display:grid;
+      place-items:center;
+      font-family:"Sora",sans-serif;
+      font-size:.82rem;
+      font-weight:800;
+      flex:0 0 auto;
+    }
+
     .service-card strong{
       display:block;
-      margin-top:8px;
       font-family:"Sora",sans-serif;
       font-size:1.08rem;
       letter-spacing:-.04em;
@@ -788,6 +809,38 @@
       color:var(--muted);
       font-size:.78rem;
       line-height:1.35;
+    }
+
+    .service-stats{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:8px;
+    }
+
+    .service-stat{
+      min-height:56px;
+      padding:10px 10px 8px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      display:grid;
+      align-content:center;
+      gap:4px;
+    }
+
+    .service-stat strong{
+      margin:0;
+      font-size:1rem;
+      line-height:1;
+      color:#f8fbff;
+    }
+
+    .service-stat span{
+      color:var(--muted);
+      font-size:.64rem;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.08em;
     }
 
     .service-points{
@@ -811,6 +864,12 @@
       white-space:nowrap;
     }
 
+    .service-note{
+      color:#cad7ef;
+      font-size:.7rem;
+      line-height:1.3;
+    }
+
     .service-link{
       min-height:36px;
       width:max-content;
@@ -825,6 +884,12 @@
       font-size:.76rem;
       font-weight:800;
       white-space:nowrap;
+    }
+
+    .service-link::after{
+      content:">";
+      margin-left:8px;
+      font-size:.82rem;
     }
 
     .roi-card{
@@ -1650,6 +1715,24 @@
         font-size:.7rem;
       }
 
+      .service-stats{
+        gap:6px;
+      }
+
+      .service-stat{
+        min-height:50px;
+        padding:8px 8px 7px;
+        border-radius:14px;
+      }
+
+      .service-stat strong{
+        font-size:.9rem;
+      }
+
+      .service-stat span{
+        font-size:.58rem;
+      }
+
       .service-kicker,
       .service-badge,
       .service-point{
@@ -1660,6 +1743,10 @@
         min-height:32px;
         padding:0 11px;
         font-size:.68rem;
+      }
+
+      .service-note{
+        font-size:.64rem;
       }
 
       .mc-rail{
@@ -1793,13 +1880,27 @@
       </div>
       <div class="services-grid">
         <a class="service-card roi" href="#picks-oggi">
-          <div>
+          <div class="service-body">
             <div class="service-top">
-              <span class="service-kicker">ROI Picks</span>
-              <span class="service-badge">Core</span>
+              <span class="service-kicker"><span class="service-icon">R</span>ROI Picks</span>
+              <span id="index2-service-roi-badge" class="service-badge">Core</span>
             </div>
             <strong>La selezione principale del giorno, gia segnata live.</strong>
             <p>Qui vedi subito le picks ROI con badge live, vinta e persa, senza nascondere il risultato.</p>
+            <div class="service-stats">
+              <div class="service-stat">
+                <strong id="index2-service-roi-picks">-</strong>
+                <span>ROI picks</span>
+              </div>
+              <div class="service-stat">
+                <strong id="index2-service-live">-</strong>
+                <span>live</span>
+              </div>
+              <div class="service-stat">
+                <strong id="index2-service-closed">-</strong>
+                <span>chiuse</span>
+              </div>
+            </div>
           </div>
           <div>
             <div class="service-points">
@@ -1807,18 +1908,33 @@
               <span class="service-point">Live</span>
               <span class="service-point">Win / lose</span>
             </div>
+            <div class="service-note">Il blocco piu diretto: apri e vedi subito cosa sta reggendo e cosa no.</div>
             <span class="service-link">Vai alle picks</span>
           </div>
         </a>
 
         <a class="service-card builder" href="https://play.google.com/store/apps/details?id=com.pronosticibomba.pronosticibomba" target="_blank" rel="noopener">
-          <div>
+          <div class="service-body">
             <div class="service-top">
-              <span class="service-kicker">Bet Builder</span>
+              <span class="service-kicker"><span class="service-icon">B</span>Bet Builder</span>
               <span class="service-badge">Solo app</span>
             </div>
             <strong>Combo smart sui top campionati con mercati extra.</strong>
             <p>Esclusiva in app: scegli il match e ottieni una build su tiri, corner, cartellini e linee piu particolari.</p>
+            <div class="service-stats">
+              <div class="service-stat">
+                <strong>Top</strong>
+                <span>campionati</span>
+              </div>
+              <div class="service-stat">
+                <strong>Extra</strong>
+                <span>mercati</span>
+              </div>
+              <div class="service-stat">
+                <strong>1x</strong>
+                <span>combo pronta</span>
+              </div>
+            </div>
           </div>
           <div>
             <div class="service-points">
@@ -1826,18 +1942,33 @@
               <span class="service-point">Combo guidata</span>
               <span class="service-point">Mercati extra</span>
             </div>
+            <div class="service-note">Piu verticale e piu tecnica: nata per chi vuole costruire la schedina e non solo copiarla.</div>
             <span class="service-link">Apri in app</span>
           </div>
         </a>
 
         <a class="service-card center" href="/match-center.html">
-          <div>
+          <div class="service-body">
             <div class="service-top">
-              <span class="service-kicker">Match Center</span>
+              <span class="service-kicker"><span class="service-icon">M</span>Match Center</span>
               <span class="service-badge">Explorer</span>
             </div>
             <strong>Il palinsesto completo per filtrare e costruire.</strong>
             <p>Apri tutta la giornata, filtra quote e probabilita, guarda props, dettagli match e usa Bet Master quando vuoi mischiare.</p>
+            <div class="service-stats">
+              <div class="service-stat">
+                <strong>Tutto</strong>
+                <span>il feed</span>
+              </div>
+              <div class="service-stat">
+                <strong>Props</strong>
+                <span>e dettagli</span>
+              </div>
+              <div class="service-stat">
+                <strong>Bet</strong>
+                <span>master</span>
+              </div>
+            </div>
           </div>
           <div>
             <div class="service-points">
@@ -1845,6 +1976,7 @@
               <span class="service-point">Props</span>
               <span class="service-point">Bet Master</span>
             </div>
+            <div class="service-note">Quando vuoi uscire dalla home secca e lavorare davvero su quota, probabilita, esito e orario.</div>
             <span class="service-link">Apri Match Center</span>
           </div>
         </a>
@@ -2692,6 +2824,17 @@
       `;
     }
 
+    function renderServiceCardsSummary(summary, roiSummary) {
+      const roiPicksEl = document.getElementById("index2-service-roi-picks");
+      const liveEl = document.getElementById("index2-service-live");
+      const closedEl = document.getElementById("index2-service-closed");
+      const badgeEl = document.getElementById("index2-service-roi-badge");
+      if (roiPicksEl) roiPicksEl.textContent = summary ? String(summary.roiPicks) : "-";
+      if (liveEl) liveEl.textContent = summary ? String(summary.live) : "-";
+      if (closedEl) closedEl.textContent = summary ? String((summary.wins || 0) + (summary.loses || 0)) : "-";
+      if (badgeEl) badgeEl.textContent = roiSummary && roiSummary.roi !== "-" ? `${roiSummary.roi}% mese` : "Core";
+    }
+
     function renderRoiSummary(roiSummary) {
       const valueEl = document.getElementById("index2-roi-value");
       const metaEl = document.getElementById("index2-roi-meta");
@@ -2860,6 +3003,7 @@
         renderStageFeed(featured, resultMap, liveMap);
         renderStageSummary(summary);
         renderBoardSummary(summary, roiSummary);
+        renderServiceCardsSummary(summary, roiSummary);
         renderRoiSummary(roiSummary);
         renderCategories(picksForDisplay, resultMap, liveMap);
       } catch (err) {
@@ -2870,6 +3014,7 @@
         const stageSummary = document.getElementById("index2-stage-summary");
         if (stageFeed) stageFeed.innerHTML = fallback;
         if (categories) categories.innerHTML = fallback;
+        renderServiceCardsSummary(null, null);
         renderRoiSummary(null);
         if (stageSummary) {
           stageSummary.innerHTML = `
