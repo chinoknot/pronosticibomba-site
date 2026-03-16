@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-16T00:00:40.069746+00:00",
+  "generated_at": "2026-03-16T02:45:04.767789+00:00",
   "timezone": "Europe/Rome",
   "latest_date": "2026-03-16",
   "dates": [
@@ -9,15 +9,7 @@
       "generated_at": "2026-03-15T23:52:00.829763+00:00",
       "expires_at": "2026-03-16T23:52:00.829785+00:00",
       "matches": 144,
-      "final_matches": 0
-    },
-    {
-      "date": "2026-03-15",
-      "file": "2026-03-15.json",
-      "generated_at": "2026-03-15T01:45:09.968396+00:00",
-      "expires_at": "2026-03-16T01:45:09.968420+00:00",
-      "matches": 1131,
-      "final_matches": 1076
+      "final_matches": 27
     }
   ]
 }
