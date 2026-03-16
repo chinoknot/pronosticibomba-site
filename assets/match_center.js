@@ -843,6 +843,10 @@
     return Number(Math.min(4, Math.max(1.08, fairOdd * 1.04)).toFixed(2));
   }
 
+  function canUseSyntheticOdd(groupId) {
+    return !["corners", "yellows"].includes(String(groupId || ""));
+  }
+
   function invalidateBetMasterCache() {
     state.betMaster.entryCacheKey = "";
     state.betMaster.entryCacheResult = null;
@@ -1741,18 +1745,19 @@
           const probability = Number(option.probability || 0) * 100;
           if (!Number.isFinite(probability)) return;
           const rawOdd = Number(option.odd);
-          const hasBet365Odd = Number.isFinite(rawOdd);
-          const odd = hasBet365Odd ? rawOdd : estimateFallbackOdd(Number(option.probability || 0));
+          const hasRealOdd = Number.isFinite(rawOdd);
+          const allowSyntheticOdd = canUseSyntheticOdd(market.group);
+          const odd = hasRealOdd ? rawOdd : (allowSyntheticOdd ? estimateFallbackOdd(Number(option.probability || 0)) : null);
           const strictProb = probability >= state.betMaster.probFrom && probability <= state.betMaster.probTo;
           const softProb = probability >= softProbFloor && probability <= state.betMaster.probTo;
-          const strictOdd = hasBet365Odd && rawOdd >= state.betMaster.oddFrom && rawOdd <= state.betMaster.oddTo;
-          const softOdd = hasBet365Odd && rawOdd >= softOddFloor && rawOdd <= softOddCeil;
+          const strictOdd = hasRealOdd && rawOdd >= state.betMaster.oddFrom && rawOdd <= state.betMaster.oddTo;
+          const softOdd = hasRealOdd && rawOdd >= softOddFloor && rawOdd <= softOddCeil;
           let tier = 99;
           if (strictProb && strictOdd) tier = 0;
           else if (softProb && strictOdd) tier = 1;
           else if (strictProb && softOdd) tier = 2;
           else if (softProb && softOdd) tier = 3;
-          else if (softProb && !hasBet365Odd) tier = 4;
+          else if (softProb && !hasRealOdd && allowSyntheticOdd) tier = 4;
           if (tier === 99) return;
           const betMasterOutcomeIds = outcomeLookup.get(`${market.group}::${option.label}`) || [];
           if (state.betMaster.outcomeFilters.size && !betMasterOutcomeIds.some(id => state.betMaster.outcomeFilters.has(id))) return;
@@ -1787,8 +1792,8 @@
             match,
             market: pickMarket,
             diversityKey: `${market.group}:${String(option.label || "").toUpperCase()}`,
-            hasBet365Odd,
-            syntheticOdd: !hasBet365Odd,
+            hasBet365Odd: hasRealOdd,
+            syntheticOdd: !hasRealOdd && allowSyntheticOdd,
             tier,
           });
         });
