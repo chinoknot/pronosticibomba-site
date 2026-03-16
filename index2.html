@@ -701,6 +701,37 @@
       padding-top:6px;
     }
 
+    .services-section .section-head{
+      padding:16px 18px;
+      border-radius:24px;
+      border:1px solid rgba(255,122,24,.22);
+      background:
+        linear-gradient(135deg, rgba(255,122,24,.14), rgba(255,200,61,.07), rgba(8,14,28,.96));
+      box-shadow:
+        0 12px 34px rgba(0,0,0,.22),
+        inset 0 1px 0 rgba(255,255,255,.05);
+      align-items:center;
+    }
+
+    .services-section .section-head h2{
+      display:inline-flex;
+      align-items:center;
+      min-height:44px;
+      padding:0 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,200,61,.34);
+      background:rgba(255,200,61,.08);
+      color:#ffe8ab;
+      text-shadow:0 0 18px rgba(255,122,24,.14);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+
+    .services-section .section-copy{
+      color:#e8eefb;
+      max-width:46rem;
+      text-align:left;
+    }
+
     .services-grid{
       display:grid;
       grid-template-columns:repeat(3, minmax(0,1fr));
@@ -712,10 +743,12 @@
       min-height:184px;
       padding:16px;
       border-radius:24px;
-      border:1px solid rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
       background:
-        linear-gradient(180deg, rgba(10,15,29,.95), rgba(6,10,21,.99));
-      box-shadow:var(--shadow);
+        linear-gradient(180deg, rgba(12,18,34,.98), rgba(7,11,23,.99));
+      box-shadow:
+        0 18px 48px rgba(0,0,0,.34),
+        inset 0 1px 0 rgba(255,255,255,.05);
       display:flex;
       flex-direction:column;
       justify-content:space-between;
@@ -757,6 +790,13 @@
       background:radial-gradient(circle, rgba(255,200,61,.24), transparent 72%);
     }
 
+    .service-card.roi{
+      border-color:rgba(255,200,61,.28);
+      background:
+        radial-gradient(circle at top left, rgba(255,200,61,.08), transparent 28%),
+        linear-gradient(180deg, rgba(18,16,22,.98), rgba(10,12,23,.99));
+    }
+
     .service-card.builder::before{
       background:linear-gradient(180deg, rgba(61,213,243,.9), rgba(59,130,246,.64), transparent 85%);
     }
@@ -765,12 +805,26 @@
       background:radial-gradient(circle, rgba(61,213,243,.2), transparent 72%);
     }
 
+    .service-card.builder{
+      border-color:rgba(61,213,243,.24);
+      background:
+        radial-gradient(circle at top left, rgba(61,213,243,.08), transparent 28%),
+        linear-gradient(180deg, rgba(10,18,33,.98), rgba(8,13,26,.99));
+    }
+
     .service-card.center::before{
       background:linear-gradient(180deg, rgba(255,122,24,.9), rgba(255,200,61,.68), transparent 85%);
     }
 
     .service-card.center::after{
       background:radial-gradient(circle, rgba(255,122,24,.22), transparent 72%);
+    }
+
+    .service-card.center{
+      border-color:rgba(255,122,24,.28);
+      background:
+        radial-gradient(circle at top left, rgba(255,122,24,.08), transparent 28%),
+        linear-gradient(180deg, rgba(18,15,22,.98), rgba(10,11,22,.99));
     }
 
     .service-top{
@@ -787,23 +841,24 @@
       min-height:28px;
       padding:0 10px;
       border-radius:999px;
-      border:1px solid rgba(255,255,255,.1);
-      background:rgba(255,255,255,.04);
-      color:#f2f6ff;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      color:#fbfdff;
       font-size:.68rem;
       font-weight:800;
       letter-spacing:.12em;
       text-transform:uppercase;
       white-space:nowrap;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
     }
 
     .service-badge{
       min-height:28px;
       padding:0 10px;
       border-radius:999px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.04);
-      color:#cbd7ee;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      color:#eef3ff;
       display:inline-flex;
       align-items:center;
       justify-content:center;
@@ -856,11 +911,12 @@
       min-height:56px;
       padding:10px 10px 8px;
       border-radius:18px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
       display:grid;
       align-content:center;
       gap:4px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
     }
 
     .service-stat strong{
@@ -888,8 +944,8 @@
       min-height:28px;
       padding:0 9px;
       border-radius:999px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
       color:#eef4ff;
       display:inline-flex;
       align-items:center;
@@ -910,8 +966,8 @@
       width:max-content;
       padding:0 14px;
       border-radius:999px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,122,24,.32);
+      background:linear-gradient(135deg, rgba(255,122,24,.16), rgba(255,200,61,.12));
       color:#fff0cd;
       display:inline-flex;
       align-items:center;
@@ -1086,8 +1142,8 @@
       min-height:42px;
       padding:0 14px;
       border-radius:999px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
       display:inline-flex;
       align-items:center;
       gap:8px;
@@ -1191,10 +1247,11 @@
     }
 
     .live-category{
-      border:1px solid rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
       border-radius:26px;
       overflow:hidden;
-      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
     }
 
     .live-category > summary{
@@ -1212,8 +1269,8 @@
       justify-content:space-between;
       gap:14px;
       padding:14px 16px;
-      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border-bottom:1px solid rgba(255,255,255,.06);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      border-bottom:1px solid rgba(255,255,255,.08);
     }
 
     .live-category-head h3{
@@ -1221,6 +1278,7 @@
       font-family:"Sora",sans-serif;
       font-size:1rem;
       letter-spacing:-.04em;
+      color:#f9fbff;
     }
 
     .live-category-head p{
@@ -1242,8 +1300,8 @@
       border-radius:999px;
       display:inline-flex;
       align-items:center;
-      background:rgba(255,255,255,.05);
-      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
       color:#f7fbff;
       font-size:.78rem;
       font-weight:800;
@@ -1299,8 +1357,8 @@
       align-items:center;
       padding:13px;
       border-radius:18px;
-      border:1px solid rgba(255,255,255,.07);
-      background:rgba(5,10,20,.72);
+      border:1px solid rgba(255,255,255,.11);
+      background:rgba(6,11,21,.9);
       box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
       position:relative;
       overflow:hidden;
@@ -1446,14 +1504,14 @@
 
     .pick-chip{
       border:1px solid rgba(255,200,61,.3);
-      background:rgba(255,200,61,.08);
+      background:rgba(255,200,61,.1);
       color:#fff0c8;
     }
 
     .odd-chip,
     .confidence-chip{
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
       color:#e7eeff;
     }
 
@@ -1493,20 +1551,20 @@
     }
 
     .status-badge.live{
-      border-color:rgba(248,192,77,.4);
-      background:rgba(248,192,77,.12);
-      color:#ffe3a1;
+      border-color:rgba(248,192,77,.48);
+      background:linear-gradient(135deg, rgba(127,90,18,.96), rgba(248,192,77,.34));
+      color:#fff5d8;
     }
 
     .status-badge.finished{
       border-color:rgba(159,176,208,.2);
-      background:rgba(159,176,208,.09);
+      background:rgba(159,176,208,.12);
       color:#d5dff5;
     }
 
     .status-badge.pending{
       border-color:rgba(59,130,246,.32);
-      background:rgba(59,130,246,.12);
+      background:rgba(59,130,246,.16);
       color:#bfd7ff;
     }
 
