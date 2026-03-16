@@ -562,20 +562,50 @@
       display:grid;
       grid-template-columns:minmax(0,1fr) auto;
       align-items:center;
-      gap:14px;
-      padding:16px 18px;
-      border-radius:22px;
+      gap:16px;
+      padding:18px 20px;
+      border-radius:24px;
       border:1px solid rgba(255,255,255,.08);
       background:
-        radial-gradient(circle at right center, rgba(255,122,24,.12), transparent 24%),
-        linear-gradient(135deg, rgba(255,122,24,.08), rgba(255,200,61,.05), rgba(8,14,28,.98));
+        radial-gradient(circle at right center, rgba(255,122,24,.18), transparent 28%),
+        linear-gradient(135deg, rgba(255,122,24,.14), rgba(255,200,61,.08), rgba(8,14,28,.98));
       box-shadow:var(--shadow);
+    }
+
+    .mc-rail-copy{
+      min-width:0;
+    }
+
+    .mc-rail-kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      min-height:28px;
+      padding:0 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,200,61,.24);
+      background:rgba(255,200,61,.08);
+      color:#ffe6a5;
+      font-size:.68rem;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    .mc-rail-kicker::before{
+      content:"";
+      width:7px;
+      height:7px;
+      border-radius:999px;
+      background:linear-gradient(135deg, var(--gold), var(--orange));
+      box-shadow:0 0 12px rgba(255,122,24,.52);
     }
 
     .mc-rail strong{
       display:block;
+      margin-top:10px;
       font-family:"Sora",sans-serif;
-      font-size:1.08rem;
+      font-size:1.22rem;
       letter-spacing:-.04em;
     }
 
@@ -586,18 +616,53 @@
       font-size:.8rem;
     }
 
+    .mc-rail-points{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:12px;
+    }
+
+    .mc-point{
+      min-height:30px;
+      padding:0 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      color:#eef4ff;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:.72rem;
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    .mc-rail-actions{
+      display:grid;
+      gap:8px;
+      justify-items:end;
+    }
+
     .mc-rail-cta{
-      min-height:40px;
-      padding:0 14px;
+      min-height:42px;
+      padding:0 16px;
       border-radius:999px;
       border:1px solid rgba(255,122,24,.36);
-      background:rgba(255,122,24,.12);
+      background:linear-gradient(135deg, rgba(255,122,24,.18), rgba(255,200,61,.12));
       color:#ffe8bf;
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      font-size:.78rem;
+      font-size:.8rem;
       font-weight:800;
+      white-space:nowrap;
+    }
+
+    .mc-rail-subcta{
+      color:#c8d5ee;
+      font-size:.72rem;
+      text-align:right;
       white-space:nowrap;
     }
 
@@ -1320,11 +1385,15 @@
       }
 
       .mc-rail strong{
-        font-size:.94rem;
+        font-size:.98rem;
       }
 
       .mc-rail span{
         font-size:.7rem;
+      }
+
+      .mc-rail-actions{
+        justify-items:start;
       }
 
       .mc-rail-cta{
@@ -1332,6 +1401,10 @@
         width:max-content;
         padding:0 12px;
         font-size:.7rem;
+      }
+
+      .mc-rail-subcta{
+        text-align:left;
       }
 
       .roi-card{
@@ -1416,11 +1489,21 @@
 
     <section class="section" data-reveal>
       <a class="mc-rail" href="/match-center.html">
-        <div>
-          <strong>Match Center</strong>
-          <span>Filtri, quote, props, Bet Master e dettaglio partita.</span>
+        <div class="mc-rail-copy">
+          <span class="mc-rail-kicker">Match Center</span>
+          <strong>Il feed completo dove scremi davvero la giornata.</strong>
+          <span>Apri tutte le partite, filtra quote e probabilita, spingi su props, controlla badge live e chiuse, e costruisci la schedina in un colpo solo.</span>
+          <div class="mc-rail-points">
+            <span class="mc-point">Filtri rapidi</span>
+            <span class="mc-point">Props e dettagli</span>
+            <span class="mc-point">Bet Master</span>
+            <span class="mc-point">Live + result</span>
+          </div>
         </div>
-        <span class="mc-rail-cta">Apri feed completo</span>
+        <div class="mc-rail-actions">
+          <span class="mc-rail-cta">Apri Match Center</span>
+          <span class="mc-rail-subcta">Piu profondo della home, piu utile quando devi scegliere.</span>
+        </div>
       </a>
     </section>
 
