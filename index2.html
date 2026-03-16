@@ -1041,6 +1041,8 @@
       align-items:center;
       gap:10px;
       min-width:0;
+      color:inherit;
+      text-shadow:0 1px 0 rgba(0,0,0,.42);
     }
 
     .service-link-icon{
@@ -1056,6 +1058,12 @@
       width:100%;
       height:100%;
       display:block;
+    }
+
+    .service-link-text{
+      display:inline-flex;
+      align-items:center;
+      color:inherit;
     }
 
     .service-link::after{
@@ -2636,7 +2644,16 @@
               <span id="index2-service-roi-point-b" class="service-point">Live</span>
               <span id="index2-service-roi-point-c" class="service-point">Won / lost</span>
             </div>
-            <span id="index2-service-roi-link" class="service-link">Open picks</span>
+            <span class="service-link">
+              <span class="service-link-main">
+                <span class="service-link-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 3l2.6 5.2 5.8.8-4.2 4.1 1 5.9-5.2-2.7-5.2 2.7 1-5.9-4.2-4.1 5.8-.8L12 3z" fill="#ffcf5a"/>
+                  </svg>
+                </span>
+                <span id="index2-service-roi-link" class="service-link-text">Open picks</span>
+              </span>
+            </span>
           </div>
         </a>
 
@@ -2714,7 +2731,19 @@
               <span class="service-point">Props</span>
               <span class="service-point">Bet Master</span>
             </div>
-            <span id="index2-service-center-link" class="service-link">Open Match Center</span>
+            <span class="service-link">
+              <span class="service-link-main">
+                <span class="service-link-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 7h10" stroke="#55d7ff" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M4 17h16" stroke="#55d7ff" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="17" cy="7" r="3" fill="#ffb347"/>
+                    <circle cx="10" cy="17" r="3" fill="#ff7a18"/>
+                  </svg>
+                </span>
+                <span id="index2-service-center-link" class="service-link-text">Open Match Center</span>
+              </span>
+            </span>
           </div>
         </a>
       </div>
