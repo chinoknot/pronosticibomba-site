@@ -4553,5 +4553,62 @@
     loadIndex2Feed().catch(err => console.error("Index2 init error:", err));
     setupLiveRefresh();
   </script>
+  <style>
+    /* Vivid win/lose indicators from match-center2 */
+    .live-pick.win {
+      border-color: rgba(61,213,243,.44) !important;
+      background:
+        radial-gradient(circle at right center, rgba(61,213,243,.18), transparent 38%),
+        linear-gradient(180deg, rgba(5,62,76,.97), rgba(4,24,38,.99)) !important;
+      box-shadow: inset 0 0 0 1px rgba(61,213,243,.28) !important;
+    }
+    .live-pick.win::before {
+      background: linear-gradient(180deg, rgba(61,213,243,.99), rgba(59,130,246,.99)) !important;
+    }
+    .live-pick.win .live-pick-time span,
+    .live-pick.win .status-note,
+    .live-pick.win .league-chip { color: #ccfbff !important; }
+
+    .live-pick.lose {
+      border-color: rgba(255,122,24,.44) !important;
+      background:
+        repeating-linear-gradient(135deg, rgba(255,200,61,.1) 0 10px, rgba(255,200,61,0) 10px 20px),
+        linear-gradient(180deg, rgba(130,26,10,.97), rgba(62,10,10,.99)) !important;
+      box-shadow: inset 0 0 0 1px rgba(255,122,24,.28) !important;
+    }
+    .live-pick.lose::before {
+      background: linear-gradient(180deg, rgba(255,200,61,.99), rgba(255,122,24,.99)) !important;
+    }
+    .live-pick.lose .live-pick-time span,
+    .live-pick.lose .status-note,
+    .live-pick.lose .league-chip { color: #fff3d0 !important; }
+
+    .status-badge.win {
+      border-color: rgba(61,213,243,.62) !important;
+      background: linear-gradient(135deg, rgba(5,88,108,.98), rgba(4,34,52,.99)) !important;
+      color: #e4feff !important;
+    }
+    .status-badge.lose {
+      border-color: rgba(255,122,24,.62) !important;
+      background: linear-gradient(135deg, rgba(140,28,8,.98), rgba(72,12,12,.99)) !important;
+      color: #fff5e4 !important;
+    }
+
+    .summary-pill.win { background: linear-gradient(135deg,rgba(5,88,108,.9),rgba(4,34,52,.96)) !important; border-color: rgba(61,213,243,.56) !important; }
+    .summary-pill.win strong { color: #7df9f9 !important; }
+    .summary-pill.lose { background: linear-gradient(135deg,rgba(140,28,8,.9),rgba(72,12,12,.96)) !important; border-color: rgba(255,122,24,.56) !important; }
+    .summary-pill.lose strong { color: #ffb060 !important; }
+
+    .combo-ticket.win {
+      border-color: rgba(61,213,243,.36) !important;
+      background: radial-gradient(circle at right, rgba(61,213,243,.12), transparent 40%), linear-gradient(180deg,rgba(5,62,76,.97),rgba(4,24,38,.99)) !important;
+    }
+    .combo-ticket.lose {
+      border-color: rgba(255,122,24,.36) !important;
+      background:
+        repeating-linear-gradient(135deg,rgba(255,200,61,.08) 0 8px,rgba(255,200,61,0) 8px 16px),
+        linear-gradient(180deg,rgba(130,26,10,.97),rgba(62,10,10,.99)) !important;
+    }
+  </style>
 </body>
 </html>

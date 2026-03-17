@@ -2101,428 +2101,437 @@
     }
   </style>
   <style>
-    /* ── SPORTS CONTROL ROOM – VIVID OVERRIDE ───────────────────────────── */
+    /* ── INDEX2 PALETTE SYNC + CONTROL ROOM POLISH ─────────────────────── */
 
-    /* Body background: more energy, less pitch-black */
+    /* Body: index2 palette */
     body {
       background:
-        radial-gradient(ellipse at 10% 0%, rgba(0,210,255,.32), transparent 28%),
-        radial-gradient(ellipse at 90% 8%, rgba(255,100,0,.28), transparent 26%),
-        radial-gradient(ellipse at 50% 100%, rgba(168,85,247,.16), transparent 32%),
-        linear-gradient(180deg, #040c1e 0%, #060e24 50%, #030a1a 100%) !important;
+        radial-gradient(circle at 14% 16%, rgba(255,122,24,.24), transparent 24%),
+        radial-gradient(circle at 86% 12%, rgba(61,213,243,.12), transparent 22%),
+        radial-gradient(circle at 50% 100%, rgba(255,200,61,.11), transparent 32%),
+        linear-gradient(180deg, #03050d 0%, #071122 38%, #050816 100%) !important;
     }
+    body::before { opacity:.38 !important; }
 
-    /* Stronger grid lines */
-    body::before { opacity:.48 !important; }
-
-    /* Topbar: stronger glow */
+    /* Topbar */
     .topbar2-inner {
-      border-color: rgba(0,210,255,.26) !important;
-      box-shadow: 0 2px 80px rgba(0,0,0,.58), inset 0 1px 0 rgba(0,200,255,.12) !important;
+      border-color: rgba(255,122,24,.18) !important;
+      box-shadow: 0 2px 80px rgba(0,0,0,.52), inset 0 1px 0 rgba(255,122,24,.08) !important;
     }
     .nav2 a.active, .nav2 a:hover {
-      border-color: rgba(255,100,0,.76) !important;
-      background: rgba(255,100,0,.16) !important;
+      border-color: rgba(255,122,24,.56) !important;
+      background: rgba(255,122,24,.1) !important;
     }
     .mobile-page-link.active {
-      border-color: rgba(255,100,0,.78) !important;
-      background: radial-gradient(circle at top right,rgba(255,100,0,.22),transparent 46%),
-        linear-gradient(180deg,rgba(24,32,56,.98),rgba(12,18,36,.99)) !important;
-      box-shadow: 0 20px 42px rgba(255,100,0,.2) !important;
+      border-color: rgba(255,122,24,.62) !important;
+      background: radial-gradient(circle at top right,rgba(255,122,24,.16),transparent 48%),
+        linear-gradient(180deg,rgba(20,28,47,.98),rgba(10,14,28,.99)) !important;
+      box-shadow: 0 20px 40px rgba(255,122,24,.14) !important;
     }
 
-    /* Hero: stronger cyan glow top-left, stronger orange top-right */
+    /* Hero */
     .hero-shell {
       background:
-        radial-gradient(circle at 10% 0%, rgba(0,215,255,.24), transparent 30%),
-        radial-gradient(circle at 88% 16%, rgba(255,100,0,.22), transparent 26%),
-        linear-gradient(135deg,rgba(7,14,36,.98),rgba(4,8,20,.98)) !important;
-      border-color: rgba(0,210,255,.2) !important;
+        radial-gradient(circle at 8% 0%, rgba(255,122,24,.12), transparent 28%),
+        radial-gradient(circle at 84% 12%, rgba(61,213,243,.12), transparent 24%),
+        linear-gradient(135deg,rgba(9,14,32,.98),rgba(5,9,20,.98)) !important;
+      border-color: rgba(255,255,255,.08) !important;
     }
     .hero-shell::after {
-      background: linear-gradient(90deg,rgba(0,230,255,.99),rgba(96,170,255,.94),rgba(255,100,0,.94)) !important;
-      box-shadow: 0 0 44px rgba(0,210,255,.36) !important;
+      background: linear-gradient(90deg,rgba(61,213,243,.96),rgba(96,160,255,.9),rgba(255,122,24,.92)) !important;
+      box-shadow: 0 0 36px rgba(61,213,243,.2) !important;
     }
-    .hero-copy-wrap h1 { text-shadow: 0 0 60px rgba(0,190,255,.2); }
 
-    /* Hero pills: more pop */
-    .hero-pill {
-      border-color: rgba(0,200,255,.2) !important;
-      background: rgba(4,12,32,.7) !important;
+    /* ── REMOVE CLIP-PATH BEVEL CUTS ─── */
+    .feed-toolbar,
+    .inline-filter-card,
+    .inline-filter-card-priority,
+    .bet-master-card,
+    .quick-market-chip,
+    .quick-outcome-chip,
+    .chip-btn,
+    .preset-chip,
+    .status-chip,
+    .feed-sort-button,
+    .panel-toggle,
+    .select-shell-compact,
+    .bet-master-generate {
+      clip-path: none !important;
     }
-    .hero-pill strong { color: #f0fbff !important; }
 
-    /* Pronostici panel (ribbon-shell): much more vivid */
+    /* ── CENTER CHIP CONTENT ─── */
+    .quick-market-chip,
+    .quick-outcome-chip {
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      padding: 0 16px 0 22px !important;
+      gap: 6px !important;
+      min-height: 48px !important;
+    }
+    .quick-market-chip strong,
+    .quick-outcome-chip strong {
+      font-size: .9rem !important;
+      line-height: 1.1 !important;
+    }
+    .quick-market-chip small,
+    .quick-outcome-chip small {
+      font-size: .7rem !important;
+      opacity: .72;
+      letter-spacing: .08em !important;
+      text-transform: uppercase !important;
+    }
+
+    /* Pronostici ribbon */
     .ribbon-shell {
-      border-color: rgba(0,210,255,.58) !important;
+      border-color: rgba(61,213,243,.44) !important;
       background:
-        linear-gradient(180deg,rgba(0,210,255,.17),rgba(0,210,255,0) 13%),
-        radial-gradient(circle at 96% 0%, rgba(0,245,255,.26), transparent 20%),
-        radial-gradient(circle at 5% 18%, rgba(170,80,255,.22), transparent 20%),
+        linear-gradient(180deg,rgba(61,213,243,.14),rgba(61,213,243,0) 13%),
+        radial-gradient(circle at 96% 0%, rgba(61,213,243,.22), transparent 20%),
+        radial-gradient(circle at 5% 18%, rgba(168,85,247,.16), transparent 20%),
         linear-gradient(145deg, rgba(10,24,56,.98), rgba(5,12,30,.99)) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.14),
-        0 28px 60px rgba(0,8,28,.24) !important;
+        inset 0 1px 0 rgba(255,255,255,.12),
+        0 24px 56px rgba(0,8,28,.2) !important;
     }
-    /* Top gradient bar on ribbon-shell */
     .ribbon-shell::before {
       content:"" !important;
       position:absolute !important;
-      left:16px !important;
-      right:16px !important;
-      top:0 !important;
-      height:4px !important;
-      width:auto !important;
+      left:16px !important; right:16px !important; top:0 !important;
+      height:4px !important; width:auto !important;
       border-radius:0 0 999px 999px !important;
-      background:linear-gradient(90deg,rgba(0,235,255,.99),rgba(96,160,255,.98),rgba(170,80,255,.88)) !important;
-      box-shadow:0 0 36px rgba(0,200,255,.42) !important;
-      inset:auto !important;
-      opacity:1 !important;
-      pointer-events:none !important;
+      background:linear-gradient(90deg,rgba(61,213,243,.98),rgba(96,160,255,.96),rgba(168,85,247,.84)) !important;
+      box-shadow:0 0 28px rgba(61,213,243,.28) !important;
+      inset:auto !important; opacity:1 !important; pointer-events:none !important;
     }
 
-    /* Feed toolbar: stronger */
+    /* Feed toolbar */
     .feed-toolbar {
-      border-color: rgba(0,210,255,.38) !important;
+      border-color: rgba(61,213,243,.28) !important;
       background:
-        radial-gradient(circle at 94% 18%,rgba(255,100,0,.16),transparent 22%),
-        linear-gradient(90deg,rgba(6,18,52,.98),rgba(26,14,68,.96)) !important;
+        radial-gradient(circle at 94% 18%,rgba(255,122,24,.14),transparent 22%),
+        linear-gradient(90deg,rgba(6,18,52,.98),rgba(20,12,58,.96)) !important;
     }
     .feed-toolbar-copy strong {
-      border-color: rgba(0,225,255,.46) !important;
-      background: linear-gradient(135deg,rgba(0,200,255,.26),rgba(168,80,255,.2)) !important;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.11), 0 14px 30px rgba(0,140,255,.18) !important;
+      border-color: rgba(61,213,243,.4) !important;
+      background: linear-gradient(135deg,rgba(59,130,246,.22),rgba(168,85,247,.16)) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 14px 30px rgba(59,130,246,.14) !important;
     }
     .feed-toolbar-copy strong::before {
-      background: linear-gradient(180deg,rgba(0,235,255,.99),rgba(255,100,0,.92)) !important;
-      box-shadow: 0 0 22px rgba(0,235,255,.64) !important;
+      background: linear-gradient(180deg,rgba(61,213,243,.99),rgba(255,122,24,.92)) !important;
+      box-shadow: 0 0 18px rgba(61,213,243,.48) !important;
     }
 
-    /* Market/outcome chips: vivid */
+    /* Market/outcome chips */
     .quick-market-chip,
     .quick-outcome-chip {
-      border-color: rgba(0,210,255,.32) !important;
+      border-color: rgba(61,213,243,.26) !important;
       background:
-        linear-gradient(180deg,rgba(0,210,255,.09),rgba(0,210,255,0) 15%),
+        linear-gradient(180deg,rgba(61,213,243,.08),rgba(61,213,243,0) 15%),
         linear-gradient(145deg,rgba(14,28,64,.97),rgba(6,12,28,.99)) !important;
     }
     .quick-market-chip::before,
     .quick-outcome-chip::before {
-      background: linear-gradient(180deg,rgba(0,235,255,.96),rgba(255,100,0,.84)) !important;
-      box-shadow: 0 0 20px rgba(0,200,255,.32) !important;
+      background: linear-gradient(180deg,rgba(61,213,243,.94),rgba(255,122,24,.82)) !important;
+      box-shadow: 0 0 16px rgba(61,213,243,.2) !important;
     }
     .quick-market-chip.active,
     .quick-outcome-chip.active {
-      border-color: rgba(0,235,255,.88) !important;
+      border-color: rgba(61,213,243,.78) !important;
       background:
-        linear-gradient(180deg,rgba(0,235,255,.2),rgba(0,235,255,0) 22%),
+        linear-gradient(180deg,rgba(61,213,243,.16),rgba(61,213,243,0) 22%),
         linear-gradient(145deg,rgba(24,54,108,.98),rgba(12,24,52,.99)) !important;
-      box-shadow: 0 18px 32px rgba(0,90,240,.24), 0 0 0 1px rgba(0,235,255,.12) inset !important;
+      box-shadow: 0 18px 32px rgba(59,130,246,.2), 0 0 0 1px rgba(61,213,243,.1) inset !important;
     }
 
     /* Preset / status chips */
     .preset-chip, .status-chip {
-      border-color: rgba(0,200,255,.26) !important;
+      border-color: rgba(61,213,243,.22) !important;
       background: linear-gradient(180deg,rgba(14,26,60,.94),rgba(7,14,32,.99)) !important;
     }
     .preset-chip.active, .status-chip.active {
-      border-color: rgba(0,235,255,.82) !important;
-      background: linear-gradient(135deg,rgba(0,180,255,.3),rgba(168,80,255,.22)) !important;
+      border-color: rgba(61,213,243,.76) !important;
+      background: linear-gradient(135deg,rgba(59,130,246,.28),rgba(168,85,247,.2)) !important;
       color: #f8fcff !important;
-      box-shadow: 0 12px 26px rgba(0,100,255,.16) !important;
+      box-shadow: 0 12px 26px rgba(59,130,246,.14) !important;
     }
 
     /* Filter cards */
     .inline-filter-card,
     .inline-filter-card-priority {
-      border-color: rgba(0,210,255,.38) !important;
+      border-color: rgba(61,213,243,.32) !important;
       background:
-        linear-gradient(180deg,rgba(0,225,255,.11),rgba(0,225,255,0) 17%),
-        radial-gradient(circle at top right,rgba(0,235,255,.22),transparent 24%),
+        linear-gradient(180deg,rgba(61,213,243,.1),rgba(61,213,243,0) 16%),
+        radial-gradient(circle at top right,rgba(61,213,243,.18),transparent 24%),
         linear-gradient(145deg,rgba(12,26,58,.97),rgba(6,14,32,.99)) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.1),
-        0 22px 40px rgba(2,10,28,.14) !important;
+        inset 0 1px 0 rgba(255,255,255,.08),
+        0 20px 38px rgba(2,10,28,.12) !important;
     }
     .inline-filter-card::before,
     .inline-filter-card-priority::before {
-      background: linear-gradient(90deg,rgba(0,235,255,.94),rgba(96,160,255,.96),rgba(168,80,255,.82)) !important;
+      background: linear-gradient(90deg,rgba(61,213,243,.9),rgba(96,160,255,.92),rgba(168,85,247,.78)) !important;
     }
-    .quick-filter-label { color: #b8e8ff !important; }
+    .quick-filter-label { color: #a8d8f0 !important; }
     .inline-filter-value {
-      border-color: rgba(0,200,255,.28) !important;
+      border-color: rgba(61,213,243,.24) !important;
       background: linear-gradient(180deg,rgba(18,40,80,.88),rgba(8,18,38,.97)) !important;
     }
 
     /* Select shells */
     .select-shell-compact {
-      border-color: rgba(0,200,255,.4) !important;
+      border-color: rgba(61,213,243,.36) !important;
       background:
-        linear-gradient(180deg,rgba(0,220,255,.09),rgba(0,220,255,0) 14%),
+        linear-gradient(180deg,rgba(61,213,243,.08),rgba(61,213,243,0) 14%),
         linear-gradient(180deg,rgba(18,38,76,.97),rgba(8,18,36,.99)) !important;
     }
     .select-shell-compact::before {
-      background: linear-gradient(90deg,rgba(0,235,255,.9),rgba(96,160,255,.92),rgba(168,80,255,.76)) !important;
+      background: linear-gradient(90deg,rgba(61,213,243,.88),rgba(96,160,255,.9),rgba(168,85,247,.74)) !important;
     }
 
     /* Date tabs */
-    .date-tab { border-color: rgba(0,190,255,.22) !important; }
+    .date-tab { border-color: rgba(61,213,243,.18) !important; }
     .date-tab.active {
-      border-color: rgba(0,220,255,.76) !important;
-      background: linear-gradient(145deg,rgba(0,70,130,.92),rgba(0,36,96,.9)) !important;
-      box-shadow: 0 18px 36px rgba(0,70,180,.3) !important;
+      border-color: rgba(61,213,243,.72) !important;
+      background: linear-gradient(145deg,rgba(37,99,235,.92),rgba(30,64,175,.84)) !important;
+      box-shadow: 0 18px 36px rgba(30,64,175,.28) !important;
     }
 
     /* Section banners */
-    .section-banner {
-      border-radius: 22px !important;
-      margin-bottom: 12px !important;
-    }
+    .section-banner { border-radius: 22px !important; margin-bottom: 12px !important; }
     .section-banner-soon {
-      border-color: rgba(255,110,0,.54) !important;
+      border-color: rgba(255,122,24,.48) !important;
       background:
-        radial-gradient(circle at top right,rgba(255,130,0,.26),transparent 36%),
-        linear-gradient(180deg,rgba(38,18,6,.98),rgba(10,10,20,.99)) !important;
+        radial-gradient(circle at top right,rgba(255,122,24,.22),transparent 36%),
+        linear-gradient(180deg,rgba(36,18,6,.98),rgba(10,10,20,.99)) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,250,196,.14),
-        0 20px 40px rgba(90,36,10,.18) !important;
+        inset 0 1px 0 rgba(255,248,200,.12),
+        0 18px 38px rgba(80,34,10,.16) !important;
     }
-    .section-banner-soon h2 {
-      color: #fff4d6 !important;
-      text-shadow: 0 0 32px rgba(255,160,30,.28) !important;
-    }
-    .section-banner-soon p { color: #ffcf96 !important; }
+    .section-banner-soon h2 { color: #fff4d0 !important; }
+    .section-banner-soon p { color: #ffcc90 !important; }
     .section-banner-soon .section-banner-icon {
-      border-color: rgba(255,110,0,.46) !important;
-      background: rgba(255,110,0,.16) !important;
-      color: #ffcf78 !important;
+      border-color: rgba(255,122,24,.42) !important;
+      background: rgba(255,122,24,.14) !important; color: #ffcc70 !important;
     }
     .section-banner-board {
-      border-color: rgba(0,200,255,.34) !important;
+      border-color: rgba(61,213,243,.26) !important;
       background:
-        radial-gradient(circle at top right,rgba(0,180,255,.22),transparent 30%),
+        radial-gradient(circle at top right,rgba(61,213,243,.18),transparent 30%),
         linear-gradient(180deg,rgba(10,22,46,.98),rgba(5,12,28,.99)) !important;
     }
-    .section-badge {
-      border-color: rgba(0,200,255,.26) !important;
-      background: rgba(0,200,255,.07) !important;
-    }
+    .section-badge { border-color: rgba(61,213,243,.2) !important; background: rgba(61,213,243,.06) !important; }
 
-    /* League headers: more vivid, more contrast */
+    /* League headers */
     .league-header {
       background:
-        linear-gradient(90deg,rgba(0,180,255,.34),transparent 52%),
-        radial-gradient(circle at right center,rgba(0,210,255,.2),transparent 28%),
+        linear-gradient(90deg,rgba(59,130,246,.28),transparent 52%),
+        radial-gradient(circle at right center,rgba(61,213,243,.16),transparent 28%),
         linear-gradient(180deg,rgba(18,32,64,.98),rgba(8,16,34,.99)) !important;
-      border-bottom-color: rgba(0,200,255,.2) !important;
+      border-bottom-color: rgba(61,213,243,.16) !important;
     }
     .league-header::after {
-      background: linear-gradient(90deg,rgba(0,235,255,.64),transparent 68%) !important;
+      background: linear-gradient(90deg,rgba(61,213,243,.54),transparent 68%) !important;
     }
-    .league-dot {
-      background: #00efff !important;
-      box-shadow: 0 0 0 5px rgba(0,235,255,.2) !important;
-    }
-    .league-count {
-      background: rgba(0,180,255,.22) !important;
-      color: #c4efff !important;
-    }
+    .league-dot { background: #3dd5f3 !important; box-shadow: 0 0 0 5px rgba(61,213,243,.16) !important; }
+    .league-count { background: rgba(59,130,246,.2) !important; color: #bfdbfe !important; }
     .league-title h3 { color: #edf8ff !important; }
 
     /* Match rows */
-    .match-row {
-      background: linear-gradient(180deg,rgba(14,24,48,.88),rgba(6,12,28,.98)) !important;
-    }
-    .match-row:hover {
-      background: linear-gradient(180deg,rgba(0,180,255,.1),rgba(8,18,40,.98)) !important;
-    }
+    .match-row { background: linear-gradient(180deg,rgba(14,24,48,.88),rgba(6,12,28,.98)) !important; }
+    .match-row:hover { background: linear-gradient(180deg,rgba(61,213,243,.07),rgba(8,18,40,.98)) !important; }
 
-    /* Match action pill: stronger contrast */
+    /* Match action pill */
     .match-action {
-      border-color: rgba(255,195,70,.58) !important;
-      background: linear-gradient(160deg,rgba(24,40,80,.98),rgba(8,14,32,.98)) !important;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 14px 28px rgba(2,8,22,.22) !important;
+      border-color: rgba(255,200,61,.48) !important;
+      background: linear-gradient(160deg,rgba(22,36,72,.98),rgba(8,14,30,.98)) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 12px 24px rgba(2,8,22,.2) !important;
     }
     .match-action strong { color: #fff !important; }
-    .match-action small { color: #ffcc70 !important; }
+    .match-action small { color: #ffc83d !important; }
 
-    /* Win: vivid cyan */
+    /* WIN: vivid cyan */
     .match-row.status-win {
       background:
-        radial-gradient(circle at right center,rgba(0,255,255,.26),transparent 44%),
-        linear-gradient(180deg,rgba(5,94,112,.98),rgba(5,36,56,.99)) !important;
-      box-shadow: inset 0 0 0 2px rgba(0,250,255,.38) !important;
+        radial-gradient(circle at right center,rgba(61,213,243,.22),transparent 44%),
+        linear-gradient(180deg,rgba(5,88,108,.98),rgba(5,34,52,.99)) !important;
+      box-shadow: inset 0 0 0 2px rgba(61,213,243,.36) !important;
     }
     .match-row.status-win::before {
-      background: linear-gradient(180deg,rgba(0,255,255,.99),rgba(0,160,255,.99)) !important;
-      box-shadow: 0 0 14px rgba(0,255,255,.46) !important;
+      background: linear-gradient(180deg,rgba(61,213,243,.99),rgba(59,130,246,.99)) !important;
+      box-shadow: 0 0 12px rgba(61,213,243,.4) !important;
     }
     .match-row.status-win .match-action {
-      border-color: rgba(0,255,255,.88) !important;
-      background: linear-gradient(135deg,rgba(6,108,118,.98),rgba(5,50,66,.99)) !important;
+      border-color: rgba(61,213,243,.82) !important;
+      background: linear-gradient(135deg,rgba(6,106,118,.98),rgba(5,48,66,.99)) !important;
     }
 
-    /* Lose: vivid warm red/amber — colorblind-friendly */
+    /* LOSE: vivid amber/orange (daltonico-friendly) */
     .match-row.status-lose {
       background:
-        repeating-linear-gradient(135deg,rgba(255,180,60,.12) 0 10px,rgba(255,180,60,0) 10px 20px),
-        linear-gradient(180deg,rgba(165,26,16,.98),rgba(70,14,18,.99)) !important;
-      box-shadow: inset 0 0 0 2px rgba(255,178,70,.38) !important;
+        repeating-linear-gradient(135deg,rgba(255,200,61,.1) 0 10px,rgba(255,200,61,0) 10px 20px),
+        linear-gradient(180deg,rgba(155,26,16,.98),rgba(68,12,16,.99)) !important;
+      box-shadow: inset 0 0 0 2px rgba(255,122,24,.36) !important;
     }
     .match-row.status-lose::before {
-      background: linear-gradient(180deg,rgba(255,172,50,.99),rgba(255,60,90,.99)) !important;
+      background: linear-gradient(180deg,rgba(255,200,61,.99),rgba(255,122,24,.99)) !important;
     }
     .match-row.status-lose .match-action {
-      border-color: rgba(255,160,70,.88) !important;
-      background: linear-gradient(135deg,rgba(180,40,60,.98),rgba(85,16,34,.99)) !important;
+      border-color: rgba(255,122,24,.82) !important;
+      background: linear-gradient(135deg,rgba(170,38,16,.98),rgba(82,14,16,.99)) !important;
     }
 
-    /* Result pills in section header */
+    /* Result pills */
     .result-pill-win {
-      background: linear-gradient(135deg,rgba(0,195,230,.98),rgba(4,58,94,.99)) !important;
-      border-color: rgba(0,245,255,.84) !important;
-      color: #e8feff !important;
-      box-shadow: 0 10px 22px rgba(0,96,200,.24) !important;
+      background: linear-gradient(135deg,rgba(45,212,191,.98),rgba(6,52,62,.99)) !important;
+      border-color: rgba(61,213,243,.82) !important; color: #ecfeff !important;
     }
     .result-pill-lose {
-      background: linear-gradient(135deg,rgba(240,62,38,.98),rgba(124,22,38,.99)) !important;
-      border-color: rgba(255,160,70,.84) !important;
-      color: #fff4ea !important;
-      box-shadow: 0 10px 22px rgba(180,28,28,.24) !important;
+      background: linear-gradient(135deg,rgba(239,68,68,.98),rgba(120,20,20,.99)) !important;
+      border-color: rgba(255,122,24,.8) !important; color: #fff4ee !important;
     }
 
     /* Status pills */
     .status-win {
       background:
-        linear-gradient(135deg,rgba(0,245,255,.3),rgba(0,110,255,.28)),
-        linear-gradient(180deg,rgba(6,88,118,.98),rgba(4,40,68,.99)) !important;
-      border-color: rgba(0,245,255,.84) !important;
-      color: #e4feff !important;
+        linear-gradient(135deg,rgba(61,213,243,.26),rgba(59,130,246,.24)),
+        linear-gradient(180deg,rgba(6,82,112,.98),rgba(4,38,66,.99)) !important;
+      border-color: rgba(61,213,243,.8) !important; color: #e4feff !important;
     }
     .status-lose {
       background:
-        repeating-linear-gradient(135deg,rgba(255,180,50,.18) 0 8px,rgba(255,180,50,0) 8px 16px),
-        linear-gradient(135deg,rgba(255,100,0,.3),rgba(192,28,28,.34)),
-        linear-gradient(180deg,rgba(148,20,12,.98),rgba(82,12,18,.99)) !important;
-      border-color: rgba(255,180,70,.84) !important;
-      color: #fff5e4 !important;
+        repeating-linear-gradient(135deg,rgba(255,200,61,.16) 0 8px,rgba(255,200,61,0) 8px 16px),
+        linear-gradient(135deg,rgba(255,122,24,.28),rgba(185,28,28,.3)),
+        linear-gradient(180deg,rgba(140,20,12,.98),rgba(80,12,16,.99)) !important;
+      border-color: rgba(255,122,24,.8) !important; color: #fff5e4 !important;
     }
 
     /* Market cards */
     .market-card.status-win {
       background:
-        linear-gradient(180deg,rgba(0,245,255,.1),rgba(0,245,255,0) 20%),
-        linear-gradient(180deg,rgba(5,68,82,.97),rgba(4,26,38,.99)) !important;
-      box-shadow: inset 0 0 0 2px rgba(0,245,255,.22) !important;
+        linear-gradient(180deg,rgba(61,213,243,.1),rgba(61,213,243,0) 20%),
+        linear-gradient(180deg,rgba(5,66,82,.97),rgba(4,24,36,.99)) !important;
+      box-shadow: inset 0 0 0 2px rgba(61,213,243,.2) !important;
     }
     .market-card.status-lose {
       background:
-        repeating-linear-gradient(135deg,rgba(255,180,50,.1) 0 10px,rgba(255,180,50,0) 10px 20px),
-        linear-gradient(180deg,rgba(116,20,14,.96),rgba(44,10,18,.99)) !important;
-      box-shadow: inset 0 0 0 2px rgba(255,180,70,.2) !important;
+        repeating-linear-gradient(135deg,rgba(255,200,61,.1) 0 10px,rgba(255,200,61,0) 10px 20px),
+        linear-gradient(180deg,rgba(112,20,12,.96),rgba(44,8,16,.99)) !important;
+      box-shadow: inset 0 0 0 2px rgba(255,122,24,.2) !important;
     }
 
-    /* Bet Master: stronger gold */
+    /* BET MASTER */
     .bet-master-shell {
-      border-color: rgba(255,205,55,.42) !important;
+      border-color: rgba(255,200,61,.36) !important;
       background:
-        linear-gradient(180deg,rgba(255,205,55,.22),rgba(255,205,55,0) 50px),
-        radial-gradient(circle at top right,rgba(255,185,30,.2),transparent 28%),
-        radial-gradient(circle at left center,rgba(255,100,0,.18),transparent 32%),
-        linear-gradient(145deg,rgba(34,20,8,.98),rgba(12,16,34,.99)) !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255,248,190,.16),
-        0 24px 52px rgba(0,0,0,.24) !important;
+        linear-gradient(180deg,rgba(255,200,61,.2),rgba(255,200,61,0) 50px),
+        radial-gradient(circle at top right,rgba(255,200,61,.16),transparent 28%),
+        radial-gradient(circle at left center,rgba(255,122,24,.16),transparent 32%),
+        linear-gradient(145deg,rgba(32,20,8,.98),rgba(12,16,34,.99)) !important;
+      box-shadow: inset 0 1px 0 rgba(255,248,190,.14), 0 22px 50px rgba(0,0,0,.22) !important;
     }
 
-    /* Bet Master generate button: richer */
+    /* GENERATE BUTTON: black + orange */
     .bet-master-generate {
       background:
-        linear-gradient(180deg,rgba(255,225,140,.28),rgba(255,225,140,0) 20%),
-        linear-gradient(135deg,rgba(255,215,68,.99),rgba(255,134,28,.98) 54%,rgba(255,82,18,.98)) !important;
-      box-shadow: 0 22px 40px rgba(255,120,0,.3), inset 0 1px 0 rgba(255,252,228,.84) !important;
-      border-color: rgba(255,222,100,.88) !important;
+        linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 20%),
+        linear-gradient(135deg,#150c04,#0d0d0d) !important;
+      color: #ff7a18 !important;
+      border-color: rgba(255,122,24,.76) !important;
+      box-shadow: 0 20px 36px rgba(255,122,24,.2), inset 0 1px 0 rgba(255,122,24,.18) !important;
+      text-shadow: 0 0 24px rgba(255,122,24,.32) !important;
     }
-
-    /* Bet master card */
-    .bet-master-card {
-      border-color: rgba(255,200,60,.2) !important;
+    .bet-master-generate::before {
+      background: rgba(255,122,24,.14) !important;
+      opacity: 1 !important;
+    }
+    .bet-master-generate::after {
+      background: rgba(255,122,24,.14) !important;
+      color: #ff7a18 !important;
+      box-shadow: none !important;
+    }
+    .bet-master-generate:hover {
       background:
-        radial-gradient(circle at top right,rgba(255,200,60,.08),transparent 32%),
-        linear-gradient(145deg,rgba(24,18,8,.96),rgba(10,12,26,.99)) !important;
+        linear-gradient(135deg,#1e1006,#141414) !important;
+      border-color: rgba(255,122,24,.92) !important;
+      box-shadow: 0 24px 42px rgba(255,122,24,.28), inset 0 1px 0 rgba(255,122,24,.26) !important;
     }
-    .bet-master-chip {
-      border-color: rgba(255,200,55,.36) !important;
-      background: rgba(255,200,55,.1) !important;
-      color: #ffe896 !important;
+
+    /* Bet master misc */
+    .bet-master-card {
+      border-color: rgba(255,200,61,.18) !important;
+      background:
+        radial-gradient(circle at top right,rgba(255,200,61,.06),transparent 30%),
+        linear-gradient(145deg,rgba(22,16,6,.96),rgba(10,12,26,.99)) !important;
     }
+    .bet-master-chip { border-color: rgba(255,200,61,.32) !important; background: rgba(255,200,61,.09) !important; color: #ffe896 !important; }
     .bet-master-stepper-btn {
-      border-color: rgba(255,200,55,.42) !important;
-      background: linear-gradient(180deg,rgba(74,56,18,.92),rgba(30,22,12,.98)) !important;
-    }
-    .bet-master-stepper-btn:hover {
-      border-color: rgba(255,110,0,.78) !important;
+      border-color: rgba(255,200,61,.38) !important;
+      background: linear-gradient(180deg,rgba(68,50,14,.92),rgba(28,18,8,.98)) !important;
     }
 
-    /* Panel-toggle buttons */
-    .panel-toggle {
-      border-color: rgba(0,200,255,.22) !important;
-    }
-    .panel-toggle:hover {
-      border-color: rgba(255,100,0,.6) !important;
-      background: rgba(255,100,0,.12) !important;
-    }
-    .panel-toggle strong { color: #ffcc80 !important; }
+    /* Panel-toggle */
+    .panel-toggle { border-color: rgba(61,213,243,.18) !important; }
+    .panel-toggle:hover { border-color: rgba(255,122,24,.56) !important; background: rgba(255,122,24,.1) !important; }
+    .panel-toggle strong { color: #ffc83d !important; }
 
-    /* Section feed block background */
+    /* Section-feed block */
     .section-feed-block {
       background:
-        radial-gradient(circle at top right,rgba(0,200,255,.07),transparent 34%),
+        radial-gradient(circle at top right,rgba(61,213,243,.06),transparent 34%),
         linear-gradient(180deg,rgba(8,16,36,.94),rgba(4,10,24,.99)) !important;
     }
+    .section-feed-block .league-block { border-color: rgba(61,213,243,.16) !important; }
 
-    /* League blocks */
-    .league-block {
-      border-color: rgba(0,200,255,.2) !important;
-    }
-    .section-feed-block .league-block {
-      border-color: rgba(0,200,255,.18) !important;
-      background: linear-gradient(180deg,rgba(12,22,46,.86),rgba(7,14,30,.98)) !important;
-    }
-
-    /* Detail sheet */
+    /* Detail hero */
     .detail-hero {
       background:
-        radial-gradient(circle at top right,rgba(0,200,255,.14),transparent 34%),
+        radial-gradient(circle at top right,rgba(61,213,243,.12),transparent 34%),
         linear-gradient(145deg,rgba(10,18,40,.96),rgba(4,9,22,.99)) !important;
     }
 
-    /* Yesterday banner */
-    .yesterday-banner-inner {
-      background: linear-gradient(90deg,rgba(12,80,70,.96),rgba(6,24,42,.99)) !important;
-    }
-
-    /* Type lab in hero */
+    /* Type lab */
     .type-lab {
-      border-color: rgba(0,200,255,.24) !important;
+      border-color: rgba(61,213,243,.2) !important;
       background:
-        linear-gradient(180deg,rgba(0,210,255,.1),rgba(0,210,255,0) 16%),
+        linear-gradient(180deg,rgba(61,213,243,.08),rgba(61,213,243,0) 16%),
         linear-gradient(135deg,rgba(10,20,50,.94),rgba(5,12,28,.99)) !important;
     }
     .type-option {
-      border-color: rgba(0,200,255,.2) !important;
+      border-color: rgba(61,213,243,.18) !important;
       background:
-        linear-gradient(180deg,rgba(0,200,255,.07),rgba(0,200,255,0) 16%),
+        linear-gradient(180deg,rgba(61,213,243,.06),rgba(61,213,243,0) 16%),
         linear-gradient(145deg,rgba(16,28,58,.97),rgba(7,14,30,.99)) !important;
     }
     .type-option::before {
-      background: linear-gradient(180deg,rgba(0,230,255,.92),rgba(255,100,0,.78)) !important;
+      background: linear-gradient(180deg,rgba(61,213,243,.9),rgba(255,122,24,.76)) !important;
     }
     .type-option.active {
-      border-color: rgba(0,235,255,.62) !important;
+      border-color: rgba(61,213,243,.58) !important;
       background:
-        linear-gradient(180deg,rgba(0,235,255,.14),rgba(0,235,255,0) 20%),
-        linear-gradient(145deg,rgba(26,50,90,.98),rgba(10,20,42,.99)) !important;
+        linear-gradient(180deg,rgba(61,213,243,.12),rgba(61,213,243,0) 20%),
+        linear-gradient(145deg,rgba(24,48,86,.98),rgba(10,18,40,.99)) !important;
+    }
+
+    /* TIME PAST WARNING */
+    .time-past-warning {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,200,61,.42);
+      background:
+        radial-gradient(circle at left,rgba(255,200,61,.12),transparent 60%),
+        linear-gradient(180deg,rgba(44,28,4,.96),rgba(18,14,6,.98));
+      color: #ffe4a0;
+      font-size: .82rem;
+      line-height: 1.4;
+    }
+    .time-past-warning::before {
+      content: "⏳";
+      font-size: 1.1rem;
+      flex: 0 0 auto;
     }
   </style>
   <script src="/assets/match_center.js?v=20260317i"></script>
@@ -2561,8 +2570,48 @@
         filtersToggle.addEventListener("click", () => setFilters(!filtersOpen));
         betMasterToggle.addEventListener("click", () => setBetMaster(!betMasterOpen));
 
-        setFilters(false);
+        setFilters(true);
         setBetMaster(false);
+      };
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", ready);
+      } else {
+        ready();
+      }
+    })();
+  </script>
+  <script>
+    (function () {
+      var ready = function () {
+        var timeFrom = document.getElementById("time-from");
+        var timeTo = document.getElementById("time-to");
+        if (!timeFrom || !timeTo) return;
+
+        var warning = document.createElement("div");
+        warning.className = "time-past-warning";
+        warning.hidden = true;
+        warning.innerHTML = "Intervallo orario nel passato &mdash; nessuna partita imminente sar&agrave; visibile in questa fascia";
+
+        var filterBoard = document.getElementById("inline-filter-board");
+        if (filterBoard && filterBoard.parentNode) {
+          filterBoard.parentNode.insertBefore(warning, filterBoard.nextSibling);
+        }
+
+        var check = function () {
+          var now = new Date();
+          var hh = now.getHours().toString().padStart(2, "0");
+          var mm = now.getMinutes().toString().padStart(2, "0");
+          var current = hh + ":" + mm;
+          var toVal = timeTo.value || "23:59";
+          if (toVal === "23:59") { warning.hidden = true; return; }
+          warning.hidden = toVal >= current;
+        };
+
+        timeFrom.addEventListener("change", check);
+        timeTo.addEventListener("change", check);
+        setInterval(check, 30000);
+        check();
       };
 
       if (document.readyState === "loading") {
