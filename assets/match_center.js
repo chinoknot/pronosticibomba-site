@@ -1074,25 +1074,19 @@
   }
 
   function competitionTier(country, league) {
+    if (country === "World" && isEliteWorldCompetition(league)) return [0, 0];
     const majorRank = topLeaguePriority(country, league);
-    if (majorRank !== 999) return [0, majorRank];
-    if (FEATURED_COUNTRY_PRIORITY.has(country) && isFeaturedTopDivision(country, league)) return [1, FEATURED_COUNTRY_PRIORITY.get(country)];
-    if (country === "World" && isEliteWorldCompetition(league)) return [2, 0];
+    if (majorRank !== 999) return [1, majorRank];
+    if (FEATURED_COUNTRY_PRIORITY.has(country) && isFeaturedTopDivision(country, league)) return [2, FEATURED_COUNTRY_PRIORITY.get(country)];
     if (TOP_COUNTRY_PRIORITY.has(country)) return [3, TOP_COUNTRY_PRIORITY.get(country)];
     if (EUROPEAN_COUNTRIES.has(country) && !isMinorLeagueName(league)) return [4, COUNTRY_PRIORITY.get(country) ?? 999];
     if (country === "World" && isSecondaryWorldCompetition(league)) return [5, 0];
-    if (EUROPEAN_COUNTRIES.has(country)) return [5, (COUNTRY_PRIORITY.get(country) ?? 999) + 50];
-    return [6, 999];
+    if (EUROPEAN_COUNTRIES.has(country)) return [6, (COUNTRY_PRIORITY.get(country) ?? 999) + 50];
+    return [7, 999];
   }
 
   function isMajorLeagueGroup(group) {
-    return competitionTier(group.country, group.league)[0] <= 1;
-  }
-
-  function shouldPrioritizeOpenSelections() {
-    return state.oddActive
-      || state.minProbability !== DEFAULTS.minProbability
-      || state.maxProbability !== DEFAULTS.maxProbability;
+    return competitionTier(group.country, group.league)[0] <= 2;
   }
 
   function matchLifecycleRank(match) {
@@ -1116,20 +1110,14 @@
   function groupSortKey(group) {
     const [tier, tierRank] = competitionTier(group.country, group.league);
     const leagueRank = leaguePriority(group.country, group.league);
-    if (shouldPrioritizeOpenSelections()) {
-      return [groupLifecycleRank(group), earliestOpenKickoff(group), tier, tierRank, leagueRank, group.league || "", group.country || ""];
-    }
-    return [tier, tierRank, leagueRank, group.matches[0]?.localKickoffSort || group.matches[0]?.match_time || "", group.league || "", group.country || ""];
+    return [tier, tierRank, leagueRank, earliestOpenKickoff(group), group.matches[0]?.localKickoffSort || group.matches[0]?.match_time || "", group.league || "", group.country || ""];
   }
 
   function matchSortKey(match) {
     const [tier, tierRank] = competitionTier(match.country, match.league);
-    if (shouldPrioritizeOpenSelections()) {
-      const lifecycleRank = matchLifecycleRank(match);
-      const kickoff = lifecycleRank < 2 ? (match.localMatchTime || match.match_time || "99:99") : "99:99";
-      return [lifecycleRank, kickoff, tier, tierRank, leaguePriority(match.country, match.league), match.league || "", match.home || ""];
-    }
-    return [tier, tierRank, leaguePriority(match.country, match.league), match.localKickoffSort || match.match_time || "", match.league || "", match.home || ""];
+    const lifecycleRank = matchLifecycleRank(match);
+    const kickoff = lifecycleRank < 2 ? (match.localMatchTime || match.match_time || "99:99") : "99:99";
+    return [tier, tierRank, leaguePriority(match.country, match.league), lifecycleRank, kickoff, match.localKickoffSort || match.match_time || "", match.league || "", match.home || ""];
   }
 
   function tempoProfile(match) {
@@ -1580,7 +1568,16 @@
     const nowTs = Date.now();
     let pool = matches.filter(match => !FINAL_STATUSES.has(String(match.status_short || "").toUpperCase()) && match.primaryMarket);
     if (state.selectedDate === today) {
-      const imminent = pool.filter(match => {
+      const upcoming = pool.filter(match => {
+        const kickoff = kickoffDate(match);
+        if (!kickoff) {
+          const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.match_time));
+          const nowMinutes = toMinutes(currentTimeInTimezone(timezone));
+          return kickoffMinutes >= nowMinutes;
+        }
+        return kickoff.getTime() >= nowTs;
+      }).sort((a, b) => `${a.localKickoffSort || a.match_time || ""}-${a.league || ""}-${a.home || ""}`.localeCompare(`${b.localKickoffSort || b.match_time || ""}-${b.league || ""}-${b.home || ""}`));
+      const imminent = upcoming.filter(match => {
         const kickoff = kickoffDate(match);
         if (!kickoff) {
           const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.match_time));
@@ -1589,31 +1586,17 @@
         }
         return kickoff.getTime() >= nowTs && kickoff.getTime() <= nowTs + (30 * 60 * 1000);
       });
-      if (imminent.length) {
+      if (imminent.length >= 4) {
         pool = imminent;
-      } else {
-        const nextUp = pool.filter(match => {
-          const kickoff = kickoffDate(match);
-          if (!kickoff) {
-            const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.match_time));
-            const nowMinutes = toMinutes(currentTimeInTimezone(timezone));
-            return kickoffMinutes >= nowMinutes;
-          }
-          return kickoff.getTime() >= nowTs;
-        });
-        if (nextUp.length) pool = nextUp;
+      } else if (upcoming.length) {
+        pool = upcoming.slice(0, Math.min(12, Math.max(4, imminent.length || 0, upcoming.length)));
       }
     }
     const headlinePool = pool.filter(match => isHeadlineCompetition(match.country, match.league));
-    if (headlinePool.length) pool = headlinePool;
-    else {
-      const curatedPool = pool.filter(match => isTopRailCompetition(match.country, match.league));
-      if (curatedPool.length) pool = curatedPool;
-      else {
-        const featuredPool = pool.filter(match => isFeaturedCompetition(match.country, match.league));
-        if (featuredPool.length) pool = featuredPool;
-      }
-    }
+    const curatedPool = pool.filter(match => !isHeadlineCompetition(match.country, match.league) && isTopRailCompetition(match.country, match.league));
+    const featuredPool = pool.filter(match => !isHeadlineCompetition(match.country, match.league) && !isTopRailCompetition(match.country, match.league) && isFeaturedCompetition(match.country, match.league));
+    const secondaryPool = pool.filter(match => !headlinePool.includes(match) && !curatedPool.includes(match) && !featuredPool.includes(match));
+    pool = [...headlinePool, ...curatedPool, ...featuredPool, ...secondaryPool];
     const ranked = pool
       .map(match => {
         const headline = match.primaryMarket || selectHeadlineMarket(match.visibleMarkets, match);
@@ -1648,10 +1631,12 @@
       })
       .filter(Boolean)
       .sort((a, b) => {
-        const featuredDiff = Number(isFeaturedCompetition(b.country, b.league)) - Number(isFeaturedCompetition(a.country, a.league));
-        if (featuredDiff !== 0) return featuredDiff;
         const timeDiff = toMinutes(a.matchTime) - toMinutes(b.matchTime);
         if (state.selectedDate === today && Math.abs(timeDiff) > 0) return timeDiff;
+        const aTier = competitionTier(a.country, a.league);
+        const bTier = competitionTier(b.country, b.league);
+        if (aTier[0] !== bTier[0]) return aTier[0] - bTier[0];
+        if (aTier[1] !== bTier[1]) return aTier[1] - bTier[1];
         const scoreDiff = b.displayScore - a.displayScore;
         if (Math.abs(scoreDiff) > 0.0001) return scoreDiff;
         return timeDiff;
