@@ -67,6 +67,24 @@
           <a href="/match-center2.html" class="active">Match Center</a>
         </nav>
       </div>
+      <nav class="mobile-page-nav" aria-label="Mobile page navigation">
+        <a class="mobile-page-link" href="/index2.html">
+          <span class="mobile-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5L12 4l9 7.5"></path><path d="M5.5 10.5V20H18.5V10.5"></path></svg></span>
+          <span class="mobile-page-copy"><strong>Home</strong><span>Feed</span></span>
+        </a>
+        <a class="mobile-page-link" href="/storico2.html">
+          <span class="mobile-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"></path><path d="M7 16V10"></path><path d="M12 16V6"></path><path d="M17 16v-4"></path></svg></span>
+          <span class="mobile-page-copy"><strong>ROI</strong><span>Board</span></span>
+        </a>
+        <a class="mobile-page-link" href="/storico_picks2.html">
+          <span class="mobile-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10l3 3v13H4V4z"></path><path d="M14 4v4h4"></path><path d="M8 12h8"></path><path d="M8 16h6"></path></svg></span>
+          <span class="mobile-page-copy"><strong>Picks</strong><span>Log</span></span>
+        </a>
+        <a class="mobile-page-link active" href="/match-center2.html">
+          <span class="mobile-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"></circle><path d="M20 20L16.65 16.65"></path></svg></span>
+          <span class="mobile-page-copy"><strong>Match</strong><span>Center</span></span>
+        </a>
+      </nav>
     </div>
   </header>
   <main class="app-shell">
@@ -766,6 +784,15 @@
     .nav2{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .nav2 a{min-height:42px;padding:0 15px;border-radius:999px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);color:#ecf2ff;display:inline-flex;align-items:center;gap:8px;font-size:.82rem;font-weight:700;text-decoration:none;white-space:nowrap}
     .nav2 a.active,.nav2 a:hover{border-color:rgba(255,122,24,.56);background:rgba(255,122,24,.1)}
+    .mobile-page-nav{display:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+    .mobile-page-link{min-height:74px;padding:10px 10px 11px;border-radius:22px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(12,18,34,.92),rgba(7,11,24,.98));display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:8px;color:#edf4ff;text-decoration:none;box-shadow:0 16px 36px rgba(0,0,0,.28)}
+    .mobile-page-link:hover,.mobile-page-link:focus-visible{transform:translateY(-1px);border-color:rgba(255,122,24,.58);background:linear-gradient(180deg,rgba(18,27,47,.95),rgba(8,13,26,.99));outline:none}
+    .mobile-page-link.active{border-color:rgba(255,122,24,.62);background:radial-gradient(circle at top right,rgba(255,122,24,.16),transparent 48%),linear-gradient(180deg,rgba(20,28,47,.98),rgba(10,14,28,.99));box-shadow:0 20px 40px rgba(255,122,24,.14)}
+    .mobile-page-icon{width:32px;height:32px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);display:grid;place-items:center;flex:0 0 auto}
+    .mobile-page-icon svg{width:16px;height:16px;stroke:currentColor}
+    .mobile-page-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+    .mobile-page-copy strong{font-family:"Sora",sans-serif;font-size:.74rem;letter-spacing:-.02em;line-height:1.05}
+    .mobile-page-copy span{color:#9fb0d0;font-size:.57rem;letter-spacing:.1em;text-transform:uppercase;line-height:1}
     .app-shell{width:min(1480px, calc(100% - 24px));margin:14px auto 0}
     .hero-shell,.panel,.league-block,.detail-accordion,.detail-hero,.sheet,.detail-sheet{border-radius:28px}
     .hero-copy-wrap h1,.section-head h2,.detail-head h2,.sheet-head h2,.bet-master-head h2{font-family:"Sora",sans-serif}
@@ -792,12 +819,14 @@
 
     @media (max-width:720px){
       .topbar2{padding:10px 0 8px}
-      .topbar2-inner{padding:12px 14px}
+      .topbar2-inner{padding:12px 14px;align-items:center;flex-direction:row}
       .brand2-mark{width:42px;height:42px;border-radius:14px}
       .brand2-mark img{width:28px;height:28px}
       .brand2-copy strong{font-size:.94rem}
       .brand2-copy span{font-size:.7rem}
-      .nav2 a{min-height:38px;padding:0 13px;font-size:.78rem}
+      .nav2{width:auto;margin-left:auto;justify-content:flex-end;overflow:visible;flex-wrap:nowrap;padding-bottom:0}
+      .nav2 a{display:none}
+      .mobile-page-nav{display:grid}
       .shell2,.app-shell{width:min(1480px, calc(100% - 12px))}
       .panel,.hero-shell,.league-block{border-radius:22px}
       .collapse-row{width:100%}
