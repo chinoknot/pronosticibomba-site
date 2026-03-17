@@ -2740,13 +2740,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/943.png",
       "away_logo": "https://media.api-sports.io/football/teams/945.png",
       "league_logo": "https://media.api-sports.io/football/leagues/188.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "HT",
+      "status_long": "Halftime",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "p_over15": 0.7883,
       "p_under15": 0.2117,
       "ou15_pick": "Over 1.5",
@@ -2914,8 +2914,8 @@
       ],
       "kickoff_at": "2026-03-17T09:00:00+01:00",
       "kickoff_ts": 1773734400,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1503483,
@@ -16707,8 +16707,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/1687.png",
       "away_logo": "https://media.api-sports.io/football/teams/899.png",
       "league_logo": "https://media.api-sports.io/football/leagues/136.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
+      "status_short": "PST",
+      "status_long": "Match Postponed",
       "goals_home": null,
       "goals_away": null,
       "total_corners": null,
@@ -33723,5 +33723,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-03-17T23:49:20.004099+00:00",
-  "refreshed_at": "2026-03-17T07:16:21.745675+00:00"
+  "refreshed_at": "2026-03-17T08:59:20.214093+00:00"
 }
