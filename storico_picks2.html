@@ -649,12 +649,18 @@
           <a href="/match-center2.html">Match Center</a>
           <a href="/storico2.html">Storico ROI</a>
           <a href="/storico_picks2.html" class="active">Storico Picks</a>
+          <button type="button" class="lang-btn active" id="lang-it" onclick="setLang('it')">IT</button>
+          <button type="button" class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
         </nav>
       </div>
       <nav class="mobile-page-nav" aria-label="Mobile page navigation">
         <a class="mobile-page-link" href="/index2.html">
           <span class="mobile-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5L12 4l9 7.5"></path><path d="M5.5 10.5V20H18.5V10.5"></path></svg></span>
           <span class="mobile-page-copy"><strong>Home</strong><span>Feed</span></span>
+        </a>
+        <a class="mobile-page-link" href="/match-center2.html">
+          <span class="mobile-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"></circle><path d="M20 20L16.65 16.65"></path></svg></span>
+          <span class="mobile-page-copy"><strong>Match</strong><span>Center</span></span>
         </a>
         <a class="mobile-page-link" href="/storico2.html">
           <span class="mobile-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"></path><path d="M7 16V10"></path><path d="M12 16V6"></path><path d="M17 16v-4"></path></svg></span>
@@ -663,10 +669,6 @@
         <a class="mobile-page-link active" href="/storico_picks2.html">
           <span class="mobile-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10l3 3v13H4V4z"></path><path d="M14 4v4h4"></path><path d="M8 12h8"></path><path d="M8 16h6"></path></svg></span>
           <span class="mobile-page-copy"><strong>Picks</strong><span>Log</span></span>
-        </a>
-        <a class="mobile-page-link" href="/match-center2.html">
-          <span class="mobile-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"></circle><path d="M20 20L16.65 16.65"></path></svg></span>
-          <span class="mobile-page-copy"><strong>Match</strong><span>Center</span></span>
         </a>
       </nav>
     </div>
@@ -1357,5 +1359,99 @@ container.appendChild(frag);
       }
     });
   </script>
+<style>
+  /* ── index2 palette alignment ───────────────────────────────────── */
+  body {
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    background:
+      radial-gradient(circle at 14% 16%, rgba(255,122,24,.24), transparent 24%),
+      radial-gradient(circle at 86% 12%, rgba(61,213,243,.12), transparent 22%),
+      radial-gradient(circle at 50% 100%, rgba(255,200,61,.11), transparent 32%),
+      linear-gradient(180deg, #03050d 0%, #071122 38%, #050816 100%) !important;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(circle at center, black 32%, transparent 92%);
+    opacity: .35;
+    z-index: -2;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: -10%;
+    pointer-events: none;
+    background:
+      conic-gradient(from 180deg at 20% 20%, transparent, rgba(255,122,24,.1), transparent 28%),
+      conic-gradient(from 180deg at 80% 30%, transparent, rgba(255,200,61,.08), transparent 32%);
+    filter: blur(40px);
+    z-index: -3;
+  }
+  /* topbar orange hover */
+  .nav2 a.active, .nav2 a:hover {
+    border-color: rgba(255,122,24,.56) !important;
+    background: rgba(255,122,24,.12) !important;
+    color: #fff7ed !important;
+  }
+  .mobile-page-link.active {
+    border-color: rgba(255,122,24,.52) !important;
+    background: linear-gradient(180deg, rgba(255,122,24,.14), rgba(255,90,0,.08)) !important;
+  }
+  /* win / lose vivid cyan / amber palette */
+  :root { --win: #25dba9; --lose: #f97316; }
+  .pick-card.win {
+    border-color: rgba(37,219,169,.4) !important;
+    box-shadow: 0 0 0 1px rgba(37,219,169,.3) !important;
+  }
+  .pick-card.lose {
+    border-color: rgba(249,115,22,.4) !important;
+    box-shadow: 0 0 0 1px rgba(249,115,22,.3) !important;
+  }
+  .result-badge.win {
+    border-color: rgba(37,219,169,.48) !important;
+    background: rgba(37,219,169,.12) !important;
+    color: #93ffe1 !important;
+  }
+  .result-badge.lose {
+    border-color: rgba(249,115,22,.48) !important;
+    background: rgba(249,115,22,.12) !important;
+    color: #ffd6b0 !important;
+  }
+  .day-summary-value.win { color: #93ffe1 !important; }
+  .day-summary-value.lose { color: #ffd6b0 !important; }
+  /* lang toggle buttons */
+  .lang-btn {
+    min-height: 36px; padding: 0 13px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04);
+    color: #9fb0d0; font-family: "Space Grotesk", system-ui, sans-serif;
+    font-size: .78rem; font-weight: 700; letter-spacing: .04em;
+    cursor: pointer; white-space: nowrap;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: border-color .16s, background .16s, color .16s;
+  }
+  .lang-btn:hover { border-color: rgba(255,122,24,.56); background: rgba(255,122,24,.1); color: #fff7ed; }
+  .lang-btn.active { border-color: rgba(255,122,24,.62); background: rgba(255,122,24,.14); color: #fff7ed; }
+</style>
+<script>
+  (function () {
+    var LANG_KEY = "pb-lang";
+    function setLang(lang) {
+      localStorage.setItem(LANG_KEY, lang);
+      document.getElementById("lang-it").classList.toggle("active", lang === "it");
+      document.getElementById("lang-en").classList.toggle("active", lang === "en");
+      document.documentElement.lang = lang;
+    }
+    window.setLang = setLang;
+    var saved = localStorage.getItem(LANG_KEY) || "it";
+    setLang(saved);
+  })();
+</script>
 </body>
 </html>

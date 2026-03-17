@@ -2214,7 +2214,7 @@
     renderQuickMarketRail();
     renderQuickOutcomeRail();
     renderProbabilityPresetChips();
-    dom.statusChips.innerHTML = STATUS_OPTIONS.map(option => `<button type="button" class="status-chip ${state.status === option.id ? "active" : ""}" data-status="${option.id}">${option.label}</button>`).join("");
+    if (dom.statusChips) dom.statusChips.innerHTML = STATUS_OPTIONS.map(option => `<button type="button" class="status-chip ${state.status === option.id ? "active" : ""}" data-status="${option.id}">${option.label}</button>`).join("");
     dom.marketsAll.classList.toggle("active", state.groups.size === GROUPS.length);
     dom.marketsNone.classList.toggle("active", state.groups.size === 0);
     dom.timeFrom.value = state.timeFrom;
