@@ -12011,8 +12011,8 @@
       ],
       "kickoff_at": "2026-03-16T17:30:00+01:00",
       "kickoff_ts": 1773678600,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1415766,
@@ -21668,5 +21668,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-03-17T16:55:27.950753+00:00",
-  "refreshed_at": "2026-03-17T08:59:06.707352+00:00"
+  "refreshed_at": "2026-03-17T09:59:57.097496+00:00"
 }
