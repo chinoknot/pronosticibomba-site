@@ -22,6 +22,41 @@
     })();
   </script>
   <style>
+    @font-face{
+      font-family:"PB Modernist";
+      src:url("/assets/fonts/control-room/sk-modernist-regular.otf") format("opentype");
+      font-display:swap;
+      font-weight:400;
+      font-style:normal;
+    }
+    @font-face{
+      font-family:"PB Tottenham UI";
+      src:url("/assets/fonts/control-room/tottenham-personal-2.otf") format("opentype");
+      font-display:swap;
+      font-weight:400;
+      font-style:normal;
+    }
+    @font-face{
+      font-family:"PB Tottenham Display";
+      src:url("/assets/fonts/control-room/tottenham-personal-4.otf") format("opentype");
+      font-display:swap;
+      font-weight:400;
+      font-style:normal;
+    }
+    @font-face{
+      font-family:"PB Basier Circle";
+      src:url("/assets/fonts/control-room/basier-circle-regular.woff2") format("woff2");
+      font-display:swap;
+      font-weight:400;
+      font-style:normal;
+    }
+    @font-face{
+      font-family:"PB Basier Square";
+      src:url("/assets/fonts/control-room/basier-square-regular.woff2") format("woff2");
+      font-display:swap;
+      font-weight:400;
+      font-style:normal;
+    }
     :root{--bg:#07111f;--panel:rgba(12,20,40,.88);--panel-strong:rgba(18,28,52,.94);--border:rgba(148,163,184,.22);--text:#ecf3ff;--muted:#a9bad3;--soft:#7d8faa;--accent:#ff7a18;--blue:#3dd5f3;--success:#22c55e;--danger:#ef4444;--warning:#facc15;--shadow:0 24px 70px rgba(2,10,26,.34);--radius-xl:28px;--radius-lg:22px;--radius-md:16px}
     *{box-sizing:border-box}html,body{margin:0;min-height:100%;max-width:100%;overflow-x:hidden;color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top left,rgba(61,213,243,.22),transparent 30%),radial-gradient(circle at 82% 0%,rgba(255,122,24,.24),transparent 24%),radial-gradient(circle at 50% 100%,rgba(255,196,61,.12),transparent 28%),linear-gradient(180deg,#081223 0%,#0a1629 36%,#08121f 100%);-webkit-font-smoothing:antialiased}body{padding:14px 10px 42px}body.modal-open{overflow:hidden}a{color:inherit}button,input,select{font:inherit}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     .app-shell{width:100%;max-width:1440px;margin:0 auto;display:flex;flex-direction:column;gap:16px}.panel{border:1px solid var(--border);border-radius:var(--radius-lg);background:radial-gradient(circle at top right,rgba(61,213,243,.14),transparent 32%),radial-gradient(circle at left center,rgba(255,122,24,.1),transparent 28%),linear-gradient(145deg,var(--panel-strong),rgba(9,14,27,.96));box-shadow:var(--shadow)}
@@ -134,7 +169,7 @@
         <div class="type-lab" aria-label="Font switcher">
           <div class="type-lab-copy">
             <span class="section-kicker">Type Lab</span>
-            <strong>Modernist / Swiza / Basier</strong>
+            <strong>Modernist / Tottenham / Basier</strong>
             <small>Prova tre voci diverse sullo stesso feed.</small>
           </div>
           <div class="type-switch" id="type-switch">
@@ -142,9 +177,9 @@
               <strong>Modernist</strong>
               <small>sport tech</small>
             </button>
-            <button type="button" class="type-option" data-type-mode="swiza">
-              <strong>Swiza</strong>
-              <small>sharp swiss</small>
+            <button type="button" class="type-option" data-type-mode="tottenham">
+              <strong>Tottenham</strong>
+              <small>club stamp</small>
             </button>
             <button type="button" class="type-option" data-type-mode="basier">
               <strong>Basier</strong>
@@ -1566,12 +1601,12 @@
   </style>
   <style>
     :root{
-      --font-modernist-head:local("SK Modernist"),local("SK Modernist Trial"),"Chakra Petch","Space Grotesk",sans-serif;
-      --font-modernist-ui:local("SK Modernist"),local("Swiza"),"Archivo","Space Grotesk",sans-serif;
-      --font-swiza-head:local("Swiza"),local("Swiza Trial"),"Archivo","Space Grotesk",sans-serif;
-      --font-swiza-ui:local("Swiza"),local("Swiza Trial"),"Archivo","Space Grotesk",sans-serif;
-      --font-basier-head:local("Basier Circle"),local("Basier Square"),local("Basier"),"Plus Jakarta Sans","Sora",sans-serif;
-      --font-basier-ui:local("Basier Circle"),local("Basier Square"),local("Basier"),"Plus Jakarta Sans","Sora",sans-serif;
+      --font-modernist-head:"PB Modernist","Chakra Petch","Space Grotesk",sans-serif;
+      --font-modernist-ui:"PB Modernist","Archivo","Space Grotesk",sans-serif;
+      --font-tottenham-head:"PB Tottenham Display","PB Tottenham UI","Archivo","Space Grotesk",sans-serif;
+      --font-tottenham-ui:"PB Tottenham UI","Archivo","Space Grotesk",sans-serif;
+      --font-basier-head:"PB Basier Circle","PB Basier Square","Plus Jakarta Sans","Sora",sans-serif;
+      --font-basier-ui:"PB Basier Square","PB Basier Circle","Plus Jakarta Sans","Sora",sans-serif;
       --font-head:var(--font-modernist-head);
       --font-ui:var(--font-modernist-ui);
       --font-mono:"Chakra Petch","Space Grotesk",sans-serif;
@@ -1582,9 +1617,9 @@
       --font-ui:var(--font-modernist-ui);
     }
 
-    html[data-type-mode="swiza"]{
-      --font-head:var(--font-swiza-head);
-      --font-ui:var(--font-swiza-ui);
+    html[data-type-mode="tottenham"]{
+      --font-head:var(--font-tottenham-head);
+      --font-ui:var(--font-tottenham-ui);
     }
 
     html[data-type-mode="basier"]{
