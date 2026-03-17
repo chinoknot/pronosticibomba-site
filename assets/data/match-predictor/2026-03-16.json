@@ -21549,13 +21549,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/1466.png",
       "away_logo": "https://media.api-sports.io/football/teams/1458.png",
       "league_logo": "https://media.api-sports.io/football/leagues/240.png",
-      "status_short": "2H",
-      "status_long": "Second Half",
-      "goals_home": 0,
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 1,
       "goals_away": 1,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "0-1",
+      "final_score": "1-1",
       "p_over15": 0.7017,
       "p_under15": 0.2983,
       "ou15_pick": "Over 1.5",
@@ -21668,5 +21668,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-03-17T16:55:27.950753+00:00",
-  "refreshed_at": "2026-03-16T23:50:28.389377+00:00"
+  "refreshed_at": "2026-03-17T02:30:00.679746+00:00"
 }
