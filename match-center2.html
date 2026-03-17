@@ -10,7 +10,17 @@
   <link rel="apple-touch-icon" href="/favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Chakra+Petch:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@400;500;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("pb-type-mode");
+        document.documentElement.dataset.typeMode = stored || "modernist";
+      } catch (error) {
+        document.documentElement.dataset.typeMode = "modernist";
+      }
+    })();
+  </script>
   <style>
     :root{--bg:#07111f;--panel:rgba(12,20,40,.88);--panel-strong:rgba(18,28,52,.94);--border:rgba(148,163,184,.22);--text:#ecf3ff;--muted:#a9bad3;--soft:#7d8faa;--accent:#ff7a18;--blue:#3dd5f3;--success:#22c55e;--danger:#ef4444;--warning:#facc15;--shadow:0 24px 70px rgba(2,10,26,.34);--radius-xl:28px;--radius-lg:22px;--radius-md:16px}
     *{box-sizing:border-box}html,body{margin:0;min-height:100%;max-width:100%;overflow-x:hidden;color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top left,rgba(61,213,243,.22),transparent 30%),radial-gradient(circle at 82% 0%,rgba(255,122,24,.24),transparent 24%),radial-gradient(circle at 50% 100%,rgba(255,196,61,.12),transparent 28%),linear-gradient(180deg,#081223 0%,#0a1629 36%,#08121f 100%);-webkit-font-smoothing:antialiased}body{padding:14px 10px 42px}body.modal-open{overflow:hidden}a{color:inherit}button,input,select{font:inherit}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
@@ -119,6 +129,27 @@
           <div class="hero-links">
             <a href="/index2.html" class="ghost-link" id="back-home-link">Torna a Home 2</a>
             <a href="/storico2.html" class="ghost-link" id="history-link">Storico ROI</a>
+          </div>
+        </div>
+        <div class="type-lab" aria-label="Font switcher">
+          <div class="type-lab-copy">
+            <span class="section-kicker">Type Lab</span>
+            <strong>Modernist / Swiza / Basier</strong>
+            <small>Prova tre voci diverse sullo stesso feed.</small>
+          </div>
+          <div class="type-switch" id="type-switch">
+            <button type="button" class="type-option" data-type-mode="modernist">
+              <strong>Modernist</strong>
+              <small>sport tech</small>
+            </button>
+            <button type="button" class="type-option" data-type-mode="swiza">
+              <strong>Swiza</strong>
+              <small>sharp swiss</small>
+            </button>
+            <button type="button" class="type-option" data-type-mode="basier">
+              <strong>Basier</strong>
+              <small>clean impact</small>
+            </button>
           </div>
         </div>
       </div>
@@ -1533,7 +1564,508 @@
       }
     }
   </style>
-  <script src="/assets/match_center.js?v=20260317h"></script>
+  <style>
+    :root{
+      --font-modernist-head:local("SK Modernist"),local("SK Modernist Trial"),"Chakra Petch","Space Grotesk",sans-serif;
+      --font-modernist-ui:local("SK Modernist"),local("Swiza"),"Archivo","Space Grotesk",sans-serif;
+      --font-swiza-head:local("Swiza"),local("Swiza Trial"),"Archivo","Space Grotesk",sans-serif;
+      --font-swiza-ui:local("Swiza"),local("Swiza Trial"),"Archivo","Space Grotesk",sans-serif;
+      --font-basier-head:local("Basier Circle"),local("Basier Square"),local("Basier"),"Plus Jakarta Sans","Sora",sans-serif;
+      --font-basier-ui:local("Basier Circle"),local("Basier Square"),local("Basier"),"Plus Jakarta Sans","Sora",sans-serif;
+      --font-head:var(--font-modernist-head);
+      --font-ui:var(--font-modernist-ui);
+      --font-mono:"Chakra Petch","Space Grotesk",sans-serif;
+    }
+
+    html[data-type-mode="modernist"]{
+      --font-head:var(--font-modernist-head);
+      --font-ui:var(--font-modernist-ui);
+    }
+
+    html[data-type-mode="swiza"]{
+      --font-head:var(--font-swiza-head);
+      --font-ui:var(--font-swiza-ui);
+    }
+
+    html[data-type-mode="basier"]{
+      --font-head:var(--font-basier-head);
+      --font-ui:var(--font-basier-ui);
+    }
+
+    body,
+    button,
+    input,
+    select,
+    textarea,
+    .ghost-link,
+    .icon-button,
+    .date-tab,
+    .feed-sort-button,
+    .quick-market-chip,
+    .quick-outcome-chip,
+    .chip-btn,
+    .preset-chip,
+    .status-chip,
+    .panel-toggle,
+    .match-action,
+    .bet-master-generate,
+    .hero-pill,
+    .league-header p,
+    .match-date,
+    .match-score,
+    .control-label,
+    .mini-label,
+    .control-help,
+    .market-title,
+    .market-option,
+    .market-expected,
+    .bet-master-pick small,
+    .bet-master-note,
+    .mobile-page-copy strong,
+    .mobile-page-copy span{
+      font-family:var(--font-ui) !important;
+    }
+
+    h1,
+    h2,
+    h3,
+    .hero-copy-wrap h1,
+    .section-head h2,
+    .sheet-head h2,
+    .detail-head h2,
+    .bet-master-head h2,
+    .feed-toolbar-copy strong,
+    .league-header h3,
+    .club-line strong,
+    .pick-title,
+    .market-pick,
+    .market-probability,
+    .match-action strong,
+    .top-pick-main h3,
+    .top-pick-time strong,
+    .top-pick-side strong,
+    .detail-meta-card strong,
+    .detail-summary,
+    .bet-master-pick-main strong,
+    .bet-master-slip-head h3,
+    .brand2-copy strong{
+      font-family:var(--font-head) !important;
+    }
+
+    .brand-mark,
+    .section-kicker,
+    .quick-filter-label,
+    .outcome-filter-title,
+    .hero-pill span,
+    .mini-label,
+    .market-tag,
+    .status-pill,
+    .bet-master-slip-kicker{
+      font-family:var(--font-mono) !important;
+      letter-spacing:.14em;
+    }
+
+    .hero-shell{
+      position:relative;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 12% 0%,rgba(34,211,238,.18),transparent 26%),
+        radial-gradient(circle at 86% 16%,rgba(249,115,22,.18),transparent 24%),
+        linear-gradient(135deg,rgba(9,18,40,.98),rgba(5,10,24,.98));
+    }
+
+    .hero-shell::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(90deg,transparent 0,rgba(255,255,255,.03) 48%,transparent 100%),
+        repeating-linear-gradient(90deg,rgba(125,211,252,.045) 0 1px,transparent 1px 52px),
+        repeating-linear-gradient(180deg,rgba(125,211,252,.035) 0 1px,transparent 1px 52px);
+      mix-blend-mode:screen;
+      opacity:.32;
+      pointer-events:none;
+    }
+
+    .hero-shell::after{
+      content:"";
+      position:absolute;
+      left:18px;
+      right:18px;
+      bottom:0;
+      height:3px;
+      border-radius:999px 999px 0 0;
+      background:linear-gradient(90deg,rgba(34,211,238,.96),rgba(96,165,250,.9),rgba(249,115,22,.92));
+      box-shadow:0 0 30px rgba(34,211,238,.24);
+      pointer-events:none;
+    }
+
+    .type-lab{
+      display:grid;
+      grid-template-columns:minmax(0,220px) minmax(0,1fr);
+      gap:12px;
+      align-items:stretch;
+      margin-top:4px;
+      padding:12px 14px;
+      border:1px solid rgba(125,211,252,.18);
+      border-radius:22px;
+      background:
+        linear-gradient(180deg,rgba(125,211,252,.08),rgba(125,211,252,0) 18%),
+        linear-gradient(135deg,rgba(12,22,48,.92),rgba(8,15,29,.98));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+      position:relative;
+      z-index:1;
+    }
+
+    .type-lab::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:inherit;
+      padding:1px;
+      background:linear-gradient(135deg,rgba(34,211,238,.42),rgba(96,165,250,.24),rgba(249,115,22,.34));
+      -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+      -webkit-mask-composite:xor;
+      mask-composite:exclude;
+      pointer-events:none;
+    }
+
+    .type-lab-copy{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:5px;
+      min-width:0;
+    }
+
+    .type-lab-copy strong{
+      font-family:var(--font-head);
+      font-size:1rem;
+      letter-spacing:-.03em;
+      color:#f6fbff;
+    }
+
+    .type-lab-copy small{
+      color:#99afcc;
+      font-size:.8rem;
+      line-height:1.35;
+    }
+
+    .type-switch{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      min-width:0;
+    }
+
+    .type-option{
+      position:relative;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      justify-content:center;
+      gap:4px;
+      min-height:72px;
+      padding:12px 14px;
+      border:1px solid rgba(125,211,252,.16);
+      border-radius:18px;
+      background:
+        linear-gradient(180deg,rgba(34,211,238,.06),rgba(34,211,238,0) 18%),
+        linear-gradient(145deg,rgba(20,31,58,.96),rgba(9,16,30,.99));
+      color:#e8f3ff;
+      cursor:pointer;
+      transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease,background .16s ease;
+      overflow:hidden;
+    }
+
+    .type-option::before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:0;
+      bottom:0;
+      width:4px;
+      background:linear-gradient(180deg,rgba(34,211,238,.9),rgba(249,115,22,.76));
+      opacity:.72;
+    }
+
+    .type-option strong{
+      font-family:var(--font-head);
+      font-size:.94rem;
+      letter-spacing:-.03em;
+    }
+
+    .type-option small{
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:#8cb0d8;
+    }
+
+    .type-option:hover{
+      transform:translateY(-1px);
+      border-color:rgba(34,211,238,.38);
+      box-shadow:0 16px 28px rgba(3,13,34,.22);
+    }
+
+    .type-option.active{
+      border-color:rgba(34,211,238,.58);
+      background:
+        linear-gradient(180deg,rgba(34,211,238,.12),rgba(34,211,238,0) 22%),
+        linear-gradient(145deg,rgba(30,52,88,.98),rgba(12,20,39,.99));
+      box-shadow:
+        inset 0 0 0 1px rgba(34,211,238,.14),
+        0 20px 32px rgba(8,24,52,.22);
+    }
+
+    .ribbon-shell,
+    .bet-master-shell{
+      position:relative;
+      overflow:hidden;
+    }
+
+    .ribbon-shell::before,
+    .bet-master-shell::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        repeating-linear-gradient(90deg,rgba(125,211,252,.028) 0 1px,transparent 1px 40px),
+        linear-gradient(180deg,rgba(255,255,255,.02),transparent 24%);
+      pointer-events:none;
+      opacity:.9;
+    }
+
+    .feed-toolbar,
+    .inline-filter-card,
+    .inline-filter-card-priority,
+    .bet-master-card{
+      border-radius:22px;
+      clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);
+    }
+
+    .quick-market-chip,
+    .quick-outcome-chip,
+    .chip-btn,
+    .preset-chip,
+    .status-chip,
+    .feed-sort-button,
+    .panel-toggle{
+      border-radius:16px;
+      clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+    }
+
+    .quick-market-chip,
+    .quick-outcome-chip{
+      min-height:48px;
+      padding:0 16px;
+      background:
+        linear-gradient(180deg,rgba(34,211,238,.08),rgba(34,211,238,0) 18%),
+        linear-gradient(145deg,rgba(23,39,69,.96),rgba(9,16,30,.98));
+      border-color:rgba(122,178,255,.24);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    .quick-market-chip::before,
+    .quick-outcome-chip::before{
+      background:linear-gradient(180deg,rgba(34,211,238,.92),rgba(249,115,22,.84));
+      opacity:.82;
+    }
+
+    .quick-market-chip.active,
+    .quick-outcome-chip.active{
+      border-color:rgba(34,211,238,.64);
+      background:
+        linear-gradient(180deg,rgba(34,211,238,.14),rgba(34,211,238,0) 22%),
+        linear-gradient(145deg,rgba(39,70,114,.98),rgba(18,31,56,.99));
+      box-shadow:0 18px 28px rgba(12,31,62,.22);
+    }
+
+    .feed-toolbar{
+      background:
+        radial-gradient(circle at 92% 18%,rgba(249,115,22,.12),transparent 22%),
+        linear-gradient(90deg,rgba(12,27,57,.98),rgba(38,28,79,.94));
+    }
+
+    .feed-toolbar-copy strong{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 16px;
+      border-radius:16px;
+      background:linear-gradient(135deg,rgba(34,211,238,.16),rgba(34,211,238,0) 70%);
+    }
+
+    .feed-toolbar-copy strong::before{
+      content:"";
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:linear-gradient(180deg,rgba(34,211,238,.98),rgba(249,115,22,.92));
+      box-shadow:0 0 16px rgba(34,211,238,.44);
+      flex:0 0 auto;
+    }
+
+    .select-shell-compact{
+      min-height:50px;
+      border-radius:18px;
+      clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+    }
+
+    .select-shell-compact::after{
+      content:"";
+      position:absolute;
+      right:14px;
+      top:50%;
+      transform:translateY(-50%) rotate(45deg);
+      width:9px;
+      height:9px;
+      border-right:2px solid #7dd3fc;
+      border-bottom:2px solid #7dd3fc;
+      opacity:.9;
+      pointer-events:none;
+    }
+
+    .select-compact{
+      font-size:.88rem;
+      letter-spacing:.01em;
+      padding-right:44px;
+    }
+
+    .bet-master-actions{
+      width:min(100%,420px);
+      max-width:min(100%,420px);
+    }
+
+    .bet-master-generate{
+      min-height:76px;
+      border-radius:22px;
+      clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);
+      padding:0 22px;
+      font-family:var(--font-head) !important;
+      font-size:1.02rem;
+      letter-spacing:-.02em;
+      background:
+        linear-gradient(180deg,rgba(255,211,122,.22),rgba(255,211,122,0) 20%),
+        linear-gradient(135deg,rgba(255,176,54,.98),rgba(249,115,22,.96));
+      color:#1c0d02;
+      box-shadow:0 22px 34px rgba(249,115,22,.22),inset 0 1px 0 rgba(255,247,220,.46);
+      border-color:rgba(255,215,130,.78);
+    }
+
+    .bet-master-generate::before{
+      background:
+        linear-gradient(90deg,rgba(255,255,255,.28),transparent 26%,transparent 74%,rgba(72,28,6,.18)),
+        linear-gradient(145deg,rgba(255,212,147,.34),rgba(255,255,255,0));
+      opacity:.92;
+    }
+
+    .bet-master-generate::after{
+      width:40px;
+      height:40px;
+      background:linear-gradient(180deg,rgba(120,42,7,.96),rgba(63,19,8,.98));
+      color:#fff6de;
+      box-shadow:inset 0 1px 0 rgba(255,239,195,.24);
+    }
+
+    .status-win,
+    .result-pill-win{
+      background:
+        linear-gradient(135deg,rgba(0,235,255,.28),rgba(0,110,255,.28)),
+        linear-gradient(180deg,rgba(9,98,118,.98),rgba(6,44,67,.99)) !important;
+      border-color:rgba(115,244,255,.88) !important;
+      color:#eefeff !important;
+      box-shadow:0 0 0 2px rgba(115,244,255,.14) inset,0 10px 20px rgba(0,110,255,.12) !important;
+    }
+
+    .status-lose,
+    .result-pill-lose{
+      background:
+        repeating-linear-gradient(135deg,rgba(255,201,60,.18) 0 8px,rgba(255,201,60,0) 8px 16px),
+        linear-gradient(135deg,rgba(255,111,0,.30),rgba(185,28,28,.34)),
+        linear-gradient(180deg,rgba(122,22,16,.98),rgba(73,16,16,.99)) !important;
+      border-color:rgba(255,193,106,.92) !important;
+      color:#fff6e9 !important;
+      box-shadow:0 0 0 2px rgba(255,193,106,.14) inset,0 10px 20px rgba(185,28,28,.12) !important;
+    }
+
+    .match-row.status-win{
+      background:
+        radial-gradient(circle at right center,rgba(0,235,255,.22),transparent 42%),
+        linear-gradient(180deg,rgba(7,86,104,.98),rgba(8,35,53,.99)) !important;
+      box-shadow:inset 0 0 0 2px rgba(115,244,255,.26) !important;
+    }
+
+    .match-row.status-lose{
+      background:
+        repeating-linear-gradient(135deg,rgba(255,201,60,.08) 0 10px,rgba(255,201,60,0) 10px 20px),
+        linear-gradient(180deg,rgba(140,30,20,.98),rgba(61,15,18,.99)) !important;
+      box-shadow:inset 0 0 0 2px rgba(255,193,106,.24) !important;
+    }
+
+    .market-card.status-win{
+      background:
+        linear-gradient(180deg,rgba(0,235,255,.1),rgba(0,235,255,0) 22%),
+        linear-gradient(180deg,rgba(6,71,84,.96),rgba(5,27,39,.99)) !important;
+      box-shadow:inset 0 0 0 2px rgba(115,244,255,.2) !important;
+    }
+
+    .market-card.status-lose{
+      background:
+        repeating-linear-gradient(135deg,rgba(255,201,60,.08) 0 10px,rgba(255,201,60,0) 10px 20px),
+        linear-gradient(180deg,rgba(112,22,21,.95),rgba(43,12,18,.99)) !important;
+      box-shadow:inset 0 0 0 2px rgba(255,193,106,.18) !important;
+    }
+
+    @media (max-width:900px){
+      .type-lab{
+        grid-template-columns:1fr;
+      }
+
+      .type-switch{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+      }
+    }
+
+    @media (max-width:720px){
+      .type-lab{
+        padding:10px 11px;
+        border-radius:18px;
+      }
+
+      .type-switch{
+        gap:8px;
+      }
+
+      .type-option{
+        min-height:64px;
+        padding:10px 12px;
+        border-radius:14px;
+      }
+
+      .type-option strong{
+        font-size:.82rem;
+      }
+
+      .type-option small{
+        font-size:.62rem;
+      }
+
+      .quick-market-chip,
+      .quick-outcome-chip,
+      .chip-btn,
+      .preset-chip,
+      .status-chip,
+      .feed-sort-button,
+      .panel-toggle,
+      .select-shell-compact,
+      .bet-master-generate{
+        clip-path:none;
+        border-radius:16px;
+      }
+    }
+  </style>
+  <script src="/assets/match_center.js?v=20260317i"></script>
   <script>
     (function () {
       const ready = () => {
@@ -1578,6 +2110,35 @@
       } else {
         ready();
       }
+    })();
+  </script>
+  <script>
+    (function () {
+      const KEY = "pb-type-mode";
+      const root = document.documentElement;
+      const buttons = Array.from(document.querySelectorAll("[data-type-mode]"));
+
+      const applyMode = (mode) => {
+        const nextMode = mode || "modernist";
+        root.dataset.typeMode = nextMode;
+        buttons.forEach((button) => {
+          const active = button.dataset.typeMode === nextMode;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+      };
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const mode = button.dataset.typeMode || "modernist";
+          applyMode(mode);
+          try {
+            localStorage.setItem(KEY, mode);
+          } catch (error) {}
+        });
+      });
+
+      applyMode(root.dataset.typeMode || "modernist");
     })();
   </script>
 </body>
