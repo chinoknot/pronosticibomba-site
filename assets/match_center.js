@@ -1825,7 +1825,7 @@
           const probability = Number(option.probability || 0) * 100;
           if (!Number.isFinite(probability)) return;
           const rawOdd = Number(option.odd);
-          const hasRealOdd = Number.isFinite(rawOdd);
+          const hasRealOdd = option.odd != null && Number.isFinite(rawOdd) && rawOdd > 1;
           const allowSyntheticOdd = canUseSyntheticOdd(market.group);
           const odd = hasRealOdd ? rawOdd : (allowSyntheticOdd ? estimateFallbackOdd(Number(option.probability || 0)) : null);
           const strictProb = probability >= state.betMaster.probFrom && probability <= state.betMaster.probTo;
