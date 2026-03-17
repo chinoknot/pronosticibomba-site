@@ -141,6 +141,36 @@ def parse_over_under_label(label):
         return None, None
     return side, line
 
+def is_match_total_market_name(name, market_type):
+    text = normalize_key(name)
+    if not text:
+        return False
+
+    if any(token in text for token in (
+        "1sthalf", "firsthalf", "2ndhalf", "secondhalf", "hometeam", "awayteam",
+        "teamtotal", "hometotal", "awaytotal", "homecorners", "awaycorners",
+        "homecards", "awaycards", "homebookings", "awaybookings", "raceto",
+        "handicap", "spread",
+    )):
+        return False
+
+    if market_type == "corners":
+        if "corner" not in text:
+            return False
+        return any(token in text for token in (
+            "cornerstotals", "totalcorners", "alternativecorners", "corners2way", "corners",
+        ))
+
+    if market_type == "yellows":
+        if "red" in text:
+            return False
+        return any(token in text for token in (
+            "bookingstotals", "numberofcardsinmatch", "yellowcardsoverunder",
+            "cardsoverunder", "totalcards",
+        ))
+
+    return False
+
 def oddsapi_request(path, params=None, timeout=ODDS_API_IO_TIMEOUT_SEC):
     if not ODDS_API_IO_KEY:
         return None
@@ -338,12 +368,12 @@ def oddsapi_parse_event_odds(payload):
                     if line == 1.5:
                         _store_scalar_if_missing(res, "odd_o15_sh", row.get("over"), bookmaker)
                         _store_scalar_if_missing(res, "odd_u15_sh", row.get("under"), bookmaker)
-            elif "corners totals" in name and "ht" not in name:
+            elif is_match_total_market_name(name, "corners"):
                 for row in rows:
                     line = round(float(row.get("hdp")), 1) if to_float(row.get("hdp")) is not None else None
                     _store_total_if_missing(res["corner_odds"], res["corner_odds_sources"], line, "over", row.get("over"), bookmaker)
                     _store_total_if_missing(res["corner_odds"], res["corner_odds_sources"], line, "under", row.get("under"), bookmaker)
-            elif "bookings totals" in name:
+            elif is_match_total_market_name(name, "yellows"):
                 for row in rows:
                     line = round(float(row.get("hdp")), 1) if to_float(row.get("hdp")) is not None else None
                     _store_total_if_missing(res["yellow_odds"], res["yellow_odds_sources"], line, "over", row.get("over"), bookmaker)
@@ -884,12 +914,12 @@ def get_odds(fixture_id, home=None, away=None, kickoff_at=None, target_date=None
                 elif val in {"no", "n"}:
                     res["odd_btts_n"] = v.get("odd", "")
 
-        if "corner" in name and any(token in name for token in ("over/under", "under/over", "total", "totals")):
+        if is_match_total_market_name(name, "corners") and any(token in name for token in ("over/under", "under/over", "total", "totals", "corner")):
             for v in b.get("values", []):
                 side, line = parse_over_under_label(v.get("value"))
                 _store_total_odd(res["corner_odds"], line, side, v.get("odd"))
 
-        if ("yellow" in name or ("card" in name and "red" not in name)) and any(token in name for token in ("over/under", "under/over", "total", "totals")):
+        if is_match_total_market_name(name, "yellows") and any(token in name for token in ("over/under", "under/over", "total", "totals", "card", "booking")):
             for v in b.get("values", []):
                 side, line = parse_over_under_label(v.get("value"))
                 _store_total_odd(res["yellow_odds"], line, side, v.get("odd"))

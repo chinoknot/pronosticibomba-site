@@ -794,14 +794,15 @@
 
     if (marketId === "yellows") {
       if (isOver) {
-        if (line < 2.5) score -= 0.06;
+        if (line < 2.5) score -= 0.22;
+        else if (line < 3.5) score -= 0.08;
         else if (line >= 3.5) score += 0.02;
-        if (Number.isFinite(expected) && expected > 0) score += Math.max(-0.08, Math.min(0.14, (expected - line) * 0.08));
+        if (Number.isFinite(expected) && expected > 0) score += Math.max(-0.06, Math.min(0.1, (expected - line) * 0.06));
       }
       if (isUnder) {
         if (line < 3.5) score -= 0.04;
         else if (line >= 4.5) score += 0.035;
-        if (Number.isFinite(expected) && expected > 0) score += Math.max(-0.08, Math.min(0.14, (line - expected) * 0.08));
+        if (Number.isFinite(expected) && expected > 0) score += Math.max(-0.06, Math.min(0.1, (line - expected) * 0.06));
       }
       if (probability < 0.58) score -= 0.05;
     }
@@ -1184,6 +1185,8 @@
     if (market.id === "yellows") {
       score += 0.02;
       if (picked) score += dynamicTotalOptionScore(picked, "yellows", match?.exp_yellows) - Number(picked.probability || 0);
+      if (label.startsWith("OVER ") && line < 2.5) score -= 0.12;
+      else if (label.startsWith("OVER ") && line < 3.5) score -= 0.05;
       if (label.startsWith("UNDER ") && line >= 4.5) score += 0.03;
       if (label.startsWith("OVER ") && line >= 3.5) score += 0.03;
     }
@@ -1629,7 +1632,16 @@
           impactLabel: headline.impactLabel || "",
           highImpact: Boolean(headline.highImpact),
           odd: picked?.odd ?? null,
-          displayScore: marketDisplayScore(headline, match),
+          displayScore: (() => {
+            let score = marketDisplayScore(headline, match);
+            const line = Number(picked?.line || 0);
+            const label = String(headline.pickLabel || "").toUpperCase();
+            if (headline.group === "yellows" && label.startsWith("OVER ")) {
+              if (line < 2.5) score -= 0.14;
+              else if (line < 3.5) score -= 0.06;
+            }
+            return score;
+          })(),
         };
       })
       .filter(Boolean)
