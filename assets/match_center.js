@@ -1113,6 +1113,46 @@
     return [tier, tierRank, leagueRank, earliestOpenKickoff(group), group.matches[0]?.localKickoffSort || group.matches[0]?.match_time || "", group.league || "", group.country || ""];
   }
 
+  function compareCompositeKeys(aKey, bKey) {
+    const length = Math.max(aKey.length, bKey.length);
+    for (let index = 0; index < length; index += 1) {
+      if (aKey[index] < bKey[index]) return -1;
+      if (aKey[index] > bKey[index]) return 1;
+    }
+    return 0;
+  }
+
+  function soonKickoffThresholdHours() {
+    return 2;
+  }
+
+  function matchKickoffTimestamp(match) {
+    const kickoff = kickoffDate(match);
+    return kickoff ? kickoff.getTime() : null;
+  }
+
+  function matchStartsWithinHours(match, hours = 2) {
+    if (state.selectedDate !== todayIso(activeTimeZone())) return false;
+    if (LIVE_STATUSES.has(String(match.status_short || "").toUpperCase())) return false;
+    if (FINAL_STATUSES.has(String(match.status_short || "").toUpperCase())) return false;
+    const kickoffTs = matchKickoffTimestamp(match);
+    if (kickoffTs == null) return false;
+    const nowTs = Date.now();
+    return kickoffTs >= nowTs && kickoffTs <= nowTs + (hours * 60 * 60 * 1000);
+  }
+
+  function groupStartsWithinHours(group, hours = 2) {
+    return group.matches.some(match => matchStartsWithinHours(match, hours));
+  }
+
+  function earliestSoonKickoffTimestamp(group) {
+    const candidates = group.matches
+      .filter(match => matchStartsWithinHours(match, soonKickoffThresholdHours()))
+      .map(matchKickoffTimestamp)
+      .filter(timestamp => Number.isFinite(timestamp));
+    return candidates.length ? Math.min(...candidates) : Number.POSITIVE_INFINITY;
+  }
+
   function matchSortKey(match) {
     const [tier, tierRank] = competitionTier(match.country, match.league);
     const lifecycleRank = matchLifecycleRank(match);
@@ -2425,7 +2465,19 @@
           return 0;
         }),
     }));
-    dom.leagueFeed.innerHTML = groups.map(group => {
+    const majorGroups = groups.filter(isMajorLeagueGroup);
+    const regularGroups = groups.filter(group => !isMajorLeagueGroup(group));
+    const soonGroups = regularGroups
+      .filter(group => groupStartsWithinHours(group, soonKickoffThresholdHours()))
+      .sort((a, b) => {
+        const kickoffDiff = earliestSoonKickoffTimestamp(a) - earliestSoonKickoffTimestamp(b);
+        if (Math.abs(kickoffDiff) > 0) return kickoffDiff;
+        return compareCompositeKeys(groupSortKey(a), groupSortKey(b));
+      });
+    const laterGroups = regularGroups.filter(group => !soonGroups.includes(group));
+    const orderedGroups = [...majorGroups, ...soonGroups, ...laterGroups];
+
+    dom.leagueFeed.innerHTML = orderedGroups.map(group => {
       const header = `
         <div class="league-title">
           ${group.logo ? `<img class="league-logo" src="${group.logo}" alt="" loading="lazy" />` : `<span class="league-dot" aria-hidden="true"></span>`}
@@ -2440,7 +2492,8 @@
       if (isMajorLeagueGroup(group)) {
         return `<section class="league-block league-block-major"><div class="league-header">${header}</div>${content}</section>`;
       }
-      return `<details class="league-block league-accordion"${state.search ? " open" : ""}><summary class="league-header league-summary">${header}<span class="league-caret" aria-hidden="true"></span></summary>${content}</details>`;
+      const openSoon = groupStartsWithinHours(group, soonKickoffThresholdHours());
+      return `<details class="league-block league-accordion"${state.search || openSoon ? " open" : ""}><summary class="league-header league-summary">${header}<span class="league-caret" aria-hidden="true"></span></summary>${content}</details>`;
     }).join("");
   }
 
