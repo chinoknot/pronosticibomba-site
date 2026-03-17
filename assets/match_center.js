@@ -1589,7 +1589,8 @@
       if (imminent.length >= 4) {
         pool = imminent;
       } else if (upcoming.length) {
-        pool = upcoming.slice(0, Math.min(12, Math.max(4, imminent.length || 0, upcoming.length)));
+        const desired = Math.min(12, Math.max(4, imminent.length + 4));
+        pool = upcoming.slice(0, desired);
       }
     }
     const headlinePool = pool.filter(match => isHeadlineCompetition(match.country, match.league));
