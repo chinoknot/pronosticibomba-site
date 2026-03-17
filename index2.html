@@ -3723,6 +3723,19 @@
           const elapsed = Number(row?.fixture?.status?.elapsed ?? 0) || 0;
           const homeGoals = Number(row?.goals?.home ?? 0) || 0;
           const awayGoals = Number(row?.goals?.away ?? 0) || 0;
+          const statsArr = Array.isArray(row.statistics) ? row.statistics : [];
+          let homeCorners = null;
+          let awayCorners = null;
+          if (statsArr.length >= 2) {
+            const findCorners = (teamEntry) => {
+              const arr = Array.isArray(teamEntry?.statistics) ? teamEntry.statistics : [];
+              const found = arr.find(s => String(s?.type || "").toUpperCase().includes("CORNER"));
+              return found != null ? Number(found.value ?? null) : null;
+            };
+            homeCorners = findCorners(statsArr[0]);
+            awayCorners = findCorners(statsArr[1]);
+          }
+          const cornerScore = (homeCorners != null && awayCorners != null) ? `${homeCorners}-${awayCorners}` : null;
           map.set(fixtureId, {
             fixtureId,
             statusShort,
@@ -3730,6 +3743,7 @@
             homeGoals,
             awayGoals,
             score: `${homeGoals}-${awayGoals}`,
+            cornerScore,
             isLive: LIVE_STATUSES.has(statusShort),
             isFinal: FINAL_STATUSES.has(statusShort),
           });
@@ -3741,8 +3755,9 @@
       }
     }
 
-    function buildLiveBadgeState(liveFixture) {
+    function buildLiveBadgeState(liveFixture, isCornerPick = false) {
       if (!liveFixture) return null;
+      const displayScore = (isCornerPick && liveFixture.cornerScore != null) ? `${liveFixture.cornerScore} CRN` : liveFixture.score;
       if (liveFixture.isLive) {
         let liveLabel = "LIVE";
         if (liveFixture.statusShort === "HT") liveLabel = "HT";
@@ -3752,7 +3767,7 @@
         return {
           label: "LIVE",
           className: "live",
-          text: `${liveLabel} ${liveFixture.score}`,
+          text: `${liveLabel} ${displayScore}`,
         };
       }
       if (liveFixture.isFinal) {
@@ -3760,7 +3775,7 @@
         return {
           label: finalLabel,
           className: "finished",
-          text: `${finalLabel} ${liveFixture.score}`,
+          text: `${finalLabel} ${displayScore}`,
         };
       }
       return null;
@@ -3803,7 +3818,7 @@
       if (resultLabel === "WIN" || resultLabel === "LOSE" || resultLabel === "VOID") {
         return buildResultBadgeState(effectiveRow);
       }
-      const liveBadge = buildLiveBadgeState(liveFixture);
+      const liveBadge = buildLiveBadgeState(liveFixture, isCornerLikePick(pickRow));
       if (liveBadge) return liveBadge;
       return buildResultBadgeState(effectiveRow || resultRow);
     }

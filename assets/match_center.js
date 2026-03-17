@@ -808,6 +808,7 @@
     }
 
     if (option?.highImpact) score += 0.02;
+    if (option?.odd != null && Number(option.odd) > 1) score += 0.06; // Preferisci linee con quota bet365 disponibile
     return score;
   }
 
@@ -1839,6 +1840,7 @@
           else if (softProb && softOdd) tier = 3;
           else if (softProb && !hasRealOdd && allowSyntheticOdd) tier = 4;
           if (tier === 99) return;
+          if (!hasRealOdd) return; // BetMaster: solo partite con quota bet365 reale
           const betMasterOutcomeIds = outcomeLookup.get(`${market.group}::${option.label}`) || [];
           if (state.betMaster.outcomeFilters.size && !betMasterOutcomeIds.some(id => state.betMaster.outcomeFilters.has(id))) return;
           const pickMarket = {
