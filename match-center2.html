@@ -2483,27 +2483,17 @@
         linear-gradient(145deg,rgba(24,48,86,.98),rgba(10,18,40,.99)) !important;
     }
 
-    /* TIME PAST WARNING */
-    .time-past-warning {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 18px;
-      border-radius: 22px;
-      border: 1px solid rgba(255,200,61,.54);
-      background:
-        radial-gradient(circle at left,rgba(255,200,61,.14),transparent 60%),
-        linear-gradient(180deg,rgba(52,32,4,.97),rgba(20,14,4,.99));
-      color: #ffe9a0;
-      font-size: .88rem;
-      font-weight: 700;
-      line-height: 1.4;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 16px 32px rgba(80,40,0,.16);
-    }
-    .time-past-warning::before {
-      content: "⏳";
-      font-size: 1.1rem;
-      flex: 0 0 auto;
+    /* DESKTOP: center + compact generate button */
+    @media (min-width: 768px) {
+      .bet-master-actions {
+        justify-content: center !important;
+      }
+      .bet-master-generate {
+        width: auto !important;
+        min-width: 320px !important;
+        max-width: 420px !important;
+        padding: 0 32px 0 20px !important;
+      }
     }
   </style>
   <script src="/assets/match_center.js?v=20260317i"></script>
@@ -2544,52 +2534,6 @@
 
         setFilters(false);
         setBetMaster(false);
-      };
-
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", ready);
-      } else {
-        ready();
-      }
-    })();
-  </script>
-  <script>
-    (function () {
-      var ready = function () {
-        var timeFrom = document.getElementById("time-from");
-        var timeTo = document.getElementById("time-to");
-        if (!timeFrom || !timeTo) return;
-
-        var warning = document.createElement("div");
-        warning.className = "time-past-warning";
-        warning.hidden = true;
-        warning.innerHTML = "Intervallo orario nel passato &mdash; nessuna partita imminente sar&agrave; visibile in questa fascia";
-
-        var topPicksSection = document.getElementById("top-picks");
-        var topPicksParent = topPicksSection ? topPicksSection.closest("section") : null;
-        if (topPicksParent && topPicksParent.parentNode) {
-          topPicksParent.parentNode.insertBefore(warning, topPicksParent.nextSibling);
-        } else {
-          var filterBoard = document.getElementById("inline-filter-board");
-          if (filterBoard && filterBoard.parentNode) {
-            filterBoard.parentNode.insertBefore(warning, filterBoard.nextSibling);
-          }
-        }
-
-        var check = function () {
-          var now = new Date();
-          var hh = now.getHours().toString().padStart(2, "0");
-          var mm = now.getMinutes().toString().padStart(2, "0");
-          var current = hh + ":" + mm;
-          var toVal = timeTo.value || "23:59";
-          if (toVal === "23:59") { warning.hidden = true; return; }
-          warning.hidden = !(toVal < current);
-        };
-
-        timeFrom.addEventListener("change", check);
-        timeTo.addEventListener("change", check);
-        setInterval(check, 30000);
-        check();
       };
 
       if (document.readyState === "loading") {
