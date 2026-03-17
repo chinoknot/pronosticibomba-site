@@ -1740,9 +1740,9 @@
     if (state.selectedDate !== today) {
       return {
         mode: "fallback",
-        from: state.timeFrom,
-        to: state.timeTo,
-        label: `${state.timeFrom} - ${state.timeTo}`,
+        from: DEFAULTS.timeFrom,
+        to: DEFAULTS.timeTo,
+        label: `${DEFAULTS.timeFrom} - ${DEFAULTS.timeTo}`,
       };
     }
     const startMinutes = toMinutes(soonStartTimeSlot());
@@ -1759,10 +1759,7 @@
     const rawMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
     return rawMatches
       .map(match => {
-        const markets = buildMarkets(match)
-          .map(market => remapMarketForOutcomeFilters(match, market))
-          .filter(Boolean)
-          .filter(market => state.groups.has(market.group));
+        const markets = buildMarkets(match);
         const searchBlob = `${match.home} ${match.away} ${match.league} ${match.country} ${markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" ")}`.toLowerCase();
         return withLocalKickoff({ ...match, markets, searchBlob });
       })
@@ -1774,8 +1771,6 @@
       date: state.selectedDate,
       cacheStamp: state.cache?.refreshed_at || state.cache?.generated_at || "",
       search: state.search,
-      groups: [...state.groups].sort(),
-      outcomes: [...state.outcomeFilters].sort(),
       betMasterOutcomeGroup: state.betMaster.outcomeGroup,
       betMasterOutcomes: [...state.betMaster.outcomeFilters].sort(),
       windowMode: window.mode,
@@ -1789,7 +1784,6 @@
   }
 
   function betMasterCandidateEntries() {
-    if (!state.groups.size) return { window: betMasterWindow(), entries: [] };
     const window = betMasterWindow();
     const cacheKey = betMasterEntryCacheKey(window);
     if (state.betMaster.entryCacheKey === cacheKey && state.betMaster.entryCacheResult) {
