@@ -60,6 +60,7 @@ LIVE_STATUSES = {"1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"}
 FINAL_STATUSES = {"FT", "AET", "PEN", "AWD", "WO"}
 
 PREFERRED_BOOKMAKER_NAMES = {"Bet365", "bet365", "bet365.com", "Bet 365"}
+PREFERRED_BOOKMAKER_KEYS = {re.sub(r"[^a-z0-9]+", "", str(name or "").lower()) for name in PREFERRED_BOOKMAKER_NAMES}
 ODDS_API_IO_KEY = os.getenv("ODDS_API_IO_KEY", "").strip()
 ODDS_API_IO_BASE_URL = "https://api.odds-api.io/v3"
 ODDS_API_IO_TIMEOUT_SEC = int(os.getenv("ODDS_API_IO_TIMEOUT_SEC", "25"))
@@ -310,6 +311,22 @@ def _store_total_if_missing(container, source_container, line, side, odd_value, 
     bucket[side] = round(float(odd_num), 3)
     source_container.setdefault(line_key, {})[side] = {"source": source_name, "bookmaker": bookmaker}
 
+def is_preferred_bookmaker(bookmaker_name):
+    return re.sub(r"[^a-z0-9]+", "", str(bookmaker_name or "").lower()) in PREFERRED_BOOKMAKER_KEYS
+
+def should_replace_prop_odd(existing_meta, incoming_meta):
+    if not incoming_meta:
+        return False
+    if not existing_meta:
+        return True
+    existing_preferred = is_preferred_bookmaker((existing_meta or {}).get("bookmaker"))
+    incoming_preferred = is_preferred_bookmaker((incoming_meta or {}).get("bookmaker"))
+    if incoming_preferred and not existing_preferred:
+        return True
+    if existing_preferred and not incoming_preferred:
+        return False
+    return not existing_preferred
+
 def oddsapi_parse_event_odds(payload):
     res = {
         "bookmaker": "",
@@ -391,27 +408,28 @@ def merge_odds(primary, fallback):
     merged.setdefault("yellow_odds_sources", dict((primary or {}).get("yellow_odds_sources") or {}))
     for key, value in (fallback.get("market_sources") or {}).items():
         merged["market_sources"].setdefault(key, value)
-    for line_key, sides in (fallback.get("corner_odds_sources") or {}).items():
-        target = merged["corner_odds_sources"].setdefault(line_key, {})
-        for side, meta in sides.items():
-            target.setdefault(side, meta)
-    for line_key, sides in (fallback.get("yellow_odds_sources") or {}).items():
-        target = merged["yellow_odds_sources"].setdefault(line_key, {})
-        for side, meta in sides.items():
-            target.setdefault(side, meta)
     for key, value in fallback.items():
         if key in {"corner_odds", "yellow_odds", "market_sources", "corner_odds_sources", "yellow_odds_sources"}:
             continue
         if not merged.get(key) and value not in (None, "", {}):
             merged[key] = value
-    for map_key in ("corner_odds", "yellow_odds"):
+    for map_key, source_key in (("corner_odds", "corner_odds_sources"), ("yellow_odds", "yellow_odds_sources")):
         source_map = fallback.get(map_key) or {}
+        source_meta_map = fallback.get(source_key) or {}
         target_map = merged.setdefault(map_key, {})
+        target_meta_map = merged.setdefault(source_key, dict((primary or {}).get(source_key) or {}))
         for line_key, sides in source_map.items():
             bucket = target_map.setdefault(line_key, {})
+            meta_bucket = target_meta_map.setdefault(line_key, {})
             for side, odd in (sides or {}).items():
-                if side not in bucket or not bucket.get(side):
+                incoming_meta = ((source_meta_map.get(line_key) or {}).get(side) or {})
+                existing_meta = meta_bucket.get(side) or {}
+                if side not in bucket or not bucket.get(side) or should_replace_prop_odd(existing_meta, incoming_meta):
                     bucket[side] = odd
+                    if incoming_meta:
+                        meta_bucket[side] = incoming_meta
+                elif side not in meta_bucket and incoming_meta:
+                    meta_bucket[side] = incoming_meta
     return merged
 
 def get_oddsapi_fallback(home, away, kickoff_at, target_date=None):
@@ -829,7 +847,13 @@ def get_odds(fixture_id, home=None, away=None, kickoff_at=None, target_date=None
 
     chosen = next((b for b in bookmakers if _is_b365(b.get("name"))), bookmakers[0])
     bets = chosen.get("bets", [])
-    res = {"bookmaker": chosen.get("name", ""), "corner_odds": {}, "yellow_odds": {}}
+    res = {
+        "bookmaker": chosen.get("name", ""),
+        "corner_odds": {},
+        "yellow_odds": {},
+        "corner_odds_sources": {},
+        "yellow_odds_sources": {},
+    }
 
     def _n(s):
         return str(s or "").strip().lower()
@@ -842,12 +866,14 @@ def get_odds(fixture_id, home=None, away=None, kickoff_at=None, target_date=None
         n = _n(name)
         return any(token in n for token in ("2nd half", "second half", "2ndhalf"))
 
-    def _store_total_odd(container, line, side, odd_value):
+    def _store_total_odd(container, source_container, line, side, odd_value):
         odd_num = to_float(odd_value)
         if line is None or side not in {"over", "under"} or odd_num is None:
             return
-        bucket = container.setdefault(f"{line:.1f}", {})
+        line_key = f"{line:.1f}"
+        bucket = container.setdefault(line_key, {})
         bucket[side] = round(float(odd_num), 3)
+        source_container.setdefault(line_key, {})[side] = {"source": "api_football", "bookmaker": chosen.get("name", "")}
 
     for b in bets:
         if b.get("name") == "Match Winner":
@@ -917,12 +943,12 @@ def get_odds(fixture_id, home=None, away=None, kickoff_at=None, target_date=None
         if is_match_total_market_name(name, "corners") and any(token in name for token in ("over/under", "under/over", "total", "totals", "corner")):
             for v in b.get("values", []):
                 side, line = parse_over_under_label(v.get("value"))
-                _store_total_odd(res["corner_odds"], line, side, v.get("odd"))
+                _store_total_odd(res["corner_odds"], res["corner_odds_sources"], line, side, v.get("odd"))
 
         if is_match_total_market_name(name, "yellows") and any(token in name for token in ("over/under", "under/over", "total", "totals", "card", "booking")):
             for v in b.get("values", []):
                 side, line = parse_over_under_label(v.get("value"))
-                _store_total_odd(res["yellow_odds"], line, side, v.get("odd"))
+                _store_total_odd(res["yellow_odds"], res["yellow_odds_sources"], line, side, v.get("odd"))
 
     return merge_odds(res, get_oddsapi_fallback(home, away, kickoff_at, target_date=target_date))
 
@@ -1369,7 +1395,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     # Corner over probabilities using normal approximation (std ≈ 3.0 for corners)
     corner_std = 3.0
     corner_overs = {}
-    for line in half_lines(6.5, 13.5):
+    for line in half_lines(7.5, 13.5):
         if exp_corners > 0:
             z = (line - exp_corners) / corner_std
             p_c_over = 1.0 - 0.5 * (1.0 + math.erf(z / math.sqrt(2)))

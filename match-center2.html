@@ -130,6 +130,29 @@
       </div>
       <div class="quick-chip-rail quick-chip-rail-market" id="market-rail"></div>
       <div class="quick-chip-rail quick-chip-rail-outcomes" id="outcome-rail" hidden></div>
+      <div class="inline-filter-board inline-filter-board-priority">
+        <section class="inline-filter-card inline-filter-card-priority">
+          <div class="inline-filter-head">
+            <span class="quick-filter-label">Probabilita</span>
+            <strong class="inline-filter-value" id="probability-value">55% - 99%</strong>
+          </div>
+          <div class="chips" id="probability-presets"></div>
+          <div class="range-input-grid compact-grid compact-select-grid">
+            <label class="range-input-card">
+              <span class="mini-label">Prob. min</span>
+              <span class="select-shell select-shell-compact">
+                <select id="probability-min-input" class="select select-compact"></select>
+              </span>
+            </label>
+            <label class="range-input-card">
+              <span class="mini-label">Prob. max</span>
+              <span class="select-shell select-shell-compact">
+                <select id="probability-max-input" class="select select-compact"></select>
+              </span>
+            </label>
+          </div>
+        </section>
+      </div>
       <div class="collapse-row">
         <button type="button" class="panel-toggle is-open" id="filters-collapse-toggle">
           <span>Filtri rapidi</span>
@@ -155,27 +178,6 @@
                 <option value="23:59">23:59</option>
               </select>
             </span>
-          </div>
-        </section>
-        <section class="inline-filter-card">
-          <div class="inline-filter-head">
-            <span class="quick-filter-label">Probabilita</span>
-            <strong class="inline-filter-value" id="probability-value">55% - 99%</strong>
-          </div>
-          <div class="chips" id="probability-presets"></div>
-          <div class="range-input-grid compact-grid compact-select-grid">
-            <label class="range-input-card">
-              <span class="mini-label">Prob. min</span>
-              <span class="select-shell select-shell-compact">
-                <select id="probability-min-input" class="select select-compact"></select>
-              </span>
-            </label>
-            <label class="range-input-card">
-              <span class="mini-label">Prob. max</span>
-              <span class="select-shell select-shell-compact">
-                <select id="probability-max-input" class="select select-compact"></select>
-              </span>
-            </label>
           </div>
         </section>
         <section class="inline-filter-card">
@@ -444,6 +446,8 @@
     .quick-market-chip small,.quick-outcome-chip small{color:#aebbd1;font-size:.7rem}
     .quick-market-chip.active small,.quick-outcome-chip.active small{color:#ffe7ca}
     .inline-filter-board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0}
+    .inline-filter-board-priority{grid-template-columns:minmax(0,1fr)}
+    .inline-filter-card-priority{background:linear-gradient(145deg,rgba(14,20,37,.96),rgba(7,11,24,.98));border-color:rgba(249,115,22,.18)}
     .inline-filter-card{display:flex;flex-direction:column;gap:9px;padding:12px;border-radius:18px;border:1px solid rgba(148,163,184,.12);background:linear-gradient(145deg,rgba(10,17,31,.94),rgba(5,9,20,.98));width:100%;min-width:0;overflow:hidden}
     .inline-filter-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .inline-filter-value{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.16);background:rgba(255,255,255,.04);color:#eef5ff;font-size:.77rem}
@@ -800,7 +804,7 @@
       .panel-toggle{width:100%;justify-content:space-between}
     }
   </style>
-  <script src="/assets/match_center.js?v=20260317d"></script>
+  <script src="/assets/match_center.js?v=20260317e"></script>
   <script>
     (function () {
       const ready = () => {

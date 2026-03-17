@@ -1286,7 +1286,10 @@
       .flatMap(item => {
         const underProbability = Math.max(0.02, Math.min(0.98, 1 - Number(item.value)));
         const options = [];
-        const allowOver = marketId !== "yellows" || Number(item.line) >= 2.5;
+        const allowOver =
+          marketId === "corners"
+            ? Number(item.line) >= 7.5
+            : (marketId !== "yellows" || Number(item.line) >= 2.5);
         if (allowOver) {
           options.push({
             label: `Over ${item.key}`,
