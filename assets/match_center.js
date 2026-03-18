@@ -1651,35 +1651,17 @@
     const nowTs = Date.now();
     let pool = matches.filter(match => !FINAL_STATUSES.has(String(match.status_short || "").toUpperCase()) && match.primaryMarket);
     if (state.selectedDate === today) {
-      const live = pool.filter(matchIsActuallyLive)
-        .sort((a, b) => `${a.localKickoffSort || a.match_time || ""}-${a.league || ""}-${a.home || ""}`.localeCompare(`${b.localKickoffSort || b.match_time || ""}-${b.league || ""}-${b.home || ""}`));
-      const upcoming = pool.filter(match => {
-        if (matchIsActuallyLive(match)) return false;
+      // Only NS matches starting within the next 30 minutes — independent from live matches below
+      const SOON_MS = 30 * 60 * 1000;
+      pool = pool.filter(match => {
+        const status = String(match.status_short || "").toUpperCase();
+        if (status !== "NS") return false;
         const kickoff = kickoffDate(match);
-        if (!kickoff) {
-          const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.match_time));
-          const nowMinutes = toMinutes(currentTimeInTimezone(timezone));
-          return kickoffMinutes >= nowMinutes;
-        }
-        return kickoff.getTime() >= nowTs;
-      }).sort((a, b) => `${a.localKickoffSort || a.match_time || ""}-${a.league || ""}-${a.home || ""}`.localeCompare(`${b.localKickoffSort || b.match_time || ""}-${b.league || ""}-${b.home || ""}`));
-      const imminent = upcoming.filter(match => {
-        const kickoff = kickoffDate(match);
-        if (!kickoff) {
-          const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.match_time));
-          const nowMinutes = toMinutes(currentTimeInTimezone(timezone));
-          return kickoffMinutes >= nowMinutes && kickoffMinutes <= nowMinutes + 60;
-        }
-        return kickoff.getTime() >= nowTs && kickoff.getTime() <= nowTs + (60 * 60 * 1000);
-      });
-      if (live.length || imminent.length >= 4) {
-        pool = [...live, ...imminent];
-      } else if (upcoming.length) {
-        const desired = Math.min(12, Math.max(4, imminent.length + 4));
-        pool = [...live, ...upcoming.slice(0, desired)];
-      } else {
-        pool = live;
-      }
+        if (kickoff) return kickoff.getTime() >= nowTs && kickoff.getTime() <= nowTs + SOON_MS;
+        const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.match_time));
+        const nowMinutes = toMinutes(currentTimeInTimezone(timezone));
+        return kickoffMinutes >= nowMinutes && kickoffMinutes <= nowMinutes + 30;
+      }).sort((a, b) => `${a.localKickoffSort || a.match_time || ""}`.localeCompare(`${b.localKickoffSort || b.match_time || ""}`));
     }
     const headlinePool = pool.filter(match => isHeadlineCompetition(match.country, match.league));
     const curatedPool = pool.filter(match => !isHeadlineCompetition(match.country, match.league) && isTopRailCompetition(match.country, match.league));
@@ -2594,7 +2576,7 @@
       const t = e.time?.elapsed ? `${e.time.elapsed}${e.time.extra ? `+${e.time.extra}` : ""}'` : "";
       return `<div class="detail-event-row"><span class="detail-event-time">${escapeHtml(t)}</span><span class="detail-event-icon">${icon(e)}</span><span class="detail-event-info"><strong>${escapeHtml(e.player?.name || e.detail || "")}</strong><small>${escapeHtml(e.team?.name || "")}</small></span></div>`;
     });
-    return `<details class="detail-accordion" open><summary class="detail-summary"><span>⚽ Eventi</span></summary><div class="detail-section"><div class="detail-events">${rows.join("")}</div></div></details>`;
+    return `<div class="detail-accordion"><div class="detail-summary detail-summary-static"><span>⚽ Eventi</span></div><div class="detail-section"><div class="detail-events">${rows.join("")}</div></div></div>`;
   }
 
   function renderDetailStats(statistics) {
@@ -2615,7 +2597,7 @@
       const bar = total > 0 ? `<div class="stat-bar"><div class="stat-bar-home" style="width:${Math.round(hNum / total * 100)}%"></div></div>` : "";
       return `<div class="detail-stat-row"><span class="stat-val-home">${escapeHtml(String(hv))}</span><span class="stat-label">${escapeHtml(label)}${bar}</span><span class="stat-val-away">${escapeHtml(String(av))}</span></div>`;
     }).join("");
-    return `<details class="detail-accordion"><summary class="detail-summary"><span>📊 Statistiche</span></summary><div class="detail-section"><div class="detail-stats">${rows}</div></div></details>`;
+    return `<div class="detail-accordion"><div class="detail-summary detail-summary-static"><span>📊 Statistiche</span></div><div class="detail-section"><div class="detail-stats">${rows}</div></div></div>`;
   }
 
   function renderDetail() {
