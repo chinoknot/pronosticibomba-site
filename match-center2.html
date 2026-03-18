@@ -1386,15 +1386,15 @@
   <style>
     .ribbon-shell{
       overflow:hidden;
-      border-color:rgba(113,201,255,.44);
+      border-color:rgba(255,122,24,.36);
       background:
-        linear-gradient(180deg,rgba(215,232,255,.12),rgba(215,232,255,0) 16%),
-        radial-gradient(circle at 100% 0%,rgba(34,211,238,.22),transparent 24%),
-        radial-gradient(circle at 8% 16%,rgba(168,85,247,.18),transparent 22%),
-        linear-gradient(145deg,rgba(31,55,96,.96),rgba(12,24,48,.99));
+        linear-gradient(180deg,rgba(255,190,60,.11),rgba(255,190,60,0) 16%),
+        radial-gradient(circle at 100% 0%,rgba(252,200,61,.16),transparent 24%),
+        radial-gradient(circle at 8% 16%,rgba(255,122,24,.12),transparent 22%),
+        linear-gradient(145deg,rgba(22,12,2,.96),rgba(8,5,1,.99));
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.11),
-        0 20px 44px rgba(7,16,34,.18);
+        inset 0 1px 0 rgba(255,200,80,.09),
+        0 20px 44px rgba(8,3,0,.2);
     }
 
     .ribbon-shell::before{
@@ -1405,50 +1405,50 @@
       top:0;
       height:3px;
       border-radius:0 0 999px 999px;
-      background:linear-gradient(90deg,rgba(34,211,238,.96),rgba(96,165,250,.94),rgba(168,85,247,.84));
-      box-shadow:0 0 26px rgba(59,130,246,.28);
+      background:linear-gradient(90deg,rgba(255,200,61,.96),rgba(255,140,30,.94),rgba(250,204,21,.84));
+      box-shadow:0 0 26px rgba(255,180,60,.26);
       pointer-events:none;
     }
 
     .feed-toolbar{
-      border-color:rgba(128,187,255,.28);
+      border-color:rgba(255,154,60,.24);
       background:
-        linear-gradient(90deg,rgba(37,68,118,.18),transparent 36%,transparent 64%,rgba(168,85,247,.12)),
-        linear-gradient(180deg,rgba(28,48,84,.92),rgba(11,20,39,.98));
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+        linear-gradient(90deg,rgba(60,28,4,.18),transparent 36%,transparent 64%,rgba(200,100,10,.1)),
+        linear-gradient(180deg,rgba(20,11,2,.92),rgba(8,5,1,.98));
+      box-shadow:inset 0 1px 0 rgba(255,200,80,.05);
     }
 
     .feed-toolbar-copy strong{
-      border-color:rgba(103,232,249,.34);
-      background:linear-gradient(135deg,rgba(59,130,246,.22),rgba(168,85,247,.16));
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 14px 28px rgba(59,130,246,.14);
+      border-color:rgba(255,122,24,.38);
+      background:linear-gradient(135deg,rgba(255,122,24,.2),rgba(250,204,21,.12));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 14px 28px rgba(255,122,24,.1);
     }
 
     .inline-filter-card,
     .inline-filter-card-priority{
-      border-color:rgba(122,178,255,.32);
+      border-color:rgba(255,154,60,.28);
       background:
-        linear-gradient(180deg,rgba(125,211,252,.1),rgba(125,211,252,0) 16%),
-        radial-gradient(circle at top right,rgba(61,213,243,.18),transparent 28%),
-        linear-gradient(145deg,rgba(23,42,76,.96),rgba(11,20,38,.99));
+        linear-gradient(180deg,rgba(255,170,40,.08),rgba(255,170,40,0) 16%),
+        radial-gradient(circle at top right,rgba(255,122,24,.12),transparent 28%),
+        linear-gradient(145deg,rgba(22,11,2,.96),rgba(8,5,1,.99));
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.08),
-        0 18px 34px rgba(6,12,27,.1);
+        inset 0 1px 0 rgba(255,200,80,.05),
+        0 18px 34px rgba(8,3,0,.12);
     }
 
     .inline-filter-card::before,
     .inline-filter-card-priority::before{
-      background:linear-gradient(90deg,rgba(34,211,238,.86),rgba(96,165,250,.9),rgba(168,85,247,.76));
+      background:linear-gradient(90deg,rgba(255,200,61,.86),rgba(255,140,30,.9),rgba(250,204,21,.76));
     }
 
     .select-shell-compact{
       position:relative;
       overflow:hidden;
-      border-color:rgba(126,191,255,.36);
+      border-color:rgba(255,154,60,.28);
       background:
-        linear-gradient(180deg,rgba(125,211,252,.08),rgba(125,211,252,0) 16%),
-        linear-gradient(180deg,rgba(26,46,81,.96),rgba(11,20,38,.99));
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 12px 24px rgba(7,13,26,.08);
+        linear-gradient(180deg,rgba(255,170,40,.07),rgba(255,170,40,0) 16%),
+        linear-gradient(180deg,rgba(22,12,2,.96),rgba(10,5,1,.99));
+      box-shadow:inset 0 1px 0 rgba(255,200,80,.05),0 12px 24px rgba(8,3,0,.08);
     }
 
     .select-shell-compact::before{
@@ -1459,7 +1459,7 @@
       top:0;
       height:2px;
       border-radius:0 0 999px 999px;
-      background:linear-gradient(90deg,rgba(34,211,238,.88),rgba(96,165,250,.9),rgba(168,85,247,.74));
+      background:linear-gradient(90deg,rgba(255,200,61,.88),rgba(255,140,30,.9),rgba(250,204,21,.74));
       pointer-events:none;
     }
 
@@ -1857,7 +1857,7 @@
       position:absolute;
       inset:0;
       background:
-        repeating-linear-gradient(90deg,rgba(125,211,252,.028) 0 1px,transparent 1px 40px),
+        repeating-linear-gradient(90deg,rgba(255,200,80,.022) 0 1px,transparent 1px 40px),
         linear-gradient(180deg,rgba(255,255,255,.02),transparent 24%);
       pointer-events:none;
       opacity:.9;
@@ -1887,31 +1887,31 @@
       min-height:48px;
       padding:0 16px;
       background:
-        linear-gradient(180deg,rgba(34,211,238,.08),rgba(34,211,238,0) 18%),
-        linear-gradient(145deg,rgba(23,39,69,.96),rgba(9,16,30,.98));
-      border-color:rgba(122,178,255,.24);
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+        linear-gradient(180deg,rgba(255,180,40,.07),rgba(255,180,40,0) 18%),
+        linear-gradient(145deg,rgba(22,12,2,.96),rgba(8,5,1,.98));
+      border-color:rgba(255,154,60,.22);
+      box-shadow:inset 0 1px 0 rgba(255,200,80,.05);
     }
 
     .quick-market-chip::before,
     .quick-outcome-chip::before{
-      background:linear-gradient(180deg,rgba(34,211,238,.92),rgba(249,115,22,.84));
+      background:linear-gradient(180deg,rgba(255,200,61,.92),rgba(255,122,24,.84));
       opacity:.82;
     }
 
     .quick-market-chip.active,
     .quick-outcome-chip.active{
-      border-color:rgba(34,211,238,.64);
+      border-color:rgba(255,154,60,.7);
       background:
-        linear-gradient(180deg,rgba(34,211,238,.14),rgba(34,211,238,0) 22%),
-        linear-gradient(145deg,rgba(39,70,114,.98),rgba(18,31,56,.99));
-      box-shadow:0 18px 28px rgba(12,31,62,.22);
+        linear-gradient(180deg,rgba(255,180,40,.13),rgba(255,180,40,0) 22%),
+        linear-gradient(145deg,rgba(40,22,4,.98),rgba(18,10,2,.99));
+      box-shadow:0 18px 28px rgba(20,8,0,.22);
     }
 
     .feed-toolbar{
       background:
-        radial-gradient(circle at 92% 18%,rgba(249,115,22,.12),transparent 22%),
-        linear-gradient(90deg,rgba(12,27,57,.98),rgba(38,28,79,.94));
+        radial-gradient(circle at 92% 18%,rgba(255,122,24,.1),transparent 22%),
+        linear-gradient(90deg,rgba(18,10,2,.98),rgba(22,12,2,.94));
     }
 
     .feed-toolbar-copy strong{
@@ -1920,7 +1920,7 @@
       gap:10px;
       padding:10px 16px;
       border-radius:16px;
-      background:linear-gradient(135deg,rgba(34,211,238,.16),rgba(34,211,238,0) 70%);
+      background:linear-gradient(135deg,rgba(255,180,40,.16),rgba(255,180,40,0) 70%);
     }
 
     .feed-toolbar-copy strong::before{
@@ -1928,8 +1928,8 @@
       width:10px;
       height:10px;
       border-radius:50%;
-      background:linear-gradient(180deg,rgba(34,211,238,.98),rgba(249,115,22,.92));
-      box-shadow:0 0 16px rgba(34,211,238,.44);
+      background:linear-gradient(180deg,rgba(255,200,61,.98),rgba(255,122,24,.92));
+      box-shadow:0 0 16px rgba(255,200,61,.36);
       flex:0 0 auto;
     }
 
@@ -2176,15 +2176,15 @@
 
     /* Pronostici ribbon */
     .ribbon-shell {
-      border-color: rgba(61,213,243,.44) !important;
+      border-color: rgba(255,122,24,.38) !important;
       background:
-        linear-gradient(180deg,rgba(61,213,243,.14),rgba(61,213,243,0) 13%),
-        radial-gradient(circle at 96% 0%, rgba(61,213,243,.22), transparent 20%),
-        radial-gradient(circle at 5% 18%, rgba(168,85,247,.16), transparent 20%),
-        linear-gradient(145deg, rgba(10,24,56,.98), rgba(5,12,30,.99)) !important;
+        linear-gradient(180deg,rgba(255,180,60,.12),rgba(255,180,60,0) 13%),
+        radial-gradient(circle at 96% 0%, rgba(252,200,61,.16), transparent 20%),
+        radial-gradient(circle at 5% 18%, rgba(255,122,24,.12), transparent 20%),
+        linear-gradient(145deg, rgba(20,12,4,.98), rgba(8,6,2,.99)) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.12),
-        0 24px 56px rgba(0,8,28,.2) !important;
+        inset 0 1px 0 rgba(255,200,80,.1),
+        0 24px 56px rgba(10,4,0,.22) !important;
     }
     .ribbon-shell::before {
       content:"" !important;
@@ -2192,93 +2192,93 @@
       left:16px !important; right:16px !important; top:0 !important;
       height:4px !important; width:auto !important;
       border-radius:0 0 999px 999px !important;
-      background:linear-gradient(90deg,rgba(61,213,243,.98),rgba(96,160,255,.96),rgba(168,85,247,.84)) !important;
-      box-shadow:0 0 28px rgba(61,213,243,.28) !important;
+      background:linear-gradient(90deg,rgba(255,200,61,.98),rgba(255,140,30,.96),rgba(250,204,21,.84)) !important;
+      box-shadow:0 0 28px rgba(255,180,60,.28) !important;
       inset:auto !important; opacity:1 !important; pointer-events:none !important;
     }
 
     /* Feed toolbar */
     .feed-toolbar {
-      border-color: rgba(61,213,243,.28) !important;
+      border-color: rgba(255,154,60,.26) !important;
       background:
-        radial-gradient(circle at 94% 18%,rgba(255,122,24,.14),transparent 22%),
-        linear-gradient(90deg,rgba(6,18,52,.98),rgba(20,12,58,.96)) !important;
+        radial-gradient(circle at 94% 18%,rgba(255,122,24,.1),transparent 22%),
+        linear-gradient(90deg,rgba(18,10,2,.98),rgba(22,12,2,.96)) !important;
     }
     .feed-toolbar-copy strong {
-      border-color: rgba(61,213,243,.4) !important;
-      background: linear-gradient(135deg,rgba(59,130,246,.22),rgba(168,85,247,.16)) !important;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 14px 30px rgba(59,130,246,.14) !important;
+      border-color: rgba(255,122,24,.42) !important;
+      background: linear-gradient(135deg,rgba(255,122,24,.22),rgba(250,204,21,.14)) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 14px 30px rgba(255,122,24,.12) !important;
     }
     .feed-toolbar-copy strong::before {
-      background: linear-gradient(180deg,rgba(61,213,243,.99),rgba(255,122,24,.92)) !important;
-      box-shadow: 0 0 18px rgba(61,213,243,.48) !important;
+      background: linear-gradient(180deg,rgba(255,200,61,.99),rgba(255,122,24,.92)) !important;
+      box-shadow: 0 0 18px rgba(255,200,61,.36) !important;
     }
 
     /* Market/outcome chips */
     .quick-market-chip,
     .quick-outcome-chip {
-      border-color: rgba(61,213,243,.26) !important;
+      border-color: rgba(255,154,60,.22) !important;
       background:
-        linear-gradient(180deg,rgba(61,213,243,.08),rgba(61,213,243,0) 15%),
-        linear-gradient(145deg,rgba(14,28,64,.97),rgba(6,12,28,.99)) !important;
+        linear-gradient(180deg,rgba(255,160,40,.07),rgba(255,160,40,0) 15%),
+        linear-gradient(145deg,rgba(22,12,2,.97),rgba(10,6,1,.99)) !important;
     }
     .quick-market-chip::before,
     .quick-outcome-chip::before {
-      background: linear-gradient(180deg,rgba(61,213,243,.94),rgba(255,122,24,.82)) !important;
-      box-shadow: 0 0 16px rgba(61,213,243,.2) !important;
+      background: linear-gradient(180deg,rgba(255,200,61,.94),rgba(255,122,24,.82)) !important;
+      box-shadow: 0 0 16px rgba(255,180,60,.2) !important;
     }
     .quick-market-chip.active,
     .quick-outcome-chip.active {
-      border-color: rgba(61,213,243,.78) !important;
+      border-color: rgba(255,154,60,.82) !important;
       background:
-        linear-gradient(180deg,rgba(61,213,243,.16),rgba(61,213,243,0) 22%),
-        linear-gradient(145deg,rgba(24,54,108,.98),rgba(12,24,52,.99)) !important;
-      box-shadow: 0 18px 32px rgba(59,130,246,.2), 0 0 0 1px rgba(61,213,243,.1) inset !important;
+        linear-gradient(180deg,rgba(255,160,40,.14),rgba(255,160,40,0) 22%),
+        linear-gradient(145deg,rgba(40,22,4,.98),rgba(18,10,2,.99)) !important;
+      box-shadow: 0 18px 32px rgba(255,122,24,.18), 0 0 0 1px rgba(255,180,60,.1) inset !important;
     }
 
     /* Preset / status chips */
     .preset-chip, .status-chip {
-      border-color: rgba(61,213,243,.22) !important;
-      background: linear-gradient(180deg,rgba(14,26,60,.94),rgba(7,14,32,.99)) !important;
+      border-color: rgba(255,154,60,.2) !important;
+      background: linear-gradient(180deg,rgba(20,11,2,.94),rgba(10,6,1,.99)) !important;
     }
     .preset-chip.active, .status-chip.active {
-      border-color: rgba(61,213,243,.76) !important;
-      background: linear-gradient(135deg,rgba(59,130,246,.28),rgba(168,85,247,.2)) !important;
-      color: #f8fcff !important;
-      box-shadow: 0 12px 26px rgba(59,130,246,.14) !important;
+      border-color: rgba(255,154,60,.76) !important;
+      background: linear-gradient(135deg,rgba(255,122,24,.28),rgba(250,204,21,.16)) !important;
+      color: #fff7ed !important;
+      box-shadow: 0 12px 26px rgba(255,122,24,.14) !important;
     }
 
     /* Filter cards */
     .inline-filter-card,
     .inline-filter-card-priority {
-      border-color: rgba(61,213,243,.32) !important;
+      border-color: rgba(255,154,60,.28) !important;
       background:
-        linear-gradient(180deg,rgba(61,213,243,.1),rgba(61,213,243,0) 16%),
-        radial-gradient(circle at top right,rgba(61,213,243,.18),transparent 24%),
-        linear-gradient(145deg,rgba(12,26,58,.97),rgba(6,14,32,.99)) !important;
+        linear-gradient(180deg,rgba(255,160,40,.09),rgba(255,160,40,0) 16%),
+        radial-gradient(circle at top right,rgba(255,122,24,.14),transparent 24%),
+        linear-gradient(145deg,rgba(20,11,2,.97),rgba(8,5,1,.99)) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.08),
-        0 20px 38px rgba(2,10,28,.12) !important;
+        inset 0 1px 0 rgba(255,200,80,.06),
+        0 20px 38px rgba(8,3,0,.14) !important;
     }
     .inline-filter-card::before,
     .inline-filter-card-priority::before {
-      background: linear-gradient(90deg,rgba(61,213,243,.9),rgba(96,160,255,.92),rgba(168,85,247,.78)) !important;
+      background: linear-gradient(90deg,rgba(255,200,61,.9),rgba(255,140,30,.92),rgba(250,204,21,.78)) !important;
     }
-    .quick-filter-label { color: #a8d8f0 !important; }
+    .quick-filter-label { color: #c8956a !important; }
     .inline-filter-value {
-      border-color: rgba(61,213,243,.24) !important;
-      background: linear-gradient(180deg,rgba(18,40,80,.88),rgba(8,18,38,.97)) !important;
+      border-color: rgba(255,154,60,.22) !important;
+      background: linear-gradient(180deg,rgba(26,14,2,.88),rgba(10,6,1,.97)) !important;
     }
 
     /* Select shells */
     .select-shell-compact {
-      border-color: rgba(61,213,243,.36) !important;
+      border-color: rgba(255,154,60,.28) !important;
       background:
-        linear-gradient(180deg,rgba(61,213,243,.08),rgba(61,213,243,0) 14%),
-        linear-gradient(180deg,rgba(18,38,76,.97),rgba(8,18,36,.99)) !important;
+        linear-gradient(180deg,rgba(255,160,40,.07),rgba(255,160,40,0) 14%),
+        linear-gradient(180deg,rgba(22,12,2,.97),rgba(10,6,1,.99)) !important;
     }
     .select-shell-compact::before {
-      background: linear-gradient(90deg,rgba(61,213,243,.88),rgba(96,160,255,.9),rgba(168,85,247,.74)) !important;
+      background: linear-gradient(90deg,rgba(255,200,61,.88),rgba(255,140,30,.9),rgba(250,204,21,.74)) !important;
     }
 
     /* Date tabs */
