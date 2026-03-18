@@ -1,15 +1,23 @@
 {
-  "generated_at": "2026-03-18T22:38:38.963442+00:00",
+  "generated_at": "2026-03-18T23:47:12.433790+00:00",
   "timezone": "Europe/Rome",
-  "latest_date": "2026-03-18",
+  "latest_date": "2026-03-19",
   "dates": [
+    {
+      "date": "2026-03-19",
+      "file": "2026-03-19.json",
+      "generated_at": "2026-03-18T23:44:45.263661+00:00",
+      "expires_at": "2026-03-19T23:44:45.263680+00:00",
+      "matches": 179,
+      "final_matches": 0
+    },
     {
       "date": "2026-03-18",
       "file": "2026-03-18.json",
       "generated_at": "2026-03-17T23:56:10.161203+00:00",
       "expires_at": "2026-03-18T23:56:10.161223+00:00",
       "matches": 336,
-      "final_matches": 288
+      "final_matches": 301
     }
   ]
 }
