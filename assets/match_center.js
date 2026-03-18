@@ -461,6 +461,12 @@
   }
 
   function matchWithinMainTimeWindow(match) {
+    const fixtureStatus = String(match.status_short || "").toUpperCase();
+    if (LIVE_STATUSES.has(fixtureStatus)) return true;
+    if (FINAL_STATUSES.has(fixtureStatus)) {
+      const kickoff = kickoffDate(match);
+      if (kickoff && Date.now() - kickoff.getTime() <= 110 * 60 * 1000) return true;
+    }
     if (usesRollingCurrentWindow()) {
       return matchStartsAfterCurrentWindow(match, state.timeFrom);
     }
