@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pronostici Bomba - Match Center</title>
+    <style>
+        :root {
+            --primary-color: #ffaf00;
+            --dark-color: #1a1a1a;
+            --light-color: #ffffff;
+            --background-color: #f0f2f5;
+            --card-background: #ffffff;
+            --text-color: #333333;
+            --text-light: #777777;
+            --border-radius: 12px;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap');
+
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .header {
+            background-color: var(--dark-color);
+            color: var(--light-color);
+            padding: 16px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo span {
+            color: var(--primary-color);
+        }
+
+        .nav a {
+            color: var(--light-color);
+            text-decoration: none;
+            margin-left: 24px;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .nav a:hover, .nav a.active {
+            color: var(--primary-color);
+        }
+
+        .filters-bar {
+            background-color: var(--card-background);
+            padding: 16px;
+            margin: 24px 0;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        
+        .filter-group input, .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: var(--font-family);
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: var(--dark-color);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            background-color: #ffc107;
+            transform: translateY(-2px);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-title .live-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+
+        .match-card {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .match-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        .match-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            background-color: #fafafa;
+        }
+        
+        .match-header .league {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .match-header .league-icon {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .match-body {
+            padding: 20px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        
+        .team {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 100px;
+            text-align: center;
+        }
+        
+        .team-logo {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+        }
+        
+        .team-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .match-center {
+            text-align: center;
+        }
+        
+        .match-time {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+            background-color: #f0f2f5;
+            padding: 4px 12px;
+            border-radius: 8px;
+        }
+        
+        .match-date {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .match-prediction {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .prediction-tag {
+            background-color: var(--primary-color);
+            color: var(--dark-color);
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 8px 16px;
+            border-radius: 20px;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .stake {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        .stake .bar-container {
+            width: 50px;
+            height: 6px;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .stake .bar {
+            height: 100%;
+            background-color: #27ae60;
+            border-radius: 3px;
+        }
+        
+        .match-footer {
+            background-color: #fafafa;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .result {
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .result.pending { color: #f39c12; }
+        .result.won { color: #27ae60; }
+        .result.lost { color: #e74c3c; }
+
+        .result-icon {
+            font-size: 1.2rem;
+        }
+
+        .details-link {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav {
+                display: none; /* Simple hide for now, could be a hamburger menu */
+            }
+            .filters-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .match-body {
+                flex-direction: column;
+                gap: 24px;
+            }
+            .team {
+                width: auto;
+            }
+            .match-center {
+                order: -1;
+            }
+            .teams-container {
+                display: flex;
+                justify-content: space-around;
+                width: 100%;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="container">
+            <div class="logo">Pronostici<span>Bomba</span></div>
+            <nav class="nav">
+                <a href="#">Home</a>
+                <a href="#" class="active">Match Center</a>
+                <a href="#">Storico ROI</a>
+                <a href="#">Storico Picks</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="filters-bar">
+            <div class="filter-group">
+                <label for="date-filter">Data</label>
+                <input type="date" id="date-filter" value="2026-03-17">
+            </div>
+            <div class="filter-group">
+                <label for="league-filter">Lega</label>
+                <select id="league-filter">
+                    <option value="">Tutte le leghe</option>
+                    <option value="serie-a">Serie A</option>
+                    <option value="premier">Premier League</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="prediction-filter">Pronostico</label>
+                <select id="prediction-filter">
+                    <option value="">Tutti</option>
+                    <option value="1X">1X</option>
+                    <option value="GOAL">GOAL</option>
+                    <option value="OVER">OVER 2.5</option>
+                </select>
+            </div>
+            <button class="btn">Filtra</button>
+        </div>
+
+        <h2 class="section-title">
+            <div class="live-dot"></div>
+            Live & Prossime Partite
+        </h2>
+
+        <div class="matches-list">
+            <!-- Esempio Match Card 1: Partita Vinta -->
+            <article class="match-card">
+                <div class="match-header">
+                    <div class="league">
+                        <img src="https://www.thesportsdb.com/images/media/league/badge/fwp2dr1598805209.png" alt="Serie A" class="league-icon">
+                        Serie A
+                    </div>
+                    <span>Finale</span>
+                </div>
+                <div class="match-body">
+                     <div class="teams-container">
+                        <div class="team">
+                            <img src="https://www.thesportsdb.com/images/media/team/logo/c632lq1639253229.png" alt="Inter" class="team-logo">
+                            <span class="team-name">Inter</span>
+                        </div>
+                        <div class="match-center">
+                            <div class="match-time">3 - 1</div>
+                            <div class="match-date">16 Mar, 20:45</div>
+                        </div>
+                        <div class="team">
+                            <img src="https://www.thesportsdb.com/images/media/team/logo/0y8f8j1515799335.png" alt="Napoli" class="team-logo">
+                            <span class="team-name">Napoli</span>
+                        </div>
+                    </div>
+                    <div class="match-prediction">
+                        <div class="prediction-tag">GOAL</div>
+                        <div class="stake">
+                            <span>75%</span>
+                            <div class="bar-container"><div class="bar" style="width: 75%;"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="match-footer">
+                    <div class="result won">
+                        <span class="result-icon">✓</span> Vinta
+                    </div>
+                    <a href="#" class="details-link">Dettagli <span>&rarr;</span></a>
+                </div>
+            </article>
+
+            <!-- Esempio Match Card 2: Partita In Corso -->
+            <article class="match-card">
+                <div class="match-header">
+                    <div class="league">
+                        <img src="https://www.thesportsdb.com/images/media/league/badge/ywoi5k1534597231.png" alt="Premier League" class="league-icon">
+                        Premier League
+                    </div>
+                    <span style="color: #e74c3c; font-weight: bold;">LIVE 72'</span>
+                </div>
+                <div class="match-body">
+                    <div class="teams-container">
+                        <div class="team">
+                            <img src="https://www.thesportsdb.com/images/media/team/logo/q2mxlz1515799491.png" alt="Man United" class="team-logo">
+                            <span class="team-name">Man United</span>
+                        </div>
+                         <div class="match-center">
+                            <div class="match-time">1 - 1</div>
+                            <div class="match-date">17 Mar, 21:00</div>
+                        </div>
+                        <div class="team">
+                            <img src="https://www.thesportsdb.com/images/media/team/logo/nmyo2d1639252436.png" alt="Arsenal" class="team-logo">
+                            <span class="team-name">Arsenal</span>
+                        </div>
+                    </div>
+                    <div class="match-prediction">
+                        <div class="prediction-tag">1X</div>
+                        <div class="stake">
+                             <span>65%</span>
+                            <div class="bar-container"><div class="bar" style="width: 65%;"></div></div>
+                        </div>
+                    </div>
+                </div>
+                 <div class="match-footer">
+                    <div class="result pending">
+                        <span class="result-icon">...</span> In Corso
+                    </div>
+                    <a href="#" class="details-link">Dettagli <span>&rarr;</span></a>
+                </div>
+            </article>
+            
+            <!-- Esempio Match Card 3: Partita Futura -->
+            <article class="match-card">
+                <div class="match-header">
+                     <div class="league">
+                        <img src="https://www.thesportsdb.com/images/media/league/badge/fwp2dr1598805209.png" alt="Serie A" class="league-icon">
+                        Serie A
+                    </div>
+                    <span>Domani</span>
+                </div>
+                <div class="match-body">
+                    <div class="teams-container">
+                        <div class="team">
+                            <img src="https://www.thesportsdb.com/images/media/team/logo/992l9v1639253335.png" alt="Milan" class="team-logo">
+                            <span class="team-name">Milan</span>
+                        </div>
+                         <div class="match-center">
+                            <div class="match-time">20:45</div>
+                            <div class="match-date">18 Mar, 20:45</div>
+                        </div>
+                        <div class="team">
+                            <img src="https://www.thesportsdb.com/images/media/team/logo/z7010e1515799324.png" alt="Juventus" class="team-logo">
+                            <span class="team-name">Juventus</span>
+                        </div>
+                    </div>
+                    <div class="match-prediction">
+                        <div class="prediction-tag">OVER 2.5</div>
+                        <div class="stake">
+                             <span>80%</span>
+                            <div class="bar-container"><div class="bar" style="width: 80%;"></div></div>
+                        </div>
+                    </div>
+                </div>
+                 <div class="match-footer">
+                    <div class="result pending">
+                        <span class="result-icon">...</span> Pendente
+                    </div>
+                    <a href="#" class="details-link">Dettagli <span>&rarr;</span></a>
+                </div>
+            </article>
+        </div>
+    </main>
+</body>
+</html>
