@@ -223,6 +223,8 @@
     selectedDate: "",
     cache: null,
     liveScores: {},
+    detailData: null,
+    detailDataId: null,
     sortMode: "priority",
     groups: new Set(GROUPS.map(group => group.id)),
     status: "all",
@@ -2457,16 +2459,19 @@
     if (primary?.impactLabel) meta.push(primary.impactLabel);
     if (match.visibleMarkets.length) meta.push(`${match.visibleMarkets.length} ${TEXT.markets}`);
     const liveScore = state.liveScores[String(match.fixture_id)];
+    const effectiveStatus = liveScore ? String(liveScore.status || "").toUpperCase() : fixtureStatus;
     const scoreText = (() => {
-      if (FINAL_STATUSES.has(fixtureStatus)) {
-        const sc = liveScore || {};
-        const scoreStr = (liveScore && FINAL_STATUSES.has(String(liveScore.status || "").toUpperCase()))
-          ? `${liveScore.home}-${liveScore.away}`
-          : (match.final_score || "-");
-        return `<span class="live-score-final">${escapeHtml(scoreStr)}</span>`;
+      if (liveScore && FINAL_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
+        return `<span class="live-score-final">${liveScore.home}-${liveScore.away}</span>`;
       }
-      if (LIVE_STATUSES.has(fixtureStatus) && liveScore) {
-        return `<span class="live-score-badge">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${escapeHtml(liveScore.status)}</span>`;
+      if (FINAL_STATUSES.has(fixtureStatus) && !liveScore) {
+        return `<span class="live-score-final">${escapeHtml(match.final_score || "-")}</span>`;
+      }
+      if (liveScore && LIVE_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
+        const elapsedStr = liveScore.status === "HT" ? "HT" : (liveScore.elapsed ? `${liveScore.elapsed}'` : liveScore.status);
+        const goals = (liveScore.events || []).filter(e => e.type === "Goal" && e.detail !== "Missed Penalty");
+        const goalIcons = goals.map(e => `<span class="live-event-icon" title="${escapeHtml(e.playerName || "")} ${e.elapsed ? `(${e.elapsed}')` : ""}">⚽</span>`).join("");
+        return `<span class="live-score-badge">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${escapeHtml(elapsedStr)}</span>${goalIcons}`;
       }
       return (match.most_likely_scores || []).slice(0, 2).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("") || escapeHtml(match.status_long || "");
     })();
@@ -2580,12 +2585,52 @@
     return parts.join(" | ") || fallback;
   }
 
+  function renderDetailEvents(events) {
+    if (!events || !events.length) return "";
+    const relevant = events.filter(e => e.type === "Goal" || (e.type === "Card" && (e.detail === "Red Card" || e.detail === "Second Yellow Card")) || e.type === "Var");
+    if (!relevant.length) return "";
+    const icon = e => e.type === "Goal" ? (e.detail === "Missed Penalty" ? "🚫" : (e.detail === "Own Goal" ? "⚽🔴" : (e.detail === "Penalty" ? "⚽(R)" : "⚽"))) : e.type === "Var" ? "📺" : "🟥";
+    const rows = relevant.map(e => {
+      const t = e.time?.elapsed ? `${e.time.elapsed}${e.time.extra ? `+${e.time.extra}` : ""}'` : "";
+      return `<div class="detail-event-row"><span class="detail-event-time">${escapeHtml(t)}</span><span class="detail-event-icon">${icon(e)}</span><span class="detail-event-info"><strong>${escapeHtml(e.player?.name || e.detail || "")}</strong><small>${escapeHtml(e.team?.name || "")}</small></span></div>`;
+    });
+    return `<details class="detail-accordion" open><summary class="detail-summary"><span>⚽ Eventi</span></summary><div class="detail-section"><div class="detail-events">${rows.join("")}</div></div></details>`;
+  }
+
+  function renderDetailStats(statistics) {
+    if (!statistics || !statistics.length) return "";
+    const home = statistics[0];
+    const away = statistics[1];
+    if (!home || !away) return "";
+    const STAT_LABELS = { "Ball Possession": "Possesso", "Total Shots": "Tiri tot.", "Shots on Goal": "Tiri in porta", "Shots off Goal": "Fuori", "Blocked Shots": "Bloccati", "Corner Kicks": "Corner", "Fouls": "Falli", "Yellow Cards": "Gialli", "Red Cards": "Rossi", "Offsides": "Fuorigioco", "Goalkeeper Saves": "Parate", "Total passes": "Passaggi", "Passes accurate": "Pass. precisi", "Passes %": "Acc. pass." };
+    const homeStats = new Map((home.statistics || []).map(s => [s.type, s.value]));
+    const awayStats = new Map((away.statistics || []).map(s => [s.type, s.value]));
+    const rows = [...homeStats.keys()].map(type => {
+      const label = STAT_LABELS[type] || type;
+      const hv = homeStats.get(type) ?? "-";
+      const av = awayStats.get(type) ?? "-";
+      const hNum = parseFloat(String(hv).replace("%", ""));
+      const aNum = parseFloat(String(av).replace("%", ""));
+      const total = hNum + aNum;
+      const bar = total > 0 ? `<div class="stat-bar"><div class="stat-bar-home" style="width:${Math.round(hNum / total * 100)}%"></div></div>` : "";
+      return `<div class="detail-stat-row"><span class="stat-val-home">${escapeHtml(String(hv))}</span><span class="stat-label">${escapeHtml(label)}${bar}</span><span class="stat-val-away">${escapeHtml(String(av))}</span></div>`;
+    }).join("");
+    return `<details class="detail-accordion"><summary class="detail-summary"><span>📊 Statistiche</span></summary><div class="detail-section"><div class="detail-stats">${rows}</div></div></details>`;
+  }
+
   function renderDetail() {
     const match = getDetailMatch();
     if (!match) {
       dom.detailBody.innerHTML = state.detailFixtureId ? `<div class="empty-state">${TEXT.empty}</div>` : "";
       return;
     }
+    const liveScore = state.liveScores[String(match.fixture_id)];
+    const fixtureStatus = String((liveScore?.status || match.status_short || "")).toUpperCase();
+    const isLive = LIVE_STATUSES.has(fixtureStatus);
+    const isFinal = FINAL_STATUSES.has(fixtureStatus);
+    const scoreDisplay = liveScore
+      ? `<div class="detail-live-score${isLive ? " detail-live-score-live" : ""}">${liveScore.home} - ${liveScore.away}${liveScore.status === "HT" ? " <span class='detail-status-tag'>HT</span>" : isLive && liveScore.elapsed ? ` <span class='detail-status-tag'>${liveScore.elapsed}'</span>` : isFinal ? " <span class='detail-status-tag'>FT</span>" : ""}</div>`
+      : "";
     const scoreChips = (match.most_likely_scores || []).slice(0, 5).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("");
     const marketGroups = GROUPS
       .map(group => ({
@@ -2596,20 +2641,26 @@
       }))
       .filter(group => group.markets.length);
     const summaryMeta = label => `<span class="detail-summary-meta">${escapeHtml(label)}</span>`;
+    const loadingBlock = !state.detailData && state.detailDataId ? `<div class="empty-state" style="padding:10px">Caricamento dati live…</div>` : "";
+    const eventsBlock = state.detailData ? renderDetailEvents(state.detailData.events) : "";
+    const statsBlock = state.detailData ? renderDetailStats(state.detailData.statistics) : "";
     dom.detailBody.innerHTML = `
       <article class="detail-hero">
         <div class="detail-teams">
           <div class="detail-team">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" />` : ""}<h3>${escapeHtml(match.home)}</h3></div>
-          <div class="detail-vs">VS</div>
+          <div class="detail-vs">${scoreDisplay || "VS"}</div>
           <div class="detail-team">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" />` : ""}<h3>${escapeHtml(match.away)}</h3></div>
         </div>
         <div class="detail-meta-grid">
           <div class="detail-meta-card"><span>Campionato</span><strong>${escapeHtml(match.league)}</strong></div>
           <div class="detail-meta-card"><span>Kickoff</span><strong>${escapeHtml(match.localMatchTime || match.match_time)} | ${escapeHtml(match.localMatchDateLabel || formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</strong></div>
-          <div class="detail-meta-card"><span>Stato</span><strong>${FINAL_STATUSES.has(String(match.status_short || "").toUpperCase()) ? `${TEXT.final} | ${escapeHtml(match.final_score || "-")}` : escapeHtml(match.status_long || statusLabel("scheduled"))}</strong></div>
+          <div class="detail-meta-card"><span>Stato</span><strong>${isFinal ? `Fine | ${liveScore ? `${liveScore.home}-${liveScore.away}` : (match.final_score || "-")}` : escapeHtml(match.status_long || statusLabel("scheduled"))}</strong></div>
         </div>
       </article>
       <div class="detail-stack">
+        ${loadingBlock}
+        ${eventsBlock}
+        ${statsBlock}
         <details class="detail-accordion" open>
           <summary class="detail-summary"><span>${TEXT.detailPrimary}</span>${match.primaryMarket ? summaryMeta(marketSummaryLabel(match.primaryMarket)) : ""}</summary>
           <div class="detail-section"><div class="market-grid">${match.primaryMarket ? renderMarketCard(match.primaryMarket) : `<div class="empty-state">${TEXT.empty}</div>`}</div></div>
@@ -2710,18 +2761,56 @@
     fetchLiveScores();
   }
 
-  async function fetchLiveScores() {
-    const rawMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
-    const ids = rawMatches.map(m => m.fixture_id).filter(Boolean);
-    if (!ids.length) return;
+  async function fetchDetailData(fixtureId) {
+    if (!fixtureId || state.detailDataId === String(fixtureId)) return;
+    state.detailData = null;
+    state.detailDataId = String(fixtureId);
+    renderDetail();
     try {
-      const res = await fetch(`${LIVE_SCORES_URL}?ids=${ids.join(",")}`);
+      const WORKER = "https://pronostici-bomba-push.pronosticibomba.workers.dev";
+      const res = await fetch(`${WORKER}/fixtures/detail?id=${fixtureId}`);
       if (!res.ok) return;
       const data = await res.json();
-      if (data.ok && data.scores) {
-        state.liveScores = data.scores;
-        render();
+      if (data.ok && state.detailDataId === String(fixtureId)) {
+        state.detailData = data;
+        renderDetail();
       }
+    } catch (e) {
+      console.warn("Detail fetch failed:", e);
+    }
+  }
+
+  async function fetchLiveScores() {
+    try {
+      const WORKER = "https://pronostici-bomba-push.pronosticibomba.workers.dev";
+      const res = await fetch(`${WORKER}/fixtures/live`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.ok || !Array.isArray(data.fixtures)) return;
+      const scores = {};
+      for (const f of data.fixtures) {
+        const id = f.fixture?.id;
+        const status = f.fixture?.status?.short || "";
+        if (!id) continue;
+        scores[String(id)] = {
+          home: f.goals?.home ?? 0,
+          away: f.goals?.away ?? 0,
+          status,
+          elapsed: f.fixture?.status?.elapsed ?? null,
+          htHome: f.score?.halftime?.home ?? null,
+          htAway: f.score?.halftime?.away ?? null,
+          events: (f.events || []).map(e => ({
+            type: e.type,
+            detail: e.detail,
+            elapsed: e.time?.elapsed,
+            extra: e.time?.extra,
+            teamName: e.team?.name,
+            playerName: e.player?.name,
+          })),
+        };
+      }
+      state.liveScores = scores;
+      render();
     } catch (e) {
       console.warn("Live scores fetch failed:", e);
     }
@@ -3069,8 +3158,11 @@
       const openButton = event.target.closest("[data-fixture-open]");
       if (openButton) {
         state.detailFixtureId = openButton.dataset.fixtureOpen || openButton.getAttribute("data-fixture-open");
+        state.detailData = null;
+        state.detailDataId = null;
         renderDetail();
         syncModalState();
+        fetchDetailData(state.detailFixtureId);
         return;
       }
     });
