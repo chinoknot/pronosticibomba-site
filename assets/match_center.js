@@ -465,7 +465,11 @@
 
   function matchWithinMainTimeWindow(match) {
     const fixtureStatus = String(match.status_short || "").toUpperCase();
-    if (LIVE_STATUSES.has(fixtureStatus)) return true;
+    if (LIVE_STATUSES.has(fixtureStatus)) {
+      // Se il kickoff era >120 min fa la cache è probabilmente stale: usa il filtro orario normale
+      const kickoff = kickoffDate(match);
+      if (!kickoff || Date.now() - kickoff.getTime() <= 120 * 60 * 1000) return true;
+    }
     if (FINAL_STATUSES.has(fixtureStatus)) {
       const kickoff = kickoffDate(match);
       if (kickoff && Date.now() - kickoff.getTime() <= 110 * 60 * 1000) return true;
@@ -1099,8 +1103,14 @@
     return competitionTier(group.country, group.league)[0] <= 3;
   }
 
+  function matchIsActuallyLive(match) {
+    if (!LIVE_STATUSES.has(String(match.status_short || "").toUpperCase())) return false;
+    const kickoff = kickoffDate(match);
+    return !kickoff || Date.now() - kickoff.getTime() <= 120 * 60 * 1000;
+  }
+
   function groupHasLiveMatches(group) {
-    return group.matches.some(match => LIVE_STATUSES.has(String(match.status_short || "").toUpperCase()));
+    return group.matches.some(matchIsActuallyLive);
   }
 
   function matchLifecycleRank(match) {
@@ -1639,10 +1649,10 @@
     const nowTs = Date.now();
     let pool = matches.filter(match => !FINAL_STATUSES.has(String(match.status_short || "").toUpperCase()) && match.primaryMarket);
     if (state.selectedDate === today) {
-      const live = pool.filter(match => LIVE_STATUSES.has(String(match.status_short || "").toUpperCase()))
+      const live = pool.filter(matchIsActuallyLive)
         .sort((a, b) => `${a.localKickoffSort || a.match_time || ""}-${a.league || ""}-${a.home || ""}`.localeCompare(`${b.localKickoffSort || b.match_time || ""}-${b.league || ""}-${b.home || ""}`));
       const upcoming = pool.filter(match => {
-        if (LIVE_STATUSES.has(String(match.status_short || "").toUpperCase())) return false;
+        if (matchIsActuallyLive(match)) return false;
         const kickoff = kickoffDate(match);
         if (!kickoff) {
           const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.match_time));
