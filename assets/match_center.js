@@ -1087,7 +1087,11 @@
   }
 
   function isMajorLeagueGroup(group) {
-    return competitionTier(group.country, group.league)[0] <= 2;
+    return competitionTier(group.country, group.league)[0] <= 3;
+  }
+
+  function groupHasLiveMatches(group) {
+    return group.matches.some(match => LIVE_STATUSES.has(String(match.status_short || "").toUpperCase()));
   }
 
   function matchLifecycleRank(match) {
@@ -2463,17 +2467,23 @@
     }));
     const majorGroups = groups.filter(isMajorLeagueGroup);
     const regularGroups = groups.filter(group => !isMajorLeagueGroup(group));
-    const soonGroups = regularGroups
+    const liveRegularGroups = regularGroups
+      .filter(group => groupHasLiveMatches(group))
+      .sort((a, b) => compareCompositeKeys(groupSortKey(a), groupSortKey(b)));
+    const nonLiveRegularGroups = regularGroups.filter(group => !groupHasLiveMatches(group));
+    const soonGroups = nonLiveRegularGroups
       .filter(group => groupStartsWithinHours(group, soonKickoffThresholdHours()))
       .sort((a, b) => {
         const kickoffDiff = earliestSoonKickoffTimestamp(a) - earliestSoonKickoffTimestamp(b);
         if (Math.abs(kickoffDiff) > 0) return kickoffDiff;
         return compareCompositeKeys(groupSortKey(a), groupSortKey(b));
       });
-    const laterGroups = regularGroups.filter(group => !soonGroups.includes(group));
-    const orderedGroups = [...majorGroups, ...soonGroups, ...laterGroups];
+    const laterGroups = nonLiveRegularGroups.filter(group => !soonGroups.includes(group));
+    const orderedGroups = [...majorGroups, ...liveRegularGroups, ...soonGroups, ...laterGroups];
 
     dom.leagueFeed.innerHTML = orderedGroups.map(group => {
+      const isLive = groupHasLiveMatches(group);
+      const liveDot = isLive ? `<span class="league-live-dot" aria-label="Live" title="Live"></span>` : "";
       const header = `
         <div class="league-title">
           ${group.logo ? `<img class="league-logo" src="${group.logo}" alt="" loading="lazy" />` : `<span class="league-dot" aria-hidden="true"></span>`}
@@ -2481,15 +2491,16 @@
             <h3>${escapeHtml(group.league)}</h3>
             <p>${escapeHtml(group.country)}</p>
           </div>
+          ${liveDot}
         </div>
         <span class="league-count">${group.matches.length}</span>
       `;
       const content = `<div class="match-list">${group.matches.map(match => renderMatchRow(match, { showLeagueLine: false })).join("")}</div>`;
       if (isMajorLeagueGroup(group)) {
-        return `<section class="league-block league-block-major"><div class="league-header">${header}</div>${content}</section>`;
+        return `<section class="league-block league-block-major${isLive ? " league-block-live" : ""}"><div class="league-header">${header}</div>${content}</section>`;
       }
-      const openSoon = groupStartsWithinHours(group, soonKickoffThresholdHours());
-      return `<details class="league-block league-accordion"${state.search || openSoon ? " open" : ""}><summary class="league-header league-summary">${header}<span class="league-caret" aria-hidden="true"></span></summary>${content}</details>`;
+      const openSoon = groupStartsWithinHours(group, 0.5);
+      return `<details class="league-block league-accordion${isLive ? " league-block-live" : ""}"${state.search || isLive || openSoon ? " open" : ""}><summary class="league-header league-summary">${header}<span class="league-caret" aria-hidden="true"></span></summary>${content}</details>`;
     }).join("");
   }
 
