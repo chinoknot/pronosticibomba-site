@@ -1616,7 +1616,10 @@
     const nowTs = Date.now();
     let pool = matches.filter(match => !FINAL_STATUSES.has(String(match.status_short || "").toUpperCase()) && match.primaryMarket);
     if (state.selectedDate === today) {
+      const live = pool.filter(match => LIVE_STATUSES.has(String(match.status_short || "").toUpperCase()))
+        .sort((a, b) => `${a.localKickoffSort || a.match_time || ""}-${a.league || ""}-${a.home || ""}`.localeCompare(`${b.localKickoffSort || b.match_time || ""}-${b.league || ""}-${b.home || ""}`));
       const upcoming = pool.filter(match => {
+        if (LIVE_STATUSES.has(String(match.status_short || "").toUpperCase())) return false;
         const kickoff = kickoffDate(match);
         if (!kickoff) {
           const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.match_time));
@@ -1630,15 +1633,17 @@
         if (!kickoff) {
           const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.match_time));
           const nowMinutes = toMinutes(currentTimeInTimezone(timezone));
-          return kickoffMinutes >= nowMinutes && kickoffMinutes <= nowMinutes + 30;
+          return kickoffMinutes >= nowMinutes && kickoffMinutes <= nowMinutes + 60;
         }
-        return kickoff.getTime() >= nowTs && kickoff.getTime() <= nowTs + (30 * 60 * 1000);
+        return kickoff.getTime() >= nowTs && kickoff.getTime() <= nowTs + (60 * 60 * 1000);
       });
-      if (imminent.length >= 4) {
-        pool = imminent;
+      if (live.length || imminent.length >= 4) {
+        pool = [...live, ...imminent];
       } else if (upcoming.length) {
         const desired = Math.min(12, Math.max(4, imminent.length + 4));
-        pool = upcoming.slice(0, desired);
+        pool = [...live, ...upcoming.slice(0, desired)];
+      } else {
+        pool = live;
       }
     }
     const headlinePool = pool.filter(match => isHeadlineCompetition(match.country, match.league));
