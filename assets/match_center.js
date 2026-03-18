@@ -2628,8 +2628,11 @@
     const fixtureStatus = String((liveScore?.status || match.status_short || "")).toUpperCase();
     const isLive = LIVE_STATUSES.has(fixtureStatus);
     const isFinal = FINAL_STATUSES.has(fixtureStatus);
+    const elapsedTag = liveScore
+      ? (liveScore.status === "HT" ? "HT" : isFinal ? "FT" : (liveScore.elapsed ? `${liveScore.elapsed}'` : liveScore.status))
+      : "";
     const scoreDisplay = liveScore
-      ? `<div class="detail-live-score${isLive ? " detail-live-score-live" : ""}">${liveScore.home} - ${liveScore.away}${liveScore.status === "HT" ? " <span class='detail-status-tag'>HT</span>" : isLive && liveScore.elapsed ? ` <span class='detail-status-tag'>${liveScore.elapsed}'</span>` : isFinal ? " <span class='detail-status-tag'>FT</span>" : ""}</div>`
+      ? `<div class="detail-live-score${isLive ? " detail-live-score-live" : ""}"><span>${liveScore.home} - ${liveScore.away}</span>${elapsedTag ? `<span class="detail-status-tag">${escapeHtml(elapsedTag)}</span>` : ""}</div>`
       : "";
     const scoreChips = (match.most_likely_scores || []).slice(0, 5).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("");
     const marketGroups = GROUPS
@@ -2648,7 +2651,7 @@
       <article class="detail-hero">
         <div class="detail-teams">
           <div class="detail-team">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" />` : ""}<h3>${escapeHtml(match.home)}</h3></div>
-          <div class="detail-vs">${scoreDisplay || "VS"}</div>
+          <div class="detail-vs${liveScore ? ' detail-vs-score' : ''}">${scoreDisplay || "VS"}</div>
           <div class="detail-team">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" />` : ""}<h3>${escapeHtml(match.away)}</h3></div>
         </div>
         <div class="detail-meta-grid">
