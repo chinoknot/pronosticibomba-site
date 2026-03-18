@@ -3,6 +3,8 @@
   const FINAL_STATUSES = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
   const CACHE_BASE = "/assets/data/match-predictor";
   const AUTO_REFRESH_MS = 5 * 60 * 1000;
+  const LIVE_SCORES_URL = "https://pronostici-bomba-push.pronosticibomba.workers.dev/scores";
+  const LIVE_SCORES_REFRESH_MS = 60 * 1000;
   const PAGE_LANG = String(document.documentElement.lang || "it").toLowerCase();
   const IS_EN = PAGE_LANG.startsWith("en");
   const APP_LOCALE = IS_EN ? "en-GB" : "it-IT";
@@ -220,6 +222,7 @@
     manifest: null,
     selectedDate: "",
     cache: null,
+    liveScores: {},
     sortMode: "priority",
     groups: new Set(GROUPS.map(group => group.id)),
     status: "all",
@@ -1602,7 +1605,21 @@
   }
 
   function getDerivedMatches() {
-    return decorateMatches(Array.isArray(state.cache?.matches) ? state.cache.matches : []);
+    const rawMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
+    const enriched = rawMatches.map(match => {
+      const live = state.liveScores[String(match.fixture_id)];
+      if (!live) return match;
+      const liveStatus = String(live.status || "").toUpperCase();
+      if (!LIVE_STATUSES.has(liveStatus) && !FINAL_STATUSES.has(liveStatus)) return match;
+      return {
+        ...match,
+        status_short: live.status,
+        goals_home: live.home,
+        goals_away: live.away,
+        final_score: FINAL_STATUSES.has(liveStatus) ? `${live.home}-${live.away}` : match.final_score,
+      };
+    });
+    return decorateMatches(enriched);
   }
 
   function getDetailMatch() {
@@ -2429,9 +2446,20 @@
     else if (primary?.tag) meta.push(primary.tag);
     if (primary?.impactLabel) meta.push(primary.impactLabel);
     if (match.visibleMarkets.length) meta.push(`${match.visibleMarkets.length} ${TEXT.markets}`);
-    const scoreText = FINAL_STATUSES.has(fixtureStatus)
-      ? `${TEXT.final} | ${escapeHtml(match.final_score || "-")}`
-      : (match.most_likely_scores || []).slice(0, 2).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("") || escapeHtml(match.status_long || "");
+    const liveScore = state.liveScores[String(match.fixture_id)];
+    const scoreText = (() => {
+      if (FINAL_STATUSES.has(fixtureStatus)) {
+        const sc = liveScore || {};
+        const scoreStr = (liveScore && FINAL_STATUSES.has(String(liveScore.status || "").toUpperCase()))
+          ? `${liveScore.home}-${liveScore.away}`
+          : (match.final_score || "-");
+        return `<span class="live-score-final">${escapeHtml(scoreStr)}</span>`;
+      }
+      if (LIVE_STATUSES.has(fixtureStatus) && liveScore) {
+        return `<span class="live-score-badge">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${escapeHtml(liveScore.status)}</span>`;
+      }
+      return (match.most_likely_scores || []).slice(0, 2).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("") || escapeHtml(match.status_long || "");
+    })();
     return `
       <article class="match-row status-${displayStatus}" data-fixture-open="${match.fixture_id}">
         <div class="match-row-inner">
@@ -2669,6 +2697,24 @@
       state.cache = null;
     }
     render();
+    fetchLiveScores();
+  }
+
+  async function fetchLiveScores() {
+    const rawMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
+    const ids = rawMatches.map(m => m.fixture_id).filter(Boolean);
+    if (!ids.length) return;
+    try {
+      const res = await fetch(`${LIVE_SCORES_URL}?ids=${ids.join(",")}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.ok && data.scores) {
+        state.liveScores = data.scores;
+        render();
+      }
+    } catch (e) {
+      console.warn("Live scores fetch failed:", e);
+    }
   }
 
   function applyTimeFilter(fromValue, toValue) {
@@ -3030,8 +3076,11 @@
     window.setInterval(() => {
       if (!document.hidden) refreshData();
     }, AUTO_REFRESH_MS);
+    window.setInterval(() => {
+      if (!document.hidden) fetchLiveScores();
+    }, LIVE_SCORES_REFRESH_MS);
     document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) refreshData();
+      if (!document.hidden) { refreshData(); fetchLiveScores(); }
     });
   }
 
