@@ -2832,12 +2832,16 @@
         if (!knownIds.has(String(id)) && LIVE_STATUSES.has(status.toUpperCase())) {
           extraMatches.push({
             fixture_id: id,
-            home_team: f.teams?.home?.name || "?",
-            away_team: f.teams?.away?.name || "?",
+            home: f.teams?.home?.name || "?",
+            away: f.teams?.away?.name || "?",
+            home_logo: f.teams?.home?.logo || null,
+            away_logo: f.teams?.away?.logo || null,
             league: f.league?.name || "",
             country: f.league?.country || "",
             league_id: f.league?.id || 0,
+            date: (f.fixture?.date || "").slice(0, 10),
             match_date: (f.fixture?.date || "").slice(0, 10),
+            kickoff_at: f.fixture?.date || null,
             match_time: (f.fixture?.date || "").slice(11, 16),
             status_short: status,
             goals_home: f.goals?.home ?? null,
