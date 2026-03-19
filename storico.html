@@ -2,8 +2,14 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Storico ROI – Pronostici Bomba</title>
+  <title>Storico ROI | Pronostici Bomba</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#060816" />
+  <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
+  <link rel="apple-touch-icon" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #050816;
@@ -250,13 +256,547 @@
     }
 
   </style>
+  <style>
+    body{
+      display:block;
+      padding:0 0 34px;
+      justify-content:initial;
+      font-family:"Space Grotesk",system-ui,sans-serif;
+      background:
+        radial-gradient(circle at 14% 16%, rgba(255,122,24,.22), transparent 24%),
+        radial-gradient(circle at 86% 12%, rgba(61,213,243,.12), transparent 22%),
+        radial-gradient(circle at 50% 100%, rgba(255,200,61,.08), transparent 32%),
+        linear-gradient(180deg, #03050d 0%, #071122 38%, #050816 100%);
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+      background-size:44px 44px;
+      mask-image:radial-gradient(circle at center, black 32%, transparent 92%);
+      opacity:.3;
+      z-index:-2;
+    }
+
+    .shell{width:min(1180px, calc(100% - 24px)); margin:0 auto}
+
+    .topbar2{
+      position:sticky;
+      top:0;
+      z-index:40;
+      padding:16px 0 12px;
+      backdrop-filter:blur(18px);
+      background:linear-gradient(180deg, rgba(3,6,15,.88), rgba(3,6,15,.28));
+    }
+
+    .topbar2-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:14px 18px;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:999px;
+      background:rgba(6,10,24,.74);
+      box-shadow:0 24px 80px rgba(0,0,0,.42);
+    }
+
+    .brand2{display:flex;align-items:center;gap:12px;min-width:0}
+    .brand2-mark{
+      width:48px;height:48px;border-radius:16px;display:grid;place-items:center;overflow:hidden;flex:0 0 auto;
+      background:linear-gradient(145deg, #ffc83d, #ff7a18);
+      box-shadow:0 0 0 1px rgba(255,255,255,.18) inset,0 18px 30px rgba(255,122,24,.28);
+    }
+    .brand2-mark img{width:32px;height:32px;object-fit:contain}
+    .brand2-copy strong{display:block;font-family:"Sora",sans-serif;font-size:1rem;letter-spacing:-.03em}
+    .brand2-copy span{display:block;color:#9fb0d0;font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .nav2{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .nav2 a{
+      min-height:42px;padding:0 15px;border-radius:999px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);
+      color:#ecf2ff;display:inline-flex;align-items:center;gap:8px;font-size:.82rem;font-weight:700;white-space:nowrap
+    }
+    .nav2 a.active,
+    .nav2 a:hover{border-color:rgba(255,122,24,.56);background:rgba(255,122,24,.1)}
+    .mobile-page-nav{display:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+    .mobile-page-link{min-height:74px;padding:10px 10px 11px;border-radius:22px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(12,18,34,.92),rgba(7,11,24,.98));display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:8px;color:#edf4ff;text-decoration:none;box-shadow:0 16px 36px rgba(0,0,0,.28)}
+    .mobile-page-link:hover,.mobile-page-link:focus-visible{transform:translateY(-1px);border-color:rgba(255,122,24,.58);background:linear-gradient(180deg,rgba(18,27,47,.95),rgba(8,13,26,.99));outline:none}
+    .mobile-page-link.active{border-color:rgba(255,122,24,.62);background:radial-gradient(circle at top right,rgba(255,122,24,.16),transparent 48%),linear-gradient(180deg,rgba(20,28,47,.98),rgba(10,14,28,.99));box-shadow:0 20px 40px rgba(255,122,24,.14)}
+    .mobile-page-icon{width:32px;height:32px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);display:grid;place-items:center;flex:0 0 auto}
+    .mobile-page-icon svg{width:16px;height:16px;stroke:currentColor}
+    .mobile-page-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+    .mobile-page-copy strong{font-family:"Sora",sans-serif;font-size:.74rem;letter-spacing:-.02em;line-height:1.05}
+    .mobile-page-copy span{color:#9fb0d0;font-size:.57rem;letter-spacing:.1em;text-transform:uppercase;line-height:1}
+
+    .page-main{width:min(1180px, calc(100% - 24px));margin:16px auto 0;padding:0 0 30px}
+    .page-hero{
+      padding:18px;border-radius:28px;border:1px solid rgba(255,255,255,.08);
+      background:
+        radial-gradient(circle at top right, rgba(61,213,243,.12), transparent 26%),
+        radial-gradient(circle at top left, rgba(255,122,24,.14), transparent 28%),
+        linear-gradient(145deg, rgba(10,16,30,.96), rgba(5,9,20,.98));
+      box-shadow:0 24px 80px rgba(0,0,0,.42);
+      margin-bottom:16px;
+    }
+
+    .title-row{align-items:center;margin-bottom:8px}
+    h1{font-family:"Sora",sans-serif;font-size:clamp(1.5rem, 3vw, 2.3rem);letter-spacing:-.04em}
+    .hero-kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      align-self:flex-start;
+      min-height:34px;
+      padding:0 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,200,61,.28);
+      background:linear-gradient(135deg, rgba(255,122,24,.18), rgba(255,200,61,.08));
+      color:#fff1bf;
+      font-size:.72rem;
+      font-weight:800;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      box-shadow:0 0 0 1px rgba(255,255,255,.03) inset;
+    }
+    .hero-kicker::before{
+      content:"";
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background:linear-gradient(135deg, #ffc83d, #ff7a18);
+      box-shadow:0 0 18px rgba(255,122,24,.55);
+    }
+    .back-link{
+      min-height:40px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.09);
+      background:rgba(255,255,255,.04);color:#ecf2ff;display:inline-flex;align-items:center
+    }
+    .back-link:hover{border-color:rgba(255,122,24,.56);background:rgba(255,122,24,.1);color:#fff7ed}
+    .subtitle{display:none}
+    .hero-subtitle{font-size:.92rem;line-height:1.55;color:#c8d5ea;max-width:840px}
+    .hero-cues{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:2px;
+    }
+    .hero-cue{
+      min-height:38px;
+      padding:0 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(145deg, rgba(14,20,37,.96), rgba(6,10,20,.98));
+      color:#dce6f8;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:.8rem;
+      font-weight:700;
+      box-shadow:0 12px 30px rgba(0,0,0,.18);
+    }
+    .hero-cue::before{
+      content:"";
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:linear-gradient(135deg, #3dd5f3, #38bdf8);
+      box-shadow:0 0 14px rgba(61,213,243,.4);
+    }
+    .controls-row{
+      margin-top:14px;padding:12px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.08);
+      background:
+        radial-gradient(circle at left center, rgba(255,122,24,.08), transparent 24%),
+        linear-gradient(145deg, rgba(12,18,33,.92), rgba(8,12,24,.96));
+    }
+    .range-fixed-pill,#month-select,.back-link{box-shadow:inset 0 0 0 1px rgba(255,255,255,.02)}
+    .summary-card,.table-wrapper,.info-block{
+      border-radius:24px;border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(145deg, rgba(9,14,28,.95), rgba(4,8,18,.98));
+      box-shadow:0 24px 70px rgba(0,0,0,.34);
+    }
+    .summary-card{
+      padding:16px;
+      gap:12px;
+      background:
+        radial-gradient(circle at top right, rgba(255,122,24,.12), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(61,213,243,.1), transparent 30%),
+        linear-gradient(145deg, rgba(10,16,30,.96), rgba(4,8,18,.98));
+    }
+    .summary-item{
+      position:relative;
+      overflow:hidden;
+      min-height:128px;
+      padding:15px 16px;
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(12,18,33,.96), rgba(7,11,22,.98));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+      gap:8px;
+      justify-content:flex-start;
+    }
+    .summary-item::before{
+      content:"";
+      position:absolute;
+      inset:0 auto auto 0;
+      width:100%;
+      height:4px;
+      background:linear-gradient(90deg, #ff7a18, #ffc83d);
+      opacity:.95;
+    }
+    .summary-item:nth-child(2)::before{background:linear-gradient(90deg, #38bdf8, #3dd5f3)}
+    .summary-item:nth-child(3)::before{background:linear-gradient(90deg, #3dd5f3, #ff7a18)}
+    .summary-label,.section-title{color:#93a6c7}
+    .summary-label{
+      font-size:.73rem;
+      font-weight:800;
+      letter-spacing:.14em;
+    }
+    .summary-value{
+      font-family:"Sora",sans-serif;
+      font-size:1.45rem;
+      letter-spacing:-.04em;
+      line-height:1.05;
+    }
+    .summary-value-small{
+      font-size:.85rem;
+      line-height:1.45;
+      color:#d3def1;
+    }
+    .summary-item :is(.summary-value,.summary-value-small).badge-pos{color:#8cf4df}
+    .summary-item :is(.summary-value,.summary-value-small).badge-neg{color:#f7a4c6}
+    .section-title{
+      margin:20px 0 10px;
+      font-family:"Sora",sans-serif;
+      font-size:1rem;
+      letter-spacing:-.03em;
+      color:#edf4ff;
+    }
+    .table-wrapper{
+      position:relative;
+      overflow:hidden;
+      padding:16px 14px 12px;
+      background:
+        radial-gradient(circle at top right, rgba(61,213,243,.08), transparent 24%),
+        linear-gradient(145deg, rgba(9,14,28,.95), rgba(4,8,18,.98));
+    }
+    .table-wrapper::before{
+      content:"";
+      position:absolute;
+      inset:0 auto 0 0;
+      width:4px;
+      background:linear-gradient(180deg, #ff7a18, #3dd5f3);
+      opacity:.8;
+    }
+    thead{background:rgba(255,255,255,.03)}
+    th,td{border-bottom:1px solid rgba(255,255,255,.08)}
+    tbody tr:nth-child(even){background:rgba(255,255,255,.02)}
+    tbody tr:hover{background:rgba(255,122,24,.08)}
+    th{color:#dbe5fb;font-size:.74rem}
+    td{color:#edf4ff;font-size:.82rem}
+    td.badge-pos{color:#8cf4df;font-weight:700}
+    td.badge-neg{color:#f7a4c6;font-weight:700}
+    .day-accordion-list{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-bottom:18px;
+    }
+    .day-accordion{
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.08);
+      background:
+        radial-gradient(circle at top right, rgba(61,213,243,.08), transparent 28%),
+        linear-gradient(145deg, rgba(9,14,28,.95), rgba(4,8,18,.98));
+      box-shadow:0 18px 50px rgba(0,0,0,.32);
+      overflow:hidden;
+    }
+    .day-accordion.open-today{
+      border-color:rgba(255,122,24,.42);
+      box-shadow:0 22px 58px rgba(255,122,24,.12);
+    }
+    .day-accordion summary{
+      list-style:none;
+      cursor:pointer;
+    }
+    .day-accordion summary::-webkit-details-marker{display:none}
+    .day-summary-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:16px 18px;
+    }
+    .day-summary-main{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-width:0;
+    }
+    .day-summary-date{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .day-summary-date strong{
+      font-family:"Sora",sans-serif;
+      font-size:1.02rem;
+      letter-spacing:-.03em;
+      color:#f8fbff;
+    }
+    .day-badge{
+      display:inline-flex;
+      align-items:center;
+      min-height:28px;
+      padding:0 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,122,24,.28);
+      background:linear-gradient(135deg, rgba(255,122,24,.16), rgba(255,200,61,.1));
+      color:#ffe7bf;
+      font-size:.68rem;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+    .day-summary-sub{
+      color:#9fb0d0;
+      font-size:.8rem;
+      line-height:1.35;
+    }
+    .day-summary-stats{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .day-stat-pill{
+      min-height:34px;
+      padding:0 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      color:#edf4ff;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:.76rem;
+      font-weight:700;
+      white-space:nowrap;
+    }
+    .day-stat-pill.pos{
+      border-color:rgba(45,212,191,.26);
+      background:rgba(45,212,191,.12);
+      color:#8cf4df;
+    }
+    .day-stat-pill.neg{
+      border-color:rgba(244,114,182,.26);
+      background:rgba(244,114,182,.12);
+      color:#f7a4c6;
+    }
+    .day-summary-toggle{
+      width:34px;
+      height:34px;
+      border-radius:50%;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      color:#edf4ff;
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+      font-size:0;
+      line-height:1;
+    }
+    .day-summary-toggle::before{
+      content:"+";
+      font-size:1rem;
+    }
+    .day-accordion[open] .day-summary-toggle{
+      border-color:rgba(255,122,24,.34);
+      color:#ffd4a0;
+      background:rgba(255,122,24,.12);
+    }
+    .day-accordion[open] .day-summary-toggle::before{content:"−"}
+    .day-accordion-body{
+      border-top:1px solid rgba(255,255,255,.06);
+      padding:16px 18px 18px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .day-detail-grid{
+      display:grid;
+      grid-template-columns:repeat(5, minmax(0,1fr));
+      gap:10px;
+    }
+    .day-detail-card{
+      min-height:90px;
+      padding:14px 14px 12px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(12,18,33,.96), rgba(7,11,22,.98));
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .day-detail-card span{
+      color:#93a6c7;
+      font-size:.7rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    .day-detail-card strong{
+      font-family:"Sora",sans-serif;
+      font-size:1rem;
+      color:#f8fbff;
+      letter-spacing:-.03em;
+    }
+    .day-detail-card.pos strong{color:#8cf4df}
+    .day-detail-card.neg strong{color:#f7a4c6}
+    .day-detail-note{
+      color:#b6c4dd;
+      font-size:.8rem;
+      line-height:1.45;
+    }
+    .info-block{
+      padding:18px;
+      color:#aab8d1;
+      background:
+        radial-gradient(circle at top left, rgba(255,122,24,.12), transparent 26%),
+        linear-gradient(145deg, rgba(10,16,30,.96), rgba(5,9,20,.98));
+    }
+    .info-block > .info-title,
+    .info-block > .info-list{display:none}
+    .info-title{
+      font-family:"Sora",sans-serif;
+      font-size:1.06rem;
+      margin-bottom:12px;
+      color:#fff6df;
+      letter-spacing:-.03em;
+    }
+    .info-title-modern{
+      font-family:"Sora",sans-serif;
+      font-size:1.06rem;
+      margin-bottom:12px;
+      color:#fff6df;
+      letter-spacing:-.03em;
+    }
+    .info-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:12px;
+    }
+    .info-tile{
+      min-height:122px;
+      padding:14px 14px 12px;
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(12,18,33,.96), rgba(7,11,22,.98));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .info-tile strong{
+      font-family:"Sora",sans-serif;
+      font-size:.96rem;
+      color:#f8fbff;
+      letter-spacing:-.03em;
+    }
+    .info-tile span{color:#b6c4dd;font-size:.82rem;line-height:1.45}
+    .info-note{margin-top:12px;color:#d8e4f7;font-size:.84rem;line-height:1.45}
+
+    @media (max-width:860px){
+      .topbar2-inner{border-radius:26px;align-items:flex-start;flex-direction:column}
+      .nav2{width:100%;justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px}
+      .page-main,.shell{width:min(1180px, calc(100% - 16px))}
+      .page-hero{padding:16px 14px;border-radius:24px}
+    }
+
+    @media (max-width:560px){
+      body{padding:0 0 26px}
+      .topbar2{padding:10px 0 8px}
+      .topbar2-inner{padding:12px 14px;align-items:center;flex-direction:row}
+      .brand2-mark{width:42px;height:42px;border-radius:14px}
+      .brand2-mark img{width:28px;height:28px}
+      .brand2-copy strong{font-size:.94rem}
+      .brand2-copy span{font-size:.7rem}
+      .nav2{width:auto;margin-left:auto;justify-content:flex-end;overflow:visible;flex-wrap:nowrap;padding-bottom:0}
+      .nav2 a{display:none}
+      .mobile-page-nav{display:grid}
+      .page-main,.shell{width:min(1180px, calc(100% - 12px))}
+      .summary-card,.table-wrapper,.info-block{border-radius:20px}
+      .controls-row{padding:10px 12px}
+      .summary-card{gap:10px}
+      .summary-item{min-height:auto;padding:13px 14px}
+      .day-summary-row{padding:14px}
+      .day-summary-stats{justify-content:flex-start}
+      .day-detail-grid{grid-template-columns:repeat(2, minmax(0,1fr))}
+      .hero-cues{gap:8px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px}
+      .hero-cue{white-space:nowrap;flex:0 0 auto}
+      .info-grid{grid-template-columns:1fr}
+    }
+  </style>
 </head>
 <body>
-  <main>
-    <header>
+  <header class="topbar2">
+    <div class="shell">
+      <div class="topbar2-inner">
+        <a class="brand2" href="/index.html" aria-label="Pronostici Bomba Home">
+          <span class="brand2-mark"><img src="/favicon.png" alt="" /></span>
+          <span class="brand2-copy">
+            <strong>Pronostici Bomba</strong>
+            <span>Le bombe del giorno | Bet Builder | Match Center</span>
+          </span>
+        </a>
+        <nav class="nav2" aria-label="Collegamenti principali">
+          <a href="/index.html">Home</a>
+          <a href="/match-center.html">Match Center</a>
+          <a href="/storico.html" class="active">Storico ROI</a>
+          <a href="/storico_picks.html">Storico Picks</a>
+          <button type="button" class="lang-btn active" id="lang-it" onclick="setLang('it')">IT</button>
+          <button type="button" class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+        </nav>
+      </div>
+      <nav class="mobile-page-nav" aria-label="Mobile page navigation">
+        <a class="mobile-page-link" href="/index.html">
+          <span class="mobile-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5L12 4l9 7.5"></path><path d="M5.5 10.5V20H18.5V10.5"></path></svg></span>
+          <span class="mobile-page-copy"><strong>Home</strong><span>Feed</span></span>
+        </a>
+        <a class="mobile-page-link" href="/match-center.html">
+          <span class="mobile-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"></circle><path d="M20 20L16.65 16.65"></path></svg></span>
+          <span class="mobile-page-copy"><strong>Match</strong><span>Center</span></span>
+        </a>
+        <a class="mobile-page-link active" href="/storico.html">
+          <span class="mobile-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"></path><path d="M7 16V10"></path><path d="M12 16V6"></path><path d="M17 16v-4"></path></svg></span>
+          <span class="mobile-page-copy"><strong>ROI</strong><span>Board</span></span>
+        </a>
+        <a class="mobile-page-link" href="/storico_picks.html">
+          <span class="mobile-page-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10l3 3v13H4V4z"></path><path d="M14 4v4h4"></path><path d="M8 12h8"></path><path d="M8 16h6"></path></svg></span>
+          <span class="mobile-page-copy"><strong>Picks</strong><span>Log</span></span>
+        </a>
+      </nav>
+    </div>
+  </header>
+  <main class="page-main">
+    <header class="page-hero">
+      <div class="hero-kicker">ROI board</div>
       <div class="title-row">
         <h1>Storico ROI</h1>
-        <a href="/index.html" class="back-link">← Torna ai pronostici di oggi</a>
+        <a href="/index.html" class="back-link">Torna a Home</a>
+      </div>
+      <p class="hero-subtitle">
+        ROI netto, giorni verdi, giorni rossi e quota media reale: qui vedi il quadro completo
+        senza filtri e senza nascondere le perdite.
+      </p>
+      <div class="hero-cues">
+        <span class="hero-cue">Stake 1 per evento</span>
+        <span class="hero-cue">Una pick valida per fixture</span>
+        <span class="hero-cue">ROI, winrate e reliability</span>
       </div>
       <p class="subtitle">
         Qui trovi il rendimento storico con stake fisso 1 unità,
@@ -295,10 +835,32 @@
       </div>
     </section>
 
-    <h2 class="section-title">Andamento giornaliero (solo picks risolte)</h2>
+    <h2 class="section-title">Timeline ROI giornaliera</h2>
     <div id="table-container"></div>
 
     <section class="info-block">
+      <div class="info-title-modern">Leggilo al volo</div>
+      <div class="info-grid">
+        <div class="info-tile">
+          <strong>ROI reale</strong>
+          <span>Profitto percentuale sullo stake totale, calcolato solo sulle picks gia risolte.</span>
+        </div>
+        <div class="info-tile">
+          <strong>Winrate</strong>
+          <span>Quanta parte del blocco ha chiuso WIN sul totale degli eventi davvero giocati.</span>
+        </div>
+        <div class="info-tile">
+          <strong>Quota media</strong>
+          <span>Serve a capire se il winrate regge oppure se sta correndo sotto break-even.</span>
+        </div>
+        <div class="info-tile">
+          <strong>Reliability</strong>
+          <span>Piu campione, piu stabilita, piu margine sul break-even: piu il dato conta.</span>
+        </div>
+      </div>
+      <p class="info-note">
+        Nessun trucco nel conteggio: una sola pick valida per partita, stake fisso 1 e giornate rosse comprese.
+      </p>
       <div class="info-title">Come leggere ROI, winrate e reliability</div>
       <ul class="info-list">
         <li><strong>ROI</strong>: profitto percentuale rispetto allo stake totale. Es:
@@ -380,6 +942,83 @@
   })();
 </script>
 
-<script src="/assets/storico_v3.js?v=20260302a"></script>
+<script src="/assets/storico_v4.js?v=20260317a"></script>
+<style>
+  /* ── index2 palette alignment ───────────────────────────────────── */
+  body {
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    background:
+      radial-gradient(circle at 14% 16%, rgba(255,122,24,.24), transparent 24%),
+      radial-gradient(circle at 86% 12%, rgba(61,213,243,.12), transparent 22%),
+      radial-gradient(circle at 50% 100%, rgba(255,200,61,.11), transparent 32%),
+      linear-gradient(180deg, #03050d 0%, #071122 38%, #050816 100%) !important;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(circle at center, black 32%, transparent 92%);
+    opacity: .35;
+    z-index: -2;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: -10%;
+    pointer-events: none;
+    background:
+      conic-gradient(from 180deg at 20% 20%, transparent, rgba(255,122,24,.1), transparent 28%),
+      conic-gradient(from 180deg at 80% 30%, transparent, rgba(255,200,61,.08), transparent 32%);
+    filter: blur(40px);
+    z-index: -3;
+  }
+  /* topbar orange hover */
+  .nav2 a.active, .nav2 a:hover {
+    border-color: rgba(255,122,24,.56) !important;
+    background: rgba(255,122,24,.12) !important;
+    color: #fff7ed !important;
+  }
+  .mobile-page-link.active {
+    border-color: rgba(255,122,24,.52) !important;
+    background: linear-gradient(180deg, rgba(255,122,24,.14), rgba(255,90,0,.08)) !important;
+  }
+  /* win / lose vivid cyan / amber palette */
+  .badge-win, .stat-win, [class*="win"] .roi-val,
+  .summary-value.up, .summary-value.win { color: #25dba9 !important; }
+  .badge-lose, .stat-lose, [class*="lose"] .roi-val,
+  .summary-value.down, .summary-value.lose { color: #f97316 !important; }
+  /* lang toggle buttons */
+  .lang-btn {
+    min-height: 36px; padding: 0 13px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04);
+    color: #9fb0d0; font-family: "Space Grotesk", system-ui, sans-serif;
+    font-size: .78rem; font-weight: 700; letter-spacing: .04em;
+    cursor: pointer; white-space: nowrap;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: border-color .16s, background .16s, color .16s;
+  }
+  .lang-btn:hover { border-color: rgba(255,122,24,.56); background: rgba(255,122,24,.1); color: #fff7ed; }
+  .lang-btn.active { border-color: rgba(255,122,24,.62); background: rgba(255,122,24,.14); color: #fff7ed; }
+</style>
+<script>
+  (function () {
+    var LANG_KEY = "pb-lang";
+    function setLang(lang) {
+      localStorage.setItem(LANG_KEY, lang);
+      document.getElementById("lang-it").classList.toggle("active", lang === "it");
+      document.getElementById("lang-en").classList.toggle("active", lang === "en");
+      document.documentElement.lang = lang;
+    }
+    window.setLang = setLang;
+    var saved = localStorage.getItem(LANG_KEY) || "it";
+    setLang(saved);
+  })();
+</script>
 </body>
 </html>
