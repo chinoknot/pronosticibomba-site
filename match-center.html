@@ -2716,6 +2716,10 @@
   <style>
     /* === FLUID UI === */
 
+    /* Dimensione uniforme match-action su tutti i contesti */
+    .match-action { height: 44px !important; min-height: 44px !important; max-height: 44px !important; }
+    @media (max-width: 864px) { .match-action { height: 40px !important; min-height: 40px !important; max-height: 40px !important; } }
+
     /* Match row: transizione hover fluida + feedback press */
     .match-row {
       transition: background .18s ease, box-shadow .18s ease, transform .12s ease;
