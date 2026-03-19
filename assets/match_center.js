@@ -2539,7 +2539,7 @@
               </div>
               <div class="match-score"><span class="live-score-badge">${score}</span><span class="live-status-label">${escapeHtml(elapsed)}</span></div>
             </div>
-            <div class="match-action"><strong>${IS_EN ? "RFO" : "Solo Finale"}</strong></div>
+            <div class="match-action"><strong>${IS_EN ? "RFO" : "Solo Finale"}</strong><small>&nbsp;</small></div>
           </div>
         </article>
       </section>`;
