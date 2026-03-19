@@ -402,9 +402,7 @@
   }
 
   function availableBetMasterOutcomes() {
-    if (!state.groups.size) return [];
-    const allowedGroups = new Set([...state.groups]);
-    return betMasterOutcomeCatalog().filter(option => allowedGroups.has(option.group));
+    return betMasterOutcomeCatalog();
   }
 
   function groupedBetMasterOutcomes() {
@@ -1795,22 +1793,18 @@
   }
 
   function buildBetMasterMatches() {
-    const search = state.search.trim().toLowerCase();
     const rawMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
     return rawMatches
       .map(match => {
         const markets = buildMarkets(match);
-        const searchBlob = `${match.home} ${match.away} ${match.league} ${match.country} ${markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" ")}`.toLowerCase();
-        return withLocalKickoff({ ...match, markets, searchBlob });
-      })
-      .filter(match => !search || match.searchBlob.includes(search));
+        return withLocalKickoff({ ...match, markets });
+      });
   }
 
   function betMasterEntryCacheKey(window) {
     return JSON.stringify({
       date: state.selectedDate,
       cacheStamp: state.cache?.refreshed_at || state.cache?.generated_at || "",
-      search: state.search,
       betMasterOutcomeGroup: state.betMaster.outcomeGroup,
       betMasterOutcomes: [...state.betMaster.outcomeFilters].sort(),
       windowMode: window.mode,
