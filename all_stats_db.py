@@ -520,12 +520,16 @@ def agg_cards():
     for (ref,lid),s in R.items():
         n=s["total"]
         ref_rows.append({
-            "referee_name":ref,"league_id":lid,"league_name":s["ln"],
+            "referee_name":ref,"league_name":s["ln"],
             "total_matches":n,"total_yellow":s["yellow"],"total_red":s["red"],"total_cards":s["cards"],
             "avg_yellow":avg(s["yellow"],n),"avg_red":avg(s["red"],n),
         })
-    # PK su cards_referee_stats è solo referee_name (league_ids è un array)
-    sb_upsert("cards_referee_stats", ref_rows, "referee_name")
+    # cards_referee_stats non ha unique constraint → DELETE + INSERT
+    requests.delete(f"{SB_REST}/cards_referee_stats", headers=SB_HDR, timeout=30)
+    url = f"{SB_REST}/cards_referee_stats"
+    for i in range(0, len(ref_rows), 500):
+        requests.post(url, headers={**SB_HDR, "Prefer": "return=minimal"},
+                      data=json.dumps(ref_rows[i:i+500]), timeout=60)
     print(f"    → {len(team_rows)} squadre, {len(ref_rows)} arbitri", file=sys.stderr)
 
 
@@ -679,8 +683,9 @@ def agg_player_season():
 
 def cmd_daily(target_date):
     print(f"\n=== DAILY {target_date} ===", file=sys.stderr)
+    # Controlla match_team_stats — non corner_match_stats che è già popolata da altro script
     existing = {r["fixture_id"] for r in
-                sb_get_all("corner_match_stats", {"select": "fixture_id"})}
+                sb_get_all("match_team_stats", {"select": "fixture_id"})}
 
     by_league = {}
     for lid in LEAGUES:
