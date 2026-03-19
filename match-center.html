@@ -385,7 +385,32 @@
         <div class="empty-state">Genera per vedere la schedina disponibile nella finestra selezionata.</div>
       </div>
     </section>
-    <section class="stats-grid">
+    <div class="mc-stat-bar">
+      <div class="mc-stat-pill">
+        <strong id="mc-picks-val">0</strong><span>picks</span>
+      </div>
+      <div class="mc-stat-pill">
+        <strong id="mc-roi-picks-val">0</strong><span>ROI picks</span>
+      </div>
+      <div class="mc-stat-pill mc-stat-roi">
+        <strong id="mc-roi-pct-val">–%</strong><span>ROI oggi</span>
+      </div>
+      <div class="mc-stat-sep" aria-hidden="true"></div>
+      <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-live" id="mc-live-pill">
+        <strong id="mc-live-val">0</strong><span>live</span>
+      </button>
+      <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-won" id="mc-won-pill">
+        <strong id="mc-won-val">0</strong><span>vinte</span>
+      </button>
+      <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-lost" id="mc-lost-pill">
+        <strong id="mc-lost-val">0</strong><span>perse</span>
+      </button>
+      <div class="mc-stat-sep" aria-hidden="true"></div>
+      <div class="mc-stat-pill">
+        <strong id="mc-avg-odd-val">–</strong><span>quota media</span>
+      </div>
+    </div>
+    <section class="stats-grid" hidden>
       <article class="stat-card"><span id="summary-matches-label">Partite visibili</span><strong id="summary-matches">0</strong><small id="summary-matches-meta">Nel blocco corrente</small></article>
       <article class="stat-card"><span id="summary-top-label">Top picks</span><strong id="summary-top">0</strong><small id="summary-top-meta">Edge forti del filtro attivo</small></article>
       <article class="stat-card"><span id="summary-live-label">Match live / finali</span><strong id="summary-live">0 / 0</strong><small id="summary-live-meta">Situazione cache</small></article>
@@ -512,7 +537,7 @@
       radial-gradient(circle at bottom left,rgba(168,85,247,.12),transparent 38%),
       linear-gradient(145deg,rgba(18,33,61,.96),rgba(8,14,29,.98));
       border-color:rgba(103,232,249,.28);box-shadow:inset 0 1px 0 rgba(224,238,255,.06)}
-    .inline-filter-card{display:flex;flex-direction:column;gap:9px;padding:12px;border-radius:18px;border:1px solid rgba(148,163,184,.16);background:radial-gradient(circle at top right,rgba(61,213,243,.08),transparent 34%),linear-gradient(145deg,rgba(18,27,49,.94),rgba(8,13,25,.98));width:100%;min-width:0;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+    .inline-filter-card{display:flex;flex-direction:column;justify-content:space-between;gap:9px;padding:12px;border-radius:18px;border:1px solid rgba(148,163,184,.16);background:radial-gradient(circle at top right,rgba(61,213,243,.08),transparent 34%),linear-gradient(145deg,rgba(18,27,49,.94),rgba(8,13,25,.98));width:100%;min-width:0;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
     .ribbon-shell .inline-filter-card{border-color:rgba(114,164,255,.22);background:
       radial-gradient(circle at top right,rgba(96,165,250,.16),transparent 36%),
       radial-gradient(circle at bottom left,rgba(168,85,247,.12),transparent 38%),
@@ -631,7 +656,27 @@
     .stat-bar-home{height:100%;background:linear-gradient(90deg,#3b82f6,#60a5fa);border-radius:2px}
     @keyframes live-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.25)}}
     .league-live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,.3);animation:live-pulse 1.4s ease-in-out infinite;flex-shrink:0;margin-left:2px}
-    .league-block-live .league-header{background:linear-gradient(90deg,rgba(239,68,68,.14),rgba(12,19,38,.94))}
+    .league-live-badge{display:inline-flex;align-items:center;justify-content:center;padding:0 7px;height:20px;border-radius:6px;background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.4);color:#fca5a5;font-size:.58rem;font-weight:800;letter-spacing:.1em;animation:live-pulse 1.6s ease-in-out infinite}
+    .league-block-live{border-color:rgba(239,68,68,.38)!important;box-shadow:0 0 0 1px rgba(239,68,68,.1),0 6px 20px rgba(239,68,68,.08)!important}
+    .league-block-live .league-header{background:linear-gradient(90deg,rgba(239,68,68,.22),rgba(239,68,68,.06) 60%,rgba(12,19,38,.94))!important;border-bottom:1px solid rgba(239,68,68,.18)!important}
+    .league-block-live .league-header h3{color:#fca5a5}
+    /* mc stat bar */
+    .mc-stat-bar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:10px 12px;border-radius:20px;border:1px solid rgba(148,163,184,.14);background:linear-gradient(180deg,rgba(15,22,40,.96),rgba(8,14,26,.99));margin-bottom:0;overflow-x:auto;scrollbar-width:none}
+    .mc-stat-bar::-webkit-scrollbar{display:none}
+    .mc-stat-pill{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 14px;border-radius:13px;background:rgba(255,255,255,.04);border:1px solid rgba(148,163,184,.1);white-space:nowrap;min-width:0;flex-shrink:0}
+    .mc-stat-pill strong{font-size:1.05rem;font-weight:900;color:#eef5ff;line-height:1}
+    .mc-stat-pill span{font-size:.62rem;color:#7f93b1;text-transform:uppercase;letter-spacing:.07em;line-height:1.2}
+    .mc-stat-sep{width:1px;height:26px;background:rgba(148,163,184,.14);margin:0 3px;flex-shrink:0}
+    .mc-stat-clickable{cursor:pointer;transition:background .14s,border-color .14s,transform .1s;-webkit-tap-highlight-color:transparent}
+    .mc-stat-clickable:hover{background:rgba(255,255,255,.08);transform:translateY(-1px)}
+    .mc-stat-live strong{color:#ef4444}
+    .mc-stat-live:hover,.mc-stat-live.active{border-color:rgba(239,68,68,.4)!important;background:rgba(239,68,68,.09)!important}
+    .mc-stat-live.active strong{text-shadow:0 0 8px rgba(239,68,68,.6)}
+    .mc-stat-won strong{color:#34d399}
+    .mc-stat-won:hover,.mc-stat-won.active{border-color:rgba(52,211,153,.38)!important;background:rgba(52,211,153,.09)!important}
+    .mc-stat-lost strong{color:#f87171}
+    .mc-stat-lost:hover,.mc-stat-lost.active{border-color:rgba(248,113,113,.38)!important;background:rgba(248,113,113,.09)!important}
+    .mc-stat-roi strong{color:#fbbf24}
     .league-count{min-width:30px;min-height:30px;padding:0 8px;background:rgba(59,130,246,.18);font-size:.78rem}
     .league-summary{list-style:none;cursor:pointer}
     .league-summary::-webkit-details-marker{display:none}
