@@ -649,9 +649,11 @@
           <a href="/match-center.html">Match Center</a>
           <a href="/storico.html">Storico ROI</a>
           <a href="/storico_picks.html" class="active">Storico Picks</a>
+        </nav>
+        <div class="lang-switch" aria-label="Lingua">
           <button type="button" class="lang-btn active" id="lang-it" onclick="setLang('it')">IT</button>
           <button type="button" class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
-        </nav>
+        </div>
       </div>
       <nav class="mobile-page-nav" aria-label="Mobile page navigation">
         <a class="mobile-page-link" href="/index.html">
@@ -1426,6 +1428,17 @@ container.appendChild(frag);
   }
   .day-summary-value.win { color: #93ffe1 !important; }
   .day-summary-value.lose { color: #ffd6b0 !important; }
+  /* lang switch container */
+  .lang-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.03);
+    flex-shrink: 0;
+  }
   /* lang toggle buttons */
   .lang-btn {
     min-height: 36px; padding: 0 13px; border-radius: 999px;

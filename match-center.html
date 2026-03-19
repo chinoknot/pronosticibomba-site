@@ -111,6 +111,10 @@
           <a href="/storico.html">Storico ROI</a>
           <a href="/storico_picks.html">Storico Picks</a>
         </nav>
+        <div class="lang-switch" aria-label="Lingua">
+          <button type="button" class="lang-btn" id="mc-lang-it">IT</button>
+          <button type="button" class="lang-btn" id="mc-lang-en">EN</button>
+        </div>
       </div>
       <nav class="mobile-page-nav" aria-label="Mobile page navigation">
         <a class="mobile-page-link" href="/index.html">
@@ -2562,7 +2566,45 @@
         contain: layout style;
       }
     }
+    /* Nav lang-switch pill */
+    .topbar2-inner .lang-switch {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 3px !important;
+      padding: 3px !important;
+      border-radius: 999px !important;
+      border: 1px solid rgba(255,255,255,.1) !important;
+      background: rgba(255,255,255,.04) !important;
+      flex-shrink: 0 !important;
+      flex-wrap: nowrap !important;
+    }
+    .topbar2-inner .lang-btn {
+      min-height: 34px !important;
+      padding: 0 12px !important;
+      font-size: .76rem !important;
+      font-weight: 800 !important;
+      letter-spacing: .04em !important;
+    }
+    .topbar2-inner .lang-btn.active {
+      border-color: rgba(255,122,24,.62) !important;
+      background: rgba(255,122,24,.16) !important;
+      color: #fff7ed !important;
+    }
   </style>
+  <script>
+    (function(){
+      var LANG_KEY = "pb-lang";
+      var lang = localStorage.getItem(LANG_KEY) || "it";
+      var it = document.getElementById("mc-lang-it");
+      var en = document.getElementById("mc-lang-en");
+      if (it && en) {
+        it.classList.toggle("active", lang === "it");
+        en.classList.toggle("active", lang === "en");
+        it.addEventListener("click", function(){ localStorage.setItem(LANG_KEY,"it"); it.classList.add("active"); en.classList.remove("active"); });
+        en.addEventListener("click", function(){ localStorage.setItem(LANG_KEY,"en"); en.classList.add("active"); it.classList.remove("active"); });
+      }
+    })();
+  </script>
   <script src="/assets/match_center.js?v=20260317i"></script>
   <script>
     (function () {

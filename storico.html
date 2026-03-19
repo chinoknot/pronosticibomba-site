@@ -306,7 +306,7 @@
       box-shadow:0 24px 80px rgba(0,0,0,.42);
     }
 
-    .brand2{display:flex;align-items:center;gap:12px;min-width:0}
+    .brand2{display:flex;align-items:center;gap:12px;min-width:0;color:#fff;text-decoration:none}
     .brand2-mark{
       width:48px;height:48px;border-radius:16px;display:grid;place-items:center;overflow:hidden;flex:0 0 auto;
       background:linear-gradient(145deg, #ffc83d, #ff7a18);
@@ -758,9 +758,11 @@
           <a href="/match-center.html">Match Center</a>
           <a href="/storico.html" class="active">Storico ROI</a>
           <a href="/storico_picks.html">Storico Picks</a>
+        </nav>
+        <div class="lang-switch" aria-label="Lingua">
           <button type="button" class="lang-btn active" id="lang-it" onclick="setLang('it')">IT</button>
           <button type="button" class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
-        </nav>
+        </div>
       </div>
       <nav class="mobile-page-nav" aria-label="Mobile page navigation">
         <a class="mobile-page-link" href="/index.html">
@@ -993,6 +995,17 @@
   .summary-value.up, .summary-value.win { color: #25dba9 !important; }
   .badge-lose, .stat-lose, [class*="lose"] .roi-val,
   .summary-value.down, .summary-value.lose { color: #f97316 !important; }
+  /* lang switch container */
+  .lang-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.03);
+    flex-shrink: 0;
+  }
   /* lang toggle buttons */
   .lang-btn {
     min-height: 36px; padding: 0 13px; border-radius: 999px;
