@@ -239,6 +239,7 @@
     filterOpen: false,
     outcomeFilters: new Set(),
     detailFixtureId: null,
+    quickFilter: null,  // null | 'live' | 'won' | 'lost'
     betMaster: {
       count: 4,
       oddFrom: 1.2,
@@ -333,6 +334,16 @@
     detailClose: document.getElementById("match-detail-close"),
     detailOverlay: document.getElementById("match-detail-overlay"),
     detailBody: document.getElementById("match-detail"),
+    mcPicksVal: document.getElementById("mc-picks-val"),
+    mcRoiPicksVal: document.getElementById("mc-roi-picks-val"),
+    mcRoiPctVal: document.getElementById("mc-roi-pct-val"),
+    mcLiveVal: document.getElementById("mc-live-val"),
+    mcWonVal: document.getElementById("mc-won-val"),
+    mcLostVal: document.getElementById("mc-lost-val"),
+    mcAvgOddVal: document.getElementById("mc-avg-odd-val"),
+    mcLivePill: document.getElementById("mc-live-pill"),
+    mcWonPill: document.getElementById("mc-won-pill"),
+    mcLostPill: document.getElementById("mc-lost-pill"),
   };
 
   function escapeHtml(value) {
@@ -464,6 +475,7 @@
   }
 
   function matchWithinMainTimeWindow(match) {
+    if (state.quickFilter) return true;  // quickFilter bypasses time window
     const fixtureStatus = String(match.status_short || "").toUpperCase();
     if (LIVE_STATUSES.has(fixtureStatus)) {
       // Se il kickoff era >120 min fa la cache è probabilmente stale: usa il filtro orario normale
@@ -1202,74 +1214,35 @@
     const odd = Number(picked?.odd);
     let score = Number(market.pickProbability || 0);
     const label = String(market.pickLabel || "").toUpperCase();
-    const line = Number(picked?.line || 0);
     const tempoBoost = tempoProfile(match);
-    const lamTotal = Number(match?.lam_total || 0);
-    if (market.id === "ou15") score -= 0.07;
-    if (market.id === "ht15" || market.id === "sh15") {
-      score -= 0.015;
-      if (Number(market.pickProbability || 0) >= 0.64) score += 0.035;
-      if (Number.isFinite(odd) && odd >= 1.35 && odd <= 2.15) score += 0.025;
+
+    // Corner e yellows: aggiustamento data-driven basato su expected values della partita
+    if (market.id === "corners" && picked) {
+      score += dynamicTotalOptionScore(picked, "corners", match?.exp_corners) - Number(picked.probability || 0);
     }
-    if (market.id === "dc") {
-      score -= 0.04;
-      if (Number(market.pickProbability || 0) >= 0.74) score += 0.06;
-      if (Number(market.pickProbability || 0) >= 0.8) score += 0.04;
+    if (market.id === "yellows" && picked) {
+      score += dynamicTotalOptionScore(picked, "yellows", match?.exp_yellows) - Number(picked.probability || 0);
+      score -= 0.05; // Cartellini: penalità base — escono pick principale solo se davvero dominanti
     }
-    if (market.id === "combo") {
-      score -= 0.12;
-      if (Number(market.pickProbability || 0) < 0.62) score -= 0.14;
-      if (Number(market.pickProbability || 0) < 0.58) score -= 0.10;
-      if (tempoBoost >= 0.06 && Number(market.pickProbability || 0) >= 0.58) score += 0.08;
+
+    // Piccoli bias sul tipo di partita (tempoBoost: 0 = difensiva, >0.05 = aperta/offensiva)
+    if (tempoBoost >= 0.05) {
+      // Partita aperta: over gol e corner leggermente favoriti
+      if (label === "OVER 1.5" || label === "OVER 2.5") score += 0.02;
+      if (market.id === "corners" && label.startsWith("OVER ")) score += 0.015;
+    } else if (tempoBoost < 0.02) {
+      // Partita chiusa: under gol e nogol leggermente favoriti
+      if (label === "UNDER 2.5" || label === "UNDER 3.5") score += 0.015;
+      if (market.id === "nogol") score += 0.015;
     }
-    if (market.id === "btts") {
-      score += 0.03;
-      if (label === "BTTS YES" && tempoBoost >= 0.04 && Number(market.pickProbability || 0) >= 0.57) score += 0.07;
-      if (label === "BTTS NO" && tempoBoost < 0.03 && Number(market.pickProbability || 0) >= 0.6) score += 0.05;
-    }
-    if (market.id === "ou25" || market.id === "o35") score += 0.02;
-    if (market.id === "corners") {
-      score += 0.02;
-      if (picked) score += dynamicTotalOptionScore(picked, "corners", match?.exp_corners) - Number(picked.probability || 0);
-      if (label.startsWith("UNDER ") && line >= 10.5) score += 0.05;
-      if (label.startsWith("OVER ") && line >= 9.5) score += 0.03;
-    }
-    if (market.id === "yellows") {
-      score += 0.02;
-      if (picked) score += dynamicTotalOptionScore(picked, "yellows", match?.exp_yellows) - Number(picked.probability || 0);
-      if (label.startsWith("OVER ") && line < 2.5) score -= 0.12;
-      else if (label.startsWith("OVER ") && line < 3.5) score -= 0.05;
-      if (label.startsWith("UNDER ") && line >= 4.5) score += 0.03;
-      if (label.startsWith("OVER ") && line >= 3.5) score += 0.03;
-    }
-    if (market.id === "nogol") {
-      score += 0.015;
-      if (tempoBoost < 0.03 && Number(market.pickProbability || 0) >= 0.62) score += 0.055;
-    }
-    if (label === "OVER 1.5") score += 0.03 + tempoBoost;
-    if (label === "OVER 2.5") score += 0.02 + (tempoBoost * 0.8);
-    if (label === "BTTS YES") score += 0.015 + (tempoBoost * 0.65);
-    if (label === "UNDER 3.5") {
-      score -= 0.015;
-      if (tempoBoost > 0.05) score -= 0.08;
-      else if (tempoBoost > 0.025) score -= 0.03;
-      if (lamTotal >= 2.95) score -= 0.06;
-      else if (lamTotal >= 2.65) score -= 0.02;
-      if (Number(market.pickProbability || 0) >= 0.66) score += 0.06;
-      if (Number(market.pickProbability || 0) >= 0.72) score += 0.04;
-      if (Number(market.pickProbability || 0) >= 0.86 && lamTotal <= 2.3) score += 0.04;
-    }
-    if (label === "UNDER 3.5" && Number(market.pickProbability || 0) < 0.74 && Number.isFinite(odd) && odd <= 1.25) score -= 0.055;
-    if (label === "OVER 2.5" && Number.isFinite(odd) && odd >= 1.45 && odd <= 1.9 && Number(market.pickProbability || 0) >= 0.58) score += 0.035;
-    if (label === "UNDER 2.5" && tempoBoost > 0.04) score -= 0.05;
-    if (label === "BTTS NO" && tempoBoost > 0.05) score -= 0.04;
-    if (label.includes("NON SEGNA") && tempoBoost > 0.05) score -= 0.03;
-    if (Number.isFinite(odd)) {
-      if (odd < 1.22) score -= 0.12;
-      else if (odd < 1.35) score -= 0.06;
-      else if (odd >= 1.45 && odd <= 2.15) score += 0.03;
-      else if (odd > 4.5) score -= 0.02;
-    }
+
+    // Combo: penalizzati (scommesse complesse)
+    if (market.id === "combo") score -= 0.08;
+    // Mercati half-time: leggera penalità
+    if (market.id === "ht15" || market.id === "sh15") score -= 0.02;
+    // Quote anomale (troppo basse = calcolo sospetto)
+    if (Number.isFinite(odd) && odd < 1.22) score -= 0.10;
+
     return score;
   }
 
@@ -1611,7 +1584,23 @@
       .filter(match => !search || match.searchBlob.includes(search))
       .filter(match => keepAll || match.visibleMarkets.length > 0)
       .sort((a, b) => `${a.localKickoffSort || a.match_time}-${a.league}-${a.home}`.localeCompare(`${b.localKickoffSort || b.match_time}-${b.league}-${b.home}`));
-    return diversifyMatchesByLeague(decorated);
+    const result = diversifyMatchesByLeague(decorated);
+    if (state.quickFilter === 'live') {
+      const nowTs = Date.now();
+      return result.filter(match => {
+        const st = String(match.status_short || "").toUpperCase();
+        if (LIVE_STATUSES.has(st)) return true;
+        const kickoff = kickoffDate(match);
+        return kickoff && kickoff.getTime() >= nowTs - 10 * 60 * 1000 && kickoff.getTime() <= nowTs + 30 * 60 * 1000;
+      });
+    }
+    if (state.quickFilter === 'won') {
+      return result.filter(match => match.visibleMarkets.some(m => m.status === 'win'));
+    }
+    if (state.quickFilter === 'lost') {
+      return result.filter(match => match.visibleMarkets.some(m => m.status === 'lose'));
+    }
+    return result;
   }
 
   function getDerivedMatches() {
@@ -1630,6 +1619,32 @@
       };
     });
     return decorateMatches(enriched);
+  }
+
+  function getFullDayStats() {
+    const rawMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
+    let wonCount = 0, lostCount = 0, liveCount = 0, totalOdds = 0, oddsCount = 0;
+    for (const rawMatch of rawMatches) {
+      const live = state.liveScores[String(rawMatch.fixture_id)];
+      const liveStatus = live ? String(live.status || "").toUpperCase() : null;
+      const status = liveStatus || String(rawMatch.status_short || "").toUpperCase();
+      if (LIVE_STATUSES.has(status)) liveCount++;
+      const markets = buildMarkets({ ...rawMatch, ...(live && (LIVE_STATUSES.has(liveStatus) || FINAL_STATUSES.has(liveStatus)) ? { status_short: live.status } : {}) });
+      const visMarkets = markets.filter(m => Number(m.pickProbability || 0) > 0 || (m.options || []).some(o => o.probability != null));
+      const primary = visMarkets.length ? selectHeadlineMarket(visMarkets, rawMatch) : null;
+      if (primary) {
+        if (primary.status === 'win') wonCount++;
+        if (primary.status === 'lose') lostCount++;
+        const odd = pickedOdd(primary);
+        if (odd != null) { totalOdds += odd; oddsCount++; }
+      }
+    }
+    const avgOdd = oddsCount > 0 ? totalOdds / oddsCount : null;
+    const totalClosed = wonCount + lostCount;
+    const roiPct = totalClosed > 0 && avgOdd != null
+      ? ((wonCount * (avgOdd - 1) - lostCount) / totalClosed * 100)
+      : null;
+    return { wonCount, lostCount, liveCount, avgOdd, roiPct };
   }
 
   function getDetailMatch() {
@@ -2296,6 +2311,18 @@
     if (dom.topPicksWin) dom.topPicksWin.textContent = `${TEXT.wonWord} ${topWins}`;
     if (dom.topPicksLose) dom.topPicksLose.textContent = `${TEXT.lostWord} ${topLoses}`;
     if (matchBadge) matchBadge.textContent = String(matches.length);
+    // New mc-stat-bar
+    const dayStats = getFullDayStats();
+    if (dom.mcPicksVal) dom.mcPicksVal.textContent = String(matches.length);
+    if (dom.mcRoiPicksVal) dom.mcRoiPicksVal.textContent = String(topPicks.length);
+    if (dom.mcLiveVal) dom.mcLiveVal.textContent = String(dayStats.liveCount);
+    if (dom.mcWonVal) dom.mcWonVal.textContent = String(dayStats.wonCount);
+    if (dom.mcLostVal) dom.mcLostVal.textContent = String(dayStats.lostCount);
+    if (dom.mcAvgOddVal) dom.mcAvgOddVal.textContent = dayStats.avgOdd != null ? formatOdd(dayStats.avgOdd) : "–";
+    if (dom.mcRoiPctVal) dom.mcRoiPctVal.textContent = dayStats.roiPct != null ? `${dayStats.roiPct > 0 ? "+" : ""}${dayStats.roiPct.toFixed(1)}%` : "–%";
+    if (dom.mcLivePill) dom.mcLivePill.classList.toggle('active', state.quickFilter === 'live');
+    if (dom.mcWonPill) dom.mcWonPill.classList.toggle('active', state.quickFilter === 'won');
+    if (dom.mcLostPill) dom.mcLostPill.classList.toggle('active', state.quickFilter === 'lost');
   }
 
   function renderBetMaster() {
@@ -2508,7 +2535,11 @@
           return 0;
         }),
     }));
-    const majorGroups = groups.filter(isMajorLeagueGroup);
+    const allMajorGroups = groups.filter(isMajorLeagueGroup);
+    // Live major leagues bubble to the top of the major block
+    const liveMajorGroups = allMajorGroups.filter(g => groupHasLiveMatches(g));
+    const nonLiveMajorGroups = allMajorGroups.filter(g => !groupHasLiveMatches(g));
+    const majorGroups = [...liveMajorGroups, ...nonLiveMajorGroups];
     const regularGroups = groups.filter(group => !isMajorLeagueGroup(group));
     const liveRegularGroups = regularGroups
       .filter(group => groupHasLiveMatches(group))
@@ -2527,6 +2558,7 @@
     dom.leagueFeed.innerHTML = orderedGroups.map(group => {
       const isLive = groupHasLiveMatches(group);
       const liveDot = isLive ? `<span class="league-live-dot" aria-label="Live" title="Live"></span>` : "";
+      const liveBadge = isLive ? `<span class="league-live-badge">LIVE</span>` : "";
       const header = `
         <div class="league-title">
           ${group.logo ? `<img class="league-logo" src="${group.logo}" alt="" loading="lazy" />` : `<span class="league-dot" aria-hidden="true"></span>`}
@@ -2536,7 +2568,7 @@
           </div>
           ${liveDot}
         </div>
-        <span class="league-count">${group.matches.length}</span>
+        <div style="display:flex;align-items:center;gap:8px">${liveBadge}<span class="league-count">${group.matches.length}</span></div>
       `;
       const content = `<div class="match-list">${group.matches.map(match => renderMatchRow(match, { showLeagueLine: false })).join("")}</div>`;
       if (isMajorLeagueGroup(group)) {
@@ -2943,7 +2975,7 @@
       renderBetMasterSection();
     });
     if (dom.betMasterGenerate) dom.betMasterGenerate.addEventListener("click", generateBetMaster);
-    dom.resetFilters.addEventListener("click", () => {
+    function doResetFilters() {
       state.groups = new Set(GROUPS.map(group => group.id));
       state.outcomeFilters = new Set();
       state.status = "all";
@@ -2953,12 +2985,31 @@
       state.oddFrom = DEFAULTS.oddFrom;
       state.oddTo = DEFAULTS.oddTo;
       state.search = "";
+      state.quickFilter = null;
       {
         const defaultWindow = defaultMainTimeWindow(state.selectedDate);
         state.timeFrom = defaultWindow.from;
         state.timeTo = defaultWindow.to;
       }
-      dom.searchInput.value = "";
+      if (dom.searchInput) dom.searchInput.value = "";
+    }
+    dom.resetFilters.addEventListener("click", () => { doResetFilters(); render(); });
+    if (dom.mcLivePill) dom.mcLivePill.addEventListener("click", () => {
+      const wasActive = state.quickFilter === 'live';
+      doResetFilters();
+      state.quickFilter = wasActive ? null : 'live';
+      render();
+    });
+    if (dom.mcWonPill) dom.mcWonPill.addEventListener("click", () => {
+      const wasActive = state.quickFilter === 'won';
+      doResetFilters();
+      state.quickFilter = wasActive ? null : 'won';
+      render();
+    });
+    if (dom.mcLostPill) dom.mcLostPill.addEventListener("click", () => {
+      const wasActive = state.quickFilter === 'lost';
+      doResetFilters();
+      state.quickFilter = wasActive ? null : 'lost';
       render();
     });
     dom.marketsAll.addEventListener("click", () => {
