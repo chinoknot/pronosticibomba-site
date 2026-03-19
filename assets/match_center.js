@@ -1545,16 +1545,6 @@
       if (alternative) return alternative.market;
     }
 
-    const withoutSoftProps = pool.filter(market => !["corners", "yellows"].includes(market.group) && market.id !== "ou15");
-    if (withoutSoftProps.length) {
-      const variedBest = rankedMarkets(withoutSoftProps, match)[0]?.market;
-      if (variedBest) return variedBest;
-    }
-    const withoutProps = pool.filter(market => !["corners", "yellows"].includes(market.group));
-    if (withoutProps.length) {
-      const safeBest = rankedMarkets(withoutProps, match)[0]?.market;
-      if (safeBest) return safeBest;
-    }
     return best;
   }
 
