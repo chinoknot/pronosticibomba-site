@@ -389,12 +389,6 @@
       <div class="mc-stat-pill">
         <strong id="mc-picks-val">0</strong><span>picks</span>
       </div>
-      <div class="mc-stat-pill">
-        <strong id="mc-roi-picks-val">0</strong><span>ROI picks</span>
-      </div>
-      <div class="mc-stat-pill mc-stat-roi">
-        <strong id="mc-roi-pct-val">–%</strong><span>ROI oggi</span>
-      </div>
       <div class="mc-stat-sep" aria-hidden="true"></div>
       <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-live" id="mc-live-pill">
         <strong id="mc-live-val">0</strong><span>live</span>
@@ -405,10 +399,6 @@
       <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-lost" id="mc-lost-pill">
         <strong id="mc-lost-val">0</strong><span>perse</span>
       </button>
-      <div class="mc-stat-sep" aria-hidden="true"></div>
-      <div class="mc-stat-pill">
-        <strong id="mc-avg-odd-val">–</strong><span>quota media</span>
-      </div>
     </div>
     <section class="stats-grid" hidden>
       <article class="stat-card"><span id="summary-matches-label">Partite visibili</span><strong id="summary-matches">0</strong><small id="summary-matches-meta">Nel blocco corrente</small></article>
@@ -1560,9 +1550,9 @@
     .match-row.status-win{
       border-top-color:rgba(94,242,255,.48);
       background:
-        radial-gradient(circle at right center,rgba(0,229,255,.24),transparent 42%),
+        repeating-linear-gradient(135deg,rgba(0,229,255,.13) 0 10px,rgba(0,153,200,.09) 10px 20px),
         linear-gradient(180deg,rgba(7,67,70,.98),rgba(7,28,39,.99));
-      box-shadow:inset 0 0 0 1px rgba(94,242,255,.36);
+      box-shadow:inset 0 0 0 1px rgba(94,242,255,.34);
     }
 
     .match-row.status-win::before{

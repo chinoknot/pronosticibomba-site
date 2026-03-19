@@ -335,12 +335,9 @@
     detailOverlay: document.getElementById("match-detail-overlay"),
     detailBody: document.getElementById("match-detail"),
     mcPicksVal: document.getElementById("mc-picks-val"),
-    mcRoiPicksVal: document.getElementById("mc-roi-picks-val"),
-    mcRoiPctVal: document.getElementById("mc-roi-pct-val"),
     mcLiveVal: document.getElementById("mc-live-val"),
     mcWonVal: document.getElementById("mc-won-val"),
     mcLostVal: document.getElementById("mc-lost-val"),
-    mcAvgOddVal: document.getElementById("mc-avg-odd-val"),
     mcLivePill: document.getElementById("mc-live-pill"),
     mcWonPill: document.getElementById("mc-won-pill"),
     mcLostPill: document.getElementById("mc-lost-pill"),
@@ -2314,12 +2311,9 @@
     // New mc-stat-bar
     const dayStats = getFullDayStats();
     if (dom.mcPicksVal) dom.mcPicksVal.textContent = String(matches.length);
-    if (dom.mcRoiPicksVal) dom.mcRoiPicksVal.textContent = String(topPicks.length);
     if (dom.mcLiveVal) dom.mcLiveVal.textContent = String(dayStats.liveCount);
     if (dom.mcWonVal) dom.mcWonVal.textContent = String(dayStats.wonCount);
     if (dom.mcLostVal) dom.mcLostVal.textContent = String(dayStats.lostCount);
-    if (dom.mcAvgOddVal) dom.mcAvgOddVal.textContent = dayStats.avgOdd != null ? formatOdd(dayStats.avgOdd) : "–";
-    if (dom.mcRoiPctVal) dom.mcRoiPctVal.textContent = dayStats.roiPct != null ? `${dayStats.roiPct > 0 ? "+" : ""}${dayStats.roiPct.toFixed(1)}%` : "–%";
     if (dom.mcLivePill) dom.mcLivePill.classList.toggle('active', state.quickFilter === 'live');
     if (dom.mcWonPill) dom.mcWonPill.classList.toggle('active', state.quickFilter === 'won');
     if (dom.mcLostPill) dom.mcLostPill.classList.toggle('active', state.quickFilter === 'lost');
