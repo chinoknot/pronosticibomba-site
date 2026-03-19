@@ -475,9 +475,10 @@
     if (state.quickFilter) return true;  // quickFilter bypasses time window
     const fixtureStatus = String(match.status_short || "").toUpperCase();
     if (LIVE_STATUSES.has(fixtureStatus)) {
-      // Se il kickoff era >120 min fa la cache è probabilmente stale: usa il filtro orario normale
+      // Supplementari/rigori: fino a 150 min dal calcio d'inizio
+      if (match._liveOnly) return true;
       const kickoff = kickoffDate(match);
-      if (!kickoff || Date.now() - kickoff.getTime() <= 120 * 60 * 1000) return true;
+      if (!kickoff || Date.now() - kickoff.getTime() <= 150 * 60 * 1000) return true;
     }
     if (FINAL_STATUSES.has(fixtureStatus)) {
       const kickoff = kickoffDate(match);
@@ -1579,7 +1580,7 @@
       })
       .filter(match => matchWithinMainTimeWindow(match))
       .filter(match => !search || match.searchBlob.includes(search))
-      .filter(match => keepAll || match.visibleMarkets.length > 0)
+      .filter(match => keepAll || match.visibleMarkets.length > 0 || match._liveOnly)
       .sort((a, b) => `${a.localKickoffSort || a.match_time}-${a.league}-${a.home}`.localeCompare(`${b.localKickoffSort || b.match_time}-${b.league}-${b.home}`));
     const result = diversifyMatchesByLeague(decorated);
     if (state.quickFilter === 'live') {
