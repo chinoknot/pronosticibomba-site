@@ -1651,17 +1651,34 @@
     const nowTs = Date.now();
     let pool = matches.filter(match => !FINAL_STATUSES.has(String(match.status_short || "").toUpperCase()) && match.primaryMarket);
     if (state.selectedDate === today) {
-      // Only NS matches starting within the next 30 minutes — independent from live matches below
-      const SOON_MS = 30 * 60 * 1000;
-      pool = pool.filter(match => {
-        const status = String(match.status_short || "").toUpperCase();
-        if (status !== "NS") return false;
+      // Only NS matches (no live) — independent from the live feed below.
+      // Try 30min window first, fallback to 90min, then next upcoming batch.
+      const nsPool = pool.filter(match => String(match.status_short || "").toUpperCase() === "NS");
+      const sortByKickoff = (a, b) => `${a.localKickoffSort || a.match_time || ""}`.localeCompare(`${b.localKickoffSort || b.match_time || ""}`);
+      const nsInWindow = (minutes) => nsPool.filter(match => {
         const kickoff = kickoffDate(match);
-        if (kickoff) return kickoff.getTime() >= nowTs && kickoff.getTime() <= nowTs + SOON_MS;
-        const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.match_time));
-        const nowMinutes = toMinutes(currentTimeInTimezone(timezone));
-        return kickoffMinutes >= nowMinutes && kickoffMinutes <= nowMinutes + 30;
-      }).sort((a, b) => `${a.localKickoffSort || a.match_time || ""}`.localeCompare(`${b.localKickoffSort || b.match_time || ""}`));
+        if (kickoff) return kickoff.getTime() >= nowTs && kickoff.getTime() <= nowTs + minutes * 60 * 1000;
+        const km = Number(match.localKickoffMinutes || toMinutes(match.match_time));
+        const nm = toMinutes(currentTimeInTimezone(timezone));
+        return km >= nm && km <= nm + minutes;
+      });
+      let window30 = nsInWindow(30);
+      if (window30.length > 0) {
+        pool = window30.sort(sortByKickoff);
+      } else {
+        let window90 = nsInWindow(90);
+        if (window90.length > 0) {
+          pool = window90.sort(sortByKickoff);
+        } else {
+          // No matches soon — show next NS matches chronologically (up to 12)
+          pool = nsPool.filter(match => {
+            const kickoff = kickoffDate(match);
+            if (kickoff) return kickoff.getTime() >= nowTs;
+            const km = Number(match.localKickoffMinutes || toMinutes(match.match_time));
+            return km >= toMinutes(currentTimeInTimezone(timezone));
+          }).sort(sortByKickoff).slice(0, 12);
+        }
+      }
     }
     const headlinePool = pool.filter(match => isHeadlineCompetition(match.country, match.league));
     const curatedPool = pool.filter(match => !isHeadlineCompetition(match.country, match.league) && isTopRailCompetition(match.country, match.league));
