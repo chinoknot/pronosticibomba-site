@@ -1118,7 +1118,7 @@
   function matchIsActuallyLive(match) {
     if (!LIVE_STATUSES.has(String(match.status_short || "").toUpperCase())) return false;
     const kickoff = kickoffDate(match);
-    return !kickoff || Date.now() - kickoff.getTime() <= 120 * 60 * 1000;
+    return !kickoff || Date.now() - kickoff.getTime() <= 150 * 60 * 1000;
   }
 
   function groupHasLiveMatches(group) {
