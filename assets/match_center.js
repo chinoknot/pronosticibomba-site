@@ -223,6 +223,7 @@
     selectedDate: "",
     cache: null,
     liveScores: {},
+    liveOnlyMatches: [],
     detailData: null,
     detailDataId: null,
     sortMode: "priority",
@@ -2512,7 +2513,7 @@
   }
 
   function renderLeagueFeed(matches) {
-    if (!matches.length) {
+    if (!matches.length && !(state.liveOnlyMatches || []).length) {
       dom.leagueFeed.innerHTML = `<div class="empty-state">${emptyStateMessage()}</div>`;
       return;
     }
@@ -2550,7 +2551,33 @@
     const laterGroups = nonLiveRegularGroups.filter(group => !soonGroups.includes(group));
     const orderedGroups = [...majorGroups, ...liveRegularGroups, ...soonGroups, ...laterGroups];
 
-    dom.leagueFeed.innerHTML = orderedGroups.map(group => {
+    // Partite live non nel JSON (coppe, ET, ecc.) — renderizzate in cima
+    const liveOnlyHtml = (state.liveOnlyMatches || []).map(f => {
+      const liveScore = state.liveScores[String(f.fixture_id)];
+      const elapsed = liveScore?.elapsed ? `${liveScore.elapsed}'` : (liveScore?.status || "LIVE");
+      const score = liveScore ? `${liveScore.home} - ${liveScore.away}` : "- -";
+      return `<section class="league-block league-block-major league-block-live">
+        <div class="league-header">
+          <div class="league-title"><span class="league-live-dot"></span><span>${escapeHtml(f.league)} | ${escapeHtml(f.country)}</span><span class="league-live-badge">LIVE</span></div>
+        </div>
+        <article class="match-row status-live">
+          <div class="match-row-inner">
+            <div class="match-time-block"><div class="match-time">${escapeHtml(f.match_time || "--:--")}</div></div>
+            <div class="match-teams">
+              <div class="clubs-inline">
+                <span class="club-line"><strong>${escapeHtml(f.home)}</strong></span>
+                <span class="match-vs">vs</span>
+                <span class="club-line"><strong>${escapeHtml(f.away)}</strong></span>
+              </div>
+              <div class="match-score"><span class="live-score-badge">${score}</span><span class="live-status-label">${escapeHtml(elapsed)}</span></div>
+            </div>
+            <div class="match-action"><strong>Solo punteggio live</strong><small>Nessun pronostico</small></div>
+          </div>
+        </article>
+      </section>`;
+    }).join("");
+
+    dom.leagueFeed.innerHTML = liveOnlyHtml + orderedGroups.map(group => {
       const isLive = groupHasLiveMatches(group);
       const liveDot = isLive ? `<span class="league-live-dot" aria-label="Live" title="Live"></span>` : "";
       const liveBadge = isLive ? `<span class="league-live-badge">LIVE</span>` : "";
@@ -2851,11 +2878,7 @@
         }
       }
       state.liveScores = scores;
-      // Aggiungi le partite extra (coppe, ecc.) non presenti nel JSON
-      if (extraMatches.length) {
-        const existing = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
-        state.cache = { ...(state.cache || {}), matches: [...existing, ...extraMatches] };
-      }
+      state.liveOnlyMatches = extraMatches;
       render();
     } catch (e) {
       console.warn("Live scores fetch failed:", e);
