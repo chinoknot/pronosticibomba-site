@@ -3152,10 +3152,10 @@
         state.detailData = null;
         state.detailDataId = null;
         syncModalState();
-        requestAnimationFrame(() => {
+        requestAnimationFrame(() => requestAnimationFrame(() => {
           renderDetail();
           fetchDetailData(state.detailFixtureId);
-        });
+        }));
         return;
       }
     });
