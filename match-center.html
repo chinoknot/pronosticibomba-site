@@ -2456,6 +2456,39 @@
       border-color: rgba(255,200,61,.38) !important;
       background: linear-gradient(180deg,rgba(68,50,14,.92),rgba(28,18,8,.98)) !important;
     }
+    .bet-master-stepper-main {
+      border-color: rgba(196,182,155,.26) !important;
+      background:
+        linear-gradient(180deg,rgba(195,180,155,.1),rgba(195,180,155,0) 18%),
+        linear-gradient(180deg,rgba(40,33,22,.92),rgba(26,20,13,.97)) !important;
+    }
+
+    /* Dropdown option/optgroup popup — warm dark, no more #121d35 */
+    .select-compact option,
+    .select-compact optgroup,
+    .select option,
+    .select optgroup {
+      background: #1c1509 !important;
+      color: #f2ead8 !important;
+    }
+    /* Base .select background (settings panel) */
+    .select {
+      background: rgba(32,26,16,.9) !important;
+      border-color: rgba(196,182,155,.22) !important;
+    }
+    .select:focus {
+      border-color: rgba(255,200,61,.6) !important;
+      box-shadow: 0 0 0 1px rgba(255,200,61,.2) !important;
+    }
+
+    /* Range badge tooltip */
+    .range-badge {
+      border-color: rgba(196,182,155,.24) !important;
+      background: rgba(34,28,18,.96) !important;
+    }
+    .range-badge::after {
+      border-top-color: rgba(34,28,18,.96) !important;
+    }
 
     /* Panel-toggle */
     .panel-toggle { border-color: rgba(61,213,243,.18) !important; }
@@ -2510,6 +2543,23 @@
         min-width: 320px !important;
         max-width: 420px !important;
         padding: 0 32px 0 20px !important;
+      }
+    }
+
+    /* Mobile scroll performance */
+    @media (max-width: 980px) {
+      .detail-sheet {
+        will-change: transform;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        contain: layout style;
+      }
+      .screen-overlay {
+        will-change: opacity;
+        contain: strict;
+      }
+      .detail-stack {
+        contain: layout style;
       }
     }
   </style>
