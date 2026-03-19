@@ -2805,6 +2805,8 @@
       const data = await res.json();
       if (!data.ok || !Array.isArray(data.fixtures)) return;
       const scores = {};
+      const knownIds = new Set((state.cache?.matches || []).map(m => String(m.fixture_id)));
+      const extraMatches = [];
       for (const f of data.fixtures) {
         const id = f.fixture?.id;
         const status = f.fixture?.status?.short || "";
@@ -2825,8 +2827,30 @@
             playerName: e.player?.name,
           })),
         };
+        // Se la partita live non è nel JSON statico, crea una card minimale
+        if (!knownIds.has(String(id)) && LIVE_STATUSES.has(status.toUpperCase())) {
+          extraMatches.push({
+            fixture_id: id,
+            home_team: f.teams?.home?.name || "?",
+            away_team: f.teams?.away?.name || "?",
+            league: f.league?.name || "",
+            country: f.league?.country || "",
+            league_id: f.league?.id || 0,
+            match_date: (f.fixture?.date || "").slice(0, 10),
+            match_time: (f.fixture?.date || "").slice(11, 16),
+            status_short: status,
+            goals_home: f.goals?.home ?? null,
+            goals_away: f.goals?.away ?? null,
+            _liveOnly: true,
+          });
+        }
       }
       state.liveScores = scores;
+      // Aggiungi le partite extra (coppe, ecc.) non presenti nel JSON
+      if (extraMatches.length) {
+        const existing = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
+        state.cache = { ...(state.cache || {}), matches: [...existing, ...extraMatches] };
+      }
       render();
     } catch (e) {
       console.warn("Live scores fetch failed:", e);
