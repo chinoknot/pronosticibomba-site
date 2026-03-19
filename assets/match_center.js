@@ -2757,7 +2757,6 @@
     if (!fixtureId || state.detailDataId === String(fixtureId)) return;
     state.detailData = null;
     state.detailDataId = String(fixtureId);
-    renderDetail();
     try {
       const WORKER = "https://pronostici-bomba-push.pronosticibomba.workers.dev";
       const res = await fetch(`${WORKER}/fixtures/detail?id=${fixtureId}`);
@@ -3152,9 +3151,11 @@
         state.detailFixtureId = openButton.dataset.fixtureOpen || openButton.getAttribute("data-fixture-open");
         state.detailData = null;
         state.detailDataId = null;
-        renderDetail();
         syncModalState();
-        fetchDetailData(state.detailFixtureId);
+        requestAnimationFrame(() => {
+          renderDetail();
+          fetchDetailData(state.detailFixtureId);
+        });
         return;
       }
     });
