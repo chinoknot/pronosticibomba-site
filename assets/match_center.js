@@ -1212,36 +1212,14 @@
     const picked = (market.options || []).find(option => option.label === market.pickLabel);
     const odd = Number(picked?.odd);
     let score = Number(market.pickProbability || 0);
-    const label = String(market.pickLabel || "").toUpperCase();
-    const tempoBoost = tempoProfile(match);
-
-    // Corner e yellows: aggiustamento data-driven basato su expected values della partita
-    if (market.id === "corners" && picked) {
-      score += dynamicTotalOptionScore(picked, "corners", match?.exp_corners) - Number(picked.probability || 0);
-    }
-    if (market.id === "yellows" && picked) {
-      score += dynamicTotalOptionScore(picked, "yellows", match?.exp_yellows) - Number(picked.probability || 0);
-      score -= 0.05; // Cartellini: penalità base — escono pick principale solo se davvero dominanti
-    }
-
-    // Piccoli bias sul tipo di partita (tempoBoost: 0 = difensiva, >0.05 = aperta/offensiva)
-    if (tempoBoost >= 0.05) {
-      // Partita aperta: over gol e corner leggermente favoriti
-      if (label === "OVER 1.5" || label === "OVER 2.5") score += 0.02;
-      if (market.id === "corners" && label.startsWith("OVER ")) score += 0.015;
-    } else if (tempoBoost < 0.02) {
-      // Partita chiusa: under gol e nogol leggermente favoriti
-      if (label === "UNDER 2.5" || label === "UNDER 3.5") score += 0.015;
-      if (market.id === "nogol") score += 0.015;
-    }
-
-    // Combo: penalizzati (scommesse complesse)
+    // Cartellini: leggera penalità
+    if (market.id === "yellows") score -= 0.05;
+    // Combo: penalizzati
     if (market.id === "combo") score -= 0.08;
-    // Mercati half-time: leggera penalità
+    // Half-time: leggera penalità
     if (market.id === "ht15" || market.id === "sh15") score -= 0.02;
-    // Quote anomale (troppo basse = calcolo sospetto)
+    // Quote anomale
     if (Number.isFinite(odd) && odd < 1.22) score -= 0.10;
-
     return score;
   }
 
