@@ -1,0 +1,46 @@
+name: All Stats Daily Update
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # 08:00 ora italiana ogni giorno
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "daily | aggregate | backfill"
+        required: false
+        default: "daily"
+      date:
+        description: "Data YYYY-MM-DD (solo per daily)"
+        required: false
+        default: ""
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install requests
+
+      - name: Run
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          CMD="${{ github.event.inputs.command || 'daily' }}"
+          DATE="${{ github.event.inputs.date }}"
+          if [ -n "$DATE" ]; then
+            python all_stats_db.py $CMD --date $DATE
+          else
+            python all_stats_db.py $CMD
+          fi
