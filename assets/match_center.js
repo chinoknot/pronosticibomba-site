@@ -1651,33 +1651,29 @@
     const nowTs = Date.now();
     let pool = matches.filter(match => !FINAL_STATUSES.has(String(match.status_short || "").toUpperCase()) && match.primaryMarket);
     if (state.selectedDate === today) {
-      // Only NS matches (no live) — independent from the live feed below.
-      // Try 30min window first, fallback to 90min, then next upcoming batch.
-      const nsPool = pool.filter(match => String(match.status_short || "").toUpperCase() === "NS");
-      const sortByKickoff = (a, b) => `${a.localKickoffSort || a.match_time || ""}`.localeCompare(`${b.localKickoffSort || b.match_time || ""}`);
-      const nsInWindow = (minutes) => nsPool.filter(match => {
+      // No live matches — independent from live feed below.
+      // Show upcoming non-live matches: imminent (60min) preferred, fallback to next batch.
+      const sortByKickoff = (a, b) => `${a.localKickoffSort || a.match_time || ""}-${a.league || ""}-${a.home || ""}`.localeCompare(`${b.localKickoffSort || b.match_time || ""}-${b.league || ""}-${b.home || ""}`);
+      const upcoming = pool.filter(match => {
+        if (matchIsActuallyLive(match)) return false;
         const kickoff = kickoffDate(match);
-        if (kickoff) return kickoff.getTime() >= nowTs && kickoff.getTime() <= nowTs + minutes * 60 * 1000;
-        const km = Number(match.localKickoffMinutes || toMinutes(match.match_time));
-        const nm = toMinutes(currentTimeInTimezone(timezone));
-        return km >= nm && km <= nm + minutes;
+        if (kickoff) return kickoff.getTime() >= nowTs;
+        const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.match_time));
+        return kickoffMinutes >= toMinutes(currentTimeInTimezone(timezone));
+      }).sort(sortByKickoff);
+      const imminent = upcoming.filter(match => {
+        const kickoff = kickoffDate(match);
+        if (kickoff) return kickoff.getTime() <= nowTs + (60 * 60 * 1000);
+        const kickoffMinutes = Number(match.localKickoffMinutes || toMinutes(match.match_time));
+        return kickoffMinutes <= toMinutes(currentTimeInTimezone(timezone)) + 60;
       });
-      let window30 = nsInWindow(30);
-      if (window30.length > 0) {
-        pool = window30.sort(sortByKickoff);
+      if (imminent.length >= 4) {
+        pool = imminent;
+      } else if (upcoming.length) {
+        const desired = Math.min(12, Math.max(6, imminent.length + 4));
+        pool = upcoming.slice(0, desired);
       } else {
-        let window90 = nsInWindow(90);
-        if (window90.length > 0) {
-          pool = window90.sort(sortByKickoff);
-        } else {
-          // No matches soon — show next NS matches chronologically (up to 12)
-          pool = nsPool.filter(match => {
-            const kickoff = kickoffDate(match);
-            if (kickoff) return kickoff.getTime() >= nowTs;
-            const km = Number(match.localKickoffMinutes || toMinutes(match.match_time));
-            return km >= toMinutes(currentTimeInTimezone(timezone));
-          }).sort(sortByKickoff).slice(0, 12);
-        }
+        pool = [];
       }
     }
     const headlinePool = pool.filter(match => isHeadlineCompetition(match.country, match.league));
