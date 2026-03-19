@@ -1649,6 +1649,53 @@
       line-height:1.35;
     }
 
+    /* ── Ko-fi floating button ── */
+    .kofi-fab{
+      position:fixed;
+      bottom:24px;
+      right:22px;
+      z-index:900;
+      display:inline-flex;
+      align-items:center;
+      gap:9px;
+      padding:0 20px 0 14px;
+      height:50px;
+      border-radius:999px;
+      background:linear-gradient(135deg,#ff7043 0%,#ff9a00 100%);
+      color:#1a0900;
+      font-family:"Sora",sans-serif;
+      font-size:.82rem;
+      font-weight:900;
+      letter-spacing:-.01em;
+      white-space:nowrap;
+      text-decoration:none;
+      border:1.5px solid rgba(255,180,80,.45);
+      box-shadow:0 8px 28px rgba(255,112,50,.45), 0 2px 6px rgba(0,0,0,.3);
+      animation:kofi-hover 3.2s ease-in-out infinite;
+      transition:transform .15s,box-shadow .15s;
+    }
+    .kofi-fab:hover{
+      transform:translateY(-3px) scale(1.04);
+      box-shadow:0 14px 40px rgba(255,120,60,.65),0 2px 8px rgba(0,0,0,.35);
+      animation:none;
+    }
+    .kofi-fab-cup{
+      font-size:1.4rem;
+      line-height:1;
+      display:block;
+      animation:kofi-wobble 3.2s ease-in-out infinite;
+    }
+    @keyframes kofi-hover{
+      0%,100%{transform:translateY(0);box-shadow:0 8px 28px rgba(255,112,50,.45),0 2px 6px rgba(0,0,0,.3)}
+      50%{transform:translateY(-5px);box-shadow:0 16px 40px rgba(255,140,60,.65),0 2px 8px rgba(0,0,0,.35)}
+    }
+    @keyframes kofi-wobble{
+      0%,80%,100%{transform:rotate(0deg)}
+      85%{transform:rotate(-14deg)}
+      90%{transform:rotate(10deg)}
+      95%{transform:rotate(-6deg)}
+    }
+
     footer{
       padding:0 0 30px;
     }
@@ -2953,8 +3000,8 @@
           </div>
         </div>
         <div class="support-actions">
-          <a id="index2-support-button" class="support-button" href="https://www.buymeacoffee.com/pronosticibomba" target="_blank" rel="noopener">Regala uno snack a Ralph</a>
-          <span id="index2-support-sub" class="support-sub">Per PayPal o Revolut, il setup piu pulito e Ko-fi + link diretti.</span>
+          <a id="index2-support-button" class="support-button" href="https://ko-fi.com/pronosticibomba" target="_blank" rel="noopener">Regala uno snack a Ralph</a>
+          <span id="index2-support-sub" class="support-sub">Via Ko-fi — caffè, donazione o semplicemente grazie ☕</span>
         </div>
       </div>
     </section>
@@ -3055,8 +3102,8 @@
         supportPointA: "Sempre free",
         supportPointB: "Zero ads",
         supportPointC: "Supporto ben accetto",
-        supportButton: "Regala uno snack a Ralph",
-        supportSub: "Per PayPal o Revolut, il setup piu pulito e Ko-fi + link diretti.",
+        supportButton: "Regala uno snack a Ralph ☕",
+        supportSub: "Via Ko-fi — caffè, donazione o semplicemente grazie ☕",
         summaryPicks: "picks",
         summaryRoiPicks: "ROI picks",
         summaryRoiMonth: "ROI mese",
@@ -3158,8 +3205,8 @@
         supportPointA: "Always free",
         supportPointB: "No ads",
         supportPointC: "Support is welcome",
-        supportButton: "Buy Ralph a snack",
-        supportSub: "For PayPal or Revolut, the cleanest setup is Ko-fi plus direct links.",
+        supportButton: "Buy Ralph a coffee ☕",
+        supportSub: "Via Ko-fi — coffee, tip or just a thank you ☕",
         summaryPicks: "picks",
         summaryRoiPicks: "ROI picks",
         summaryRoiMonth: "monthly ROI",
@@ -4626,5 +4673,9 @@
         linear-gradient(180deg,rgba(130,26,10,.97),rgba(62,10,10,.99)) !important;
     }
   </style>
+  <a class="kofi-fab" href="https://ko-fi.com/pronosticibomba" target="_blank" rel="noopener" aria-label="Offrimi un caffè su Ko-fi">
+    <span class="kofi-fab-cup" aria-hidden="true">☕</span>
+    <span>Offrimi un caffè</span>
+  </a>
 </body>
 </html>
