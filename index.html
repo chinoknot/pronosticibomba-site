@@ -2156,6 +2156,48 @@
       color:#e7eeff;
     }
 
+    .confidence-chip{
+      gap:6px;
+      border-color:rgba(125,211,252,.16);
+      background:linear-gradient(135deg, rgba(18,28,52,.92), rgba(10,16,30,.96));
+    }
+
+    .confidence-chip.very-high{
+      border-color:rgba(37,219,169,.42);
+      background:linear-gradient(135deg, rgba(13,92,76,.98), rgba(37,219,169,.24));
+      color:#eafff8;
+    }
+
+    .confidence-chip.high{
+      border-color:rgba(61,213,243,.42);
+      background:linear-gradient(135deg, rgba(14,76,98,.98), rgba(61,213,243,.22));
+      color:#eefcff;
+    }
+
+    .confidence-chip.good{
+      border-color:rgba(255,200,61,.42);
+      background:linear-gradient(135deg, rgba(94,66,16,.98), rgba(255,200,61,.2));
+      color:#fff4cf;
+    }
+
+    .confidence-chip.medium{
+      border-color:rgba(167,139,250,.34);
+      background:linear-gradient(135deg, rgba(57,39,98,.98), rgba(167,139,250,.16));
+      color:#f2ecff;
+    }
+
+    .confidence-chip.low{
+      border-color:rgba(251,146,60,.42);
+      background:linear-gradient(135deg, rgba(108,50,14,.98), rgba(251,146,60,.22));
+      color:#fff0dd;
+    }
+
+    .confidence-chip.risky{
+      border-color:rgba(244,114,182,.42);
+      background:linear-gradient(135deg, rgba(118,26,82,.98), rgba(244,114,182,.18));
+      color:#fff0f8;
+    }
+
     .live-pick-side{
       display:grid;
       justify-items:end;
@@ -3119,6 +3161,12 @@
         badgePending: "IN ATTESA",
         badgeVoid: "ANNULLATA",
         conf: "Conf.",
+        confidenceVeryHigh: "Molto alta",
+        confidenceHigh: "Alta",
+        confidenceGood: "Buona",
+        confidenceMedium: "Media",
+        confidenceLow: "Bassa",
+        confidenceRisky: "Rischiosa",
         picksWord: "picks",
         noPicksDay: "Nessuna pick disponibile per questa giornata.",
         noPicksNow: "Nessuna pick disponibile al momento.",
@@ -3222,6 +3270,12 @@
         badgePending: "PENDING",
         badgeVoid: "VOID",
         conf: "Conf.",
+        confidenceVeryHigh: "Very high",
+        confidenceHigh: "High",
+        confidenceGood: "Good",
+        confidenceMedium: "Medium",
+        confidenceLow: "Low",
+        confidenceRisky: "Risky",
         picksWord: "picks",
         noPicksDay: "No picks available for this day.",
         noPicksNow: "No picks available right now.",
@@ -3265,6 +3319,20 @@
         });
       }
       return value;
+    }
+
+    function confidenceMeta(score) {
+      const numeric = Number(score || 0);
+      const percent = Number.isFinite(numeric) ? Math.round(numeric * 100) : null;
+      if (!Number.isFinite(percent)) {
+        return { label: "-", percentText: "-", tone: "neutral" };
+      }
+      if (percent >= 88) return { label: t("confidenceVeryHigh"), percentText: `${percent}%`, tone: "very-high" };
+      if (percent >= 80) return { label: t("confidenceHigh"), percentText: `${percent}%`, tone: "high" };
+      if (percent >= 72) return { label: t("confidenceGood"), percentText: `${percent}%`, tone: "good" };
+      if (percent >= 64) return { label: t("confidenceMedium"), percentText: `${percent}%`, tone: "medium" };
+      if (percent >= 56) return { label: t("confidenceLow"), percentText: `${percent}%`, tone: "low" };
+      return { label: t("confidenceRisky"), percentText: `${percent}%`, tone: "risky" };
     }
 
     function setNodeText(id, value) {
@@ -4438,8 +4506,7 @@
           const resultClass = badge.className ? ` ${badge.className}` : "";
           const oddNum = safeOdd(pick.odd);
           const oddText = oddNum ? `@ ${oddNum.toFixed(2)}` : "@ -";
-          const conf = Number(pick.score || 0);
-          const confText = Number.isFinite(conf) ? `${Math.round(conf * 100)}%` : "-";
+          const confidence = confidenceMeta(pick.score);
           const roiHtml = pick.roi_tag === "ROI_PICK"
             ? '<span class="roi-pill">ROI PICK</span>'
             : (pick.roi_tag === "BACKUP" ? '<span class="roi-pill backup">BACKUP</span>' : "");
@@ -4459,7 +4526,7 @@
                 <div class="live-pick-sub">
                   <span class="pick-chip">${escapeHtml(pick.pick || "-")}</span>
                   <span class="odd-chip">${escapeHtml(oddText)}</span>
-                  <span class="confidence-chip">${escapeHtml(t("conf"))} ${escapeHtml(confText)}</span>
+                  <span class="confidence-chip ${escapeHtml(confidence.tone)}">${escapeHtml(confidence.label)} ${escapeHtml(confidence.percentText)}</span>
                 </div>
               </div>
               <div class="live-pick-side">
