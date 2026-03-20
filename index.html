@@ -3321,18 +3321,70 @@
       return value;
     }
 
-    function confidenceMeta(score) {
-      const numeric = Number(score || 0);
-      const percent = Number.isFinite(numeric) ? Math.round(numeric * 100) : null;
-      if (!Number.isFinite(percent)) {
+    function confidenceMeta(score, scale) {
+      const numeric = Number(score);
+      if (!Number.isFinite(numeric)) {
         return { label: "-", tone: "neutral" };
       }
-      if (percent >= 88) return { label: t("confidenceVeryHigh"), tone: "very-high" };
-      if (percent >= 80) return { label: t("confidenceHigh"), tone: "high" };
-      if (percent >= 72) return { label: t("confidenceGood"), tone: "good" };
-      if (percent >= 64) return { label: t("confidenceMedium"), tone: "medium" };
-      if (percent >= 56) return { label: t("confidenceLow"), tone: "low" };
-      return { label: t("confidenceRisky"), tone: "risky" };
+
+      if (scale && typeof scale.classify === "function") {
+        return scale.classify(numeric);
+      }
+
+      return { label: t("confidenceGood"), tone: "good" };
+    }
+
+    function buildConfidenceScale(picks) {
+      const values = (Array.isArray(picks) ? picks : [])
+        .map(pick => Number(pick?.score))
+        .filter(Number.isFinite)
+        .sort((a, b) => a - b);
+
+      if (!values.length) {
+        return {
+          classify() {
+            return { label: "-", tone: "neutral" };
+          }
+        };
+      }
+
+      const min = values[0];
+      const max = values[values.length - 1];
+      if (Math.abs(max - min) < 0.0001) {
+        return {
+          classify() {
+            return { label: t("confidenceGood"), tone: "good" };
+          }
+        };
+      }
+
+      function upperBound(target) {
+        let low = 0;
+        let high = values.length;
+        while (low < high) {
+          const mid = Math.floor((low + high) / 2);
+          if (values[mid] <= target) low = mid + 1;
+          else high = mid;
+        }
+        return low;
+      }
+
+      return {
+        classify(scoreValue) {
+          const numeric = Number(scoreValue);
+          if (!Number.isFinite(numeric)) {
+            return { label: "-", tone: "neutral" };
+          }
+
+          const percentile = upperBound(numeric) / values.length;
+          if (percentile >= 0.9) return { label: t("confidenceVeryHigh"), tone: "very-high" };
+          if (percentile >= 0.72) return { label: t("confidenceHigh"), tone: "high" };
+          if (percentile >= 0.5) return { label: t("confidenceGood"), tone: "good" };
+          if (percentile >= 0.3) return { label: t("confidenceMedium"), tone: "medium" };
+          if (percentile >= 0.14) return { label: t("confidenceLow"), tone: "low" };
+          return { label: t("confidenceRisky"), tone: "risky" };
+        }
+      };
     }
 
     function setNodeText(id, value) {
@@ -4475,6 +4527,7 @@
       if (!host) return;
       const grouped = groupByCategory(picks);
       const categories = sortCategoriesOrder(Array.from(grouped.keys()));
+      const confidenceScale = buildConfidenceScale(picks);
       if (!categories.length) {
         host.innerHTML = `<div class="empty-board">${t("noPicksDay")}</div>`;
         return;
@@ -4506,7 +4559,7 @@
           const resultClass = badge.className ? ` ${badge.className}` : "";
           const oddNum = safeOdd(pick.odd);
           const oddText = oddNum ? `@ ${oddNum.toFixed(2)}` : "@ -";
-          const confidence = confidenceMeta(pick.score);
+          const confidence = confidenceMeta(pick.score, confidenceScale);
           const roiHtml = pick.roi_tag === "ROI_PICK"
             ? '<span class="roi-pill">ROI PICK</span>'
             : (pick.roi_tag === "BACKUP" ? '<span class="roi-pill backup">BACKUP</span>' : "");
