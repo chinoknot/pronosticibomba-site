@@ -266,6 +266,8 @@
       profileMap: {},
       entryCacheKey: "",
       entryCacheResult: null,
+      profileCacheKey: "",
+      profileCacheResult: null,
     },
   };
   const dom = {
@@ -346,6 +348,7 @@
     detailOverlay: document.getElementById("match-detail-overlay"),
     detailBody: document.getElementById("match-detail"),
     mcPicksVal: document.getElementById("mc-picks-val"),
+    mcPicksPill: document.getElementById("mc-picks-pill"),
     mcLiveVal: document.getElementById("mc-live-val"),
     mcSoonVal: document.getElementById("mc-soon-val"),
     mcWonVal: document.getElementById("mc-won-val"),
@@ -357,6 +360,9 @@
     mcCollapseAllPill: document.getElementById("mc-collapse-all"),
     mcExpandAllPill: document.getElementById("mc-expand-all"),
   };
+
+  let renderRaf = 0;
+  let betMasterRaf = 0;
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -531,6 +537,19 @@
     }
     const matchTime = match.localMatchTime || match.match_time || "00:00";
     return matchTime >= state.timeFrom && matchTime <= state.timeTo;
+  }
+
+  function matchIsExpiredWithoutResult(match) {
+    const localised = match?.localMatchIsoDate ? match : withLocalKickoff(match);
+    const fixtureStatus = String(localised?.status_short || "").toUpperCase();
+    if (LIVE_STATUSES.has(fixtureStatus) || FINAL_STATUSES.has(fixtureStatus)) return false;
+    const zone = activeTimeZone();
+    const selected = state.selectedDate || todayIso(zone);
+    const today = todayIso(zone);
+    if (selected > today) return false;
+    const kickoff = kickoffDate(localised);
+    if (!kickoff) return false;
+    return Date.now() - kickoff.getTime() > (210 * 60 * 1000);
   }
 
   function visibleOutcomeGroups() {
@@ -941,6 +960,8 @@
   function invalidateBetMasterCache() {
     state.betMaster.entryCacheKey = "";
     state.betMaster.entryCacheResult = null;
+    state.betMaster.profileCacheKey = "";
+    state.betMaster.profileCacheResult = null;
   }
 
   function betMasterProfileRules(profileId) {
@@ -1693,6 +1714,7 @@
     const decorated = rawMatches
       .map(match => buildFilteredMatch(match, { keepAll }))
       .filter(Boolean)
+      .filter(match => !matchIsExpiredWithoutResult(match))
       .filter(match => matchWithinMainTimeWindow(match))
       .sort((a, b) => `${a.localKickoffSort || a.match_time}-${a.league}-${a.home}`.localeCompare(`${b.localKickoffSort || b.match_time}-${b.league}-${b.home}`));
     const result = diversifyMatchesByLeague(decorated);
@@ -2144,6 +2166,13 @@
   function buildBetMasterProfiles() {
     const { window, entries } = betMasterCandidateEntries();
     if (!entries.length) return { window, profileMap: {} };
+    const profileCacheKey = JSON.stringify({
+      entryKey: state.betMaster.entryCacheKey,
+      count: state.betMaster.count,
+    });
+    if (state.betMaster.profileCacheKey === profileCacheKey && state.betMaster.profileCacheResult) {
+      return state.betMaster.profileCacheResult;
+    }
     const profileMap = {};
     const previouslyUsedFixtures = new Set();
     BET_MASTER_PROFILES.forEach(profile => {
@@ -2151,10 +2180,13 @@
       profileMap[profile.id] = slip;
       slip.picks.forEach(pick => previouslyUsedFixtures.add(pick.fixtureId));
     });
-    return {
+    const result = {
       window,
       profileMap,
     };
+    state.betMaster.profileCacheKey = profileCacheKey;
+    state.betMaster.profileCacheResult = result;
+    return result;
   }
 
   function groupMatches(matches) {
@@ -2433,6 +2465,7 @@
     // New mc-stat-bar
     const dayStats = getFullDayStats();
     if (dom.mcPicksVal) dom.mcPicksVal.textContent = String(matches.length);
+    if (dom.mcPicksPill) dom.mcPicksPill.classList.toggle('active', !state.quickFilter);
     if (dom.mcLiveVal) dom.mcLiveVal.textContent = String(dayStats.liveCount);
     if (dom.mcSoonVal) dom.mcSoonVal.textContent = String(dayStats.soon60Count);
     if (dom.mcWonVal) dom.mcWonVal.textContent = String(dayStats.wonCount);
@@ -2501,7 +2534,7 @@
     `;
   }
 
-  function renderBetMasterSection() {
+  function performRenderBetMasterSection() {
     if (state.betMaster.generated) state.betMaster.profileMap = buildBetMasterProfiles().profileMap;
     renderBetMaster();
   }
@@ -2994,23 +3027,58 @@
     `;
   }
 
-  function render() {
+  function performRender() {
     const matches = getDerivedMatches();
     const orderedMatches = sortMatchesForFeed(matches);
     const topPicks = getTopPicks(matches);
-    if (state.betMaster.generated) state.betMaster.profileMap = buildBetMasterProfiles().profileMap;
+    if (betMasterRaf) {
+      cancelAnimationFrame(betMasterRaf);
+      betMasterRaf = 0;
+    }
     renderDateTabs();
     renderQuickRanges();
     renderFilterChips();
     renderFeedToolbar(orderedMatches);
     renderSummary(orderedMatches, topPicks);
-    renderBetMaster();
+    performRenderBetMasterSection();
     renderYesterdayBanner();
     renderActiveFilters();
     renderTopPicks(topPicks);
     renderLeagueFeed(orderedMatches);
     renderDetail();
     syncModalState();
+  }
+
+  function render(immediate = false) {
+    if (immediate) {
+      if (renderRaf) {
+        cancelAnimationFrame(renderRaf);
+        renderRaf = 0;
+      }
+      performRender();
+      return;
+    }
+    if (renderRaf) return;
+    renderRaf = requestAnimationFrame(() => {
+      renderRaf = 0;
+      performRender();
+    });
+  }
+
+  function renderBetMasterSection(immediate = false) {
+    if (immediate) {
+      if (betMasterRaf) {
+        cancelAnimationFrame(betMasterRaf);
+        betMasterRaf = 0;
+      }
+      performRenderBetMasterSection();
+      return;
+    }
+    if (betMasterRaf) return;
+    betMasterRaf = requestAnimationFrame(() => {
+      betMasterRaf = 0;
+      performRenderBetMasterSection();
+    });
   }
 
   function clearFilter(key) {
@@ -3324,6 +3392,10 @@
       if (dom.searchInput) dom.searchInput.value = "";
     }
     dom.resetFilters.addEventListener("click", () => { doResetFilters(); render(); });
+    if (dom.mcPicksPill) dom.mcPicksPill.addEventListener("click", () => {
+      doResetFilters();
+      render();
+    });
     if (dom.mcLivePill) dom.mcLivePill.addEventListener("click", () => {
       const wasActive = state.quickFilter === 'live';
       doResetFilters();

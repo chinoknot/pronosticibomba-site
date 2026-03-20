@@ -444,9 +444,9 @@
       </div>
     </section>
     <div class="mc-stat-bar">
-      <div class="mc-stat-pill">
+      <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-all" id="mc-picks-pill">
         <strong id="mc-picks-val">0</strong><span>picks</span>
-      </div>
+      </button>
       <div class="mc-stat-sep" aria-hidden="true"></div>
       <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-live" id="mc-live-pill">
         <strong id="mc-live-val">0</strong><span>live</span>
@@ -771,6 +771,8 @@
     .mc-stat-live strong{color:#ef4444}
     .mc-stat-live:hover,.mc-stat-live.active{border-color:rgba(239,68,68,.4)!important;background:rgba(239,68,68,.09)!important}
     .mc-stat-live.active strong{text-shadow:0 0 8px rgba(239,68,68,.6)}
+    .mc-stat-all strong{color:#dbeafe}
+    .mc-stat-all:hover,.mc-stat-all.active{border-color:rgba(96,165,250,.42)!important;background:rgba(59,130,246,.1)!important}
     .mc-stat-won strong{color:#34d399}
     .mc-stat-won:hover,.mc-stat-won.active{border-color:rgba(52,211,153,.38)!important;background:rgba(52,211,153,.09)!important}
     .mc-stat-lost strong{color:#f87171}
@@ -2759,7 +2761,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center.js?v=20260320i"></script>
+  <script src="/assets/match_center.js?v=20260320k"></script>
   <script>
     (function () {
       const ready = () => {
