@@ -3325,14 +3325,14 @@
       const numeric = Number(score || 0);
       const percent = Number.isFinite(numeric) ? Math.round(numeric * 100) : null;
       if (!Number.isFinite(percent)) {
-        return { label: "-", percentText: "-", tone: "neutral" };
+        return { label: "-", tone: "neutral" };
       }
-      if (percent >= 88) return { label: t("confidenceVeryHigh"), percentText: `${percent}%`, tone: "very-high" };
-      if (percent >= 80) return { label: t("confidenceHigh"), percentText: `${percent}%`, tone: "high" };
-      if (percent >= 72) return { label: t("confidenceGood"), percentText: `${percent}%`, tone: "good" };
-      if (percent >= 64) return { label: t("confidenceMedium"), percentText: `${percent}%`, tone: "medium" };
-      if (percent >= 56) return { label: t("confidenceLow"), percentText: `${percent}%`, tone: "low" };
-      return { label: t("confidenceRisky"), percentText: `${percent}%`, tone: "risky" };
+      if (percent >= 88) return { label: t("confidenceVeryHigh"), tone: "very-high" };
+      if (percent >= 80) return { label: t("confidenceHigh"), tone: "high" };
+      if (percent >= 72) return { label: t("confidenceGood"), tone: "good" };
+      if (percent >= 64) return { label: t("confidenceMedium"), tone: "medium" };
+      if (percent >= 56) return { label: t("confidenceLow"), tone: "low" };
+      return { label: t("confidenceRisky"), tone: "risky" };
     }
 
     function setNodeText(id, value) {
@@ -4526,7 +4526,7 @@
                 <div class="live-pick-sub">
                   <span class="pick-chip">${escapeHtml(pick.pick || "-")}</span>
                   <span class="odd-chip">${escapeHtml(oddText)}</span>
-                  <span class="confidence-chip ${escapeHtml(confidence.tone)}">${escapeHtml(confidence.label)} ${escapeHtml(confidence.percentText)}</span>
+                  <span class="confidence-chip ${escapeHtml(confidence.tone)}">${escapeHtml(confidence.label)}</span>
                 </div>
               </div>
               <div class="live-pick-side">
