@@ -245,6 +245,9 @@
             <strong class="inline-filter-value" id="probability-value">55% - 99%</strong>
           </div>
           <div class="chips" id="probability-presets"></div>
+          <div class="chips">
+            <button type="button" class="preset-chip" id="min-played-five-toggle">5+ giocate</button>
+          </div>
           <div class="range-input-grid compact-grid compact-select-grid">
             <label class="range-input-card">
               <span class="mini-label">Prob. min</span>
@@ -378,6 +381,9 @@
             <strong class="inline-filter-value" id="bet-master-prob-value">60% - 99%</strong>
           </div>
           <div class="chips bet-master-presets" id="bet-master-prob-presets"></div>
+          <div class="chips bet-master-presets">
+            <button type="button" class="preset-chip" id="bet-master-min-played-five-toggle">5+ giocate</button>
+          </div>
           <div class="range-input-grid compact-grid compact-select-grid">
             <label class="range-input-card">
               <span class="mini-label">Prob. min</span>
@@ -2753,7 +2759,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center.js?v=20260320g"></script>
+  <script src="/assets/match_center.js?v=20260320h"></script>
   <script>
     (function () {
       const ready = () => {

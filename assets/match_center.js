@@ -220,6 +220,7 @@
     betMasterCustom: IS_EN ? "Custom slot" : "Intervallo",
     estimatedOdd: IS_EN ? "Est." : "Stima",
   };
+  const MIN_PLAYED_FILTER_LABEL = IS_EN ? "5+ played" : "5+ giocate";
   const state = {
     manifest: null,
     selectedDate: "",
@@ -242,6 +243,7 @@
     filterOpen: false,
     outcomeFilters: new Set(),
     detailFixtureId: null,
+    minPlayedFiveOnly: false,
     quickFilter: null,  // null | 'live' | 'soon60' | 'won' | 'lost'
     leagueViewMode: "auto", // auto | all-open | all-closed | custom
     leagueOpenState: Object.create(null),
@@ -253,6 +255,7 @@
       probFrom: 60,
       probTo: 99,
       selectedProfile: "safe",
+      minPlayedFiveOnly: false,
       outcomeFilters: new Set(),
       outcomeGroup: "all",
       windowMode: "soon",
@@ -295,6 +298,7 @@
     probabilityMinInput: document.getElementById("probability-min-input"),
     probabilityMaxInput: document.getElementById("probability-max-input"),
     probabilityValue: document.getElementById("probability-value"),
+    minPlayedFiveToggle: document.getElementById("min-played-five-toggle"),
     oddFrom: document.getElementById("odd-from"),
     oddTo: document.getElementById("odd-to"),
     oddValue: document.getElementById("odd-value"),
@@ -313,6 +317,7 @@
     betMasterOddTo: document.getElementById("bet-master-odd-to"),
     betMasterProbFrom: document.getElementById("bet-master-prob-from"),
     betMasterProbTo: document.getElementById("bet-master-prob-to"),
+    betMasterMinPlayedFiveToggle: document.getElementById("bet-master-min-played-five-toggle"),
     betMasterTimeSoon: document.getElementById("bet-master-time-soon"),
     betMasterTimeCustom: document.getElementById("bet-master-time-custom"),
     betMasterTimeSelects: document.getElementById("bet-master-time-selects"),
@@ -456,6 +461,33 @@
     const today = todayIso(activeTimeZone());
     if (date && date === today) return { from: roundedCurrentTimeSlot(), to: "23:59" };
     return { from: DEFAULTS.timeFrom, to: DEFAULTS.timeTo };
+  }
+
+  function standingPlayedValue(entry) {
+    if (!entry || typeof entry !== "object") return null;
+    const direct = Number(entry.played);
+    if (Number.isFinite(direct)) return direct;
+    const nested = Number(entry?.all?.played);
+    if (Number.isFinite(nested)) return nested;
+    return null;
+  }
+
+  function isCupCompetition(match) {
+    const league = String(match?.league || "");
+    const round = String(match?.league_round || "");
+    const haystack = `${league} ${round}`.trim();
+    if (!haystack) return false;
+    if (match?.country === "World" && (isEliteWorldCompetition(league) || isSecondaryWorldCompetition(league))) return true;
+    return /cup|coppa|copa|coupe|ta(?:ç|c)a|pokal|trophy|shield|super\s?cup|knockout|play[-\s]?off|quarter[-\s]?final|semi[-\s]?final|round of|final|libertadores|sudamericana|concacaf|caf|afc champions|leagues cup/i.test(haystack);
+  }
+
+  function passesMinPlayedFilter(match, minPlayed = 5) {
+    if (!match) return true;
+    if (isCupCompetition(match)) return true;
+    const homePlayed = standingPlayedValue(match.home_standing);
+    const awayPlayed = standingPlayedValue(match.away_standing);
+    if (!Number.isFinite(homePlayed) || !Number.isFinite(awayPlayed)) return true;
+    return homePlayed >= minPlayed && awayPlayed >= minPlayed;
   }
 
   function seedMainTimeWindow(force = false) {
@@ -1229,6 +1261,7 @@
     const ignoreStatusFilter = Boolean(options.ignoreStatusFilter);
     const search = options.searchOverride != null ? String(options.searchOverride).trim().toLowerCase() : state.search.trim().toLowerCase();
     const oddFilterActive = state.oddActive;
+    if (state.minPlayedFiveOnly && !passesMinPlayedFilter(match, 5)) return null;
     const markets = buildMarkets(match).map(market => remapMarketForOutcomeFilters(match, market)).filter(Boolean);
     const visibleMarkets = markets
       .filter(market => state.groups.has(market.group))
@@ -1904,6 +1937,7 @@
       to: window.to,
       probFrom: state.betMaster.probFrom,
       probTo: state.betMaster.probTo,
+      minPlayedFiveOnly: state.betMaster.minPlayedFiveOnly,
       oddFrom: state.betMaster.oddFrom,
       oddTo: state.betMaster.oddTo,
     });
@@ -1933,6 +1967,7 @@
     });
     const matches = buildBetMasterMatches()
       .filter(match => {
+        if (state.betMaster.minPlayedFiveOnly && !passesMinPlayedFilter(match, 5)) return false;
         const fixtureStatus = String(match.status_short || "").toUpperCase();
         if (FINAL_STATUSES.has(fixtureStatus) || LIVE_STATUSES.has(fixtureStatus)) return false;
         if (window.mode === "soon" && soonStartUtc) {
@@ -2168,6 +2203,7 @@
     const defaultWindow = defaultMainTimeWindow(state.selectedDate);
     if (state.timeFrom !== defaultWindow.from || state.timeTo !== defaultWindow.to) count += 1;
     if (state.minProbability !== DEFAULTS.minProbability || state.maxProbability !== DEFAULTS.maxProbability) count += 1;
+    if (state.minPlayedFiveOnly) count += 1;
     if (state.oddActive) count += 1;
     if (state.status !== "all") count += 1;
     if (state.groups.size !== GROUPS.length) count += 1;
@@ -2210,6 +2246,7 @@
     if (dom.probabilityMinInput) dom.probabilityMinInput.value = String(state.minProbability);
     if (dom.probabilityMaxInput) dom.probabilityMaxInput.value = String(state.maxProbability);
     if (dom.probabilityValue) dom.probabilityValue.textContent = `${state.minProbability}% - ${state.maxProbability}%`;
+    if (dom.minPlayedFiveToggle) dom.minPlayedFiveToggle.classList.toggle("active", state.minPlayedFiveOnly);
 
     if (dom.oddFrom) dom.oddFrom.value = formatOdd(state.oddFrom);
     if (dom.oddTo) dom.oddTo.value = formatOdd(state.oddTo);
@@ -2224,6 +2261,7 @@
     if (dom.betMasterProbFrom) dom.betMasterProbFrom.value = String(state.betMaster.probFrom);
     if (dom.betMasterProbTo) dom.betMasterProbTo.value = String(state.betMaster.probTo);
     if (dom.betMasterProbValue) dom.betMasterProbValue.textContent = `${state.betMaster.probFrom}% - ${state.betMaster.probTo}%`;
+    if (dom.betMasterMinPlayedFiveToggle) dom.betMasterMinPlayedFiveToggle.classList.toggle("active", state.betMaster.minPlayedFiveOnly);
     if (dom.betMasterOddFrom) dom.betMasterOddFrom.value = formatOdd(state.betMaster.oddFrom);
     if (dom.betMasterOddTo) dom.betMasterOddTo.value = formatOdd(state.betMaster.oddTo);
     if (dom.betMasterOddValue) dom.betMasterOddValue.textContent = `${formatOdd(state.betMaster.oddFrom)} - ${formatOdd(state.betMaster.oddTo >= 10 ? 10 : state.betMaster.oddTo)}`;
@@ -2493,6 +2531,7 @@
     const defaultWindow = defaultMainTimeWindow(state.selectedDate);
     if (state.timeFrom !== defaultWindow.from || state.timeTo !== defaultWindow.to) chips.push({ key: "time", label: `${TEXT.filterTime}: ${state.timeFrom}-${state.timeTo}` });
     if (state.minProbability !== DEFAULTS.minProbability || state.maxProbability !== DEFAULTS.maxProbability) chips.push({ key: "probability", label: `${TEXT.filterProbability}: ${formatProbabilityRange(state.minProbability, state.maxProbability)}` });
+    if (state.minPlayedFiveOnly) chips.push({ key: "played5", label: MIN_PLAYED_FILTER_LABEL });
     if (state.oddActive) chips.push({ key: "odd", label: `${TEXT.filterOdd}: ${formatOddRange(state.oddFrom, state.oddTo)}` });
     if (state.status !== "all") chips.push({ key: "status", label: `${TEXT.filterStatus}: ${statusLabel(state.status)}` });
     if (state.groups.size !== GROUPS.length) chips.push({ key: "groups", label: `${TEXT.filterMarkets}: ${state.groups.size}/${GROUPS.length}` });
@@ -2987,6 +3026,7 @@
       state.minProbability = DEFAULTS.minProbability;
       state.maxProbability = DEFAULTS.maxProbability;
     }
+    if (key === "played5") state.minPlayedFiveOnly = false;
     if (key === "odd") {
       state.oddActive = false;
       state.oddFrom = DEFAULTS.oddFrom;
@@ -3255,12 +3295,21 @@
       renderBetMasterSection();
     });
     if (dom.betMasterGenerate) dom.betMasterGenerate.addEventListener("click", generateBetMaster);
+    if (dom.minPlayedFiveToggle) dom.minPlayedFiveToggle.addEventListener("click", () => {
+      state.minPlayedFiveOnly = !state.minPlayedFiveOnly;
+      render();
+    });
+    if (dom.betMasterMinPlayedFiveToggle) dom.betMasterMinPlayedFiveToggle.addEventListener("click", () => {
+      state.betMaster.minPlayedFiveOnly = !state.betMaster.minPlayedFiveOnly;
+      renderBetMasterSection();
+    });
     function doResetFilters() {
       state.groups = new Set(GROUPS.map(group => group.id));
       state.outcomeFilters = new Set();
       state.status = "all";
       state.minProbability = DEFAULTS.minProbability;
       state.maxProbability = DEFAULTS.maxProbability;
+      state.minPlayedFiveOnly = false;
       state.oddActive = false;
       state.oddFrom = DEFAULTS.oddFrom;
       state.oddTo = DEFAULTS.oddTo;
