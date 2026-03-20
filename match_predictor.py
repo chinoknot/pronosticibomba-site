@@ -56,6 +56,7 @@ SB_CARDS_TEAM_STATS_CACHE = {}
 SB_CARDS_H2H_CACHE = {}
 SB_REFEREE_CARDS_CACHE = {}
 SB_MATCH_TEAM_STATS_CACHE = {}
+LEAGUE_STANDINGS_CACHE = {}
 LIVE_STATUSES = {"1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"}
 FINAL_STATUSES = {"FT", "AET", "PEN", "AWD", "WO"}
 
@@ -964,12 +965,44 @@ def get_team_stats(league_id, season, team_id):
     return ts
 
 
+def get_league_standings(league_id, season):
+    if not all([league_id, season]):
+        return {}
+    key = (league_id, season)
+    if key in LEAGUE_STANDINGS_CACHE:
+        return LEAGUE_STANDINGS_CACHE[key]
+    rows = api_get("/standings", {"league": league_id, "season": season}, 30)
+    standings_map = {}
+    if rows:
+        league_block = (rows[0] or {}).get("league") or {}
+        standing_groups = league_block.get("standings") or []
+        for group in standing_groups:
+            for row in (group or []):
+                team = row.get("team") or {}
+                team_id = team.get("id")
+                if not team_id:
+                    continue
+                standings_map[int(team_id)] = {
+                    "rank": row.get("rank"),
+                    "points": row.get("points"),
+                    "played": ((row.get("all") or {}).get("played")),
+                    "goal_diff": row.get("goalsDiff"),
+                    "group": row.get("group") or "",
+                    "description": row.get("description") or "",
+                    "form": row.get("form") or "",
+                    "status": ((row.get("status") or {}).get("description")) or "",
+                }
+    LEAGUE_STANDINGS_CACHE[key] = standings_map
+    time.sleep(0.05)
+    return standings_map
+
+
 # ==========================
 # PROFILE
 # ==========================
 def profile(ts_raw, side):
     o = {"played": 0, "played_side": 0, "gf_side": 0.0, "ga_side": 0.0,
-         "gf_total": 0.0, "ga_total": 0.0, "cs_rate": 0.0, "fts_rate": 0.0, "form": 0}
+         "gf_total": 0.0, "ga_total": 0.0, "cs_rate": 0.0, "fts_rate": 0.0, "form": 0, "form_code": ""}
     if not isinstance(ts_raw, dict) or not ts_raw: return o
     fx = ts_raw.get("fixtures") or {}
     pl = fx.get("played") or {}
@@ -989,6 +1022,7 @@ def profile(ts_raw, side):
     o["cs_rate"] = safe_div(to_float(cs.get(side)) or 0, sp)
     o["fts_rate"] = safe_div(to_float(fts.get(side)) or 0, sp)
     fm = (ts_raw.get("form") or "").upper()[-5:]
+    o["form_code"] = fm
     o["form"] = sum(3 if c == "W" else 1 if c == "D" else 0 for c in fm)
     return o
 
@@ -1583,6 +1617,9 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
         a_ts = get_team_stats(lid, season, aid)
         hp_ = profile(h_ts, "home")
         ap_ = profile(a_ts, "away")
+        standings_map = get_league_standings(lid, season) if lid and season else {}
+        home_standing = standings_map.get(int(hid)) if hid and standings_map else None
+        away_standing = standings_map.get(int(aid)) if aid and standings_map else None
 
         # Supabase: domestic stats (richer sample than European-only)
         h_sb = sb_team_stats(hid) if hid else {}
@@ -1607,6 +1644,12 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
             "match_time": mtime, "home": hn, "away": an,
             "kickoff_at": dateiso,
             "kickoff_ts": fx.get("timestamp"),
+            "league_id": lid,
+            "league_season": season,
+            "league_round": league.get("round", ""),
+            "league_has_standings": bool(league.get("standings")),
+            "home_team_id": hid,
+            "away_team_id": aid,
             "home_logo": ht.get("logo", ""), "away_logo": at.get("logo", ""),
             "league_logo": league.get("logo", ""),
             "status_short": str((fx.get("status") or {}).get("short", "")).upper(),
@@ -1615,6 +1658,12 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
             "goals_away": f.get("goals", {}).get("away"),
             "ht_goals_home": (score.get("halftime") or {}).get("home"),
             "ht_goals_away": (score.get("halftime") or {}).get("away"),
+            "home_form": hp_.get("form_code", ""),
+            "away_form": ap_.get("form_code", ""),
+            "home_form_points": hp_.get("form"),
+            "away_form_points": ap_.get("form"),
+            "home_standing": home_standing,
+            "away_standing": away_standing,
             "total_corners": None,
             "total_yellows": None,
             "final_score": (
