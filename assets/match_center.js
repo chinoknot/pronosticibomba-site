@@ -118,6 +118,7 @@
     ["Czech-Republic", 150],
     ["Greece", 160],
     ["Poland", 170],
+    ["Romania", 175],
     ["Croatia", 180],
     ["Serbia", 190],
     ["Ukraine", 200],
@@ -135,6 +136,7 @@
     ["Greece", 90],
     ["Czech-Republic", 100],
     ["Poland", 110],
+    ["Romania", 115],
     ["Ukraine", 120],
     ["Croatia", 130],
     ["Serbia", 140],
@@ -240,7 +242,7 @@
     filterOpen: false,
     outcomeFilters: new Set(),
     detailFixtureId: null,
-    quickFilter: null,  // null | 'live' | 'won' | 'lost'
+    quickFilter: null,  // null | 'live' | 'soon60' | 'won' | 'lost'
     betMaster: {
       count: 4,
       oddFrom: 1.2,
@@ -337,9 +339,11 @@
     detailBody: document.getElementById("match-detail"),
     mcPicksVal: document.getElementById("mc-picks-val"),
     mcLiveVal: document.getElementById("mc-live-val"),
+    mcSoonVal: document.getElementById("mc-soon-val"),
     mcWonVal: document.getElementById("mc-won-val"),
     mcLostVal: document.getElementById("mc-lost-val"),
     mcLivePill: document.getElementById("mc-live-pill"),
+    mcSoonPill: document.getElementById("mc-soon-pill"),
     mcWonPill: document.getElementById("mc-won-pill"),
     mcLostPill: document.getElementById("mc-lost-pill"),
   };
@@ -1037,6 +1041,10 @@
       if (/^ekstraklasa$/i.test(leagueName)) return 170;
       if (/i liga|1\. liga/i.test(leagueName)) return 171;
     }
+    if (country === "Romania") {
+      if (/^liga i$/i.test(leagueName) || /^superliga$/i.test(leagueName)) return 175;
+      if (/liga ii/i.test(leagueName)) return 176;
+    }
     if (country === "Croatia") {
       if (/^hnl$/i.test(leagueName)) return 180;
       if (/1\. nl|druga/i.test(leagueName)) return 181;
@@ -1092,6 +1100,7 @@
     if (country === "Czech-Republic") return /^1\. liga$/i.test(leagueName) || /^chance liga$/i.test(leagueName);
     if (country === "Greece") return /^super league(?: 1)?$/i.test(leagueName);
     if (country === "Poland") return /^ekstraklasa$/i.test(leagueName);
+    if (country === "Romania") return /^liga i$/i.test(leagueName) || /^superliga$/i.test(leagueName);
     if (country === "Croatia") return /^hnl$/i.test(leagueName);
     if (country === "Serbia") return /^super liga$/i.test(leagueName);
     if (country === "Ukraine") return /^premier league$/i.test(leagueName);
@@ -1178,6 +1187,98 @@
 
   function groupStartsWithinHours(group, hours = 2) {
     return group.matches.some(match => matchStartsWithinHours(match, hours));
+  }
+
+  function matchStartsWithinMinutes(match, minutes = 60) {
+    return matchStartsWithinHours(match, minutes / 60);
+  }
+
+  function groupStartsWithinMinutes(group, minutes = 60) {
+    return group.matches.some(match => matchStartsWithinMinutes(match, minutes));
+  }
+
+  function selectedDateProgressWindow() {
+    const zone = activeTimeZone();
+    const selected = state.selectedDate || todayIso(zone);
+    const today = todayIso(zone);
+    const startDate = zonedDateToUtc(selected, "00:00", zone);
+    if (!startDate) return null;
+    if (selected > today) return { start: startDate.getTime(), end: startDate.getTime() - 1 };
+    if (selected === today) return { start: startDate.getTime(), end: Date.now() };
+    const endDate = zonedDateToUtc(selected, "23:59", zone);
+    return { start: startDate.getTime(), end: endDate ? endDate.getTime() + 59000 : startDate.getTime() + (24 * 60 * 60 * 1000) - 1 };
+  }
+
+  function matchWithinSelectedDayProgress(match) {
+    const window = selectedDateProgressWindow();
+    if (!window) return false;
+    const localised = match?.localMatchIsoDate ? match : withLocalKickoff(match);
+    if (localised.localMatchIsoDate && localised.localMatchIsoDate !== (state.selectedDate || todayIso(activeTimeZone()))) return false;
+    const kickoff = kickoffDate(localised);
+    if (!kickoff) return false;
+    const kickoffTs = kickoff.getTime();
+    return kickoffTs >= window.start && kickoffTs <= window.end;
+  }
+
+  function buildFilteredMatch(match, options = {}) {
+    const ignoreStatusFilter = Boolean(options.ignoreStatusFilter);
+    const search = options.searchOverride != null ? String(options.searchOverride).trim().toLowerCase() : state.search.trim().toLowerCase();
+    const oddFilterActive = state.oddActive;
+    const markets = buildMarkets(match).map(market => remapMarketForOutcomeFilters(match, market)).filter(Boolean);
+    const visibleMarkets = markets
+      .filter(market => state.groups.has(market.group))
+      .filter(market => {
+        const probability = Number(market.pickProbability || 0) * 100;
+        return probability >= state.minProbability && probability <= state.maxProbability;
+      })
+      .filter(market => {
+        if (!oddFilterActive) return true;
+        const odd = pickedOdd(market);
+        return odd != null && odd >= state.oddFrom && odd <= state.oddTo;
+      })
+      .filter(market => ignoreStatusFilter || (state.status === "all" ? true : market.status === state.status));
+    const searchBlob = `${match.home} ${match.away} ${match.league} ${match.country} ${markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" ")}`.toLowerCase();
+    const decorated = withLocalKickoff({
+      ...match,
+      markets,
+      visibleMarkets,
+      primaryMarket: selectHeadlineMarket(visibleMarkets, match),
+      searchBlob,
+    });
+    if (search && !decorated.searchBlob.includes(search)) return null;
+    if (!options.keepAll && !(decorated.visibleMarkets.length > 0 || decorated._liveOnly)) return null;
+    return decorated;
+  }
+
+  function isOpenPriorityLeagueGroup(group) {
+    const [tier] = competitionTier(group.country, group.league);
+    return tier <= 3;
+  }
+
+  function groupIsSoonOrLive(group, hours = soonKickoffThresholdHours()) {
+    return groupHasLiveMatches(group) || groupStartsWithinHours(group, hours);
+  }
+
+  function groupDisplayBucket(group) {
+    const [tier] = competitionTier(group.country, group.league);
+    if (state.quickFilter === "live") return groupHasLiveMatches(group) ? 0 : 1;
+    if (state.quickFilter === "soon60") {
+      if (groupHasLiveMatches(group)) return 0;
+      if (groupStartsWithinMinutes(group, 60)) return 1;
+      return 2;
+    }
+    if (tier <= 3) return tier;
+    if (groupIsSoonOrLive(group)) return 5;
+    if (tier === 4) return 6;
+    if (EUROPEAN_COUNTRIES.has(group.country)) return 6;
+    return 7;
+  }
+
+  function groupShouldStartOpen(group) {
+    if (state.search || state.quickFilter) return true;
+    if (isOpenPriorityLeagueGroup(group)) return true;
+    if (groupIsSoonOrLive(group)) return true;
+    return false;
   }
 
   function earliestSoonKickoffTimestamp(group) {
@@ -1527,52 +1628,30 @@
   }
 
   function decorateMatches(rawMatches, keepAll = false) {
-    const search = state.search.trim().toLowerCase();
-    const oddFilterActive = state.oddActive;
     const decorated = rawMatches
-      .map(match => {
-        const markets = buildMarkets(match).map(market => remapMarketForOutcomeFilters(match, market)).filter(Boolean);
-        const visibleMarkets = markets
-          .filter(market => state.groups.has(market.group))
-          .filter(market => {
-            const probability = Number(market.pickProbability || 0) * 100;
-            return probability >= state.minProbability && probability <= state.maxProbability;
-          })
-          .filter(market => {
-            if (!oddFilterActive) return true;
-            const odd = pickedOdd(market);
-            return odd != null && odd >= state.oddFrom && odd <= state.oddTo;
-          })
-          .filter(market => state.status === "all" ? true : market.status === state.status);
-        const searchBlob = `${match.home} ${match.away} ${match.league} ${match.country} ${markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" ")}`.toLowerCase();
-        return withLocalKickoff({ ...match, markets, visibleMarkets, primaryMarket: selectHeadlineMarket(visibleMarkets, match), searchBlob });
-      })
+      .map(match => buildFilteredMatch(match, { keepAll }))
+      .filter(Boolean)
       .filter(match => matchWithinMainTimeWindow(match))
-      .filter(match => !search || match.searchBlob.includes(search))
-      .filter(match => keepAll || match.visibleMarkets.length > 0 || match._liveOnly)
       .sort((a, b) => `${a.localKickoffSort || a.match_time}-${a.league}-${a.home}`.localeCompare(`${b.localKickoffSort || b.match_time}-${b.league}-${b.home}`));
     const result = diversifyMatchesByLeague(decorated);
     if (state.quickFilter === 'live') {
-      const nowTs = Date.now();
-      return result.filter(match => {
-        const st = String(match.status_short || "").toUpperCase();
-        if (LIVE_STATUSES.has(st)) return true;
-        const kickoff = kickoffDate(match);
-        return kickoff && kickoff.getTime() >= nowTs - 10 * 60 * 1000 && kickoff.getTime() <= nowTs + 30 * 60 * 1000;
-      });
+      return result.filter(match => matchWithinSelectedDayProgress(match) && matchIsActuallyLive(match));
+    }
+    if (state.quickFilter === 'soon60') {
+      return result.filter(match => matchWithinSelectedDayProgress(match) && (matchIsActuallyLive(match) || matchStartsWithinMinutes(match, 60)));
     }
     if (state.quickFilter === 'won') {
-      return result.filter(match => match.visibleMarkets.some(m => m.status === 'win'));
+      return result.filter(match => matchWithinSelectedDayProgress(match) && match.visibleMarkets.some(m => m.status === 'win'));
     }
     if (state.quickFilter === 'lost') {
-      return result.filter(match => match.visibleMarkets.some(m => m.status === 'lose'));
+      return result.filter(match => matchWithinSelectedDayProgress(match) && match.visibleMarkets.some(m => m.status === 'lose'));
     }
     return result;
   }
 
-  function getDerivedMatches() {
+  function getEnrichedRawMatches() {
     const rawMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
-    const enriched = rawMatches.map(match => {
+    return rawMatches.map(match => {
       const live = state.liveScores[String(match.fixture_id)];
       if (!live) return match;
       const liveStatus = String(live.status || "").toUpperCase();
@@ -1585,20 +1664,22 @@
         final_score: FINAL_STATUSES.has(liveStatus) ? `${live.home}-${live.away}` : match.final_score,
       };
     });
-    return decorateMatches(enriched);
+  }
+
+  function getDerivedMatches() {
+    return decorateMatches(getEnrichedRawMatches());
   }
 
   function getFullDayStats() {
-    const rawMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
-    let wonCount = 0, lostCount = 0, liveCount = 0, totalOdds = 0, oddsCount = 0;
-    for (const rawMatch of rawMatches) {
-      const live = state.liveScores[String(rawMatch.fixture_id)];
-      const liveStatus = live ? String(live.status || "").toUpperCase() : null;
-      const status = liveStatus || String(rawMatch.status_short || "").toUpperCase();
-      if (LIVE_STATUSES.has(status)) liveCount++;
-      const markets = buildMarkets({ ...rawMatch, ...(live && (LIVE_STATUSES.has(liveStatus) || FINAL_STATUSES.has(liveStatus)) ? { status_short: live.status } : {}) });
-      const visMarkets = markets.filter(m => Number(m.pickProbability || 0) > 0 || (m.options || []).some(o => o.probability != null));
-      const primary = visMarkets.length ? selectHeadlineMarket(visMarkets, rawMatch) : null;
+    const dayMatches = getEnrichedRawMatches()
+      .map(match => buildFilteredMatch(match, { ignoreStatusFilter: true }))
+      .filter(Boolean)
+      .filter(matchWithinSelectedDayProgress);
+    let wonCount = 0, lostCount = 0, liveCount = 0, soon60Count = 0, totalOdds = 0, oddsCount = 0;
+    for (const match of dayMatches) {
+      if (matchIsActuallyLive(match)) liveCount++;
+      if (matchIsActuallyLive(match) || matchStartsWithinMinutes(match, 60)) soon60Count++;
+      const primary = match.primaryMarket;
       if (primary) {
         if (primary.status === 'win') wonCount++;
         if (primary.status === 'lose') lostCount++;
@@ -1611,7 +1692,7 @@
     const roiPct = totalClosed > 0 && avgOdd != null
       ? ((wonCount * (avgOdd - 1) - lostCount) / totalClosed * 100)
       : null;
-    return { wonCount, lostCount, liveCount, avgOdd, roiPct };
+    return { wonCount, lostCount, liveCount, soon60Count, avgOdd, roiPct };
   }
 
   function getDetailMatch() {
@@ -2238,7 +2319,11 @@
   function renderFeedToolbar(matches) {
     if (dom.feedStateTitle) {
       let label = "Pronostici";
-      if (state.status === "live") label = "Live";
+      if (state.quickFilter === "live") label = "Live";
+      else if (state.quickFilter === "soon60") label = "<60min";
+      else if (state.quickFilter === "won") label = IS_EN ? "Won" : "Vinte";
+      else if (state.quickFilter === "lost") label = IS_EN ? "Lost" : "Perse";
+      else if (state.status === "live") label = "Live";
       else if (state.status === "scheduled") label = "In arrivo";
       else if (state.status === "win") label = "Verdi";
       else if (state.status === "lose") label = "Rossi";
@@ -2282,9 +2367,11 @@
     const dayStats = getFullDayStats();
     if (dom.mcPicksVal) dom.mcPicksVal.textContent = String(matches.length);
     if (dom.mcLiveVal) dom.mcLiveVal.textContent = String(dayStats.liveCount);
+    if (dom.mcSoonVal) dom.mcSoonVal.textContent = String(dayStats.soon60Count);
     if (dom.mcWonVal) dom.mcWonVal.textContent = String(dayStats.wonCount);
     if (dom.mcLostVal) dom.mcLostVal.textContent = String(dayStats.lostCount);
     if (dom.mcLivePill) dom.mcLivePill.classList.toggle('active', state.quickFilter === 'live');
+    if (dom.mcSoonPill) dom.mcSoonPill.classList.toggle('active', state.quickFilter === 'soon60');
     if (dom.mcWonPill) dom.mcWonPill.classList.toggle('active', state.quickFilter === 'won');
     if (dom.mcLostPill) dom.mcLostPill.classList.toggle('active', state.quickFilter === 'lost');
   }
@@ -2511,35 +2598,52 @@
           return 0;
         }),
     }));
-    const allMajorGroups = groups.filter(isMajorLeagueGroup);
-    // Live major leagues bubble to the top of the major block
-    const liveMajorGroups = allMajorGroups.filter(g => groupHasLiveMatches(g));
-    const nonLiveMajorGroups = allMajorGroups.filter(g => !groupHasLiveMatches(g));
-    const majorGroups = [...liveMajorGroups, ...nonLiveMajorGroups];
-    const regularGroups = groups.filter(group => !isMajorLeagueGroup(group));
-    const liveRegularGroups = regularGroups
-      .filter(group => groupHasLiveMatches(group))
-      .sort((a, b) => compareCompositeKeys(groupSortKey(a), groupSortKey(b)));
-    const nonLiveRegularGroups = regularGroups.filter(group => !groupHasLiveMatches(group));
-    const soonGroups = nonLiveRegularGroups
-      .filter(group => groupStartsWithinHours(group, soonKickoffThresholdHours()))
-      .sort((a, b) => {
-        const kickoffDiff = earliestSoonKickoffTimestamp(a) - earliestSoonKickoffTimestamp(b);
-        if (Math.abs(kickoffDiff) > 0) return kickoffDiff;
-        return compareCompositeKeys(groupSortKey(a), groupSortKey(b));
-      });
-    const laterGroups = nonLiveRegularGroups.filter(group => !soonGroups.includes(group));
-    const orderedGroups = [...majorGroups, ...liveRegularGroups, ...soonGroups, ...laterGroups];
+    const orderedGroups = [...groups].sort((a, b) => {
+      const bucketDiff = groupDisplayBucket(a) - groupDisplayBucket(b);
+      if (bucketDiff !== 0) return bucketDiff;
+      if (state.quickFilter === "live") {
+        const liveDiff = Number(groupHasLiveMatches(b)) - Number(groupHasLiveMatches(a));
+        if (liveDiff !== 0) return liveDiff;
+      }
+      if (state.quickFilter === "soon60") {
+        const liveDiff = Number(groupHasLiveMatches(b)) - Number(groupHasLiveMatches(a));
+        if (liveDiff !== 0) return liveDiff;
+        const soonDiff = earliestSoonKickoffTimestamp(a) - earliestSoonKickoffTimestamp(b);
+        if (Math.abs(soonDiff) > 0 && Number.isFinite(soonDiff)) return soonDiff;
+      }
+      if (groupIsSoonOrLive(a) || groupIsSoonOrLive(b)) {
+        const activeDiff = Number(groupIsSoonOrLive(b)) - Number(groupIsSoonOrLive(a));
+        if (activeDiff !== 0) return activeDiff;
+        const liveDiff = Number(groupHasLiveMatches(b)) - Number(groupHasLiveMatches(a));
+        if (liveDiff !== 0) return liveDiff;
+      }
+      return compareCompositeKeys(groupSortKey(a), groupSortKey(b));
+    });
 
     // Partite live non nel JSON (coppe, ET, ecc.) — renderizzate in cima
-    const liveOnlyHtml = (state.liveOnlyMatches || []).map(f => {
+    const includeLiveOnly = state.quickFilter
+      ? (state.quickFilter === "live" || state.quickFilter === "soon60")
+      : (state.status === "all" || state.status === "live");
+    const liveOnlyHtml = !includeLiveOnly ? "" : (state.liveOnlyMatches || []).map(f => {
       const liveScore = state.liveScores[String(f.fixture_id)];
       const elapsed = liveScore?.elapsed ? `${liveScore.elapsed}'` : (liveScore?.status || "LIVE");
       const score = liveScore ? `${liveScore.home} - ${liveScore.away}` : "- -";
-      return `<section class="league-block league-block-major league-block-live">
-        <div class="league-header">
-          <div class="league-title"><span class="league-live-dot"></span><span>${escapeHtml(f.league)} | ${escapeHtml(f.country)}</span><span class="league-live-badge">LIVE</span></div>
-        </div>
+      return `<details class="league-block league-accordion league-block-live" open>
+        <summary class="league-header league-summary">
+          <div class="league-title">
+            <span class="league-dot" aria-hidden="true"></span>
+            <div>
+              <h3>${escapeHtml(f.league)}</h3>
+              <p>${escapeHtml(f.country)}</p>
+            </div>
+            <span class="league-live-dot" aria-hidden="true"></span>
+          </div>
+          <div class="league-header-center">
+            <span class="league-live-badge">LIVE</span>
+            <span class="league-count">1</span>
+          </div>
+          <span class="league-header-end"><span class="league-caret" aria-hidden="true"></span></span>
+        </summary>
         <article class="match-row status-live">
           <div class="match-row-inner">
             <div class="match-time-block"><div class="match-time">${escapeHtml(f.match_time || "--:--")}</div></div>
@@ -2554,14 +2658,14 @@
             <div class="match-action"><strong>${IS_EN ? "RFO" : "Solo Finale"}</strong><small>&nbsp;</small></div>
           </div>
         </article>
-      </section>`;
+      </details>`;
     }).join("");
 
     dom.leagueFeed.innerHTML = liveOnlyHtml + orderedGroups.map(group => {
       const isLive = groupHasLiveMatches(group);
       const liveDot = isLive ? `<span class="league-live-dot" aria-label="Live" title="Live"></span>` : "";
       const liveBadge = isLive ? `<span class="league-live-badge">LIVE</span>` : "";
-      const header = `
+      const headerMain = `
         <div class="league-title">
           ${group.logo ? `<img class="league-logo" src="${group.logo}" alt="" loading="lazy" />` : `<span class="league-dot" aria-hidden="true"></span>`}
           <div>
@@ -2570,14 +2674,18 @@
           </div>
           ${liveDot}
         </div>
-        <div style="display:flex;align-items:center;gap:8px">${liveBadge}<span class="league-count">${group.matches.length}</span></div>
       `;
+      const headerCenter = `<div class="league-header-center">${liveBadge}<span class="league-count">${group.matches.length}</span></div>`;
       const content = `<div class="match-list">${group.matches.map(match => renderMatchRow(match, { showLeagueLine: false })).join("")}</div>`;
-      if (isMajorLeagueGroup(group)) {
-        return `<section class="league-block league-block-major${isLive ? " league-block-live" : ""}"><div class="league-header">${header}</div>${content}</section>`;
-      }
-      const openSoon = groupStartsWithinHours(group, 0.5);
-      return `<details class="league-block league-accordion${isLive ? " league-block-live" : ""}"${state.search || isLive || openSoon ? " open" : ""}><summary class="league-header league-summary">${header}<span class="league-caret" aria-hidden="true"></span></summary>${content}</details>`;
+      const open = groupShouldStartOpen(group);
+      const classes = [
+        "league-block",
+        "league-accordion",
+        isMajorLeagueGroup(group) ? "league-block-major" : "",
+        isLive ? "league-block-live" : "",
+        isOpenPriorityLeagueGroup(group) ? "league-block-priority" : "",
+      ].filter(Boolean).join(" ");
+      return `<details class="${classes}"${open ? " open" : ""}><summary class="league-header league-summary">${headerMain}${headerCenter}<span class="league-header-end"><span class="league-caret" aria-hidden="true"></span></span></summary>${content}</details>`;
     }).join("");
   }
 
@@ -3121,6 +3229,12 @@
       const wasActive = state.quickFilter === 'live';
       doResetFilters();
       state.quickFilter = wasActive ? null : 'live';
+      render();
+    });
+    if (dom.mcSoonPill) dom.mcSoonPill.addEventListener("click", () => {
+      const wasActive = state.quickFilter === 'soon60';
+      doResetFilters();
+      state.quickFilter = wasActive ? null : 'soon60';
       render();
     });
     if (dom.mcWonPill) dom.mcWonPill.addEventListener("click", () => {

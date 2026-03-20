@@ -93,6 +93,58 @@
     @media (max-width:1120px){.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.match-row-inner{grid-template-columns:78px minmax(0,1fr)}.match-action{grid-column:1 / -1}}
     @media (max-width:720px){body{padding:10px 8px 30px}.hero-shell,.ribbon-shell,.section-block,.sheet,.detail-sheet{border-radius:24px}.hero-copy-wrap p,.hero-links,.stats-grid{display:none}.hero-pills,.detail-meta-grid,.control-row,.chips-grid{grid-template-columns:1fr}.hero-actions,.toolbar-row,.section-head,.league-header{flex-direction:column;align-items:stretch}.app-icon-row{width:100%;justify-content:space-between}.app-icon-row .icon-button{flex:1 1 0}.icon-button{width:100%}.top-pick-card{display:flex;flex-direction:column;align-items:stretch}.top-pick-side{text-align:left;align-items:flex-start}.match-row{padding:14px 14px 14px 16px}.match-row-inner{grid-template-columns:1fr;gap:12px}.match-time-block{flex-direction:row;align-items:center}.match-action{width:100%}.detail-teams{grid-template-columns:1fr auto 1fr}.detail-vs{margin:0 auto}.live-event-icon{display:none}}
   </style>
+  <style>
+    .league-header,
+    .league-summary{
+      display:grid !important;
+      grid-template-columns:minmax(0,1fr) auto 22px;
+      align-items:center !important;
+      gap:14px;
+    }
+    .league-title{min-width:0}
+    .league-header-center{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      justify-self:center;
+      min-width:72px;
+    }
+    .league-header-end{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:22px;
+      justify-self:end;
+    }
+    .league-caret{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:18px;
+      transition:transform .18s ease;
+    }
+    .league-accordion[open] > .league-summary .league-caret{transform:rotate(180deg)}
+    .league-count{
+      min-width:36px;
+      justify-content:center;
+      text-align:center;
+    }
+    .mc-stat-soon strong{color:#facc15}
+    .mc-stat-soon:hover,.mc-stat-soon.active{
+      border-color:rgba(250,204,21,.4)!important;
+      background:rgba(250,204,21,.1)!important;
+    }
+    @media (max-width:720px){
+      .league-header,
+      .league-summary{
+        grid-template-columns:minmax(0,1fr) auto 18px;
+        gap:10px;
+      }
+      .league-header-center{min-width:58px}
+      .league-header-end{width:18px}
+    }
+  </style>
 </head>
 <body>
   <header class="topbar2">
@@ -392,6 +444,9 @@
       <div class="mc-stat-sep" aria-hidden="true"></div>
       <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-live" id="mc-live-pill">
         <strong id="mc-live-val">0</strong><span>live</span>
+      </button>
+      <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-soon" id="mc-soon-pill">
+        <strong id="mc-soon-val">0</strong><span>&lt;60min</span>
       </button>
       <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-won" id="mc-won-pill">
         <strong id="mc-won-val">0</strong><span>vinte</span>
@@ -2673,7 +2728,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center.js?v=20260320d"></script>
+  <script src="/assets/match_center.js?v=20260320e"></script>
   <script>
     (function () {
       const ready = () => {

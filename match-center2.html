@@ -93,6 +93,93 @@
     @media (max-width:1120px){.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.match-row-inner{grid-template-columns:78px minmax(0,1fr)}.match-action{grid-column:1 / -1}}
     @media (max-width:720px){body{padding:10px 8px 30px}.hero-shell,.ribbon-shell,.section-block,.sheet,.detail-sheet{border-radius:24px}.hero-copy-wrap p,.hero-links,.stats-grid{display:none}.hero-pills,.detail-meta-grid,.control-row,.chips-grid{grid-template-columns:1fr}.hero-actions,.toolbar-row,.section-head,.league-header{flex-direction:column;align-items:stretch}.app-icon-row{width:100%;justify-content:space-between}.app-icon-row .icon-button{flex:1 1 0}.icon-button{width:100%}.top-pick-card{display:flex;flex-direction:column;align-items:stretch}.top-pick-side{text-align:left;align-items:flex-start}.match-row{padding:14px 14px 14px 16px}.match-row-inner{grid-template-columns:1fr;gap:12px}.match-time-block{flex-direction:row;align-items:center}.match-action{width:100%}.detail-teams{grid-template-columns:1fr auto 1fr}.detail-vs{margin:0 auto}.live-event-icon{display:none}}
   </style>
+  <style>
+    .league-header,
+    .league-summary{
+      display:grid !important;
+      grid-template-columns:minmax(0,1fr) auto 22px;
+      align-items:center !important;
+      gap:14px;
+    }
+    .league-title{min-width:0}
+    .league-header-center{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      justify-self:center;
+      min-width:72px;
+    }
+    .league-header-end{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:22px;
+      justify-self:end;
+    }
+    .league-caret{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:18px;
+      transition:transform .18s ease;
+    }
+    .league-accordion[open] > .league-summary .league-caret{transform:rotate(180deg)}
+    .league-count{
+      min-width:36px;
+      justify-content:center;
+      text-align:center;
+    }
+    .mc-stat-bar{
+      display:flex;
+      align-items:center;
+      gap:4px;
+      flex-wrap:wrap;
+      padding:10px 12px;
+      border-radius:20px;
+      border:1px solid rgba(148,163,184,.14);
+      background:linear-gradient(180deg,rgba(15,22,40,.96),rgba(8,14,26,.99));
+      margin-bottom:0;
+      overflow-x:auto;
+      scrollbar-width:none;
+    }
+    .mc-stat-bar::-webkit-scrollbar{display:none}
+    .mc-stat-pill{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:1px;
+      padding:7px 14px;
+      border-radius:13px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(148,163,184,.1);
+      white-space:nowrap;
+      min-width:0;
+      flex-shrink:0;
+    }
+    .mc-stat-pill strong{font-size:1.05rem;font-weight:900;color:#eef5ff;line-height:1}
+    .mc-stat-pill span{font-size:.62rem;color:#7f93b1;text-transform:uppercase;letter-spacing:.07em;line-height:1.2}
+    .mc-stat-sep{width:1px;height:26px;background:rgba(148,163,184,.14);margin:0 3px;flex-shrink:0}
+    .mc-stat-clickable{cursor:pointer;transition:background .14s,border-color .14s,transform .1s;-webkit-tap-highlight-color:transparent}
+    .mc-stat-clickable:hover{background:rgba(255,255,255,.08);transform:translateY(-1px)}
+    .mc-stat-live strong{color:#ef4444}
+    .mc-stat-live:hover,.mc-stat-live.active{border-color:rgba(239,68,68,.4)!important;background:rgba(239,68,68,.09)!important}
+    .mc-stat-soon strong{color:#facc15}
+    .mc-stat-soon:hover,.mc-stat-soon.active{border-color:rgba(250,204,21,.4)!important;background:rgba(250,204,21,.1)!important}
+    .mc-stat-won strong{color:#34d399}
+    .mc-stat-won:hover,.mc-stat-won.active{border-color:rgba(52,211,153,.38)!important;background:rgba(52,211,153,.09)!important}
+    .mc-stat-lost strong{color:#f87171}
+    .mc-stat-lost:hover,.mc-stat-lost.active{border-color:rgba(248,113,113,.38)!important;background:rgba(248,113,113,.09)!important}
+    @media (max-width:720px){
+      .league-header,
+      .league-summary{
+        grid-template-columns:minmax(0,1fr) auto 18px;
+        gap:10px;
+      }
+      .league-header-center{min-width:58px}
+      .league-header-end{width:18px}
+    }
+  </style>
 </head>
 <body>
   <header class="topbar2">
@@ -381,7 +468,25 @@
         <div class="empty-state">Genera per vedere la schedina disponibile nella finestra selezionata.</div>
       </div>
     </section>
-    <section class="stats-grid">
+    <div class="mc-stat-bar">
+      <div class="mc-stat-pill">
+        <strong id="mc-picks-val">0</strong><span>picks</span>
+      </div>
+      <div class="mc-stat-sep" aria-hidden="true"></div>
+      <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-live" id="mc-live-pill">
+        <strong id="mc-live-val">0</strong><span>live</span>
+      </button>
+      <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-soon" id="mc-soon-pill">
+        <strong id="mc-soon-val">0</strong><span>&lt;60min</span>
+      </button>
+      <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-won" id="mc-won-pill">
+        <strong id="mc-won-val">0</strong><span>vinte</span>
+      </button>
+      <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-lost" id="mc-lost-pill">
+        <strong id="mc-lost-val">0</strong><span>perse</span>
+      </button>
+    </div>
+    <section class="stats-grid" hidden>
       <article class="stat-card"><span id="summary-matches-label">Partite visibili</span><strong id="summary-matches">0</strong><small id="summary-matches-meta">Nel blocco corrente</small></article>
       <article class="stat-card"><span id="summary-top-label">Top picks</span><strong id="summary-top">0</strong><small id="summary-top-meta">Edge forti del filtro attivo</small></article>
       <article class="stat-card"><span id="summary-live-label">Match live / finali</span><strong id="summary-live">0 / 0</strong><small id="summary-live-meta">Situazione cache</small></article>
@@ -2540,7 +2645,7 @@
       }
     }
   </style>
-  <script src="/assets/match_center.js?v=20260320d"></script>
+  <script src="/assets/match_center.js?v=20260320e"></script>
   <script>
     (function () {
       const ready = () => {
