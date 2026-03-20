@@ -2394,8 +2394,7 @@
     }
     dom.topPicks.innerHTML = `<div class="match-list top-pick-list">${topPicks.map(pick => {
       const meta = [];
-      if (pick.status === "scheduled") meta.push(statusLabel("scheduled").toUpperCase());
-      else if (pick.status === "win") meta.push(TEXT.wonWord.toUpperCase());
+      if (pick.status === "win") meta.push(TEXT.wonWord.toUpperCase());
       else if (pick.status === "lose") meta.push(TEXT.lostWord.toUpperCase());
       else if (pick.status === "live") meta.push("LIVE");
       if (pick.pickProbability != null) meta.push(formatPercent(pick.pickProbability));
@@ -2433,8 +2432,7 @@
     const displayStatus = primary?.status || (FINAL_STATUSES.has(fixtureStatus) ? "unresolved" : (LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled"));
     const picked = pickedOption(primary);
     const meta = [];
-    if (displayStatus === "scheduled") meta.push(statusLabel("scheduled").toUpperCase());
-    else if (displayStatus === "win") meta.push(TEXT.wonWord.toUpperCase());
+    if (displayStatus === "win") meta.push(TEXT.wonWord.toUpperCase());
     else if (displayStatus === "lose") meta.push(TEXT.lostWord.toUpperCase());
     else if (displayStatus === "live") meta.push("LIVE");
     if (primary?.pickProbability != null) meta.push(formatPercent(primary.pickProbability));
