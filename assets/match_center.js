@@ -2959,8 +2959,9 @@
     const loadingBlock = !state.detailData && state.detailDataId ? `<div class="empty-state" style="padding:10px">Caricamento dati live…</div>` : "";
     const competitionBlock = renderDetailCompetitionContext(match);
     const formBlock = renderDetailForm(match);
-    const eventsBlock = state.detailData ? renderDetailEvents(state.detailData.events, match) : "";
-    const statsBlock = state.detailData ? renderDetailStats(state.detailData.statistics) : "";
+    const eventsBlock = state.detailData ? renderDetailEvents(state.detailData.events || state.detailData.fixture?.events || [], match) : "";
+    const detailStatistics = state.detailData?.statistics || state.detailData?.fixture?.statistics || [];
+    const statsBlock = state.detailData ? renderDetailStats(detailStatistics) : "";
     dom.detailBody.innerHTML = `
       <article class="detail-hero">
         <div class="detail-teams">

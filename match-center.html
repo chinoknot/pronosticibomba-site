@@ -2759,7 +2759,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center.js?v=20260320h"></script>
+  <script src="/assets/match_center.js?v=20260320i"></script>
   <script>
     (function () {
       const ready = () => {
@@ -2869,12 +2869,12 @@
     }
 
     /* Detail accordion: transizione smooth contenuto */
-    .detail-accordion > div {
+    details.detail-accordion > div {
       overflow: hidden;
       transition: opacity .18s ease;
     }
-    .detail-accordion:not([open]) > div { opacity: 0; }
-    .detail-accordion[open] > div { opacity: 1; }
+    details.detail-accordion:not([open]) > div { opacity: 0; }
+    details.detail-accordion[open] > div { opacity: 1; }
 
     /* Detail sheet: chiusura animata */
     .detail-sheet { transition: transform .28s cubic-bezier(.32,.72,0,1); }
