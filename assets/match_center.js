@@ -2394,10 +2394,13 @@
     }
     dom.topPicks.innerHTML = `<div class="match-list top-pick-list">${topPicks.map(pick => {
       const meta = [];
+      if (pick.status === "scheduled") meta.push(statusLabel("scheduled").toUpperCase());
+      else if (pick.status === "win") meta.push(TEXT.wonWord.toUpperCase());
+      else if (pick.status === "lose") meta.push(TEXT.lostWord.toUpperCase());
+      else if (pick.status === "live") meta.push("LIVE");
       if (pick.pickProbability != null) meta.push(formatPercent(pick.pickProbability));
       if (pick.odd) meta.push(`${TEXT.odds} ${formatOdd(pick.odd)}`);
       else meta.push(pick.tag);
-      if (pick.impactLabel) meta.push(pick.impactLabel);
       return `
         <article class="match-row match-row-featured status-${pick.status}" data-fixture-open="${pick.fixtureId}">
           <div class="match-row-inner">
@@ -2430,14 +2433,13 @@
     const displayStatus = primary?.status || (FINAL_STATUSES.has(fixtureStatus) ? "unresolved" : (LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled"));
     const picked = pickedOption(primary);
     const meta = [];
-    if (displayStatus === "win") meta.push(TEXT.wonWord.toUpperCase());
+    if (displayStatus === "scheduled") meta.push(statusLabel("scheduled").toUpperCase());
+    else if (displayStatus === "win") meta.push(TEXT.wonWord.toUpperCase());
     else if (displayStatus === "lose") meta.push(TEXT.lostWord.toUpperCase());
     else if (displayStatus === "live") meta.push("LIVE");
     if (primary?.pickProbability != null) meta.push(formatPercent(primary.pickProbability));
     if (picked?.odd) meta.push(`${TEXT.odds} ${formatOdd(picked.odd)}`);
     else if (primary?.tag) meta.push(primary.tag);
-    if (primary?.impactLabel) meta.push(primary.impactLabel);
-    if (match.visibleMarkets.length) meta.push(`${match.visibleMarkets.length} ${TEXT.markets}`);
     const liveScore = state.liveScores[String(match.fixture_id)];
     const effectiveStatus = liveScore ? String(liveScore.status || "").toUpperCase() : fixtureStatus;
     const scoreText = (() => {

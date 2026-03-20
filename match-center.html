@@ -2646,7 +2646,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center.js?v=20260319e"></script>
+  <script src="/assets/match_center.js?v=20260319f"></script>
   <script>
     (function () {
       const ready = () => {
@@ -2775,6 +2775,160 @@
 
     /* Overlay blur in/out */
     .screen-overlay { transition: opacity .22s ease, backdrop-filter .22s ease; }
+  </style>
+  <style>
+    .match-row-inner{
+      grid-template-columns:64px minmax(0,1fr) 176px;
+      align-items:stretch;
+    }
+
+    .match-action{
+      position:relative;
+      justify-self:stretch;
+      align-self:stretch;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      justify-content:center;
+      gap:8px;
+      width:100%;
+      max-width:none;
+      min-height:86px;
+      padding:12px 14px 12px 16px;
+      border-radius:20px;
+      border:1px solid rgba(255,187,92,.54);
+      background:
+        radial-gradient(circle at top right,rgba(255,191,91,.14),transparent 38%),
+        linear-gradient(180deg,rgba(29,46,76,.98),rgba(11,18,32,.99));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.07),
+        0 14px 28px rgba(4,10,24,.18);
+      text-align:left;
+      overflow:hidden;
+    }
+
+    .match-action::before{
+      content:"";
+      position:absolute;
+      inset:0 auto 0 0;
+      width:4px;
+      background:linear-gradient(180deg,rgba(255,214,102,.96),rgba(255,122,24,.96));
+    }
+
+    .match-action strong{
+      width:100%;
+      font-size:.98rem;
+      font-weight:900;
+      line-height:1.04;
+      letter-spacing:-.03em;
+      white-space:normal;
+      overflow:hidden;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+    }
+
+    .match-action small{
+      width:100%;
+      color:#e9f2ff;
+      font-size:.68rem;
+      line-height:1.28;
+      letter-spacing:.03em;
+      text-transform:none;
+      white-space:normal;
+      overflow:hidden;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      opacity:.96;
+    }
+
+    .match-row.status-scheduled .match-action{
+      border-color:rgba(245,158,11,.62);
+      background:
+        radial-gradient(circle at top right,rgba(250,204,21,.14),transparent 38%),
+        linear-gradient(180deg,rgba(47,35,16,.98),rgba(16,14,20,.99));
+    }
+
+    .match-row.status-scheduled .match-action::before{
+      background:linear-gradient(180deg,rgba(254,240,138,.98),rgba(245,158,11,.96));
+    }
+
+    .match-row.status-live .match-action{
+      border-color:rgba(96,165,250,.72);
+      background:
+        radial-gradient(circle at top right,rgba(56,189,248,.16),transparent 40%),
+        linear-gradient(180deg,rgba(10,49,84,.98),rgba(8,21,39,.99));
+    }
+
+    .match-row.status-live .match-action::before{
+      background:linear-gradient(180deg,rgba(96,165,250,.98),rgba(34,211,238,.98));
+    }
+
+    .match-row.status-live .match-action small{
+      color:#d9f6ff;
+    }
+
+    .match-row.status-win .match-action{
+      border-color:rgba(45,212,191,.8);
+      background:
+        radial-gradient(circle at top right,rgba(94,234,212,.16),transparent 38%),
+        linear-gradient(180deg,rgba(8,69,77,.98),rgba(7,27,34,.99));
+    }
+
+    .match-row.status-win .match-action::before{
+      background:linear-gradient(180deg,rgba(94,234,212,.98),rgba(34,211,238,.98));
+    }
+
+    .match-row.status-win .match-action small{
+      color:#d4fff7;
+    }
+
+    .match-row.status-lose .match-action{
+      border-color:rgba(255,138,108,.84);
+      background:
+        repeating-linear-gradient(135deg,rgba(255,122,89,.08) 0 12px,rgba(207,33,76,.1) 12px 24px),
+        linear-gradient(180deg,rgba(88,21,33,.98),rgba(34,10,22,.99));
+    }
+
+    .match-row.status-lose .match-action::before{
+      background:linear-gradient(180deg,rgba(255,186,111,.98),rgba(255,93,93,.98));
+    }
+
+    .match-row.status-lose .match-action small{
+      color:#fff0ea;
+    }
+
+    @media (max-width:1120px){
+      .match-row-inner{
+        grid-template-columns:64px minmax(0,1fr);
+      }
+
+      .match-action{
+        grid-column:1 / -1;
+      }
+    }
+
+    @media (max-width:720px){
+      .match-row-inner{
+        grid-template-columns:1fr;
+        gap:10px;
+      }
+
+      .match-action{
+        min-height:74px;
+        padding:11px 12px 11px 14px;
+        border-radius:18px;
+      }
+
+      .match-action strong{
+        font-size:.9rem;
+      }
+
+      .match-action small{
+        font-size:.65rem;
+      }
+    }
   </style>
 </body>
 </html>
