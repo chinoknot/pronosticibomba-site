@@ -637,7 +637,12 @@
     .detail-events{display:flex;flex-direction:column;gap:6px}
     .detail-event-row{display:grid;grid-template-columns:36px 24px 1fr;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(148,163,184,.08)}
     .detail-event-time{font-size:.72rem;font-weight:700;color:#60a5fa;text-align:right}
-    .detail-event-icon{font-size:.9rem;text-align:center}
+    .detail-event-icon{display:flex;align-items:center;justify-content:center;min-height:20px;font-size:.78rem;font-weight:800;text-align:center;color:#d7e5ff}
+    .detail-goal-dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:linear-gradient(180deg,#5eead4,#0ea5e9);box-shadow:0 0 0 3px rgba(94,234,212,.14)}
+    .detail-own-goal-chip,.detail-penalty-chip{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:20px;padding:0 8px;border-radius:999px;font-size:.62rem;font-weight:900;letter-spacing:.04em}
+    .detail-own-goal-chip{background:linear-gradient(135deg,rgba(255,142,84,.22),rgba(225,29,72,.2));border:1px solid rgba(255,142,84,.42);color:#ffe8df}
+    .detail-penalty-chip{background:linear-gradient(135deg,rgba(96,165,250,.18),rgba(14,165,233,.18));border:1px solid rgba(96,165,250,.34);color:#e0f2fe}
+    .detail-red-card-icon{display:inline-block;width:11px;height:15px;border-radius:2px;background:linear-gradient(180deg,#ff8a7a,#e11d48);box-shadow:0 0 0 1px rgba(255,255,255,.08) inset;transform:rotate(-7deg)}
     .detail-event-info{display:flex;flex-direction:column;gap:1px}.detail-event-info strong{font-size:.82rem}.detail-event-info small{font-size:.7rem;color:#7d8faa}
     .detail-stats{display:flex;flex-direction:column;gap:8px}
     .detail-stat-row{display:grid;grid-template-columns:40px 1fr 40px;align-items:center;gap:6px;font-size:.78rem}
@@ -2535,7 +2540,7 @@
       }
     }
   </style>
-  <script src="/assets/match_center.js?v=20260320c"></script>
+  <script src="/assets/match_center.js?v=20260320d"></script>
   <script>
     (function () {
       const ready = () => {

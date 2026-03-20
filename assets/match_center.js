@@ -2608,16 +2608,34 @@
     return parts.join(" | ") || fallback;
   }
 
-  function renderDetailEvents(events) {
+  function renderDetailEvents(events, match) {
     if (!events || !events.length) return "";
     const relevant = events.filter(e => e.type === "Goal" || (e.type === "Card" && (e.detail === "Red Card" || e.detail === "Second Yellow Card")) || e.type === "Var");
     if (!relevant.length) return "";
-    const icon = e => e.type === "Goal" ? (e.detail === "Missed Penalty" ? "🚫" : (e.detail === "Own Goal" ? "⚽🔴" : (e.detail === "Penalty" ? "⚽(R)" : "⚽"))) : e.type === "Var" ? "📺" : "🟥";
+    const homeName = match?.home || "";
+    const awayName = match?.away || "";
+    const icon = e => {
+      if (e.type === "Goal") {
+        if (e.detail === "Own Goal") return `<span class="detail-own-goal-chip">${escapeHtml(IS_EN ? "Own" : "Aut.")}</span>`;
+        if (e.detail === "Penalty") return `<span class="detail-penalty-chip">${escapeHtml(IS_EN ? "Pen." : "Rig.")}</span>`;
+        return `<span class="detail-goal-dot" aria-hidden="true"></span>`;
+      }
+      if (e.type === "Var") return "VAR";
+      return `<span class="detail-red-card-icon" aria-hidden="true"></span>`;
+    };
     const rows = relevant.map(e => {
       const t = e.time?.elapsed ? `${e.time.elapsed}${e.time.extra ? `+${e.time.extra}` : ""}'` : "";
-      return `<div class="detail-event-row"><span class="detail-event-time">${escapeHtml(t)}</span><span class="detail-event-icon">${icon(e)}</span><span class="detail-event-info"><strong>${escapeHtml(e.player?.name || e.detail || "")}</strong><small>${escapeHtml(e.team?.name || "")}</small></span></div>`;
+      const isOwnGoal = e.type === "Goal" && e.detail === "Own Goal";
+      const rawTeam = String(e.team?.name || "");
+      const displayTeam = isOwnGoal
+        ? (rawTeam && rawTeam === homeName ? awayName : rawTeam === awayName ? homeName : rawTeam)
+        : rawTeam;
+      const playerLabel = isOwnGoal
+        ? `${e.player?.name || e.detail || ""} ${IS_EN ? "(Own)" : "(Aut.)"}`
+        : (e.player?.name || e.detail || "");
+      return `<div class="detail-event-row"><span class="detail-event-time">${escapeHtml(t)}</span><span class="detail-event-icon">${icon(e)}</span><span class="detail-event-info"><strong>${escapeHtml(playerLabel)}</strong><small>${escapeHtml(displayTeam)}</small></span></div>`;
     });
-    return `<div class="detail-accordion"><div class="detail-summary detail-summary-static"><span>⚽ Eventi</span></div><div class="detail-section"><div class="detail-events">${rows.join("")}</div></div></div>`;
+    return `<div class="detail-accordion"><div class="detail-summary detail-summary-static"><span>${escapeHtml(IS_EN ? "Match events" : "Eventi partita")}</span></div><div class="detail-section"><div class="detail-events">${rows.join("")}</div></div></div>`;
   }
 
   function renderDetailStats(statistics) {
@@ -2685,7 +2703,7 @@
     const awayStanding = match.away_standing && typeof match.away_standing === "object" ? match.away_standing : null;
     if (!round && !homeStanding && !awayStanding) return "";
     const roundLabel = round
-      ? `<div class="detail-context-pill"><span>${escapeHtml(match.league_has_standings ? (IS_EN ? "Round" : "Turno") : (IS_EN ? "Cup stage" : "Fase coppa"))}</span><strong>${escapeHtml(round)}</strong></div>`
+      ? `<div class="detail-context-pill"><span>${escapeHtml(match.league_has_standings ? (IS_EN ? "Matchday" : "Giornata") : (IS_EN ? "Stage" : "Fase"))}</span><strong>${escapeHtml(round)}</strong></div>`
       : "";
     const standingsGrid = (homeStanding || awayStanding)
       ? `<div class="detail-standing-grid">
@@ -2693,7 +2711,7 @@
           ${renderStandingCard(match.away, awayStanding, "away")}
         </div>`
       : "";
-    return `<div class="detail-accordion"><div class="detail-summary detail-summary-static"><span>${escapeHtml(IS_EN ? "Competition context" : "Contesto torneo")}</span></div><div class="detail-section"><div class="detail-context-stack">${roundLabel}${standingsGrid}</div></div></div>`;
+    return `<div class="detail-accordion"><div class="detail-summary detail-summary-static"><span>${escapeHtml(IS_EN ? "Competition snapshot" : "Situazione torneo")}</span></div><div class="detail-section"><div class="detail-context-stack">${roundLabel}${standingsGrid}</div></div></div>`;
   }
 
   function renderDetailForm(match) {
@@ -2745,7 +2763,7 @@
     const loadingBlock = !state.detailData && state.detailDataId ? `<div class="empty-state" style="padding:10px">Caricamento dati live…</div>` : "";
     const competitionBlock = renderDetailCompetitionContext(match);
     const formBlock = renderDetailForm(match);
-    const eventsBlock = state.detailData ? renderDetailEvents(state.detailData.events) : "";
+    const eventsBlock = state.detailData ? renderDetailEvents(state.detailData.events, match) : "";
     const statsBlock = state.detailData ? renderDetailStats(state.detailData.statistics) : "";
     dom.detailBody.innerHTML = `
       <article class="detail-hero">
