@@ -2779,10 +2779,18 @@
       const displayTeam = isOwnGoal
         ? (rawTeam && rawTeam === homeName ? awayName : rawTeam === awayName ? homeName : rawTeam)
         : rawTeam;
+      const side = displayTeam && displayTeam === awayName ? "away" : "home";
       const playerLabel = isOwnGoal
         ? `${e.player?.name || e.detail || ""} ${IS_EN ? "(Own)" : "(Aut.)"}`
         : (e.player?.name || e.detail || "");
-      return `<div class="detail-event-row"><span class="detail-event-time">${escapeHtml(t)}</span><span class="detail-event-icon">${icon(e)}</span><span class="detail-event-info"><strong>${escapeHtml(playerLabel)}</strong><small>${escapeHtml(displayTeam)}</small></span></div>`;
+      const eventInfo = `<span class="detail-event-info detail-event-info-${side}"><strong>${escapeHtml(playerLabel)}</strong><small>${escapeHtml(displayTeam)}</small></span>`;
+      return `
+        <div class="detail-event-row detail-event-row-${side}">
+          <div class="detail-event-side detail-event-side-home">${side === "home" ? eventInfo : ""}</div>
+          <div class="detail-event-center"><span class="detail-event-time">${escapeHtml(t)}</span><span class="detail-event-icon">${icon(e)}</span></div>
+          <div class="detail-event-side detail-event-side-away">${side === "away" ? eventInfo : ""}</div>
+        </div>
+      `;
     });
     return `<div class="detail-accordion"><div class="detail-summary detail-summary-static"><span>${escapeHtml(IS_EN ? "Match events" : "Eventi partita")}</span></div><div class="detail-section"><div class="detail-events">${rows.join("")}</div></div></div>`;
   }
