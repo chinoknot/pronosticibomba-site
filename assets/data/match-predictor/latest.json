@@ -814,7 +814,7 @@
       "status_long": "Match Finished",
       "goals_home": 0,
       "goals_away": 3,
-      "total_corners": 8.0,
+      "total_corners": 11.0,
       "total_yellows": null,
       "final_score": "0-3",
       "p_over15": 0.6752,
@@ -49001,5 +49001,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-03-20T23:57:01.209589+00:00",
-  "refreshed_at": "2026-03-20T07:01:26.083907+00:00"
+  "refreshed_at": "2026-03-20T07:50:04.045930+00:00"
 }
