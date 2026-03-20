@@ -170,6 +170,10 @@
     .mc-stat-won:hover,.mc-stat-won.active{border-color:rgba(52,211,153,.38)!important;background:rgba(52,211,153,.09)!important}
     .mc-stat-lost strong{color:#f87171}
     .mc-stat-lost:hover,.mc-stat-lost.active{border-color:rgba(248,113,113,.38)!important;background:rgba(248,113,113,.09)!important}
+    .mc-stat-action strong{font-size:.84rem;letter-spacing:.04em}
+    .mc-stat-action span{color:#9fb1cb}
+    .mc-stat-action:hover,.mc-stat-action.active{border-color:rgba(96,165,250,.42)!important;background:rgba(59,130,246,.1)!important}
+    .mc-stat-action.active strong{color:#dbeafe}
     @media (max-width:720px){
       .league-header,
       .league-summary{
@@ -485,6 +489,12 @@
       <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-lost" id="mc-lost-pill">
         <strong id="mc-lost-val">0</strong><span>perse</span>
       </button>
+      <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-action" id="mc-collapse-all">
+        <strong>Collapse</strong><span>all</span>
+      </button>
+      <button type="button" class="mc-stat-pill mc-stat-clickable mc-stat-action" id="mc-expand-all">
+        <strong>Expand</strong><span>all</span>
+      </button>
     </div>
     <section class="stats-grid" hidden>
       <article class="stat-card"><span id="summary-matches-label">Partite visibili</span><strong id="summary-matches">0</strong><small id="summary-matches-meta">Nel blocco corrente</small></article>
@@ -759,7 +769,15 @@
     @media (max-width:720px){.detail-standing-grid,.detail-form-grid{grid-template-columns:1fr}}
     @keyframes live-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.25)}}
     .league-live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,.3);animation:live-pulse 1.4s ease-in-out infinite;flex-shrink:0;margin-left:2px}
-    .league-block-live .league-header{background:linear-gradient(90deg,rgba(239,68,68,.14),rgba(12,19,38,.94))}
+    .league-block{position:relative;overflow:hidden}
+    .league-block::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:linear-gradient(90deg,rgba(56,189,248,.98),rgba(99,102,241,.92),rgba(249,115,22,.96));opacity:.9;pointer-events:none}
+    .league-block-major::before,.league-block-priority::before{height:3px;box-shadow:0 0 18px rgba(59,130,246,.28)}
+    .league-block-live::before{background:linear-gradient(90deg,rgba(239,68,68,.98),rgba(248,113,113,.96),rgba(249,115,22,.82))}
+    .league-block-live .league-header{background:linear-gradient(90deg,rgba(239,68,68,.18),rgba(239,68,68,.05) 60%,rgba(12,19,38,.94))}
+    .league-block-major .league-header,.league-block-priority .league-header{background:linear-gradient(90deg,rgba(56,189,248,.24),rgba(99,102,241,.17) 54%,rgba(8,14,30,.95))!important;border-bottom:1px solid rgba(99,102,241,.18)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+    .league-block-major .league-logo,.league-block-priority .league-logo{border-color:rgba(96,165,250,.36);box-shadow:0 0 0 1px rgba(59,130,246,.2),0 10px 22px rgba(30,64,175,.18)}
+    .league-header-center{padding:6px 10px;border-radius:999px;background:rgba(6,12,25,.38);border:1px solid rgba(148,163,184,.08)}
+    .league-block-major .league-header-center,.league-block-priority .league-header-center{background:linear-gradient(135deg,rgba(59,130,246,.16),rgba(99,102,241,.12));border-color:rgba(96,165,250,.16)}
     .league-count{min-width:30px;min-height:30px;padding:0 8px;background:rgba(59,130,246,.18);font-size:.78rem}
     .league-summary{list-style:none;cursor:pointer}
     .league-summary::-webkit-details-marker{display:none}
@@ -2645,7 +2663,7 @@
       }
     }
   </style>
-  <script src="/assets/match_center.js?v=20260320e"></script>
+  <script src="/assets/match_center.js?v=20260320f"></script>
   <script>
     (function () {
       const ready = () => {

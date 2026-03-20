@@ -243,6 +243,9 @@
     outcomeFilters: new Set(),
     detailFixtureId: null,
     quickFilter: null,  // null | 'live' | 'soon60' | 'won' | 'lost'
+    leagueViewMode: "auto", // auto | all-open | all-closed | custom
+    leagueOpenState: Object.create(null),
+    mutingAccordionSync: false,
     betMaster: {
       count: 4,
       oddFrom: 1.2,
@@ -346,6 +349,8 @@
     mcSoonPill: document.getElementById("mc-soon-pill"),
     mcWonPill: document.getElementById("mc-won-pill"),
     mcLostPill: document.getElementById("mc-lost-pill"),
+    mcCollapseAllPill: document.getElementById("mc-collapse-all"),
+    mcExpandAllPill: document.getElementById("mc-expand-all"),
   };
 
   function escapeHtml(value) {
@@ -1279,6 +1284,30 @@
     if (isOpenPriorityLeagueGroup(group)) return true;
     if (groupIsSoonOrLive(group)) return true;
     return false;
+  }
+
+  function accordionGroupKey(group) {
+    if (!group) return "";
+    return String(group.key || `${group.country || ""}__${group.league || ""}`);
+  }
+
+  function rememberRenderedAccordionState(openValue) {
+    if (!dom.leagueFeed) return;
+    dom.leagueFeed.querySelectorAll("details.league-accordion[data-league-key]").forEach(node => {
+      const key = String(node.dataset.leagueKey || "").trim();
+      if (!key) return;
+      state.leagueOpenState[key] = Boolean(openValue);
+    });
+  }
+
+  function resolveLeagueOpenState(group) {
+    const key = accordionGroupKey(group);
+    if (state.leagueViewMode === "all-open") return true;
+    if (state.leagueViewMode === "all-closed") return false;
+    if (key && Object.prototype.hasOwnProperty.call(state.leagueOpenState, key)) {
+      return Boolean(state.leagueOpenState[key]);
+    }
+    return groupShouldStartOpen(group);
   }
 
   function earliestSoonKickoffTimestamp(group) {
@@ -2374,6 +2403,8 @@
     if (dom.mcSoonPill) dom.mcSoonPill.classList.toggle('active', state.quickFilter === 'soon60');
     if (dom.mcWonPill) dom.mcWonPill.classList.toggle('active', state.quickFilter === 'won');
     if (dom.mcLostPill) dom.mcLostPill.classList.toggle('active', state.quickFilter === 'lost');
+    if (dom.mcCollapseAllPill) dom.mcCollapseAllPill.classList.toggle('active', state.leagueViewMode === 'all-closed');
+    if (dom.mcExpandAllPill) dom.mcExpandAllPill.classList.toggle('active', state.leagueViewMode === 'all-open');
   }
 
   function renderBetMaster() {
@@ -2628,7 +2659,13 @@
       const liveScore = state.liveScores[String(f.fixture_id)];
       const elapsed = liveScore?.elapsed ? `${liveScore.elapsed}'` : (liveScore?.status || "LIVE");
       const score = liveScore ? `${liveScore.home} - ${liveScore.away}` : "- -";
-      return `<details class="league-block league-accordion league-block-live" open>
+      const pseudoGroup = {
+        key: `liveonly__${f.country || ""}__${f.league || ""}`,
+        country: f.country || "",
+        league: f.league || "",
+        matches: [f],
+      };
+      return `<details class="league-block league-accordion league-block-live"${resolveLeagueOpenState(pseudoGroup) ? " open" : ""} data-league-key="${escapeHtml(accordionGroupKey(pseudoGroup))}">
         <summary class="league-header league-summary">
           <div class="league-title">
             <span class="league-dot" aria-hidden="true"></span>
@@ -2661,6 +2698,7 @@
       </details>`;
     }).join("");
 
+    state.mutingAccordionSync = true;
     dom.leagueFeed.innerHTML = liveOnlyHtml + orderedGroups.map(group => {
       const isLive = groupHasLiveMatches(group);
       const liveDot = isLive ? `<span class="league-live-dot" aria-label="Live" title="Live"></span>` : "";
@@ -2677,7 +2715,7 @@
       `;
       const headerCenter = `<div class="league-header-center">${liveBadge}<span class="league-count">${group.matches.length}</span></div>`;
       const content = `<div class="match-list">${group.matches.map(match => renderMatchRow(match, { showLeagueLine: false })).join("")}</div>`;
-      const open = groupShouldStartOpen(group);
+      const open = resolveLeagueOpenState(group);
       const classes = [
         "league-block",
         "league-accordion",
@@ -2685,8 +2723,11 @@
         isLive ? "league-block-live" : "",
         isOpenPriorityLeagueGroup(group) ? "league-block-priority" : "",
       ].filter(Boolean).join(" ");
-      return `<details class="${classes}"${open ? " open" : ""}><summary class="league-header league-summary">${headerMain}${headerCenter}<span class="league-header-end"><span class="league-caret" aria-hidden="true"></span></span></summary>${content}</details>`;
+      return `<details class="${classes}"${open ? " open" : ""} data-league-key="${escapeHtml(accordionGroupKey(group))}"><summary class="league-header league-summary">${headerMain}${headerCenter}<span class="league-header-end"><span class="league-caret" aria-hidden="true"></span></span></summary>${content}</details>`;
     }).join("");
+    queueMicrotask(() => {
+      state.mutingAccordionSync = false;
+    });
   }
 
   function renderMarketCard(market) {
@@ -3249,6 +3290,27 @@
       state.quickFilter = wasActive ? null : 'lost';
       render();
     });
+    if (dom.mcCollapseAllPill) dom.mcCollapseAllPill.addEventListener("click", () => {
+      rememberRenderedAccordionState(false);
+      state.leagueViewMode = state.leagueViewMode === "all-closed" ? "auto" : "all-closed";
+      render();
+    });
+    if (dom.mcExpandAllPill) dom.mcExpandAllPill.addEventListener("click", () => {
+      rememberRenderedAccordionState(true);
+      state.leagueViewMode = state.leagueViewMode === "all-open" ? "auto" : "all-open";
+      render();
+    });
+    if (dom.leagueFeed) {
+      dom.leagueFeed.addEventListener("toggle", event => {
+        if (state.mutingAccordionSync) return;
+        const details = event.target;
+        if (!(details instanceof HTMLDetailsElement) || !details.classList.contains("league-accordion")) return;
+        const key = String(details.dataset.leagueKey || "").trim();
+        if (!key) return;
+        state.leagueOpenState[key] = details.open;
+        state.leagueViewMode = "custom";
+      }, true);
+    }
     dom.marketsAll.addEventListener("click", () => {
       state.groups = new Set(GROUPS.map(group => group.id));
       pruneOutcomeFilters();
