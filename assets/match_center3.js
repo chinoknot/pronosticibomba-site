@@ -5,6 +5,7 @@
   const LIVE_STATUSES = new Set(["1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"]);
   const FINAL_STATUSES = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
   const CACHE_BASE = "/assets/data/match-predictor";
+  const FILTER_WORKER_URL = "/assets/match_center3_worker.js?v=20260322a";
   const AUTO_REFRESH_MS = 5 * 60 * 1000;
   const LIVE_SCORES_URL = "https://pronostici-bomba-push.pronosticibomba.workers.dev/scores";
   const LIVE_SCORES_REFRESH_MS = 60 * 1000;
@@ -248,8 +249,15 @@
     derivedMatches: null,
     fullDayStatsCache: null,
     feedRenderToken: 0,
+    renderRequestToken: 0,
     detailRequestToken: 0,
     detailAbortController: null,
+    filterWorker: null,
+    filterWorkerReady: false,
+    filterWorkerDataKey: "",
+    filterWorkerResolvers: new Map(),
+    filteredIdsCacheKey: "",
+    filteredIdsCacheValue: null,
     betMaster: {
       count: 4,
       oddFrom: 1.2,
@@ -269,6 +277,7 @@
       entryCacheResult: null,
     },
   };
+  const customSelectRegistry = new Map();
   const dom = {
     dateTabs: document.getElementById("date-tabs"),
     dateSelect: document.getElementById("date-select"),
@@ -379,10 +388,119 @@
     return Math.min(max, Math.max(min, numeric));
   }
 
+  function closeAllCustomSelects(exceptSelect = null) {
+    customSelectRegistry.forEach((control, select) => {
+      if (exceptSelect && select === exceptSelect) return;
+      control.shell.classList.remove("is-open");
+      control.trigger.setAttribute("aria-expanded", "false");
+      control.panel.hidden = true;
+    });
+  }
+
+  function ensureCustomSelectControl(select) {
+    if (!select) return null;
+    const shell = select.closest(".select-shell");
+    if (!shell) return null;
+    let control = customSelectRegistry.get(select);
+    if (control) return control;
+
+    shell.classList.add("custom-select-shell", "custom-select-ready");
+    select.classList.add("native-select-hidden");
+
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "custom-select-trigger";
+    trigger.setAttribute("aria-haspopup", "listbox");
+    trigger.setAttribute("aria-expanded", "false");
+
+    const valueNode = document.createElement("span");
+    valueNode.className = "custom-select-value";
+    trigger.appendChild(valueNode);
+
+    const panel = document.createElement("div");
+    panel.className = "custom-select-panel";
+    panel.hidden = true;
+    panel.setAttribute("role", "listbox");
+
+    shell.appendChild(trigger);
+    shell.appendChild(panel);
+
+    control = { shell, select, trigger, valueNode, panel };
+    customSelectRegistry.set(select, control);
+
+    trigger.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (trigger.disabled) return;
+      const shouldOpen = !shell.classList.contains("is-open");
+      closeAllCustomSelects(shouldOpen ? select : null);
+      shell.classList.toggle("is-open", shouldOpen);
+      trigger.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+      panel.hidden = !shouldOpen;
+    });
+
+    panel.addEventListener("click", event => {
+      const optionButton = event.target.closest("[data-custom-select-value]");
+      if (!optionButton) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (optionButton.getAttribute("aria-disabled") === "true") return;
+      const nextValue = optionButton.dataset.customSelectValue ?? "";
+      if (select.value !== nextValue) {
+        select.value = nextValue;
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+      } else {
+        syncCustomSelect(select);
+      }
+      closeAllCustomSelects();
+    });
+
+    return control;
+  }
+
+  function syncCustomSelect(select) {
+    const control = ensureCustomSelectControl(select);
+    if (!control) return;
+    const { shell, trigger, valueNode, panel } = control;
+    const options = [...select.options];
+    const selectedOption = options.find(option => option.value === select.value) || options[select.selectedIndex] || options[0];
+
+    valueNode.textContent = selectedOption?.textContent?.trim() || "-";
+    trigger.disabled = Boolean(select.disabled) || !options.length;
+    shell.classList.toggle("is-disabled", trigger.disabled);
+
+    panel.innerHTML = options.map(option => {
+      const active = option.value === select.value;
+      const disabled = Boolean(option.disabled);
+      return `
+        <button
+          type="button"
+          class="custom-select-option ${active ? "active" : ""}"
+          data-custom-select-value="${escapeHtml(option.value)}"
+          role="option"
+          aria-selected="${active ? "true" : "false"}"
+          aria-disabled="${disabled ? "true" : "false"}"
+        >${escapeHtml(option.textContent || "")}</button>
+      `;
+    }).join("");
+
+    if (!shell.classList.contains("is-open")) {
+      panel.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+    }
+  }
+
+  function syncAllCustomSelects() {
+    document.querySelectorAll(".select-shell .select").forEach(syncCustomSelect);
+  }
+
   function invalidateMatchCaches() {
     state.preparedMatches = null;
     state.derivedMatches = null;
     state.fullDayStatsCache = null;
+    state.filteredIdsCacheKey = "";
+    state.filteredIdsCacheValue = null;
+    state.filterWorkerDataKey = "";
     state.betMaster.entryCacheKey = "";
     state.betMaster.entryCacheResult = null;
     if (!state.betMaster.generated) state.betMaster.profileMap = {};
@@ -1611,10 +1729,118 @@
     return state.preparedMatches;
   }
 
-  function getDerivedMatches() {
-    if (state.derivedMatches) return state.derivedMatches;
-    state.derivedMatches = decorateMatches(getPreparedMatches());
-    return state.derivedMatches;
+  function preparedMatchesForWorker() {
+    return getPreparedMatches().map(match => ({
+      fixture_id: match.fixture_id,
+      searchBlob: String(match.searchBlob || ""),
+      localMatchTime: String(match.localMatchTime || match.match_time || "00:00"),
+      localKickoffMinutes: Number(match.localKickoffMinutes || 0),
+      kickoffTs: (() => {
+        const kickoff = kickoffDate(match);
+        return kickoff ? kickoff.getTime() : null;
+      })(),
+      statusShort: String(match.status_short || "").toUpperCase(),
+      liveOnly: Boolean(match._liveOnly),
+    }));
+  }
+
+  function ensureFilterWorker() {
+    if (state.filterWorker || typeof Worker === "undefined") return state.filterWorker;
+    const worker = new Worker(FILTER_WORKER_URL);
+    worker.addEventListener("message", event => {
+      const message = event.data || {};
+      const resolver = state.filterWorkerResolvers.get(message.token);
+      if (!resolver) return;
+      state.filterWorkerResolvers.delete(message.token);
+      resolver(message);
+    });
+    state.filterWorker = worker;
+    return worker;
+  }
+
+  function currentFilterWorkerDataKey() {
+    return JSON.stringify({
+      selectedDate: state.selectedDate,
+      cacheStamp: state.cache?.refreshed_at || state.cache?.generated_at || "",
+      liveCount: Object.keys(state.liveScores || {}).length,
+    });
+  }
+
+  function queryPrefilterKey() {
+    return JSON.stringify({
+      workerDataKey: currentFilterWorkerDataKey(),
+      search: state.search || "",
+      quickFilter: state.quickFilter || "",
+      timeFrom: state.timeFrom,
+      timeTo: state.timeTo,
+      selectedDate: state.selectedDate,
+      rolling: usesRollingCurrentWindow(),
+      startSlot: usesRollingCurrentWindow() ? state.timeFrom : "",
+    });
+  }
+
+  async function ensureFilterWorkerData() {
+    const worker = ensureFilterWorker();
+    if (!worker) return false;
+    const dataKey = currentFilterWorkerDataKey();
+    if (state.filterWorkerReady && state.filterWorkerDataKey === dataKey) return true;
+    const token = `hydrate:${Date.now()}:${Math.random()}`;
+    const payload = {
+      matches: preparedMatchesForWorker(),
+    };
+    const response = await new Promise(resolve => {
+      state.filterWorkerResolvers.set(token, resolve);
+      worker.postMessage({ type: "hydrate", token, payload });
+    });
+    if (response?.type === "hydrated") {
+      state.filterWorkerReady = true;
+      state.filterWorkerDataKey = dataKey;
+      return true;
+    }
+    return false;
+  }
+
+  async function computePrefilterIds() {
+    const key = queryPrefilterKey();
+    if (state.filteredIdsCacheKey === key) return state.filteredIdsCacheValue;
+    const workerReady = await ensureFilterWorkerData();
+    if (!workerReady) {
+      state.filteredIdsCacheKey = key;
+      state.filteredIdsCacheValue = null;
+      return null;
+    }
+    const token = `query:${Date.now()}:${Math.random()}`;
+    const startUtc = usesRollingCurrentWindow()
+      ? zonedDateToUtc(state.selectedDate, state.timeFrom, activeTimeZone())
+      : null;
+    const payload = {
+      search: String(state.search || ""),
+      quickFilter: state.quickFilter || "",
+      timeFrom: state.timeFrom,
+      timeTo: state.timeTo,
+      fromMinutes: toMinutes(state.timeFrom),
+      toMinutes: toMinutes(state.timeTo),
+      nowTs: Date.now(),
+      useRollingCurrentWindow: usesRollingCurrentWindow(),
+      rollingStartUtcMs: startUtc ? startUtc.getTime() : null,
+    };
+    const response = await new Promise(resolve => {
+      state.filterWorkerResolvers.set(token, resolve);
+      state.filterWorker.postMessage({ type: "query", token, payload });
+    });
+    const ids = Array.isArray(response?.ids) ? response.ids : null;
+    state.filteredIdsCacheKey = key;
+    state.filteredIdsCacheValue = ids;
+    return ids;
+  }
+
+  function getDerivedMatches(filteredIds = null) {
+    if (!filteredIds && state.derivedMatches) return state.derivedMatches;
+    const prepared = getPreparedMatches();
+    const source = filteredIds ? prepared.filter(match => filteredIds.has(String(match.fixture_id))) : prepared;
+    const derived = decorateMatches(source);
+    if (!filteredIds) state.derivedMatches = derived;
+    return derived;
   }
 
   function getFullDayStats() {
@@ -2128,6 +2354,7 @@
     if (dom.oddFrom) dom.oddFrom.value = formatOdd(state.oddFrom);
     if (dom.oddTo) dom.oddTo.value = formatOdd(state.oddTo);
     if (dom.oddValue) dom.oddValue.textContent = `${formatOdd(state.oddFrom)} - ${formatOdd(state.oddTo)}`;
+    syncAllCustomSelects();
   }
 
   function renderBetMasterControls(window = betMasterWindow()) {
@@ -2727,8 +2954,12 @@
     `;
   }
 
-  function render() {
-    const matches = getDerivedMatches();
+  async function render() {
+    const renderToken = ++state.renderRequestToken;
+    const prefilterIds = await computePrefilterIds();
+    if (renderToken !== state.renderRequestToken) return;
+    const filteredSet = prefilterIds ? new Set(prefilterIds.map(String)) : null;
+    const matches = getDerivedMatches(filteredSet);
     const orderedMatches = sortMatchesForFeed(matches);
     const topPicks = getTopPicks(matches);
     if (state.betMaster.generated) state.betMaster.profileMap = buildBetMasterProfiles().profileMap;
@@ -2845,6 +3076,7 @@
         state.detailAbortController = null;
       }
     }
+    syncAllCustomSelects();
   }
 
   async function fetchLiveScores() {
@@ -3295,6 +3527,7 @@
     });
     document.addEventListener("keydown", event => {
       if (event.key !== "Escape") return;
+      closeAllCustomSelects();
       if (state.detailFixtureId) {
         state.detailFixtureId = null;
         state.detailData = null;
@@ -3306,6 +3539,12 @@
       else if (state.filterOpen) state.filterOpen = false;
       syncModalState();
     });
+    document.addEventListener("click", event => {
+      if (event.target.closest(".custom-select-ready")) return;
+      closeAllCustomSelects();
+    });
+    window.addEventListener("resize", () => closeAllCustomSelects());
+    window.addEventListener("scroll", () => closeAllCustomSelects(), true);
   }
 
   function startAutoRefresh() {
@@ -3328,6 +3567,7 @@
     populateOddSelects();
     renderRangePanels();
     bindEvents();
+    syncAllCustomSelects();
     await refreshData();
     startAutoRefresh();
   }
