@@ -244,6 +244,12 @@
     outcomeFilters: new Set(),
     detailFixtureId: null,
     quickFilter: null,  // null | 'live' | 'won' | 'lost'
+    preparedMatches: null,
+    derivedMatches: null,
+    fullDayStatsCache: null,
+    feedRenderToken: 0,
+    detailRequestToken: 0,
+    detailAbortController: null,
     betMaster: {
       count: 4,
       oddFrom: 1.2,
@@ -371,6 +377,15 @@
     const numeric = Number(value);
     if (!Number.isFinite(numeric)) return fallback;
     return Math.min(max, Math.max(min, numeric));
+  }
+
+  function invalidateMatchCaches() {
+    state.preparedMatches = null;
+    state.derivedMatches = null;
+    state.fullDayStatsCache = null;
+    state.betMaster.entryCacheKey = "";
+    state.betMaster.entryCacheResult = null;
+    if (!state.betMaster.generated) state.betMaster.profileMap = {};
   }
 
   function formatOddRange(fromValue, toValue) {
@@ -1534,7 +1549,8 @@
     const oddFilterActive = state.oddActive;
     const decorated = rawMatches
       .map(match => {
-        const markets = buildMarkets(match).map(market => remapMarketForOutcomeFilters(match, market)).filter(Boolean);
+        const baseMarkets = Array.isArray(match.markets) ? match.markets : buildMarkets(match);
+        const markets = baseMarkets.map(market => remapMarketForOutcomeFilters(match, market)).filter(Boolean);
         const visibleMarkets = markets
           .filter(market => state.groups.has(market.group))
           .filter(market => {
@@ -1547,8 +1563,8 @@
             return odd != null && odd >= state.oddFrom && odd <= state.oddTo;
           })
           .filter(market => state.status === "all" ? true : market.status === state.status);
-        const searchBlob = `${match.home} ${match.away} ${match.league} ${match.country} ${markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" ")}`.toLowerCase();
-        return withLocalKickoff({ ...match, markets, visibleMarkets, primaryMarket: selectHeadlineMarket(visibleMarkets, match), searchBlob });
+        const searchBlob = String(match.searchBlob || "");
+        return { ...match, markets: baseMarkets, visibleMarkets, primaryMarket: selectHeadlineMarket(visibleMarkets, match), searchBlob };
       })
       .filter(match => matchWithinMainTimeWindow(match))
       .filter(match => !search || match.searchBlob.includes(search))
@@ -1573,33 +1589,42 @@
     return result;
   }
 
-  function getDerivedMatches() {
+  function getPreparedMatches() {
+    if (state.preparedMatches) return state.preparedMatches;
     const rawMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
-    const enriched = rawMatches.map(match => {
-      const live = state.liveScores[String(match.fixture_id)];
-      if (!live) return match;
-      const liveStatus = String(live.status || "").toUpperCase();
-      if (!LIVE_STATUSES.has(liveStatus) && !FINAL_STATUSES.has(liveStatus)) return match;
-      return {
-        ...match,
-        status_short: live.status,
-        goals_home: live.home,
-        goals_away: live.away,
-        final_score: FINAL_STATUSES.has(liveStatus) ? `${live.home}-${live.away}` : match.final_score,
-      };
+    state.preparedMatches = rawMatches.map(rawMatch => {
+      const live = state.liveScores[String(rawMatch.fixture_id)];
+      const liveStatus = live ? String(live.status || "").toUpperCase() : "";
+      const merged = live && (LIVE_STATUSES.has(liveStatus) || FINAL_STATUSES.has(liveStatus))
+        ? {
+            ...rawMatch,
+            status_short: live.status,
+            goals_home: live.home,
+            goals_away: live.away,
+            final_score: FINAL_STATUSES.has(liveStatus) ? `${live.home}-${live.away}` : rawMatch.final_score,
+          }
+        : rawMatch;
+      const markets = buildMarkets(merged);
+      const searchBlob = `${merged.home} ${merged.away} ${merged.league} ${merged.country} ${markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" ")}`.toLowerCase();
+      return withLocalKickoff({ ...merged, markets, searchBlob });
     });
-    return decorateMatches(enriched);
+    return state.preparedMatches;
+  }
+
+  function getDerivedMatches() {
+    if (state.derivedMatches) return state.derivedMatches;
+    state.derivedMatches = decorateMatches(getPreparedMatches());
+    return state.derivedMatches;
   }
 
   function getFullDayStats() {
-    const rawMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
+    if (state.fullDayStatsCache) return state.fullDayStatsCache;
+    const rawMatches = getPreparedMatches();
     let wonCount = 0, lostCount = 0, liveCount = 0, totalOdds = 0, oddsCount = 0;
     for (const rawMatch of rawMatches) {
-      const live = state.liveScores[String(rawMatch.fixture_id)];
-      const liveStatus = live ? String(live.status || "").toUpperCase() : null;
-      const status = liveStatus || String(rawMatch.status_short || "").toUpperCase();
+      const status = String(rawMatch.status_short || "").toUpperCase();
       if (LIVE_STATUSES.has(status)) liveCount++;
-      const markets = buildMarkets({ ...rawMatch, ...(live && (LIVE_STATUSES.has(liveStatus) || FINAL_STATUSES.has(liveStatus)) ? { status_short: live.status } : {}) });
+      const markets = Array.isArray(rawMatch.markets) ? rawMatch.markets : buildMarkets(rawMatch);
       const visMarkets = markets.filter(m => Number(m.pickProbability || 0) > 0 || (m.options || []).some(o => o.probability != null));
       const primary = visMarkets.length ? selectHeadlineMarket(visMarkets, rawMatch) : null;
       if (primary) {
@@ -1614,18 +1639,19 @@
     const roiPct = totalClosed > 0 && avgOdd != null
       ? ((wonCount * (avgOdd - 1) - lostCount) / totalClosed * 100)
       : null;
-    return { wonCount, lostCount, liveCount, avgOdd, roiPct };
+    state.fullDayStatsCache = { wonCount, lostCount, liveCount, avgOdd, roiPct };
+    return state.fullDayStatsCache;
   }
 
   function getDetailMatch() {
     if (!state.detailFixtureId) return null;
     const derivedMatch = getDerivedMatches().find(match => String(match.fixture_id) === String(state.detailFixtureId));
-    const rawMatch = (state.cache?.matches || []).find(match => String(match.fixture_id) === String(state.detailFixtureId));
+    const rawMatch = getPreparedMatches().find(match => String(match.fixture_id) === String(state.detailFixtureId));
     if (!rawMatch) return null;
-    const markets = buildMarkets(rawMatch).filter(market => Number(market.pickProbability || 0) > 0 || (market.options || []).some(option => option.probability != null));
+    const markets = (Array.isArray(rawMatch.markets) ? rawMatch.markets : buildMarkets(rawMatch)).filter(market => Number(market.pickProbability || 0) > 0 || (market.options || []).some(option => option.probability != null));
     const filteredMarkets = markets.map(market => remapMarketForOutcomeFilters(rawMatch, market)).filter(Boolean);
     const primaryMarket = derivedMatch?.primaryMarket || (filteredMarkets.length ? selectHeadlineMarket(filteredMarkets, rawMatch) : selectPrimaryMarket(markets, rawMatch));
-    return withLocalKickoff({ ...rawMatch, markets, primaryMarket });
+    return { ...rawMatch, markets, primaryMarket };
   }
 
   function getTopPicks(matches) {
@@ -1778,12 +1804,7 @@
   }
 
   function buildBetMasterMatches() {
-    const rawMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
-    return rawMatches
-      .map(match => {
-        const markets = buildMarkets(match);
-        return withLocalKickoff({ ...match, markets });
-      });
+    return getPreparedMatches();
   }
 
   function betMasterEntryCacheKey(window) {
@@ -2488,6 +2509,7 @@
       dom.leagueFeed.innerHTML = `<div class="empty-state">${emptyStateMessage()}</div>`;
       return;
     }
+    const renderToken = ++state.feedRenderToken;
     const groups = groupMatches(matches).map(group => ({
       ...group,
       matches: state.sortMode === "time"
@@ -2548,7 +2570,7 @@
       </section>`;
     }).join("");
 
-    dom.leagueFeed.innerHTML = liveOnlyHtml + orderedGroups.map(group => {
+    const groupHtml = orderedGroups.map(group => {
       const isLive = groupHasLiveMatches(group);
       const liveDot = isLive ? `<span class="league-live-dot" aria-label="Live" title="Live"></span>` : "";
       const liveBadge = isLive ? `<span class="league-live-badge">LIVE</span>` : "";
@@ -2569,7 +2591,21 @@
       }
       const openSoon = groupStartsWithinHours(group, 0.5);
       return `<details class="league-block league-accordion${isLive ? " league-block-live" : ""}"${state.search || isLive || openSoon ? " open" : ""}><summary class="league-header league-summary">${header}<span class="league-caret" aria-hidden="true"></span></summary>${content}</details>`;
-    }).join("");
+    });
+    dom.leagueFeed.innerHTML = liveOnlyHtml;
+    const chunkSize = 6;
+    let index = 0;
+    function appendChunk() {
+      if (renderToken !== state.feedRenderToken) return;
+      const chunk = groupHtml.slice(index, index + chunkSize);
+      if (!chunk.length) return;
+      dom.leagueFeed.insertAdjacentHTML("beforeend", chunk.join(""));
+      index += chunkSize;
+      if (index < groupHtml.length) {
+        requestAnimationFrame(appendChunk);
+      }
+    }
+    requestAnimationFrame(appendChunk);
   }
 
   function renderMarketCard(market) {
@@ -2752,10 +2788,12 @@
   async function loadCacheForDate(date) {
     if (!date) {
       state.cache = null;
+      invalidateMatchCaches();
       return;
     }
     const entry = (state.manifest?.dates || []).find(item => item.date === date);
     state.cache = await fetchJson(`${CACHE_BASE}/${entry?.file || `${date}.json`}`);
+    invalidateMatchCaches();
   }
 
   async function selectDate(date) {
@@ -2773,26 +2811,39 @@
     } catch (error) {
       console.warn("Match center refresh failed:", error);
       state.cache = null;
+      invalidateMatchCaches();
     }
     render();
     fetchLiveScores();
   }
 
   async function fetchDetailData(fixtureId) {
-    if (!fixtureId || state.detailDataId === String(fixtureId)) return;
+    if (!fixtureId) return;
+    if (state.detailAbortController) {
+      try { state.detailAbortController.abort(); } catch (error) {}
+    }
+    const requestToken = ++state.detailRequestToken;
+    const controller = new AbortController();
+    state.detailAbortController = controller;
     state.detailData = null;
     state.detailDataId = String(fixtureId);
+    renderDetail();
     try {
       const WORKER = "https://pronostici-bomba-push.pronosticibomba.workers.dev";
-      const res = await fetch(`${WORKER}/fixtures/detail?id=${fixtureId}`);
+      const res = await fetch(`${WORKER}/fixtures/detail?id=${fixtureId}`, { signal: controller.signal });
       if (!res.ok) return;
       const data = await res.json();
-      if (data.ok && state.detailDataId === String(fixtureId)) {
+      if (data.ok && requestToken === state.detailRequestToken && state.detailDataId === String(fixtureId)) {
         state.detailData = data;
         renderDetail();
       }
     } catch (e) {
+      if (e?.name === "AbortError") return;
       console.warn("Detail fetch failed:", e);
+    } finally {
+      if (requestToken === state.detailRequestToken) {
+        state.detailAbortController = null;
+      }
     }
   }
 
@@ -2850,6 +2901,7 @@
       }
       state.liveScores = scores;
       state.liveOnlyMatches = extraMatches;
+      invalidateMatchCaches();
       render();
     } catch (e) {
       console.warn("Live scores fetch failed:", e);
@@ -2930,9 +2982,14 @@
   }
 
   function bindEvents() {
+    let searchDebounceHandle = 0;
     dom.searchInput.addEventListener("input", () => {
-      state.search = dom.searchInput.value.trim().toLowerCase();
-      render();
+      const nextValue = dom.searchInput.value.trim().toLowerCase();
+      window.clearTimeout(searchDebounceHandle);
+      searchDebounceHandle = window.setTimeout(() => {
+        state.search = nextValue;
+        render();
+      }, 140);
     });
     if (dom.searchLauncher) {
       dom.searchLauncher.addEventListener("click", () => {
@@ -2965,10 +3022,20 @@
     }
     dom.detailClose.addEventListener("click", () => {
       state.detailFixtureId = null;
+      state.detailData = null;
+      if (state.detailAbortController) {
+        try { state.detailAbortController.abort(); } catch (error) {}
+        state.detailAbortController = null;
+      }
       syncModalState();
     });
     dom.detailOverlay.addEventListener("click", () => {
       state.detailFixtureId = null;
+      state.detailData = null;
+      if (state.detailAbortController) {
+        try { state.detailAbortController.abort(); } catch (error) {}
+        state.detailAbortController = null;
+      }
       syncModalState();
     });
     dom.timeFrom.addEventListener("change", () => applyTimeFilter(dom.timeFrom.value, state.timeTo));
@@ -3216,20 +3283,26 @@
       }
       const openButton = event.target.closest("[data-fixture-open]");
       if (openButton) {
-        state.detailFixtureId = openButton.dataset.fixtureOpen || openButton.getAttribute("data-fixture-open");
+        const nextFixtureId = openButton.dataset.fixtureOpen || openButton.getAttribute("data-fixture-open");
+        state.detailFixtureId = nextFixtureId;
         state.detailData = null;
-        state.detailDataId = null;
+        state.detailDataId = String(nextFixtureId || "");
         syncModalState();
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          renderDetail();
-          fetchDetailData(state.detailFixtureId);
-        }));
+        renderDetail();
+        fetchDetailData(nextFixtureId);
         return;
       }
     });
     document.addEventListener("keydown", event => {
       if (event.key !== "Escape") return;
-      if (state.detailFixtureId) state.detailFixtureId = null;
+      if (state.detailFixtureId) {
+        state.detailFixtureId = null;
+        state.detailData = null;
+        if (state.detailAbortController) {
+          try { state.detailAbortController.abort(); } catch (error) {}
+          state.detailAbortController = null;
+        }
+      }
       else if (state.filterOpen) state.filterOpen = false;
       syncModalState();
     });
