@@ -5,7 +5,7 @@
   const LIVE_STATUSES = new Set(["1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"]);
   const FINAL_STATUSES = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
   const CACHE_BASE = "/assets/data/match-predictor";
-  const FILTER_WORKER_URL = "/assets/match_center3_worker.js?v=20260322a";
+  const FILTER_WORKER_URL = "/assets/match_center3_worker.js?v=20260322b";
   const AUTO_REFRESH_MS = 5 * 60 * 1000;
   const LIVE_SCORES_URL = "https://pronostici-bomba-push.pronosticibomba.workers.dev/scores";
   const LIVE_SCORES_REFRESH_MS = 60 * 1000;
@@ -247,6 +247,8 @@
     quickFilter: null,  // null | 'live' | 'won' | 'lost'
     preparedMatches: null,
     derivedMatches: null,
+    derivedFilteredCacheKey: "",
+    derivedFilteredMatches: null,
     fullDayStatsCache: null,
     feedRenderToken: 0,
     renderRequestToken: 0,
@@ -254,6 +256,7 @@
     detailAbortController: null,
     filterWorker: null,
     filterWorkerReady: false,
+    filterWorkerFailed: false,
     filterWorkerDataKey: "",
     filterWorkerResolvers: new Map(),
     filteredIdsCacheKey: "",
@@ -497,10 +500,13 @@
   function invalidateMatchCaches() {
     state.preparedMatches = null;
     state.derivedMatches = null;
+    state.derivedFilteredCacheKey = "";
+    state.derivedFilteredMatches = null;
     state.fullDayStatsCache = null;
     state.filteredIdsCacheKey = "";
     state.filteredIdsCacheValue = null;
     state.filterWorkerDataKey = "";
+    state.filterWorkerReady = false;
     state.betMaster.entryCacheKey = "";
     state.betMaster.entryCacheResult = null;
     if (!state.betMaster.generated) state.betMaster.profileMap = {};
@@ -1745,7 +1751,7 @@
   }
 
   function ensureFilterWorker() {
-    if (state.filterWorker || typeof Worker === "undefined") return state.filterWorker;
+    if (state.filterWorker || state.filterWorkerFailed || typeof Worker === "undefined") return state.filterWorker;
     const worker = new Worker(FILTER_WORKER_URL);
     worker.addEventListener("message", event => {
       const message = event.data || {};
@@ -1754,8 +1760,33 @@
       state.filterWorkerResolvers.delete(message.token);
       resolver(message);
     });
+    worker.addEventListener("error", () => {
+      state.filterWorkerFailed = true;
+      state.filterWorkerReady = false;
+      state.filterWorker = null;
+      state.filterWorkerResolvers.forEach(resolve => resolve({ type: "error" }));
+      state.filterWorkerResolvers.clear();
+      try { worker.terminate(); } catch (error) {}
+    });
     state.filterWorker = worker;
     return worker;
+  }
+
+  function postFilterWorker(type, payload, timeoutMs = 2500) {
+    const worker = ensureFilterWorker();
+    if (!worker) return Promise.resolve(null);
+    const token = `${type}:${Date.now()}:${Math.random()}`;
+    return new Promise(resolve => {
+      const timeout = window.setTimeout(() => {
+        state.filterWorkerResolvers.delete(token);
+        resolve(null);
+      }, timeoutMs);
+      state.filterWorkerResolvers.set(token, message => {
+        window.clearTimeout(timeout);
+        resolve(message || null);
+      });
+      worker.postMessage({ type, token, payload });
+    });
   }
 
   function currentFilterWorkerDataKey() {
@@ -1780,18 +1811,14 @@
   }
 
   async function ensureFilterWorkerData() {
+    if (state.filterWorkerFailed) return false;
     const worker = ensureFilterWorker();
     if (!worker) return false;
     const dataKey = currentFilterWorkerDataKey();
     if (state.filterWorkerReady && state.filterWorkerDataKey === dataKey) return true;
-    const token = `hydrate:${Date.now()}:${Math.random()}`;
-    const payload = {
+    const response = await postFilterWorker("hydrate", {
       matches: preparedMatchesForWorker(),
-    };
-    const response = await new Promise(resolve => {
-      state.filterWorkerResolvers.set(token, resolve);
-      worker.postMessage({ type: "hydrate", token, payload });
-    });
+    }, 4000);
     if (response?.type === "hydrated") {
       state.filterWorkerReady = true;
       state.filterWorkerDataKey = dataKey;
@@ -1803,17 +1830,21 @@
   async function computePrefilterIds() {
     const key = queryPrefilterKey();
     if (state.filteredIdsCacheKey === key) return state.filteredIdsCacheValue;
+    if (!state.search && !state.quickFilter && !usesRollingCurrentWindow() && state.timeFrom === "00:00" && state.timeTo === "23:59") {
+      state.filteredIdsCacheKey = key;
+      state.filteredIdsCacheValue = null;
+      return null;
+    }
     const workerReady = await ensureFilterWorkerData();
     if (!workerReady) {
       state.filteredIdsCacheKey = key;
       state.filteredIdsCacheValue = null;
       return null;
     }
-    const token = `query:${Date.now()}:${Math.random()}`;
     const startUtc = usesRollingCurrentWindow()
       ? zonedDateToUtc(state.selectedDate, state.timeFrom, activeTimeZone())
       : null;
-    const payload = {
+    const response = await postFilterWorker("query", {
       search: String(state.search || ""),
       quickFilter: state.quickFilter || "",
       timeFrom: state.timeFrom,
@@ -1823,23 +1854,26 @@
       nowTs: Date.now(),
       useRollingCurrentWindow: usesRollingCurrentWindow(),
       rollingStartUtcMs: startUtc ? startUtc.getTime() : null,
-    };
-    const response = await new Promise(resolve => {
-      state.filterWorkerResolvers.set(token, resolve);
-      state.filterWorker.postMessage({ type: "query", token, payload });
-    });
+    }, 2500);
     const ids = Array.isArray(response?.ids) ? response.ids : null;
     state.filteredIdsCacheKey = key;
     state.filteredIdsCacheValue = ids;
     return ids;
   }
 
-  function getDerivedMatches(filteredIds = null) {
+  function getDerivedMatches(filteredIds = null, filteredCacheKey = "") {
     if (!filteredIds && state.derivedMatches) return state.derivedMatches;
+    if (filteredIds && filteredCacheKey && state.derivedFilteredCacheKey === filteredCacheKey && state.derivedFilteredMatches) {
+      return state.derivedFilteredMatches;
+    }
     const prepared = getPreparedMatches();
     const source = filteredIds ? prepared.filter(match => filteredIds.has(String(match.fixture_id))) : prepared;
     const derived = decorateMatches(source);
     if (!filteredIds) state.derivedMatches = derived;
+    if (filteredIds && filteredCacheKey) {
+      state.derivedFilteredCacheKey = filteredCacheKey;
+      state.derivedFilteredMatches = derived;
+    }
     return derived;
   }
 
@@ -2956,10 +2990,11 @@
 
   async function render() {
     const renderToken = ++state.renderRequestToken;
+    const prefilterKey = queryPrefilterKey();
     const prefilterIds = await computePrefilterIds();
     if (renderToken !== state.renderRequestToken) return;
     const filteredSet = prefilterIds ? new Set(prefilterIds.map(String)) : null;
-    const matches = getDerivedMatches(filteredSet);
+    const matches = getDerivedMatches(filteredSet, prefilterIds ? prefilterKey : "");
     const orderedMatches = sortMatchesForFeed(matches);
     const topPicks = getTopPicks(matches);
     if (state.betMaster.generated) state.betMaster.profileMap = buildBetMasterProfiles().profileMap;
