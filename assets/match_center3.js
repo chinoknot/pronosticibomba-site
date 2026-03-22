@@ -2681,11 +2681,12 @@
       return;
     }
     dom.topPicks.innerHTML = `<div class="match-list top-pick-list">${topPicks.map(pick => {
-      const meta = [];
-      if (pick.pickProbability != null) meta.push(formatPercent(pick.pickProbability));
-      if (pick.odd) meta.push(`${TEXT.odds} ${formatOdd(pick.odd)}`);
-      else meta.push(pick.tag);
-      if (pick.impactLabel) meta.push(pick.impactLabel);
+      const meta = buildActionMeta({
+        status: pick.status,
+        probability: pick.pickProbability,
+        odd: pick.odd,
+        tag: pick.tag,
+      });
       return `
         <article class="match-row match-row-featured status-${pick.status}" data-fixture-open="${pick.fixtureId}">
           <div class="match-row-inner">
@@ -2703,7 +2704,7 @@
             </div>
             <div class="match-action${pick.highImpact ? " match-action-impact" : ""}">
               <strong>${escapeHtml(pick.pickLabel || "-")}</strong>
-              <small>${escapeHtml(meta.join(" | "))}</small>
+              <small>${renderActionMeta(meta)}</small>
             </div>
           </div>
         </article>
@@ -2717,15 +2718,12 @@
     const fixtureStatus = String(match.status_short || "").toUpperCase();
     const displayStatus = primary?.status || (FINAL_STATUSES.has(fixtureStatus) ? "unresolved" : (LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled"));
     const picked = pickedOption(primary);
-    const meta = [];
-    if (displayStatus === "win") meta.push(TEXT.wonWord.toUpperCase());
-    else if (displayStatus === "lose") meta.push(TEXT.lostWord.toUpperCase());
-    else if (displayStatus === "live") meta.push("LIVE");
-    if (primary?.pickProbability != null) meta.push(formatPercent(primary.pickProbability));
-    if (picked?.odd) meta.push(`${TEXT.odds} ${formatOdd(picked.odd)}`);
-    else if (primary?.tag) meta.push(primary.tag);
-    if (primary?.impactLabel) meta.push(primary.impactLabel);
-    if (match.visibleMarkets.length) meta.push(`${match.visibleMarkets.length} ${TEXT.markets}`);
+    const meta = buildActionMeta({
+      status: displayStatus,
+      probability: primary?.pickProbability,
+      odd: picked?.odd,
+      tag: primary?.tag,
+    });
     const liveScore = state.liveScores[String(match.fixture_id)];
     const effectiveStatus = liveScore ? String(liveScore.status || "").toUpperCase() : fixtureStatus;
     const scoreText = (() => {
@@ -2761,7 +2759,7 @@
           </div>
           <div class="match-action${primary?.highImpact ? " match-action-impact" : ""}">
             <strong>${escapeHtml(primary?.pickLabel || TEXT.viewMatch)}</strong>
-            <small>${escapeHtml(meta.join(" | ") || TEXT.viewMatch)}</small>
+            <small>${renderActionMeta(meta)}</small>
           </div>
         </div>
       </article>
@@ -2899,6 +2897,22 @@
     return parts.join(" | ") || fallback;
   }
 
+  function buildActionMeta({ status, probability, odd, tag }) {
+    const parts = [];
+    if (status === "live") parts.push({ label: "LIVE", kind: "live" });
+    else if (status === "win") parts.push({ label: TEXT.wonWord.toUpperCase(), kind: "win" });
+    else if (status === "lose") parts.push({ label: TEXT.lostWord.toUpperCase(), kind: "lose" });
+    if (probability != null) parts.push({ label: formatPercent(probability), kind: "prob" });
+    if (odd) parts.push({ label: formatOdd(odd), kind: "odd" });
+    else if (!parts.length && tag) parts.push({ label: tag, kind: "tag" });
+    return parts.slice(0, 3);
+  }
+
+  function renderActionMeta(parts) {
+    if (!parts || !parts.length) return "&nbsp;";
+    return parts.map(part => `<span class="action-meta-pill action-meta-${escapeHtml(part.kind)}">${escapeHtml(part.label)}</span>`).join("");
+  }
+
   function renderDetailEvents(events) {
     if (!events || !events.length) return "";
     const relevant = events.filter(e => e.type === "Goal" || (e.type === "Card" && (e.detail === "Red Card" || e.detail === "Second Yellow Card")) || e.type === "Var");
@@ -2908,7 +2922,7 @@
       const t = e.time?.elapsed ? `${e.time.elapsed}${e.time.extra ? `+${e.time.extra}` : ""}'` : "";
       return `<div class="detail-event-row"><span class="detail-event-time">${escapeHtml(t)}</span><span class="detail-event-icon">${icon(e)}</span><span class="detail-event-info"><strong>${escapeHtml(e.player?.name || e.detail || "")}</strong><small>${escapeHtml(e.team?.name || "")}</small></span></div>`;
     });
-    return `<div class="detail-accordion"><div class="detail-summary detail-summary-static"><span>⚽ Eventi</span></div><div class="detail-section"><div class="detail-events">${rows.join("")}</div></div></div>`;
+    return `<div class="detail-accordion detail-accordion-static detail-accordion-events"><div class="detail-summary detail-summary-static"><span>⚽ Eventi</span></div><div class="detail-section"><div class="detail-events">${rows.join("")}</div></div></div>`;
   }
 
   function renderDetailStats(statistics) {
@@ -2929,7 +2943,7 @@
       const bar = total > 0 ? `<div class="stat-bar"><div class="stat-bar-home" style="width:${Math.round(hNum / total * 100)}%"></div></div>` : "";
       return `<div class="detail-stat-row"><span class="stat-val-home">${escapeHtml(String(hv))}</span><span class="stat-label">${escapeHtml(label)}${bar}</span><span class="stat-val-away">${escapeHtml(String(av))}</span></div>`;
     }).join("");
-    return `<div class="detail-accordion"><div class="detail-summary detail-summary-static"><span>📊 Statistiche</span></div><div class="detail-section"><div class="detail-stats">${rows}</div></div></div>`;
+    return `<div class="detail-accordion detail-accordion-static detail-accordion-stats"><div class="detail-summary detail-summary-static"><span>📊 Statistiche</span></div><div class="detail-section"><div class="detail-stats">${rows}</div></div></div>`;
   }
 
   function renderDetail() {
