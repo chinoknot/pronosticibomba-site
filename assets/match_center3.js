@@ -1855,7 +1855,10 @@
       useRollingCurrentWindow: usesRollingCurrentWindow(),
       rollingStartUtcMs: startUtc ? startUtc.getTime() : null,
     }, 2500);
-    const ids = Array.isArray(response?.ids) ? response.ids : null;
+    let ids = Array.isArray(response?.ids) ? response.ids : null;
+    if (Array.isArray(ids) && ids.length === 0 && !state.search && !state.quickFilter) {
+      ids = null;
+    }
     state.filteredIdsCacheKey = key;
     state.filteredIdsCacheValue = ids;
     return ids;
@@ -2994,7 +2997,22 @@
     const prefilterIds = await computePrefilterIds();
     if (renderToken !== state.renderRequestToken) return;
     const filteredSet = prefilterIds ? new Set(prefilterIds.map(String)) : null;
-    const matches = getDerivedMatches(filteredSet, prefilterIds ? prefilterKey : "");
+    let matches = getDerivedMatches(filteredSet, prefilterIds ? prefilterKey : "");
+    if (
+      !matches.length &&
+      getPreparedMatches().length &&
+      !state.search &&
+      !state.quickFilter &&
+      state.status === "all" &&
+      state.groups.size > 0 &&
+      state.groups.size === GROUPS.length &&
+      !state.outcomeFilters.size &&
+      !state.oddActive &&
+      state.minProbability === DEFAULTS.minProbability &&
+      state.maxProbability === DEFAULTS.maxProbability
+    ) {
+      matches = getDerivedMatches();
+    }
     const orderedMatches = sortMatchesForFeed(matches);
     const topPicks = getTopPicks(matches);
     if (state.betMaster.generated) state.betMaster.profileMap = buildBetMasterProfiles().profileMap;
