@@ -2917,9 +2917,46 @@
   <style>
     /* === FLUID UI === */
 
-    /* Dimensione uniforme match-action su tutti i contesti */
-    .match-action { height: 44px !important; min-height: 44px !important; max-height: 44px !important; }
-    @media (max-width: 864px) { .match-action { height: 40px !important; min-height: 40px !important; max-height: 40px !important; } }
+    /* Prediction badge: stessa impronta, ma testo leggibile */
+    .match-action{
+      height:auto !important;
+      min-height:58px !important;
+      max-height:none !important;
+      max-width:132px !important;
+      padding:10px 12px !important;
+      gap:4px !important;
+      justify-content:center !important;
+      align-items:center !important;
+    }
+    .match-action strong{
+      width:100%;
+      font-size:.94rem !important;
+      line-height:1.1 !important;
+      font-weight:800 !important;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .match-action small{
+      width:100%;
+      font-size:.66rem !important;
+      line-height:1.15 !important;
+      font-weight:700;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    @media (max-width: 864px) {
+      .match-action{
+        height:auto !important;
+        min-height:56px !important;
+        max-height:none !important;
+        max-width:116px !important;
+        padding:9px 10px !important;
+      }
+      .match-action strong{font-size:.86rem !important}
+      .match-action small{font-size:.61rem !important}
+    }
 
     /* Match row: transizione hover fluida + feedback press */
     .match-row {
@@ -2957,12 +2994,16 @@
     }
 
     /* Detail accordion: transizione smooth contenuto */
-    .detail-accordion > div {
+    details.detail-accordion > div {
       overflow: hidden;
       transition: opacity .18s ease;
     }
-    .detail-accordion:not([open]) > div { opacity: 0; }
-    .detail-accordion[open] > div { opacity: 1; }
+    details.detail-accordion:not([open]) > div { opacity: 0; }
+    details.detail-accordion[open] > div { opacity: 1; }
+    .detail-accordion:not(details) > div{
+      opacity:1 !important;
+      overflow:visible;
+    }
 
     /* Detail sheet: chiusura animata */
     .detail-sheet { transition: transform .28s cubic-bezier(.32,.72,0,1); }
