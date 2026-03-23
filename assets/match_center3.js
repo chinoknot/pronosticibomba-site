@@ -3077,20 +3077,61 @@
     return `<span class="detail-event-glyph detail-event-glyph-${escapeHtml(kind)}" aria-hidden="true">${glyphs[kind] || glyphs.neutral}</span><span class="sr-only">${label}</span>`;
   }
 
-  function renderDetailEventSideSafe(event, match, side) {
-    const chip = detailEventChipSafe(event);
-    const isOwnGoal = /Own Goal/i.test(String(event?.detail || ""));
+  function renderDetailEventCopy(event, match, side) {
+    const type = String(event?.type || "");
+    const detail = String(event?.detail || "");
+    const isOwnGoal = /Own Goal/i.test(detail);
     const teamLabel = isOwnGoal
       ? (side === "home" ? match?.home : match?.away)
       : (event?.team?.name || event?.teamName || (side === "home" ? match?.home : match?.away) || "");
-    const actor = String(event?.player?.name || event?.playerName || "").trim()
-      || (isOwnGoal ? (IS_EN ? "Own goal" : "Autogol") : (event?.detail || event?.type || ""));
-      return `
+    const playerName = String(event?.player?.name || event?.playerName || "").trim();
+    const assistName = String(event?.assist?.name || event?.assistName || "").trim();
+
+    let primary = playerName;
+    let secondary = teamLabel;
+
+    if (type === "Goal") {
+      if (/Own Goal/i.test(detail)) {
+        primary = playerName ? `${playerName} (${IS_EN ? "Own" : "Aut."})` : (IS_EN ? "Own goal" : "Autogol");
+      } else if (/Missed Penalty/i.test(detail)) {
+        primary = playerName ? `${playerName} (${IS_EN ? "Missed pen." : "Rig. sbagliato"})` : (IS_EN ? "Missed penalty" : "Rigore sbagliato");
+      } else if (/Penalty/i.test(detail)) {
+        primary = playerName ? `${playerName} (${IS_EN ? "Penalty" : "Rig."})` : (IS_EN ? "Penalty goal" : "Gol su rigore");
+      } else {
+        primary = playerName ? `${playerName} (${IS_EN ? "Goal" : "Gol"})` : (IS_EN ? "Goal" : "Gol");
+      }
+      secondary = assistName ? `${IS_EN ? "Assist" : "Assist"}: ${assistName} · ${teamLabel}` : teamLabel;
+    } else if (type === "Card") {
+      if (/Second Yellow/i.test(detail)) primary = playerName ? `${playerName} (${IS_EN ? "Second yellow" : "Secondo giallo"})` : (IS_EN ? "Second yellow" : "Secondo giallo");
+      else if (/Red Card/i.test(detail)) primary = playerName ? `${playerName} (${IS_EN ? "Red" : "Rosso"})` : (IS_EN ? "Red card" : "Cartellino rosso");
+      else primary = playerName ? `${playerName} (${IS_EN ? "Yellow" : "Giallo"})` : (IS_EN ? "Yellow card" : "Cartellino giallo");
+    } else if (type === "subst" || /Substitution/i.test(type) || /Substitution/i.test(detail)) {
+      primary = assistName || playerName
+        ? `${assistName || playerName} (${IS_EN ? "Sub" : "Cambio"})`
+        : (IS_EN ? "Substitution" : "Sostituzione");
+      secondary = assistName && playerName
+        ? `${IS_EN ? "For" : "Per"} ${playerName} · ${teamLabel}`
+        : teamLabel;
+    } else if (type === "Var") {
+      primary = playerName ? `${playerName} (VAR)` : "VAR";
+      secondary = teamLabel;
+    } else {
+      primary = playerName || detail || type || (IS_EN ? "Event" : "Evento");
+      secondary = teamLabel;
+    }
+
+    return { primary, secondary };
+  }
+
+  function renderDetailEventSideSafe(event, match, side) {
+    const chip = detailEventChipSafe(event);
+    const copy = renderDetailEventCopy(event, match, side);
+    return `
         <div class="detail-event-payload detail-event-payload-${side}">
         <span class="detail-event-chip detail-event-chip-${chip.kind}" title="${escapeHtml(chip.title || "")}">${renderEventGlyph(chip.kind, chip.title)}</span>
           <div class="detail-event-copy">
-            <strong>${escapeHtml(actor)}</strong>
-            <small>${escapeHtml(teamLabel)}</small>
+            <strong>${escapeHtml(copy.primary)}</strong>
+            <small>${escapeHtml(copy.secondary)}</small>
           </div>
         </div>
     `;
