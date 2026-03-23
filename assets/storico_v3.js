@@ -62,7 +62,6 @@
       const page = await sbFetch(table, `${query}${separator}limit=${pageSize}&offset=${offset}`);
       if (!Array.isArray(page) || page.length === 0) break;
       rows.push(...page);
-      if (page.length < pageSize) break;
       offset += pageSize;
     }
     return rows;
