@@ -3109,6 +3109,30 @@
       flex:0 0 auto;
       line-height:1;
     }
+    .detail-event-glyph{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:16px;
+      height:16px;
+      line-height:1;
+    }
+    .detail-event-glyph svg{
+      width:16px;
+      height:16px;
+      display:block;
+    }
+    .sr-only{
+      position:absolute;
+      width:1px;
+      height:1px;
+      padding:0;
+      margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;
+      border:0;
+    }
     .detail-event-chip-goal,
     .detail-event-chip-penalty,
     .detail-event-chip-own{
@@ -3134,9 +3158,12 @@
       border-color:rgba(96,165,250,.28);
       background:rgba(18,35,66,.78);
     }
-    .detail-event-chip-sub{font-size:.92rem}
-    .detail-event-chip-var{font-size:.82rem}
-    .detail-event-chip-red{font-size:.82rem}
+    .detail-event-chip-sub .detail-event-glyph{width:17px;height:17px}
+    .detail-event-chip-sub .detail-event-glyph svg{width:17px;height:17px}
+    .detail-event-chip-var .detail-event-glyph{width:17px;height:17px}
+    .detail-event-chip-var .detail-event-glyph svg{width:17px;height:17px}
+    .detail-event-chip-red .detail-event-glyph{width:15px;height:15px}
+    .detail-event-chip-red .detail-event-glyph svg{width:15px;height:15px}
     .detail-event-copy{
       min-width:0;
       display:flex;
@@ -3379,6 +3406,11 @@
         min-height:22px;
         padding:0 6px;
         font-size:.74rem;
+      }
+      .detail-event-glyph,
+      .detail-event-glyph svg{
+        width:14px;
+        height:14px;
       }
       .detail-event-copy strong{font-size:.8rem;}
       .detail-event-copy small{font-size:.68rem;}

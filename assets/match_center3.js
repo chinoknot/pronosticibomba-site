@@ -3007,21 +3007,74 @@
     const type = String(event?.type || "");
     const detail = String(event?.detail || "");
     if (type === "Goal") {
-      if (/Own Goal/i.test(detail)) return { text: "↺", kind: "own", title: IS_EN ? "Own goal" : "Autogol" };
-      if (/Missed Penalty/i.test(detail)) return { text: "PK-", kind: "penalty-missed", title: IS_EN ? "Missed penalty" : "Rigore sbagliato" };
-      if (/Penalty/i.test(detail)) return { text: "PK", kind: "penalty", title: IS_EN ? "Penalty goal" : "Gol su rigore" };
-      return { text: "⚽", kind: "goal", title: IS_EN ? "Goal" : "Gol" };
+      if (/Own Goal/i.test(detail)) return { kind: "own", title: IS_EN ? "Own goal" : "Autogol" };
+      if (/Missed Penalty/i.test(detail)) return { kind: "penalty-missed", title: IS_EN ? "Missed penalty" : "Rigore sbagliato" };
+      if (/Penalty/i.test(detail)) return { kind: "penalty", title: IS_EN ? "Penalty goal" : "Gol su rigore" };
+      return { kind: "goal", title: IS_EN ? "Goal" : "Gol" };
     }
     if (type === "Card") {
-      if (/Second Yellow/i.test(detail)) return { text: "🟨🟥", kind: "red", title: IS_EN ? "Second yellow" : "Secondo giallo" };
-      if (/Red Card/i.test(detail)) return { text: "🟥", kind: "red", title: IS_EN ? "Red card" : "Cartellino rosso" };
-      return { text: "🟨", kind: "yellow", title: IS_EN ? "Yellow card" : "Cartellino giallo" };
+      if (/Second Yellow/i.test(detail)) return { kind: "red", title: IS_EN ? "Second yellow" : "Secondo giallo" };
+      if (/Red Card/i.test(detail)) return { kind: "red", title: IS_EN ? "Red card" : "Cartellino rosso" };
+      return { kind: "yellow", title: IS_EN ? "Yellow card" : "Cartellino giallo" };
     }
     if (type === "subst" || /Substitution/i.test(type) || /Substitution/i.test(detail)) {
-      return { text: "⇄", kind: "sub", title: IS_EN ? "Substitution" : "Sostituzione" };
+      return { kind: "sub", title: IS_EN ? "Substitution" : "Sostituzione" };
     }
-    if (type === "Var") return { text: "🎥", kind: "var", title: "VAR" };
-    return { text: "•", kind: "neutral", title: IS_EN ? "Event" : "Evento" };
+    if (type === "Var") return { kind: "var", title: "VAR" };
+    return { kind: "neutral", title: IS_EN ? "Event" : "Evento" };
+  }
+
+  function renderEventGlyph(kind, title) {
+    const label = escapeHtml(title || "");
+    const glyphs = {
+      goal: `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="8.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <polygon points="12,8.2 9.5,10 10.45,13 13.55,13 14.5,10" fill="currentColor"/>
+          <path d="M12 8.2l0-2.1M9.5 10l-2-1.25M14.5 10l2-1.25M10.45 13l-1.35 2.05M13.55 13l1.35 2.05" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+        </svg>`,
+      own: `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M15.5 7.5h-5.2a4.8 4.8 0 0 0 0 9.6H18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13.8 4.8 16.9 7.5 13.8 10.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`,
+      penalty: `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="7.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <circle cx="12" cy="12" r="1.8" fill="currentColor"/>
+        </svg>`,
+      "penalty-missed": `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="7.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M9.2 9.2 14.8 14.8M14.8 9.2 9.2 14.8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+        </svg>`,
+      yellow: `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <rect x="7.2" y="5.2" width="9.6" height="13.6" rx="2.1" fill="currentColor"/>
+        </svg>`,
+      red: `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <rect x="7.2" y="5.2" width="9.6" height="13.6" rx="2.1" fill="currentColor"/>
+        </svg>`,
+      sub: `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M5 8h11" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+          <path d="M13 5 18 8l-5 3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M19 16H8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+          <path d="M11 13 6 16l5 3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`,
+      var: `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <rect x="4.8" y="6.4" width="14.4" height="10.2" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M8.8 19.4h6.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="m11 10 4 2-4 2z" fill="currentColor"/>
+        </svg>`,
+      neutral: `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="3.4" fill="currentColor"/>
+        </svg>`,
+    };
+    return `<span class="detail-event-glyph detail-event-glyph-${escapeHtml(kind)}" aria-hidden="true">${glyphs[kind] || glyphs.neutral}</span><span class="sr-only">${label}</span>`;
   }
 
   function renderDetailEventSideSafe(event, match, side) {
@@ -3032,14 +3085,14 @@
       : (event?.team?.name || event?.teamName || (side === "home" ? match?.home : match?.away) || "");
     const actor = String(event?.player?.name || event?.playerName || "").trim()
       || (isOwnGoal ? (IS_EN ? "Own goal" : "Autogol") : (event?.detail || event?.type || ""));
-    return `
-      <div class="detail-event-payload detail-event-payload-${side}">
-        <span class="detail-event-chip detail-event-chip-${chip.kind}" title="${escapeHtml(chip.title || chip.text)}">${escapeHtml(chip.text)}</span>
-        <div class="detail-event-copy">
-          <strong>${escapeHtml(actor)}</strong>
-          <small>${escapeHtml(teamLabel)}</small>
+      return `
+        <div class="detail-event-payload detail-event-payload-${side}">
+        <span class="detail-event-chip detail-event-chip-${chip.kind}" title="${escapeHtml(chip.title || "")}">${renderEventGlyph(chip.kind, chip.title)}</span>
+          <div class="detail-event-copy">
+            <strong>${escapeHtml(actor)}</strong>
+            <small>${escapeHtml(teamLabel)}</small>
+          </div>
         </div>
-      </div>
     `;
   }
 
