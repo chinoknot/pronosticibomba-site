@@ -395,6 +395,7 @@
     customSelectRegistry.forEach((control, select) => {
       if (exceptSelect && select === exceptSelect) return;
       control.shell.classList.remove("is-open");
+      control.shell.closest(".inline-filter-card, .inline-filter-card-priority, .inline-filter-board, .inline-filter-board-priority, .bet-master-card, .bet-master-shell")?.classList.remove("has-open-select");
       control.trigger.setAttribute("aria-expanded", "false");
       control.panel.hidden = true;
     });
@@ -438,6 +439,7 @@
       const shouldOpen = !shell.classList.contains("is-open");
       closeAllCustomSelects(shouldOpen ? select : null);
       shell.classList.toggle("is-open", shouldOpen);
+      shell.closest(".inline-filter-card, .inline-filter-card-priority, .inline-filter-board, .inline-filter-board-priority, .bet-master-card, .bet-master-shell")?.classList.toggle("has-open-select", shouldOpen);
       trigger.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
       panel.hidden = !shouldOpen;
     });
@@ -490,6 +492,7 @@
     if (!shell.classList.contains("is-open")) {
       panel.hidden = true;
       trigger.setAttribute("aria-expanded", "false");
+      shell.closest(".inline-filter-card, .inline-filter-card-priority, .inline-filter-board, .inline-filter-board-priority, .bet-master-card, .bet-master-shell")?.classList.remove("has-open-select");
     }
   }
 
@@ -510,6 +513,17 @@
     state.betMaster.entryCacheKey = "";
     state.betMaster.entryCacheResult = null;
     if (!state.betMaster.generated) state.betMaster.profileMap = {};
+  }
+
+  function invalidateDerivedViewCaches(options = {}) {
+    state.derivedMatches = null;
+    state.derivedFilteredCacheKey = "";
+    state.derivedFilteredMatches = null;
+    state.fullDayStatsCache = null;
+    if (options.prefilter) {
+      state.filteredIdsCacheKey = "";
+      state.filteredIdsCacheValue = null;
+    }
   }
 
   function formatOddRange(fromValue, toValue) {
@@ -3619,6 +3633,7 @@
       if (toValue != null) state.timeFrom = state.timeTo;
       else state.timeTo = state.timeFrom;
     }
+    invalidateDerivedViewCaches({ prefilter: true });
     render();
   }
 
@@ -3629,6 +3644,7 @@
       if (changedField === "max") state.minProbability = state.maxProbability;
       else state.maxProbability = state.minProbability;
     }
+    invalidateDerivedViewCaches();
     render();
   }
 
@@ -3640,6 +3656,7 @@
       else state.oddTo = state.oddFrom;
     }
     state.oddActive = state.oddFrom > DEFAULTS.oddFrom || state.oddTo < DEFAULTS.oddTo;
+    invalidateDerivedViewCaches();
     render();
   }
 
@@ -3691,6 +3708,7 @@
       window.clearTimeout(searchDebounceHandle);
       searchDebounceHandle = window.setTimeout(() => {
         state.search = nextValue;
+        invalidateDerivedViewCaches({ prefilter: true });
         render();
       }, 140);
     });
@@ -3780,33 +3798,38 @@
       }
       if (dom.searchInput) dom.searchInput.value = "";
     }
-    dom.resetFilters.addEventListener("click", () => { doResetFilters(); render(); });
+    dom.resetFilters.addEventListener("click", () => { doResetFilters(); invalidateDerivedViewCaches({ prefilter: true }); render(); });
     if (dom.mcLivePill) dom.mcLivePill.addEventListener("click", () => {
       const wasActive = state.quickFilter === 'live';
       doResetFilters();
       state.quickFilter = wasActive ? null : 'live';
+      invalidateDerivedViewCaches({ prefilter: true });
       render();
     });
     if (dom.mcWonPill) dom.mcWonPill.addEventListener("click", () => {
       const wasActive = state.quickFilter === 'won';
       doResetFilters();
       state.quickFilter = wasActive ? null : 'won';
+      invalidateDerivedViewCaches({ prefilter: true });
       render();
     });
     if (dom.mcLostPill) dom.mcLostPill.addEventListener("click", () => {
       const wasActive = state.quickFilter === 'lost';
       doResetFilters();
       state.quickFilter = wasActive ? null : 'lost';
+      invalidateDerivedViewCaches({ prefilter: true });
       render();
     });
     dom.marketsAll.addEventListener("click", () => {
       state.groups = new Set(GROUPS.map(group => group.id));
       pruneOutcomeFilters();
+      invalidateDerivedViewCaches();
       render();
     });
     dom.marketsNone.addEventListener("click", () => {
       state.groups = new Set();
       pruneOutcomeFilters();
+      invalidateDerivedViewCaches();
       render();
     });
     document.addEventListener("click", async event => {
@@ -3826,6 +3849,7 @@
         if (range) {
           state.timeFrom = range.from;
           state.timeTo = range.to;
+          invalidateDerivedViewCaches({ prefilter: true });
           render();
         }
         return;
@@ -3837,6 +3861,7 @@
           state.oddActive = preset.id !== "all";
           state.oddFrom = preset.from;
           state.oddTo = preset.to;
+          invalidateDerivedViewCaches();
           render();
         }
         return;
@@ -3851,6 +3876,7 @@
           state.minProbability = Number(presetValue);
           state.maxProbability = DEFAULTS.maxProbability;
         }
+        invalidateDerivedViewCaches();
         render();
         return;
       }
@@ -3928,6 +3954,7 @@
           state.groups = new Set([quickGroup]);
           state.outcomeFilters = new Set([...state.outcomeFilters].filter(id => OUTCOME_FILTERS.find(filter => filter.id === id)?.group === quickGroup));
         }
+        invalidateDerivedViewCaches();
         render();
         return;
       }
@@ -3935,6 +3962,7 @@
       if (quickOutcomeClearButton) {
         const groupId = quickOutcomeClearButton.dataset.quickOutcomeClear;
         state.outcomeFilters = new Set([...state.outcomeFilters].filter(id => OUTCOME_FILTERS.find(filter => filter.id === id)?.group !== groupId));
+        invalidateDerivedViewCaches();
         render();
         return;
       }
@@ -3949,6 +3977,7 @@
         );
         if (state.outcomeFilters.has(outcomeId)) state.outcomeFilters.delete(outcomeId);
         else state.outcomeFilters.add(outcomeId);
+        invalidateDerivedViewCaches();
         render();
         return;
       }
@@ -3959,6 +3988,7 @@
         else if (state.groups.has(group)) state.groups.delete(group);
         else state.groups.add(group);
         pruneOutcomeFilters();
+        invalidateDerivedViewCaches();
         render();
         return;
       }
@@ -3972,12 +4002,14 @@
           state.outcomeFilters.add(outcomeId);
           state.groups.add(filter.group);
         }
+        invalidateDerivedViewCaches();
         render();
         return;
       }
       const statusButton = event.target.closest("[data-status]");
       if (statusButton) {
         state.status = statusButton.dataset.status || "all";
+        invalidateDerivedViewCaches();
         render();
         return;
       }

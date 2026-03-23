@@ -2691,6 +2691,17 @@
       overflow:visible !important;
       isolation:isolate;
     }
+    .inline-filter-card.has-open-select,
+    .inline-filter-card-priority.has-open-select,
+    .inline-filter-board.has-open-select,
+    .inline-filter-board-priority.has-open-select,
+    .bet-master-card.has-open-select,
+    .bet-master-shell.has-open-select{
+      position:relative !important;
+      z-index:2600 !important;
+      overflow:visible !important;
+      isolation:isolate;
+    }
     .select-shell-compact.custom-select-ready{
       position:relative !important;
       overflow:visible !important;
@@ -2768,7 +2779,7 @@
       top:calc(100% + 8px);
       left:0;
       right:0;
-      z-index:2200;
+      z-index:2700;
       max-height:280px;
       overflow:auto;
       overscroll-behavior:contain;
@@ -2816,7 +2827,7 @@
       cursor:not-allowed;
     }
     .custom-select-ready.is-open{
-      z-index:2210;
+      z-index:2710;
     }
     .inline-filter-card,
     .inline-filter-card-priority,
