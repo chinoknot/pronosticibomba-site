@@ -2766,6 +2766,59 @@
     `;
   }
 
+  renderMatchRow = function renderMatchRowOptimized(match, options = {}) {
+    const showLeagueLine = options.showLeagueLine !== false;
+    const primary = match.primaryMarket;
+    const fixtureStatus = String(match.status_short || "").toUpperCase();
+    const displayStatus = primary?.status || (FINAL_STATUSES.has(fixtureStatus) ? "unresolved" : (LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled"));
+    const picked = pickedOption(primary);
+    const meta = buildActionMeta({
+      status: displayStatus,
+      probability: primary?.pickProbability,
+      odd: picked?.odd,
+      tag: primary?.tag,
+    });
+    const liveScore = state.liveScores[String(match.fixture_id)];
+    const scoreText = (() => {
+      if (liveScore && FINAL_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
+        return `<span class="live-score-final">${liveScore.home}-${liveScore.away}</span>`;
+      }
+      if (FINAL_STATUSES.has(fixtureStatus) && !liveScore) {
+        return `<span class="live-score-final">${escapeHtml(match.final_score || "-")}</span>`;
+      }
+      if (liveScore && LIVE_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
+        const elapsedStr = liveScore.status === "HT" ? "HT" : (liveScore.elapsed ? `${liveScore.elapsed}'` : liveScore.status);
+        const redCards = (liveScore.events || []).filter(event => event.type === "Card" && /Red Card|Second Yellow/i.test(String(event.detail || "")));
+        const redBadge = redCards.length ? `<span class="live-red-badge" title="${escapeHtml(IS_EN ? "Red card" : "Cartellino rosso")}">RC${redCards.length > 1 ? ` ${redCards.length}` : ""}</span>` : "";
+        return `<span class="live-score-badge">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${escapeHtml(elapsedStr)}</span>${redBadge}`;
+      }
+      return (match.most_likely_scores || []).slice(0, 2).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("") || escapeHtml(match.status_long || "");
+    })();
+    return `
+      <article class="match-row status-${displayStatus}" data-fixture-open="${match.fixture_id}">
+        <div class="match-row-inner">
+          <div class="match-time-block">
+            <div class="match-time">${escapeHtml(match.localMatchTime || match.match_time || "--:--")}</div>
+            <div class="match-date">${escapeHtml(match.localMatchDateLabel || formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</div>
+          </div>
+          <div class="match-teams">
+            ${showLeagueLine ? `<div class="match-league-line">${escapeHtml(match.league)} | ${escapeHtml(match.country)}</div>` : ""}
+            <div class="clubs-inline">
+              <span class="club-line">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" />` : ""}<strong>${escapeHtml(match.home)}</strong></span>
+              <span class="match-vs">vs</span>
+              <span class="club-line">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" />` : ""}<strong>${escapeHtml(match.away)}</strong></span>
+            </div>
+            <div class="match-score">${scoreText}</div>
+          </div>
+          <div class="match-action${primary?.highImpact ? " match-action-impact" : ""}">
+            <strong>${escapeHtml(primary?.pickLabel || TEXT.viewMatch)}</strong>
+            <small>${renderActionMeta(meta)}</small>
+          </div>
+        </div>
+      </article>
+    `;
+  };
+
   function renderLeagueFeed(matches) {
     if (!matches.length && !(state.liveOnlyMatches || []).length) {
       dom.leagueFeed.innerHTML = `<div class="empty-state">${emptyStateMessage()}</div>`;
@@ -2910,7 +2963,121 @@
 
   function renderActionMeta(parts) {
     if (!parts || !parts.length) return "&nbsp;";
-    return parts.map(part => `<span class="action-meta-pill action-meta-${escapeHtml(part.kind)}">${escapeHtml(part.label)}</span>`).join("");
+    return `<span class="action-meta-inline">${parts.map((part, index) => `<span class="action-meta-crumb action-meta-${escapeHtml(part.kind)}">${escapeHtml(part.label)}</span>${index < parts.length - 1 ? `<span class="action-meta-sep">•</span>` : ""}`).join("")}</span>`;
+  }
+
+  function normalizeTeamKey(value) {
+    return String(value || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "");
+  }
+
+  function extractDetailEvents(detailData) {
+    if (!detailData) return [];
+    if (Array.isArray(detailData.events)) return detailData.events;
+    if (Array.isArray(detailData.fixture?.events)) return detailData.fixture.events;
+    if (Array.isArray(detailData.response?.[0]?.events)) return detailData.response[0].events;
+    return [];
+  }
+
+  function extractDetailStatistics(detailData) {
+    if (!detailData) return [];
+    if (Array.isArray(detailData.statistics)) return detailData.statistics;
+    if (Array.isArray(detailData.fixture?.statistics)) return detailData.fixture.statistics;
+    if (Array.isArray(detailData.response?.[0]?.statistics)) return detailData.response[0].statistics;
+    return [];
+  }
+
+  function resolveDetailEventSideSafe(event, match) {
+    const homeKey = normalizeTeamKey(match?.home);
+    const awayKey = normalizeTeamKey(match?.away);
+    const eventTeamKey = normalizeTeamKey(event?.team?.name || event?.teamName);
+    if (/Own Goal/i.test(String(event?.detail || ""))) {
+      if (eventTeamKey === homeKey) return "away";
+      if (eventTeamKey === awayKey) return "home";
+    }
+    if (eventTeamKey === homeKey) return "home";
+    if (eventTeamKey === awayKey) return "away";
+    return "";
+  }
+
+  function detailEventChipSafe(event) {
+    const type = String(event?.type || "");
+    const detail = String(event?.detail || "");
+    if (type === "Goal") {
+      if (/Own Goal/i.test(detail)) return { text: IS_EN ? "OWN" : "AUT.", kind: "own" };
+      if (/Missed Penalty/i.test(detail)) return { text: "PK-", kind: "penalty-missed" };
+      if (/Penalty/i.test(detail)) return { text: "PK", kind: "penalty" };
+      return { text: IS_EN ? "GOAL" : "GOL", kind: "goal" };
+    }
+    if (type === "Card") {
+      if (/Second Yellow/i.test(detail)) return { text: "2Y", kind: "red" };
+      if (/Red Card/i.test(detail)) return { text: "RC", kind: "red" };
+      return { text: "YC", kind: "yellow" };
+    }
+    if (type === "subst" || /Substitution/i.test(type) || /Substitution/i.test(detail)) {
+      return { text: IS_EN ? "SUB" : "CAM", kind: "sub" };
+    }
+    if (type === "Var") return { text: "VAR", kind: "var" };
+    return { text: IS_EN ? "EV" : "EV", kind: "neutral" };
+  }
+
+  function renderDetailEventSideSafe(event, match, side) {
+    const chip = detailEventChipSafe(event);
+    const isOwnGoal = /Own Goal/i.test(String(event?.detail || ""));
+    const teamLabel = isOwnGoal
+      ? (side === "home" ? match?.home : match?.away)
+      : (event?.team?.name || event?.teamName || (side === "home" ? match?.home : match?.away) || "");
+    const actor = String(event?.player?.name || event?.playerName || "").trim()
+      || (isOwnGoal ? (IS_EN ? "Own goal" : "Autogol") : (event?.detail || event?.type || ""));
+    return `
+      <div class="detail-event-payload detail-event-payload-${side}">
+        <span class="detail-event-chip detail-event-chip-${chip.kind}">${escapeHtml(chip.text)}</span>
+        <div class="detail-event-copy">
+          <strong>${escapeHtml(actor)}</strong>
+          <small>${escapeHtml(teamLabel)}</small>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderDetailEventsSafe(events, match) {
+    const source = Array.isArray(events) ? events : [];
+    if (!source.length || !match) return "";
+    const relevant = source.filter(event => {
+      const type = String(event?.type || "");
+      const detail = String(event?.detail || "");
+      return type === "Goal"
+        || type === "Card"
+        || type === "Var"
+        || type === "subst"
+        || /Substitution/i.test(type)
+        || /Substitution/i.test(detail);
+    });
+    const displayEvents = relevant.length ? relevant : source.slice(0, 12);
+    if (!displayEvents.length) return "";
+    const rows = displayEvents.map(event => {
+      const side = resolveDetailEventSideSafe(event, match);
+      const elapsed = event?.time?.elapsed || event?.elapsed;
+      const extra = event?.time?.extra || event?.extra;
+      const minute = elapsed ? `${elapsed}${extra ? `+${extra}` : ""}'` : "";
+      return `
+        <div class="detail-event-row detail-event-row-${side || "neutral"}">
+          <div class="detail-event-home">${side === "home" ? renderDetailEventSideSafe(event, match, "home") : ""}</div>
+          <div class="detail-event-center"><span class="detail-event-time">${escapeHtml(minute)}</span></div>
+          <div class="detail-event-away">${side === "away" ? renderDetailEventSideSafe(event, match, "away") : ""}</div>
+        </div>
+      `;
+    });
+    return `<div class="detail-accordion detail-accordion-static detail-accordion-events"><div class="detail-summary detail-summary-static"><span>${escapeHtml(IS_EN ? "Match events" : "Eventi partita")}</span></div><div class="detail-section"><div class="detail-events">${rows.join("")}</div></div></div>`;
+  }
+
+  function renderDetailStatsSafe(statistics) {
+    const source = Array.isArray(statistics) ? statistics : [];
+    if (!source.length) return "";
+    return renderDetailStats(source);
   }
 
   function renderDetailEvents(events) {
@@ -2946,6 +3113,130 @@
     return `<div class="detail-accordion detail-accordion-static detail-accordion-stats"><div class="detail-summary detail-summary-static"><span>📊 Statistiche</span></div><div class="detail-section"><div class="detail-stats">${rows}</div></div></div>`;
   }
 
+  function renderActionMeta(parts) {
+    if (!parts || !parts.length) return "&nbsp;";
+    return `<span class="action-meta-inline">${parts.map((part, index) => `<span class="action-meta-fragment action-meta-${escapeHtml(part.kind)}">${escapeHtml(part.label)}</span>${index < parts.length - 1 ? `<span class="action-meta-sep">•</span>` : ""}`).join("")}</span>`;
+  }
+
+  function renderDetailEventsSafe(events, match) {
+    const source = Array.isArray(events) ? events : [];
+    if (!match) return "";
+    const relevant = source.filter(event => {
+      const type = String(event?.type || "");
+      const detail = String(event?.detail || "");
+      return type === "Goal"
+        || type === "Card"
+        || type === "Var"
+        || type === "subst"
+        || /Substitution/i.test(type)
+        || /Substitution/i.test(detail);
+    });
+    const displayEvents = relevant.length ? relevant : source.slice(0, 12);
+    const body = displayEvents.length
+      ? `<div class="detail-events">${displayEvents.map(event => {
+          const side = resolveDetailEventSideSafe(event, match);
+          const elapsed = event?.time?.elapsed || event?.elapsed;
+          const extra = event?.time?.extra || event?.extra;
+          const minute = elapsed ? `${elapsed}${extra ? `+${extra}` : ""}'` : "";
+          return `
+            <div class="detail-event-row detail-event-row-${side || "neutral"}">
+              <div class="detail-event-home">${side === "home" ? renderDetailEventSideSafe(event, match, "home") : ""}</div>
+              <div class="detail-event-center"><span class="detail-event-time">${escapeHtml(minute)}</span></div>
+              <div class="detail-event-away">${side === "away" ? renderDetailEventSideSafe(event, match, "away") : ""}</div>
+            </div>
+          `;
+        }).join("")}</div>`
+      : `<div class="detail-live-empty">${escapeHtml(IS_EN ? "Live events not available yet." : "Eventi live non ancora disponibili.")}</div>`;
+
+    return `
+      <section class="detail-live-panel detail-live-panel-events">
+        <header class="detail-live-panel-head">
+          <span class="detail-live-panel-title">${escapeHtml(IS_EN ? "Match events" : "Eventi partita")}</span>
+          <span class="detail-live-panel-kicker">${escapeHtml(displayEvents.length ? (IS_EN ? `${displayEvents.length} items` : `${displayEvents.length} eventi`) : (IS_EN ? "No feed" : "Nessun feed"))}</span>
+        </header>
+        <div class="detail-live-panel-body">${body}</div>
+      </section>
+    `;
+  }
+
+  function renderDetailStatsSafe(statistics) {
+    const source = Array.isArray(statistics) ? statistics : [];
+    const home = source[0];
+    const away = source[1];
+    if (!home || !away) {
+      return `
+        <section class="detail-live-panel detail-live-panel-stats">
+          <header class="detail-live-panel-head">
+            <span class="detail-live-panel-title">${escapeHtml(IS_EN ? "Live stats" : "Statistiche live")}</span>
+            <span class="detail-live-panel-kicker">${escapeHtml(IS_EN ? "No data" : "Nessun dato")}</span>
+          </header>
+          <div class="detail-live-panel-body">
+            <div class="detail-live-empty">${escapeHtml(IS_EN ? "Live statistics not available yet." : "Statistiche live non ancora disponibili.")}</div>
+          </div>
+        </section>
+      `;
+    }
+    const statLabels = {
+      "Ball Possession": IS_EN ? "Possession" : "Possesso",
+      "Total Shots": IS_EN ? "Total shots" : "Tiri tot.",
+      "Shots on Goal": IS_EN ? "On target" : "Tiri in porta",
+      "Shots off Goal": IS_EN ? "Off target" : "Fuori",
+      "Blocked Shots": IS_EN ? "Blocked" : "Bloccati",
+      "Corner Kicks": IS_EN ? "Corners" : "Corner",
+      "Fouls": IS_EN ? "Fouls" : "Falli",
+      "Yellow Cards": IS_EN ? "Yellows" : "Gialli",
+      "Red Cards": IS_EN ? "Reds" : "Rossi",
+      "Offsides": IS_EN ? "Offsides" : "Fuorigioco",
+      "Goalkeeper Saves": IS_EN ? "Saves" : "Parate",
+      "Total passes": IS_EN ? "Passes" : "Passaggi",
+      "Passes accurate": IS_EN ? "Accurate passes" : "Pass. precisi",
+      "Passes %": IS_EN ? "Pass accuracy" : "Acc. pass.",
+      "Shots insidebox": IS_EN ? "Inside box" : "Area",
+      "Shots outsidebox": IS_EN ? "Outside box" : "Fuori area",
+      "expected_goals": "xG",
+      "goals_prevented": IS_EN ? "Saved goals" : "Gol evitati",
+    };
+    const homeStats = new Map((home.statistics || []).map(stat => [stat.type, stat.value]));
+    const awayStats = new Map((away.statistics || []).map(stat => [stat.type, stat.value]));
+    const rows = [...homeStats.keys()].map(type => {
+      const label = statLabels[type] || type;
+      const homeValue = homeStats.get(type) ?? "-";
+      const awayValue = awayStats.get(type) ?? "-";
+      const homeNumeric = parseFloat(String(homeValue).replace("%", ""));
+      const awayNumeric = parseFloat(String(awayValue).replace("%", ""));
+      const total = homeNumeric + awayNumeric;
+      const bar = total > 0
+        ? `<div class="detail-stat-bar"><div class="detail-stat-bar-home" style="width:${Math.round((homeNumeric / total) * 100)}%"></div></div>`
+        : "";
+      return `
+        <div class="detail-stat-row">
+          <span class="detail-stat-home">${escapeHtml(String(homeValue))}</span>
+          <span class="detail-stat-label"><strong>${escapeHtml(label)}</strong>${bar}</span>
+          <span class="detail-stat-away">${escapeHtml(String(awayValue))}</span>
+        </div>
+      `;
+    }).join("");
+    return `
+      <section class="detail-live-panel detail-live-panel-stats">
+        <header class="detail-live-panel-head">
+          <span class="detail-live-panel-title">${escapeHtml(IS_EN ? "Live stats" : "Statistiche live")}</span>
+          <span class="detail-live-panel-kicker">${escapeHtml(IS_EN ? "Updated live" : "Aggiornate live")}</span>
+        </header>
+        <div class="detail-live-panel-body">
+          <div class="detail-stats">${rows}</div>
+        </div>
+      </section>
+    `;
+  }
+
+  function renderDetailEventsPanel(events, match) {
+    return renderDetailEventsSafe(events, match);
+  }
+
+  function renderDetailStatsPanel(statistics) {
+    return renderDetailStatsSafe(statistics);
+  }
+
   function renderDetail() {
     const match = getDetailMatch();
     if (!match) {
@@ -2973,8 +3264,10 @@
       .filter(group => group.markets.length);
     const summaryMeta = label => `<span class="detail-summary-meta">${escapeHtml(label)}</span>`;
     const loadingBlock = !state.detailData && state.detailDataId ? `<div class="empty-state" style="padding:10px">Caricamento dati live…</div>` : "";
-    const eventsBlock = state.detailData ? renderDetailEvents(state.detailData.events) : "";
-    const statsBlock = state.detailData ? renderDetailStats(state.detailData.statistics) : "";
+    const detailEvents = extractDetailEvents(state.detailData);
+    const detailStatistics = extractDetailStatistics(state.detailData);
+    const eventsBlock = state.detailData ? renderDetailEventsPanel(detailEvents, match) : "";
+    const statsBlock = state.detailData ? renderDetailStatsPanel(detailStatistics) : "";
     dom.detailBody.innerHTML = `
       <article class="detail-hero">
         <div class="detail-teams">
@@ -3540,9 +3833,11 @@
         const filter = OUTCOME_FILTERS.find(item => item.id === outcomeId);
         if (!filter) return;
         state.groups = new Set([filter.group]);
-        const alreadySingle = selectedOutcomeFiltersForGroup(filter.group).length === 1 && state.outcomeFilters.has(outcomeId);
-        state.outcomeFilters = new Set();
-        if (!alreadySingle) state.outcomeFilters.add(outcomeId);
+        state.outcomeFilters = new Set(
+          [...state.outcomeFilters].filter(id => OUTCOME_FILTERS.find(item => item.id === id)?.group === filter.group),
+        );
+        if (state.outcomeFilters.has(outcomeId)) state.outcomeFilters.delete(outcomeId);
+        else state.outcomeFilters.add(outcomeId);
         render();
         return;
       }
