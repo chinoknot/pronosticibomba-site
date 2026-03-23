@@ -2685,6 +2685,11 @@
         linear-gradient(180deg,rgba(110,20,28,.96),rgba(44,8,16,.99)) !important;
       box-shadow: inset 0 0 0 2px rgba(254,202,202,.2) !important;
     }
+    .custom-select-shell{
+      position:relative !important;
+      overflow:visible !important;
+      isolation:isolate;
+    }
     .select-shell-compact.custom-select-ready{
       position:relative !important;
       overflow:visible !important;
@@ -2762,9 +2767,11 @@
       top:calc(100% + 8px);
       left:0;
       right:0;
-      z-index:240;
+      z-index:420;
       max-height:280px;
       overflow:auto;
+      overscroll-behavior:contain;
+      -webkit-overflow-scrolling:touch;
       padding:8px;
       border-radius:20px;
       border:1px solid rgba(92,170,255,.28);
@@ -2808,7 +2815,7 @@
       cursor:not-allowed;
     }
     .custom-select-ready.is-open{
-      z-index:260;
+      z-index:430;
     }
     .inline-filter-card,
     .inline-filter-card-priority,
@@ -2851,7 +2858,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3.js?v=20260323a"></script>
+  <script src="/assets/match_center3.js?v=20260323b"></script>
   <script>
     (function () {
       const ready = () => {

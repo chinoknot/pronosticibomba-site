@@ -4000,7 +4000,6 @@
       closeAllCustomSelects();
     });
     window.addEventListener("resize", () => closeAllCustomSelects());
-    window.addEventListener("scroll", () => closeAllCustomSelects(), true);
   }
 
   function startAutoRefresh() {
