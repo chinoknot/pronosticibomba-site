@@ -54,6 +54,20 @@
     }
   }
 
+  async function sbFetchAll(table, query, pageSize = 1000) {
+    const rows = [];
+    let offset = 0;
+    while (true) {
+      const separator = query.includes("?") ? "&" : "?";
+      const page = await sbFetch(table, `${query}${separator}limit=${pageSize}&offset=${offset}`);
+      if (!Array.isArray(page) || page.length === 0) break;
+      rows.push(...page);
+      if (page.length < pageSize) break;
+      offset += pageSize;
+    }
+    return rows;
+  }
+
   // ====== HELPERS ======
   function pad2(n) { return n < 10 ? "0" + n : "" + n; }
 
@@ -192,8 +206,8 @@ VALUE_PICKS: "Quote di Valore",
       `;
     }
 
-    const picks = await sbFetch("picks", `?match_date=gte.${startStr}&match_date=lte.${endStr}&select=*`);
-    const results = await sbFetch("results", `?picks_date=gte.${startStr}&picks_date=lte.${endStr}&select=*`);
+    const picks = await sbFetchAll("picks", `?match_date=gte.${startStr}&match_date=lte.${endStr}&select=*`);
+    const results = await sbFetchAll("results", `?picks_date=gte.${startStr}&picks_date=lte.${endStr}&select=*`);
 
     if (!Array.isArray(picks) || picks.length === 0) {
       if (tableContainer) {
