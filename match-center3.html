@@ -521,12 +521,12 @@
     .ribbon-shell .quick-market-chip.active,.ribbon-shell .quick-outcome-chip.active{border-color:rgba(255,154,60,.8);background:linear-gradient(135deg,rgba(255,122,24,.28),rgba(250,204,21,.18));color:#fff7ed;box-shadow:0 14px 28px rgba(255,122,24,.16)}
     .ribbon-shell .quick-market-chip.active small,.ribbon-shell .quick-outcome-chip.active small{color:#ffe7ca}
     .inline-filter-board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0}
-    .inline-filter-board-priority{grid-template-columns:minmax(0,1fr)}
+    .inline-filter-board-priority{grid-template-columns:minmax(0,1fr);position:relative;z-index:90;overflow:visible !important}
     .inline-filter-card-priority{background:
       radial-gradient(circle at top right,rgba(96,165,250,.18),transparent 36%),
       radial-gradient(circle at bottom left,rgba(168,85,247,.12),transparent 38%),
       linear-gradient(145deg,rgba(18,33,61,.96),rgba(8,14,29,.98));
-      border-color:rgba(103,232,249,.28);box-shadow:inset 0 1px 0 rgba(224,238,255,.06)}
+      border-color:rgba(103,232,249,.28);box-shadow:inset 0 1px 0 rgba(224,238,255,.06);position:relative;z-index:95;overflow:visible !important}
     .inline-filter-card{display:flex;flex-direction:column;justify-content:space-between;gap:9px;padding:12px;border-radius:18px;border:1px solid rgba(148,163,184,.16);background:radial-gradient(circle at top right,rgba(61,213,243,.08),transparent 34%),linear-gradient(145deg,rgba(18,27,49,.94),rgba(8,13,25,.98));width:100%;min-width:0;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
     .ribbon-shell .inline-filter-card{border-color:rgba(114,164,255,.22);background:
       radial-gradient(circle at top right,rgba(96,165,250,.16),transparent 36%),
@@ -2640,6 +2640,7 @@
         radial-gradient(circle at top right,rgba(124,77,255,.18),transparent 26%),
         radial-gradient(circle at left center,rgba(61,213,243,.12),transparent 34%),
         linear-gradient(145deg,rgba(15,28,52,.98),rgba(6,14,30,.99)) !important;
+      overflow:visible !important;
     }
     .ribbon-shell::after{
       content:"";
@@ -2767,7 +2768,7 @@
       top:calc(100% + 8px);
       left:0;
       right:0;
-      z-index:420;
+      z-index:2200;
       max-height:280px;
       overflow:auto;
       overscroll-behavior:contain;
@@ -2815,10 +2816,13 @@
       cursor:not-allowed;
     }
     .custom-select-ready.is-open{
-      z-index:430;
+      z-index:2210;
     }
     .inline-filter-card,
     .inline-filter-card-priority,
+    .inline-filter-board,
+    .inline-filter-board-priority,
+    .ribbon-shell,
     .bet-master-card,
     .bet-master-shell,
     .bet-master-grid,
@@ -2858,7 +2862,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3.js?v=20260323b"></script>
+  <script src="/assets/match_center3.js?v=20260323c"></script>
   <script>
     (function () {
       const ready = () => {

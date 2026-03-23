@@ -1864,19 +1864,36 @@
     return ids;
   }
 
+  function derivedMatchesCacheKey(prefilterCacheKey = "") {
+    return JSON.stringify({
+      prefilter: prefilterCacheKey || "all",
+      selectedDate: state.selectedDate || "",
+      groups: [...state.groups].sort(),
+      outcomeFilters: [...state.outcomeFilters].sort(),
+      status: state.status || "all",
+      minProbability: state.minProbability,
+      maxProbability: state.maxProbability,
+      oddActive: Boolean(state.oddActive),
+      oddFrom: state.oddFrom,
+      oddTo: state.oddTo,
+      quickFilter: state.quickFilter || "",
+      search: state.search || "",
+      timeFrom: state.timeFrom,
+      timeTo: state.timeTo,
+    });
+  }
+
   function getDerivedMatches(filteredIds = null, filteredCacheKey = "") {
-    if (!filteredIds && state.derivedMatches) return state.derivedMatches;
-    if (filteredIds && filteredCacheKey && state.derivedFilteredCacheKey === filteredCacheKey && state.derivedFilteredMatches) {
+    const cacheKey = derivedMatchesCacheKey(filteredCacheKey);
+    if (state.derivedFilteredCacheKey === cacheKey && state.derivedFilteredMatches) {
       return state.derivedFilteredMatches;
     }
     const prepared = getPreparedMatches();
     const source = filteredIds ? prepared.filter(match => filteredIds.has(String(match.fixture_id))) : prepared;
     const derived = decorateMatches(source);
+    state.derivedFilteredCacheKey = cacheKey;
+    state.derivedFilteredMatches = derived;
     if (!filteredIds) state.derivedMatches = derived;
-    if (filteredIds && filteredCacheKey) {
-      state.derivedFilteredCacheKey = filteredCacheKey;
-      state.derivedFilteredMatches = derived;
-    }
     return derived;
   }
 
