@@ -131,11 +131,21 @@
 
   const CATEGORY_LABELS = {
     BEST_TIPS_OF_DAY: "Scelte d’Élite",
-VALUE_PICKS: "Quote di Valore",
+    SAFE_FLOOR: "Safe Floor",
+    GOAL_PRESSURE: "Goal Pressure",
+    BTTS_EDGE: "BTTS Edge",
+    DC_GOAL: "Doppia Chance + Goal",
+    BTTS_NO_VALUE: "BTTS NO Value",
+    OVER25_PATTERNS: "OVER25 PATTERNS",
+    SAFE_PICKS: "SAFE PICKS",
+    SAFE_GOALS: "SAFE GOALS",
+    GG_SPECIAL: "GG SPECIAL",
+    VALUE_PICKS: "Quote di Valore",
     OVER_UNDER_TIPS: "Tendenze Goal",
     BTTS_TIPS: "BTTS",
     SINGLE_GAME: "Pick Esclusiva",
     TOP_5_TIPS: "Pick Esclusiva",
+    HT_GOAL_ENGINE: "HT Goal Engine",
     DNB_ENGINE: "DNB Engine",
     COMBO_DC_O15: "Combo Doppia Chance + Over 1.5",
   };
@@ -149,6 +159,23 @@ VALUE_PICKS: "Quote di Valore",
     const cat = normalizeCatKey(p && p.category);
     const model = normalizeCatKey(p && p.model);
     const pickRaw = String((p && p.pick) || "").trim().toLowerCase();
+    const directCats = new Set([
+      "BEST_TIPS_OF_DAY",
+      "SAFE_FLOOR",
+      "GOAL_PRESSURE",
+      "BTTS_EDGE",
+      "DC_GOAL",
+      "BTTS_NO_VALUE",
+      "OVER25_PATTERNS",
+      "SAFE_PICKS",
+      "SAFE_GOALS",
+      "GG_SPECIAL",
+      "OVER_UNDER_TIPS",
+      "VALUE_PICKS",
+      "SINGLE_GAME",
+      "DNB_ENGINE",
+      "HT_GOAL_ENGINE",
+    ]);
 
     const isDc =
       pickRaw.startsWith("1x") || pickRaw.startsWith("x2") ||
@@ -157,6 +184,7 @@ VALUE_PICKS: "Quote di Valore",
     const isO15 = pickRaw.includes("over 1.5");
     const isComboByModel = model.includes("O1_5") && (model.includes("DC") || model.includes("1X") || model.includes("X2"));
 
+    if (directCats.has(cat)) return cat;
     if ((isDc && isO15) || isComboByModel) return "COMBO_DC_O15";
     if (cat === "SINGLE_GAME" || cat === "TOP_5_TIPS") return "SINGLE_GAME";
     return cat || "ALTRO";
