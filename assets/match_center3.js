@@ -3007,21 +3007,21 @@
     const type = String(event?.type || "");
     const detail = String(event?.detail || "");
     if (type === "Goal") {
-      if (/Own Goal/i.test(detail)) return { text: IS_EN ? "OWN" : "AUT.", kind: "own" };
-      if (/Missed Penalty/i.test(detail)) return { text: "PK-", kind: "penalty-missed" };
-      if (/Penalty/i.test(detail)) return { text: "PK", kind: "penalty" };
-      return { text: IS_EN ? "GOAL" : "GOL", kind: "goal" };
+      if (/Own Goal/i.test(detail)) return { text: "↺", kind: "own", title: IS_EN ? "Own goal" : "Autogol" };
+      if (/Missed Penalty/i.test(detail)) return { text: "PK-", kind: "penalty-missed", title: IS_EN ? "Missed penalty" : "Rigore sbagliato" };
+      if (/Penalty/i.test(detail)) return { text: "PK", kind: "penalty", title: IS_EN ? "Penalty goal" : "Gol su rigore" };
+      return { text: "⚽", kind: "goal", title: IS_EN ? "Goal" : "Gol" };
     }
     if (type === "Card") {
-      if (/Second Yellow/i.test(detail)) return { text: "2Y", kind: "red" };
-      if (/Red Card/i.test(detail)) return { text: "RC", kind: "red" };
-      return { text: "YC", kind: "yellow" };
+      if (/Second Yellow/i.test(detail)) return { text: "🟨🟥", kind: "red", title: IS_EN ? "Second yellow" : "Secondo giallo" };
+      if (/Red Card/i.test(detail)) return { text: "🟥", kind: "red", title: IS_EN ? "Red card" : "Cartellino rosso" };
+      return { text: "🟨", kind: "yellow", title: IS_EN ? "Yellow card" : "Cartellino giallo" };
     }
     if (type === "subst" || /Substitution/i.test(type) || /Substitution/i.test(detail)) {
-      return { text: IS_EN ? "SUB" : "CAM", kind: "sub" };
+      return { text: "⇄", kind: "sub", title: IS_EN ? "Substitution" : "Sostituzione" };
     }
-    if (type === "Var") return { text: "VAR", kind: "var" };
-    return { text: IS_EN ? "EV" : "EV", kind: "neutral" };
+    if (type === "Var") return { text: "🎥", kind: "var", title: "VAR" };
+    return { text: "•", kind: "neutral", title: IS_EN ? "Event" : "Evento" };
   }
 
   function renderDetailEventSideSafe(event, match, side) {
@@ -3034,7 +3034,7 @@
       || (isOwnGoal ? (IS_EN ? "Own goal" : "Autogol") : (event?.detail || event?.type || ""));
     return `
       <div class="detail-event-payload detail-event-payload-${side}">
-        <span class="detail-event-chip detail-event-chip-${chip.kind}">${escapeHtml(chip.text)}</span>
+        <span class="detail-event-chip detail-event-chip-${chip.kind}" title="${escapeHtml(chip.title || chip.text)}">${escapeHtml(chip.text)}</span>
         <div class="detail-event-copy">
           <strong>${escapeHtml(actor)}</strong>
           <small>${escapeHtml(teamLabel)}</small>
