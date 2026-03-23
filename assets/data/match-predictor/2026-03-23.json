@@ -6754,8 +6754,8 @@
           4.2
         ]
       ],
-      "kickoff_at": "2026-03-23T13:30:00+01:00",
-      "kickoff_ts": 1774269000,
+      "kickoff_at": "2026-03-23T13:00:00+01:00",
+      "kickoff_ts": 1774267200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -9205,8 +9205,8 @@
           8.4
         ]
       ],
-      "kickoff_at": "2026-03-23T17:00:00+01:00",
-      "kickoff_ts": 1774281600,
+      "kickoff_at": "2026-03-23T17:30:00+01:00",
+      "kickoff_ts": 1774283400,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -9322,8 +9322,8 @@
           7.0
         ]
       ],
-      "kickoff_at": "2026-03-23T17:00:00+01:00",
-      "kickoff_ts": 1774281600,
+      "kickoff_at": "2026-03-23T17:30:00+01:00",
+      "kickoff_ts": 1774283400,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -9439,8 +9439,8 @@
           7.8
         ]
       ],
-      "kickoff_at": "2026-03-23T17:00:00+01:00",
-      "kickoff_ts": 1774281600,
+      "kickoff_at": "2026-03-23T17:30:00+01:00",
+      "kickoff_ts": 1774283400,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -9556,8 +9556,8 @@
           7.1
         ]
       ],
-      "kickoff_at": "2026-03-23T17:00:00+01:00",
-      "kickoff_ts": 1774281600,
+      "kickoff_at": "2026-03-23T17:30:00+01:00",
+      "kickoff_ts": 1774283400,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -14642,5 +14642,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-03-23T23:39:51.707223+00:00",
-  "refreshed_at": "2026-03-23T07:16:52.334890+00:00"
+  "refreshed_at": "2026-03-23T09:01:58.429320+00:00"
 }
