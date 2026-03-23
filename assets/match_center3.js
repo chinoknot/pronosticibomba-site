@@ -85,6 +85,11 @@
     { id: "halves_ht_u15", group: "halves", marketId: "ht15", label: "Under 1.5 HT" },
     { id: "halves_sh_o15", group: "halves", marketId: "sh15", label: "Over 1.5 2H" },
     { id: "halves_sh_u15", group: "halves", marketId: "sh15", label: "Under 1.5 2H" },
+    { id: "double_1x", group: "double", marketId: "dc", label: "1X" },
+    { id: "double_x2", group: "double", marketId: "dc", label: "X2" },
+    { id: "btts_yes", group: "btts", marketId: "btts", label: "BTTS YES" },
+    { id: "btts_no", group: "btts", marketId: "btts", label: "BTTS NO" },
+    { id: "combo_o25_btts", group: "combo", marketId: "combo", label: "Over 2.5 + BTTS" },
     ...[7.5, 8.5, 9.5, 10.5, 11.5, 12.5].map(line => ({ id: `corners_o_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Over ${line.toFixed(1)}` })),
     ...[10.5, 9.5].map(line => ({ id: `corners_u_${String(line).replace(".", "")}`, group: "corners", marketId: "corners", label: `Under ${line.toFixed(1)}` })),
     ...[2.5, 3.5, 4.5].map(line => ({ id: `yellows_o_${String(line).replace(".", "")}`, group: "yellows", marketId: "yellows", label: `Over ${line.toFixed(1)}` })),
@@ -395,7 +400,7 @@
     customSelectRegistry.forEach((control, select) => {
       if (exceptSelect && select === exceptSelect) return;
       control.shell.classList.remove("is-open");
-      control.shell.closest(".inline-filter-card, .inline-filter-card-priority, .inline-filter-board, .inline-filter-board-priority, .bet-master-card, .bet-master-shell")?.classList.remove("has-open-select");
+      control.shell.closest(".inline-filter-card, .inline-filter-card-priority, .inline-filter-board, .inline-filter-board-priority, .ribbon-shell, .bet-master-card, .bet-master-shell")?.classList.remove("has-open-select");
       control.trigger.setAttribute("aria-expanded", "false");
       control.panel.hidden = true;
     });
@@ -439,7 +444,7 @@
       const shouldOpen = !shell.classList.contains("is-open");
       closeAllCustomSelects(shouldOpen ? select : null);
       shell.classList.toggle("is-open", shouldOpen);
-      shell.closest(".inline-filter-card, .inline-filter-card-priority, .inline-filter-board, .inline-filter-board-priority, .bet-master-card, .bet-master-shell")?.classList.toggle("has-open-select", shouldOpen);
+      shell.closest(".inline-filter-card, .inline-filter-card-priority, .inline-filter-board, .inline-filter-board-priority, .ribbon-shell, .bet-master-card, .bet-master-shell")?.classList.toggle("has-open-select", shouldOpen);
       trigger.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
       panel.hidden = !shouldOpen;
     });
@@ -492,7 +497,7 @@
     if (!shell.classList.contains("is-open")) {
       panel.hidden = true;
       trigger.setAttribute("aria-expanded", "false");
-      shell.closest(".inline-filter-card, .inline-filter-card-priority, .inline-filter-board, .inline-filter-board-priority, .bet-master-card, .bet-master-shell")?.classList.remove("has-open-select");
+      shell.closest(".inline-filter-card, .inline-filter-card-priority, .inline-filter-board, .inline-filter-board-priority, .ribbon-shell, .bet-master-card, .bet-master-shell")?.classList.remove("has-open-select");
     }
   }
 
@@ -855,7 +860,7 @@
   function focusedOutcomeGroup() {
     if (state.groups.size === 1) {
       const [groupId] = [...state.groups];
-      if (["goals", "halves", "corners", "yellows"].includes(groupId)) return groupId;
+      if (["goals", "halves", "double", "btts", "combo", "corners", "yellows"].includes(groupId)) return groupId;
     }
     if (state.outcomeFilters.size) {
       const activeGroups = [...new Set(OUTCOME_FILTERS.filter(filter => state.outcomeFilters.has(filter.id)).map(filter => filter.group))];
@@ -884,9 +889,12 @@
     const filters = outcomeFiltersForGroup(groupId);
     const selected = selectedOutcomeFiltersForGroup(groupId);
     const singleSelected = selected.length === 1 ? selected[0].id : "";
+    const allLabel = ["goals", "halves", "corners", "yellows"].includes(groupId)
+      ? (IS_EN ? "All lines" : "Tutte le linee")
+      : (IS_EN ? "All outcomes" : "Tutti gli esiti");
     dom.outcomeRail.hidden = false;
     dom.outcomeRail.innerHTML = [
-      `<button type="button" class="quick-outcome-chip ${!singleSelected ? "active" : ""}" data-quick-outcome-clear="${groupId}"><strong>Tutte le linee</strong><small>${escapeHtml(marketGroup(groupId)?.label || groupId)}</small></button>`,
+      `<button type="button" class="quick-outcome-chip ${!singleSelected ? "active" : ""}" data-quick-outcome-clear="${groupId}"><strong>${escapeHtml(allLabel)}</strong><small>${escapeHtml(marketGroup(groupId)?.label || groupId)}</small></button>`,
       ...filters.map(filter => `<button type="button" class="quick-outcome-chip ${singleSelected === filter.id ? "active" : ""}" data-quick-outcome="${filter.id}"><strong>${escapeHtml(filter.label)}</strong><small>${escapeHtml(marketGroup(groupId)?.label || groupId)}</small></button>`),
     ].join("");
   }
