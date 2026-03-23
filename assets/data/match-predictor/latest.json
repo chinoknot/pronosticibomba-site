@@ -5240,13 +5240,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/22823.png",
       "away_logo": "https://media.api-sports.io/football/teams/20784.png",
       "league_logo": "https://media.api-sports.io/football/leagues/836.png",
-      "status_short": "1H",
-      "status_long": "First Half",
-      "goals_home": 1,
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 2,
       "goals_away": 1,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "1-1",
+      "final_score": "2-1",
       "p_over15": 0.9488,
       "p_under15": 0.0512,
       "ou15_pick": "Over 1.5",
@@ -5357,8 +5357,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/3784.png",
       "away_logo": "https://media.api-sports.io/football/teams/10010.png",
       "league_logo": "https://media.api-sports.io/football/leagues/834.png",
-      "status_short": "1H",
-      "status_long": "First Half",
+      "status_short": "ABD",
+      "status_long": "Match Abandoned",
       "goals_home": 0,
       "goals_away": 0,
       "total_corners": null,
@@ -5469,8 +5469,8 @@
       ],
       "kickoff_at": "2026-03-23T10:45:00+01:00",
       "kickoff_ts": 1774259100,
-      "ht_goals_home": 0,
-      "ht_goals_away": 0
+      "ht_goals_home": null,
+      "ht_goals_away": null
     },
     {
       "fixture_id": 1514589,
@@ -5483,13 +5483,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/19484.png",
       "away_logo": "https://media.api-sports.io/football/teams/17897.png",
       "league_logo": "https://media.api-sports.io/football/leagues/277.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 3,
+      "goals_away": 1,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "3-1",
       "p_over15": 0.6737,
       "p_under15": 0.3263,
       "ou15_pick": "Over 1.5",
@@ -5586,8 +5586,8 @@
       ],
       "kickoff_at": "2026-03-23T12:00:00+01:00",
       "kickoff_ts": 1774263600,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 3,
+      "ht_goals_away": 1
     },
     {
       "fixture_id": 1529667,
@@ -14642,5 +14642,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-03-23T23:39:51.707223+00:00",
-  "refreshed_at": "2026-03-23T10:09:37.282126+00:00"
+  "refreshed_at": "2026-03-23T11:47:59.608936+00:00"
 }
