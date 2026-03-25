@@ -840,7 +840,10 @@
 
     function evalResolvedPick(pickText, gh, ga) {
       const total = Number(gh) + Number(ga);
-      const pickUpper = String(pickText || "").toUpperCase().trim();
+      // Normalize + as combo separator (e.g. "X2+OVER 1.5"), but only when between
+      // non-digit chars to avoid breaking decimals like "1.5"
+      const pickUpper = String(pickText || "").toUpperCase().trim()
+        .replace(/([A-Z0-9])\s*\+\s*([A-Z])/g, "$1 & $2");
       if (!pickUpper) return "UNKNOWN";
 
       if (pickUpper.includes("&")) {
