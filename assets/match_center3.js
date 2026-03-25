@@ -3379,7 +3379,8 @@
     const match = getDetailMatch();
     if (!match) {
       dom.detailBody.innerHTML = state.detailFixtureId ? `<div class="empty-state">${TEXT.empty}</div>` : "";
-      state.detailRenderKey = null;
+      state.detailStructureKey = null;
+      state.detailLiveKey = null;
       return;
     }
     const liveScore = state.liveScores[String(match.fixture_id)];
@@ -3390,62 +3391,79 @@
       ? (liveScore.status === "HT" ? "HT" : isFinal ? "FT" : (liveScore.elapsed ? `${liveScore.elapsed}'` : liveScore.status))
       : "";
     const scoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
-    // Skip re-render if nothing meaningful changed (prevents blink on live refresh)
-    const renderKey = [
-      state.detailFixtureId,
-      liveScore ? `${liveScore.home}-${liveScore.away}-${liveScore.elapsed || ""}-${liveScore.status || ""}` : "ns",
-      state.detailDataId || "",
-      state.detailData ? "d" : "nd",
-      scoreChanged ? "sc" : "",
-    ].join("|");
-    if (renderKey === state.detailRenderKey) return;
-    state.detailRenderKey = renderKey;
-    const scoreDisplay = liveScore
+
+    // Helpers shared between full and partial render
+    const buildScoreDisplay = () => liveScore
       ? `<div class="detail-live-score${isLive ? " detail-live-score-live" : ""}${scoreChanged ? " score-changed" : ""}"><span class="score-num">${liveScore.home} - ${liveScore.away}</span>${elapsedTag ? `<span class="detail-status-tag">${escapeHtml(elapsedTag)}</span>` : ""}</div>`
       : "";
-    const scoreChips = (match.most_likely_scores || []).slice(0, 5).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("");
-    const marketGroups = GROUPS
-      .map(group => ({
-        label: group.label,
-        markets: match.markets
-          .filter(market => market.group === group.id && (!match.primaryMarket || market.id !== match.primaryMarket.id))
-          .sort((a, b) => marketDisplayScore(b, match) - marketDisplayScore(a, match)),
-      }))
-      .filter(group => group.markets.length);
-    const summaryMeta = label => `<span class="detail-summary-meta">${escapeHtml(label)}</span>`;
-    const loadingBlock = !state.detailData && state.detailDataId ? `<div class="empty-state" style="padding:10px">Caricamento dati live…</div>` : "";
-    const detailEvents = extractDetailEvents(state.detailData);
-    const detailStatistics = extractDetailStatistics(state.detailData);
-    const eventsBlock = state.detailData ? renderDetailEventsPanel(detailEvents, match) : "";
-    const statsBlock = state.detailData ? renderDetailStatsPanel(detailStatistics) : "";
-    dom.detailBody.innerHTML = `
-      <article class="detail-hero">
-        <div class="detail-teams">
-          <div class="detail-team">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" />` : ""}<h3>${escapeHtml(match.home)}</h3></div>
-          <div class="detail-vs${liveScore ? ' detail-vs-score' : ''}">${scoreDisplay || "VS"}</div>
-          <div class="detail-team">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" />` : ""}<h3>${escapeHtml(match.away)}</h3></div>
+    const buildStatusText = () => isFinal
+      ? `Fine | ${liveScore ? `${liveScore.home}-${liveScore.away}` : (match.final_score || "-")}`
+      : escapeHtml(match.status_long || statusLabel("scheduled"));
+
+    // Full re-render only when fixture changes or data loads/clears
+    const structureKey = `${state.detailFixtureId}|${state.detailData ? "d" : "nd"}`;
+    if (structureKey !== state.detailStructureKey) {
+      state.detailStructureKey = structureKey;
+      state.detailLiveKey = null;
+      const scoreDisplay = buildScoreDisplay();
+      const scoreChips = (match.most_likely_scores || []).slice(0, 5).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("");
+      const marketGroups = GROUPS
+        .map(group => ({
+          label: group.label,
+          markets: match.markets
+            .filter(market => market.group === group.id && (!match.primaryMarket || market.id !== match.primaryMarket.id))
+            .sort((a, b) => marketDisplayScore(b, match) - marketDisplayScore(a, match)),
+        }))
+        .filter(group => group.markets.length);
+      const summaryMeta = label => `<span class="detail-summary-meta">${escapeHtml(label)}</span>`;
+      const loadingBlock = !state.detailData && state.detailDataId ? `<div class="empty-state" style="padding:10px">Caricamento dati live…</div>` : "";
+      const detailEvents = extractDetailEvents(state.detailData);
+      const detailStatistics = extractDetailStatistics(state.detailData);
+      const eventsBlock = state.detailData ? renderDetailEventsPanel(detailEvents, match) : "";
+      const statsBlock = state.detailData ? renderDetailStatsPanel(detailStatistics) : "";
+      dom.detailBody.innerHTML = `
+        <article class="detail-hero">
+          <div class="detail-teams">
+            <div class="detail-team">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" />` : ""}<h3>${escapeHtml(match.home)}</h3></div>
+            <div class="detail-vs${liveScore ? ' detail-vs-score' : ''}">${scoreDisplay || "VS"}</div>
+            <div class="detail-team">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" />` : ""}<h3>${escapeHtml(match.away)}</h3></div>
+          </div>
+          <div class="detail-meta-grid">
+            <div class="detail-meta-card"><span>Campionato</span><strong>${escapeHtml(match.league)}</strong></div>
+            <div class="detail-meta-card"><span>Kickoff</span><strong>${escapeHtml(match.localMatchTime || match.match_time)} | ${escapeHtml(match.localMatchDateLabel || formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</strong></div>
+            <div class="detail-meta-card"><span>Stato</span><strong class="detail-status-strong">${buildStatusText()}</strong></div>
+          </div>
+        </article>
+        <div class="detail-stack">
+          ${loadingBlock}
+          ${eventsBlock}
+          ${statsBlock}
+          <details class="detail-accordion" open>
+            <summary class="detail-summary"><span>${TEXT.detailPrimary}</span>${match.primaryMarket ? summaryMeta(marketSummaryLabel(match.primaryMarket)) : ""}</summary>
+            <div class="detail-section"><div class="market-grid">${match.primaryMarket ? renderMarketCard(match.primaryMarket) : `<div class="empty-state">${TEXT.empty}</div>`}</div></div>
+          </details>
+          <details class="detail-accordion" open>
+            <summary class="detail-summary"><span>${TEXT.detailScores}</span>${summaryMeta(`${Math.min((match.most_likely_scores || []).length, 5)} score`)}</summary>
+            <div class="detail-section"><div class="score-chips">${scoreChips || `<span class="mini-chip">-</span>`}</div></div>
+          </details>
+          ${marketGroups.map(group => `<details class="detail-accordion"><summary class="detail-summary"><span>${escapeHtml(group.label)}</span>${summaryMeta(marketSummaryLabel(group.markets[0], `${group.markets.length} pick`))}</summary><div class="detail-section"><div class="market-grid">${group.markets.map(renderMarketCard).join("")}</div></div></details>`).join("")}
         </div>
-        <div class="detail-meta-grid">
-          <div class="detail-meta-card"><span>Campionato</span><strong>${escapeHtml(match.league)}</strong></div>
-          <div class="detail-meta-card"><span>Kickoff</span><strong>${escapeHtml(match.localMatchTime || match.match_time)} | ${escapeHtml(match.localMatchDateLabel || formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</strong></div>
-          <div class="detail-meta-card"><span>Stato</span><strong>${isFinal ? `Fine | ${liveScore ? `${liveScore.home}-${liveScore.away}` : (match.final_score || "-")}` : escapeHtml(match.status_long || statusLabel("scheduled"))}</strong></div>
-        </div>
-      </article>
-      <div class="detail-stack">
-        ${loadingBlock}
-        ${eventsBlock}
-        ${statsBlock}
-        <details class="detail-accordion" open>
-          <summary class="detail-summary"><span>${TEXT.detailPrimary}</span>${match.primaryMarket ? summaryMeta(marketSummaryLabel(match.primaryMarket)) : ""}</summary>
-          <div class="detail-section"><div class="market-grid">${match.primaryMarket ? renderMarketCard(match.primaryMarket) : `<div class="empty-state">${TEXT.empty}</div>`}</div></div>
-        </details>
-        <details class="detail-accordion" open>
-          <summary class="detail-summary"><span>${TEXT.detailScores}</span>${summaryMeta(`${Math.min((match.most_likely_scores || []).length, 5)} score`)}</summary>
-          <div class="detail-section"><div class="score-chips">${scoreChips || `<span class="mini-chip">-</span>`}</div></div>
-        </details>
-        ${marketGroups.map(group => `<details class="detail-accordion"><summary class="detail-summary"><span>${escapeHtml(group.label)}</span>${summaryMeta(marketSummaryLabel(group.markets[0], `${group.markets.length} pick`))}</summary><div class="detail-section"><div class="market-grid">${group.markets.map(renderMarketCard).join("")}</div></div></details>`).join("")}
-      </div>
-    `;
+      `;
+      return;
+    }
+
+    // Partial live patch: update only score and status in-place (no innerHTML replacement = no blink)
+    const liveKey = `${liveScore ? `${liveScore.home}-${liveScore.away}-${liveScore.elapsed || ""}-${liveScore.status || ""}` : "ns"}|${scoreChanged ? "c" : ""}`;
+    if (liveKey === state.detailLiveKey) return;
+    state.detailLiveKey = liveKey;
+
+    const vsEl = dom.detailBody.querySelector(".detail-vs");
+    if (vsEl) {
+      vsEl.className = `detail-vs${liveScore ? " detail-vs-score" : ""}`;
+      vsEl.innerHTML = buildScoreDisplay() || "VS";
+    }
+    const statusEl = dom.detailBody.querySelector(".detail-status-strong");
+    if (statusEl) statusEl.innerHTML = buildStatusText();
   }
 
   async function render() {
@@ -4067,7 +4085,8 @@
         state.detailFixtureId = nextFixtureId;
         state.detailData = null;
         state.detailDataId = String(nextFixtureId || "");
-        state.detailRenderKey = null;
+        state.detailStructureKey = null;
+        state.detailLiveKey = null;
         syncModalState();
         renderDetail();
         fetchDetailData(nextFixtureId);
