@@ -634,10 +634,46 @@
     .live-status-label{display:inline-block;font-size:.68rem;font-weight:700;color:#fca5a5;margin-left:4px;vertical-align:middle}
     .live-score-final{display:inline-flex;align-items:center;font-size:.9rem;font-weight:700;color:#a3e635;letter-spacing:.04em}
     .live-event-icon{font-size:.8rem;margin-left:2px;cursor:default}
-    .detail-live-score{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:1.8rem;font-weight:900;letter-spacing:.08em;color:#fff;white-space:nowrap;line-height:1}
-    .detail-live-score-live{color:#ef4444}
-    .detail-status-tag{display:block;font-size:.68rem;font-weight:700;background:rgba(255,255,255,.12);border-radius:6px;padding:2px 8px;margin-top:4px;color:#a9bad3;text-align:center;letter-spacing:.04em}
-    .detail-vs-score{width:auto !important;min-width:90px;height:auto !important;background:none !important;font-size:inherit !important;border:none !important}
+    /* ── Detail score – aggressive look ── */
+    .detail-live-score{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:2.6rem;font-weight:900;letter-spacing:-.02em;color:#fff;white-space:nowrap;line-height:1;font-variant-numeric:tabular-nums}
+    .detail-live-score-live{color:#ff3322;text-shadow:0 0 24px rgba(255,51,34,.55),0 0 48px rgba(255,80,40,.25)}
+    .detail-live-score .score-num{display:inline-block}
+    .detail-status-tag{display:block;font-size:.72rem;font-weight:700;background:rgba(255,255,255,.1);border:1px solid rgba(148,163,184,.2);border-radius:8px;padding:3px 10px;margin-top:5px;color:#a9bad3;text-align:center;letter-spacing:.05em}
+    .detail-vs-score{width:auto !important;min-width:110px;height:auto !important;font-size:inherit !important;
+      background:rgba(239,68,68,.07) !important;
+      border:1.5px solid rgba(239,68,68,.35) !important;
+      border-radius:16px !important;
+      padding:10px 14px !important;
+      box-shadow:0 0 20px rgba(239,68,68,.12),inset 0 1px 0 rgba(255,255,255,.06) !important}
+    /* ── Score change animations ── */
+    @keyframes scoreFlip{
+      0%  {transform:perspective(400px) rotateX(0) scale(1);opacity:1}
+      28% {transform:perspective(400px) rotateX(-90deg) scale(1.05);opacity:0}
+      30% {transform:perspective(400px) rotateX(90deg) scale(1.05);opacity:0}
+      70% {transform:perspective(400px) rotateX(0) scale(1.22);opacity:1}
+      85% {transform:perspective(400px) rotateX(0) scale(1.08)}
+      100%{transform:perspective(400px) rotateX(0) scale(1)}
+    }
+    @keyframes scoreGlow{
+      0%  {text-shadow:0 0 0 rgba(255,51,34,0)}
+      25% {text-shadow:0 0 40px rgba(255,51,34,1),0 0 80px rgba(255,100,50,.7)}
+      100%{text-shadow:0 0 24px rgba(255,51,34,.55),0 0 48px rgba(255,80,40,.25)}
+    }
+    @keyframes scoreRing{
+      0%  {box-shadow:0 0 0 0 rgba(239,68,68,.85),0 0 20px rgba(239,68,68,.12),inset 0 1px 0 rgba(255,255,255,.06)}
+      60% {box-shadow:0 0 0 16px rgba(239,68,68,0),0 0 20px rgba(239,68,68,.12),inset 0 1px 0 rgba(255,255,255,.06)}
+      100%{box-shadow:0 0 0 0 rgba(239,68,68,0),0 0 20px rgba(239,68,68,.12),inset 0 1px 0 rgba(255,255,255,.06)}
+    }
+    @keyframes badgePop{
+      0%  {transform:scale(1);background:rgba(239,68,68,.18)}
+      30% {transform:scale(1.55);background:rgba(239,68,68,.65);color:#fff;border-color:rgba(239,68,68,.9)}
+      65% {transform:scale(1.12)}
+      100%{transform:scale(1);background:rgba(239,68,68,.18)}
+    }
+    .detail-live-score.score-changed .score-num{animation:scoreFlip .7s cubic-bezier(.4,0,.2,1) forwards}
+    .detail-live-score-live.score-changed{animation:scoreGlow .9s ease-out forwards}
+    .detail-vs-score:has(.score-changed){animation:scoreRing .7s ease-out forwards}
+    .live-score-badge.score-changed{animation:badgePop .55s cubic-bezier(.34,1.56,.64,1) forwards}
     .detail-summary-static{cursor:default;pointer-events:none}.detail-summary-static::after{display:none !important}
     .detail-events{display:flex;flex-direction:column;gap:6px}
     .detail-event-row{display:grid;grid-template-columns:36px 24px 1fr;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(148,163,184,.08)}
@@ -3240,8 +3276,7 @@
     }
     .detail-live-score{
       gap:5px;
-      font-size:1.95rem;
-      text-shadow:0 0 18px rgba(239,68,68,.18);
+      font-size:3rem;
     }
     .detail-status-tag{
       background:rgba(255,255,255,.09);

@@ -2768,6 +2768,7 @@
     });
     const liveScore = state.liveScores[String(match.fixture_id)];
     const effectiveStatus = liveScore ? String(liveScore.status || "").toUpperCase() : fixtureStatus;
+    const rowScoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
     const scoreText = (() => {
       if (liveScore && FINAL_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
         return `<span class="live-score-final">${liveScore.home}-${liveScore.away}</span>`;
@@ -2779,7 +2780,7 @@
         const elapsedStr = liveScore.status === "HT" ? "HT" : (liveScore.elapsed ? `${liveScore.elapsed}'` : liveScore.status);
         const goals = (liveScore.events || []).filter(e => e.type === "Goal" && e.detail !== "Missed Penalty");
         const goalIcons = goals.map(e => `<span class="live-event-icon" title="${escapeHtml(e.playerName || "")} ${e.elapsed ? `(${e.elapsed}')` : ""}">⚽</span>`).join("");
-        return `<span class="live-score-badge">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${escapeHtml(elapsedStr)}</span>${goalIcons}`;
+        return `<span class="live-score-badge${rowScoreChanged ? " score-changed" : ""}">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${escapeHtml(elapsedStr)}</span>${goalIcons}`;
       }
       return (match.most_likely_scores || []).slice(0, 2).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("") || escapeHtml(match.status_long || "");
     })();
@@ -2821,6 +2822,7 @@
       tag: primary?.tag,
     });
     const liveScore = state.liveScores[String(match.fixture_id)];
+    const featScoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
     const scoreText = (() => {
       if (liveScore && FINAL_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
         return `<span class="live-score-final">${liveScore.home}-${liveScore.away}</span>`;
@@ -2832,7 +2834,7 @@
         const elapsedStr = liveScore.status === "HT" ? "HT" : (liveScore.elapsed ? `${liveScore.elapsed}'` : liveScore.status);
         const redCards = (liveScore.events || []).filter(event => event.type === "Card" && /Red Card|Second Yellow/i.test(String(event.detail || "")));
         const redBadge = redCards.length ? `<span class="live-red-badge" title="${escapeHtml(IS_EN ? "Red card" : "Cartellino rosso")}">RC${redCards.length > 1 ? ` ${redCards.length}` : ""}</span>` : "";
-        return `<span class="live-score-badge">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${escapeHtml(elapsedStr)}</span>${redBadge}`;
+        return `<span class="live-score-badge${featScoreChanged ? " score-changed" : ""}">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${escapeHtml(elapsedStr)}</span>${redBadge}`;
       }
       return (match.most_likely_scores || []).slice(0, 2).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("") || escapeHtml(match.status_long || "");
     })();
@@ -3386,8 +3388,9 @@
     const elapsedTag = liveScore
       ? (liveScore.status === "HT" ? "HT" : isFinal ? "FT" : (liveScore.elapsed ? `${liveScore.elapsed}'` : liveScore.status))
       : "";
+    const scoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
     const scoreDisplay = liveScore
-      ? `<div class="detail-live-score${isLive ? " detail-live-score-live" : ""}"><span>${liveScore.home} - ${liveScore.away}</span>${elapsedTag ? `<span class="detail-status-tag">${escapeHtml(elapsedTag)}</span>` : ""}</div>`
+      ? `<div class="detail-live-score${isLive ? " detail-live-score-live" : ""}${scoreChanged ? " score-changed" : ""}"><span class="score-num">${liveScore.home} - ${liveScore.away}</span>${elapsedTag ? `<span class="detail-status-tag">${escapeHtml(elapsedTag)}</span>` : ""}</div>`
       : "";
     const scoreChips = (match.most_likely_scores || []).slice(0, 5).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("");
     const marketGroups = GROUPS
@@ -3627,10 +3630,22 @@
           });
         }
       }
+      // Detect which fixtures had a score change to trigger animations
+      if (!state.scoreChangedIds) state.scoreChangedIds = new Set();
+      state.scoreChangedIds.clear();
+      for (const [id, newScore] of Object.entries(scores)) {
+        const old = state.liveScores[id];
+        if (old && (old.home !== newScore.home || old.away !== newScore.away)) {
+          state.scoreChangedIds.add(id);
+        }
+      }
       state.liveScores = scores;
       state.liveOnlyMatches = extraMatches;
       invalidateMatchCaches();
       render();
+      if (state.scoreChangedIds.size) {
+        setTimeout(() => { state.scoreChangedIds.clear(); }, 2000);
+      }
     } catch (e) {
       console.warn("Live scores fetch failed:", e);
     }
