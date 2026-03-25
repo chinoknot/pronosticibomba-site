@@ -2923,7 +2923,7 @@
               </div>
               <div class="match-score"><span class="live-score-badge">${score}</span><span class="live-status-label">${escapeHtml(elapsed)}</span></div>
             </div>
-            <div class="match-action"><strong>${IS_EN ? "Details" : "Dettaglio"}</strong><small>${IS_EN ? "live" : "live"}</small></div>
+            <div class="match-action"><strong>${TEXT.viewMatch}</strong></div>
           </div>
         </article>
       </section>`;
@@ -3379,6 +3379,7 @@
     const match = getDetailMatch();
     if (!match) {
       dom.detailBody.innerHTML = state.detailFixtureId ? `<div class="empty-state">${TEXT.empty}</div>` : "";
+      state.detailRenderKey = null;
       return;
     }
     const liveScore = state.liveScores[String(match.fixture_id)];
@@ -3389,6 +3390,16 @@
       ? (liveScore.status === "HT" ? "HT" : isFinal ? "FT" : (liveScore.elapsed ? `${liveScore.elapsed}'` : liveScore.status))
       : "";
     const scoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
+    // Skip re-render if nothing meaningful changed (prevents blink on live refresh)
+    const renderKey = [
+      state.detailFixtureId,
+      liveScore ? `${liveScore.home}-${liveScore.away}-${liveScore.elapsed || ""}-${liveScore.status || ""}` : "ns",
+      state.detailDataId || "",
+      state.detailData ? "d" : "nd",
+      scoreChanged ? "sc" : "",
+    ].join("|");
+    if (renderKey === state.detailRenderKey) return;
+    state.detailRenderKey = renderKey;
     const scoreDisplay = liveScore
       ? `<div class="detail-live-score${isLive ? " detail-live-score-live" : ""}${scoreChanged ? " score-changed" : ""}"><span class="score-num">${liveScore.home} - ${liveScore.away}</span>${elapsedTag ? `<span class="detail-status-tag">${escapeHtml(elapsedTag)}</span>` : ""}</div>`
       : "";
@@ -4056,6 +4067,7 @@
         state.detailFixtureId = nextFixtureId;
         state.detailData = null;
         state.detailDataId = String(nextFixtureId || "");
+        state.detailRenderKey = null;
         syncModalState();
         renderDetail();
         fetchDetailData(nextFixtureId);
