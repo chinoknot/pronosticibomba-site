@@ -112,8 +112,6 @@
       align-items:center;
       gap:12px;
       min-width:0;
-      color:#fff;
-      text-decoration:none;
     }
 
     .brand-mark{
@@ -1651,53 +1649,6 @@
       line-height:1.35;
     }
 
-    /* ── Ko-fi floating button ── */
-    .kofi-fab{
-      position:fixed;
-      bottom:24px;
-      right:22px;
-      z-index:900;
-      display:inline-flex;
-      align-items:center;
-      gap:9px;
-      padding:0 20px 0 14px;
-      height:50px;
-      border-radius:999px;
-      background:linear-gradient(135deg,#ff7043 0%,#ff9a00 100%);
-      color:#1a0900;
-      font-family:"Sora",sans-serif;
-      font-size:.82rem;
-      font-weight:900;
-      letter-spacing:-.01em;
-      white-space:nowrap;
-      text-decoration:none;
-      border:1.5px solid rgba(255,180,80,.45);
-      box-shadow:0 8px 28px rgba(255,112,50,.45), 0 2px 6px rgba(0,0,0,.3);
-      animation:kofi-hover 3.2s ease-in-out infinite;
-      transition:transform .15s,box-shadow .15s;
-    }
-    .kofi-fab:hover{
-      transform:translateY(-3px) scale(1.04);
-      box-shadow:0 14px 40px rgba(255,120,60,.65),0 2px 8px rgba(0,0,0,.35);
-      animation:none;
-    }
-    .kofi-fab-cup{
-      font-size:1.4rem;
-      line-height:1;
-      display:block;
-      animation:kofi-wobble 3.2s ease-in-out infinite;
-    }
-    @keyframes kofi-hover{
-      0%,100%{transform:translateY(0);box-shadow:0 8px 28px rgba(255,112,50,.45),0 2px 6px rgba(0,0,0,.3)}
-      50%{transform:translateY(-5px);box-shadow:0 16px 40px rgba(255,140,60,.65),0 2px 8px rgba(0,0,0,.35)}
-    }
-    @keyframes kofi-wobble{
-      0%,80%,100%{transform:rotate(0deg)}
-      85%{transform:rotate(-14deg)}
-      90%{transform:rotate(10deg)}
-      95%{transform:rotate(-6deg)}
-    }
-
     footer{
       padding:0 0 30px;
     }
@@ -2154,48 +2105,6 @@
       border:1px solid rgba(255,255,255,.12);
       background:rgba(255,255,255,.06);
       color:#e7eeff;
-    }
-
-    .confidence-chip{
-      gap:6px;
-      border-color:rgba(125,211,252,.16);
-      background:linear-gradient(135deg, rgba(18,28,52,.92), rgba(10,16,30,.96));
-    }
-
-    .confidence-chip.very-high{
-      border-color:rgba(37,219,169,.42);
-      background:linear-gradient(135deg, rgba(13,92,76,.98), rgba(37,219,169,.24));
-      color:#eafff8;
-    }
-
-    .confidence-chip.high{
-      border-color:rgba(61,213,243,.42);
-      background:linear-gradient(135deg, rgba(14,76,98,.98), rgba(61,213,243,.22));
-      color:#eefcff;
-    }
-
-    .confidence-chip.good{
-      border-color:rgba(255,200,61,.42);
-      background:linear-gradient(135deg, rgba(94,66,16,.98), rgba(255,200,61,.2));
-      color:#fff4cf;
-    }
-
-    .confidence-chip.medium{
-      border-color:rgba(167,139,250,.34);
-      background:linear-gradient(135deg, rgba(57,39,98,.98), rgba(167,139,250,.16));
-      color:#f2ecff;
-    }
-
-    .confidence-chip.low{
-      border-color:rgba(251,146,60,.42);
-      background:linear-gradient(135deg, rgba(108,50,14,.98), rgba(251,146,60,.22));
-      color:#fff0dd;
-    }
-
-    .confidence-chip.risky{
-      border-color:rgba(244,114,182,.42);
-      background:linear-gradient(135deg, rgba(118,26,82,.98), rgba(244,114,182,.18));
-      color:#fff0f8;
     }
 
     .live-pick-side{
@@ -2770,11 +2679,11 @@
           <a id="index2-nav-match-center" class="nav-link" href="/match-center.html">Match Center</a>
           <a id="index2-nav-roi" class="nav-link" href="/storico.html">Storico ROI</a>
           <a id="index2-nav-picks" class="nav-link" href="/storico_picks.html">Storico Picks</a>
+          <div class="lang-switch" aria-label="Language switch">
+            <button id="index2-lang-it" class="lang-btn" type="button">IT</button>
+            <button id="index2-lang-en" class="lang-btn" type="button">EN</button>
+          </div>
         </nav>
-        <div class="lang-switch" aria-label="Language switch">
-          <button id="index2-lang-it" class="lang-btn" type="button">IT</button>
-          <button id="index2-lang-en" class="lang-btn" type="button">EN</button>
-        </div>
       </div>
       <nav class="mobile-page-nav" aria-label="Mobile page navigation">
         <a class="mobile-page-link active" href="/index.html">
@@ -3038,10 +2947,14 @@
           <h3 id="index2-support-title" class="support-title">Tutto free, zero pubblicita.</h3>
           <p id="index2-support-text" class="support-text">Se il progetto ti e utile, ogni supporto aiuta a tenerlo online, pulito e aggiornato ogni giorno.</p>
           <div class="support-points">
-            <span id="index2-support-point-a" class="support-point">Aggiornato ogni giorno</span>
+            <span id="index2-support-point-a" class="support-point">Sempre free</span>
             <span id="index2-support-point-b" class="support-point">Zero ads</span>
             <span id="index2-support-point-c" class="support-point">Supporto ben accetto</span>
           </div>
+        </div>
+        <div class="support-actions">
+          <a id="index2-support-button" class="support-button" href="https://www.buymeacoffee.com/pronosticibomba" target="_blank" rel="noopener">Regala uno snack a Ralph</a>
+          <span id="index2-support-sub" class="support-sub">Per PayPal o Revolut, il setup piu pulito e Ko-fi + link diretti.</span>
         </div>
       </div>
     </section>
@@ -3139,11 +3052,11 @@
         supportKicker: "Supporta il progetto",
         supportTitle: "Tutto free, zero pubblicita.",
         supportText: "Se il progetto ti e utile, ogni supporto aiuta a tenerlo online, pulito e aggiornato ogni giorno.",
-        supportPointA: "Aggiornato ogni giorno",
+        supportPointA: "Sempre free",
         supportPointB: "Zero ads",
         supportPointC: "Supporto ben accetto",
-        supportButton: "Regala uno snack a Ralph ☕",
-        supportSub: "",
+        supportButton: "Regala uno snack a Ralph",
+        supportSub: "Per PayPal o Revolut, il setup piu pulito e Ko-fi + link diretti.",
         summaryPicks: "picks",
         summaryRoiPicks: "ROI picks",
         summaryRoiMonth: "ROI mese",
@@ -3161,12 +3074,6 @@
         badgePending: "IN ATTESA",
         badgeVoid: "ANNULLATA",
         conf: "Conf.",
-        confidenceVeryHigh: "Molto alta",
-        confidenceHigh: "Alta",
-        confidenceGood: "Buona",
-        confidenceMedium: "Media",
-        confidenceLow: "Bassa",
-        confidenceRisky: "Rischiosa",
         picksWord: "picks",
         noPicksDay: "Nessuna pick disponibile per questa giornata.",
         noPicksNow: "Nessuna pick disponibile al momento.",
@@ -3248,11 +3155,11 @@
         supportKicker: "Support the project",
         supportTitle: "Everything is free, zero ads.",
         supportText: "If the project is useful to you, every bit of support helps keep it online, clean and updated every day.",
-        supportPointA: "Updated every day",
+        supportPointA: "Always free",
         supportPointB: "No ads",
         supportPointC: "Support is welcome",
-        supportButton: "Buy a snack for Ralph ☕",
-        supportSub: "",
+        supportButton: "Buy Ralph a snack",
+        supportSub: "For PayPal or Revolut, the cleanest setup is Ko-fi plus direct links.",
         summaryPicks: "picks",
         summaryRoiPicks: "ROI picks",
         summaryRoiMonth: "monthly ROI",
@@ -3270,12 +3177,6 @@
         badgePending: "PENDING",
         badgeVoid: "VOID",
         conf: "Conf.",
-        confidenceVeryHigh: "Very high",
-        confidenceHigh: "High",
-        confidenceGood: "Good",
-        confidenceMedium: "Medium",
-        confidenceLow: "Low",
-        confidenceRisky: "Risky",
         picksWord: "picks",
         noPicksDay: "No picks available for this day.",
         noPicksNow: "No picks available right now.",
@@ -3319,72 +3220,6 @@
         });
       }
       return value;
-    }
-
-    function confidenceMeta(score, scale) {
-      const numeric = Number(score);
-      if (!Number.isFinite(numeric)) {
-        return { label: "-", tone: "neutral" };
-      }
-
-      if (scale && typeof scale.classify === "function") {
-        return scale.classify(numeric);
-      }
-
-      return { label: t("confidenceGood"), tone: "good" };
-    }
-
-    function buildConfidenceScale(picks) {
-      const values = (Array.isArray(picks) ? picks : [])
-        .map(pick => Number(pick?.score))
-        .filter(Number.isFinite)
-        .sort((a, b) => a - b);
-
-      if (!values.length) {
-        return {
-          classify() {
-            return { label: "-", tone: "neutral" };
-          }
-        };
-      }
-
-      const min = values[0];
-      const max = values[values.length - 1];
-      if (Math.abs(max - min) < 0.0001) {
-        return {
-          classify() {
-            return { label: t("confidenceGood"), tone: "good" };
-          }
-        };
-      }
-
-      function upperBound(target) {
-        let low = 0;
-        let high = values.length;
-        while (low < high) {
-          const mid = Math.floor((low + high) / 2);
-          if (values[mid] <= target) low = mid + 1;
-          else high = mid;
-        }
-        return low;
-      }
-
-      return {
-        classify(scoreValue) {
-          const numeric = Number(scoreValue);
-          if (!Number.isFinite(numeric)) {
-            return { label: "-", tone: "neutral" };
-          }
-
-          const percentile = upperBound(numeric) / values.length;
-          if (percentile >= 0.9) return { label: t("confidenceVeryHigh"), tone: "very-high" };
-          if (percentile >= 0.72) return { label: t("confidenceHigh"), tone: "high" };
-          if (percentile >= 0.5) return { label: t("confidenceGood"), tone: "good" };
-          if (percentile >= 0.3) return { label: t("confidenceMedium"), tone: "medium" };
-          if (percentile >= 0.14) return { label: t("confidenceLow"), tone: "low" };
-          return { label: t("confidenceRisky"), tone: "risky" };
-        }
-      };
     }
 
     function setNodeText(id, value) {
@@ -4551,7 +4386,6 @@
       if (!host) return;
       const grouped = groupByCategory(picks);
       const categories = sortCategoriesOrder(Array.from(grouped.keys()));
-      const confidenceScale = buildConfidenceScale(picks);
       if (!categories.length) {
         host.innerHTML = `<div class="empty-board">${t("noPicksDay")}</div>`;
         return;
@@ -4583,7 +4417,8 @@
           const resultClass = badge.className ? ` ${badge.className}` : "";
           const oddNum = safeOdd(pick.odd);
           const oddText = oddNum ? `@ ${oddNum.toFixed(2)}` : "@ -";
-          const confidence = confidenceMeta(pick.score, confidenceScale);
+          const conf = Number(pick.score || 0);
+          const confText = Number.isFinite(conf) ? `${Math.round(conf * 100)}%` : "-";
           const roiHtml = pick.roi_tag === "ROI_PICK"
             ? '<span class="roi-pill">ROI PICK</span>'
             : (pick.roi_tag === "BACKUP" ? '<span class="roi-pill backup">BACKUP</span>' : "");
@@ -4603,7 +4438,7 @@
                 <div class="live-pick-sub">
                   <span class="pick-chip">${escapeHtml(pick.pick || "-")}</span>
                   <span class="odd-chip">${escapeHtml(oddText)}</span>
-                  <span class="confidence-chip ${escapeHtml(confidence.tone)}">${escapeHtml(confidence.label)}</span>
+                  <span class="confidence-chip">${escapeHtml(t("conf"))} ${escapeHtml(confText)}</span>
                 </div>
               </div>
               <div class="live-pick-side">
@@ -4814,26 +4649,6 @@
         repeating-linear-gradient(135deg,rgba(255,200,61,.08) 0 8px,rgba(255,200,61,0) 8px 16px),
         linear-gradient(180deg,rgba(130,26,10,.97),rgba(62,10,10,.99)) !important;
     }
-  </style>
-  <a class="kofi-fab" href="https://ko-fi.com/pronosticibomba" target="_blank" rel="noopener" aria-label="Offrimi un caffè su Ko-fi">
-    <span class="kofi-fab-cup" aria-hidden="true">☕</span>
-    <span>Uno snack per Ralph</span>
-  </a>
-  <style>
-    /* ── Mobile nav: per-page accent colors ── */
-    .mobile-page-link{background:linear-gradient(145deg,rgba(10,13,22,.95),rgba(6,8,16,.99))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 24px rgba(0,0,0,.32)!important}
-    .mobile-page-link[href="/index.html"]{border-color:rgba(255,122,24,.32)!important;background:linear-gradient(145deg,rgba(28,14,4,.96),rgba(16,8,2,.99))!important;box-shadow:inset 0 1px 0 rgba(255,190,70,.16),0 12px 24px rgba(0,0,0,.3)!important}
-    .mobile-page-link[href="/index.html"] .mobile-page-icon{background:rgba(255,122,24,.13)!important;border-color:rgba(255,150,40,.42)!important;box-shadow:inset 0 1px 0 rgba(255,210,90,.22)!important;color:#ffaa40!important}
-    .mobile-page-link[href="/index.html"].active{border-color:rgba(255,122,24,.64)!important;background:radial-gradient(circle at top right,rgba(255,122,24,.2),transparent 54%),linear-gradient(145deg,rgba(38,18,4,.98),rgba(22,9,2,.99))!important;box-shadow:inset 0 1px 0 rgba(255,200,80,.22),0 0 0 1px rgba(255,122,24,.12),0 18px 32px rgba(255,122,24,.14)!important}
-    .mobile-page-link[href="/match-center.html"]{border-color:rgba(61,213,243,.26)!important;background:linear-gradient(145deg,rgba(4,18,26,.96),rgba(2,10,16,.99))!important;box-shadow:inset 0 1px 0 rgba(160,235,255,.13),0 12px 24px rgba(0,0,0,.3)!important}
-    .mobile-page-link[href="/match-center.html"] .mobile-page-icon{background:rgba(61,213,243,.11)!important;border-color:rgba(61,213,243,.4)!important;box-shadow:inset 0 1px 0 rgba(160,240,255,.22)!important;color:#3dd5f3!important}
-    .mobile-page-link[href="/match-center.html"].active{border-color:rgba(61,213,243,.62)!important;background:radial-gradient(circle at top right,rgba(61,213,243,.18),transparent 54%),linear-gradient(145deg,rgba(4,22,32,.98),rgba(2,12,20,.99))!important;box-shadow:inset 0 1px 0 rgba(160,240,255,.2),0 0 0 1px rgba(61,213,243,.1),0 18px 32px rgba(61,213,243,.12)!important}
-    .mobile-page-link[href="/storico.html"]{border-color:rgba(16,185,129,.26)!important;background:linear-gradient(145deg,rgba(4,18,12,.96),rgba(2,10,7,.99))!important;box-shadow:inset 0 1px 0 rgba(130,235,190,.13),0 12px 24px rgba(0,0,0,.3)!important}
-    .mobile-page-link[href="/storico.html"] .mobile-page-icon{background:rgba(16,185,129,.11)!important;border-color:rgba(16,185,129,.4)!important;box-shadow:inset 0 1px 0 rgba(130,235,190,.22)!important;color:#34d399!important}
-    .mobile-page-link[href="/storico.html"].active{border-color:rgba(16,185,129,.62)!important;background:radial-gradient(circle at top right,rgba(16,185,129,.18),transparent 54%),linear-gradient(145deg,rgba(4,22,14,.98),rgba(2,12,8,.99))!important;box-shadow:inset 0 1px 0 rgba(130,235,190,.2),0 0 0 1px rgba(16,185,129,.1),0 18px 32px rgba(16,185,129,.12)!important}
-    .mobile-page-link[href="/storico_picks.html"]{border-color:rgba(167,139,250,.24)!important;background:linear-gradient(145deg,rgba(16,10,26,.96),rgba(9,6,16,.99))!important;box-shadow:inset 0 1px 0 rgba(200,180,255,.11),0 12px 24px rgba(0,0,0,.3)!important}
-    .mobile-page-link[href="/storico_picks.html"] .mobile-page-icon{background:rgba(167,139,250,.11)!important;border-color:rgba(167,139,250,.38)!important;box-shadow:inset 0 1px 0 rgba(200,180,255,.2)!important;color:#c4b5fd!important}
-    .mobile-page-link[href="/storico_picks.html"].active{border-color:rgba(167,139,250,.6)!important;background:radial-gradient(circle at top right,rgba(167,139,250,.16),transparent 54%),linear-gradient(145deg,rgba(20,12,32,.98),rgba(11,7,20,.99))!important;box-shadow:inset 0 1px 0 rgba(200,180,255,.18),0 0 0 1px rgba(167,139,250,.1),0 18px 32px rgba(167,139,250,.12)!important}
   </style>
 </body>
 </html>

@@ -21,9 +21,10 @@ Usage:
     python match_predictor.py 17:00 21:00               # oggi + intervallo
 """
 
-import os, sys, time, math, json, threading, argparse
+import os, sys, time, math, json, threading, argparse, re
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from urllib.parse import quote
 from zoneinfo import ZoneInfo
 import requests
 
@@ -43,33 +44,32 @@ _API_SESSION = requests.Session()
 _API_LOCK = threading.Lock()
 _API_LAST_TS = 0.0
 TZ = timezone.utc
-MATCH_TIMEZONE = os.getenv("MATCH_PREDICTOR_TIMEZONE", "Europe/Dublin")
+MATCH_TIMEZONE = os.getenv("MATCH_PREDICTOR_TIMEZONE", "Europe/Rome")
 LOCAL_TZ = ZoneInfo(MATCH_TIMEZONE)
 DEFAULT_CACHE_DIR = Path(__file__).resolve().parent / "assets" / "data" / "match-predictor"
 CACHE_TTL_HOURS = int(os.getenv("MATCH_PREDICTOR_TTL_HOURS", "24"))
 TEAM_STATS_CACHE = {}
+SB_TEAM_STATS_CACHE = {}
+SB_CORNER_STATS_CACHE = {}
+SB_CORNER_H2H_CACHE = {}
+SB_CARDS_TEAM_STATS_CACHE = {}
+SB_CARDS_H2H_CACHE = {}
+SB_REFEREE_CARDS_CACHE = {}
+SB_MATCH_TEAM_STATS_CACHE = {}
+LEAGUE_STANDINGS_CACHE = {}
 LIVE_STATUSES = {"1H", "2H", "ET", "LIVE", "HT", "P", "BT", "INT"}
 FINAL_STATUSES = {"FT", "AET", "PEN", "AWD", "WO"}
 
 PREFERRED_BOOKMAKER_NAMES = {"Bet365", "bet365", "bet365.com", "Bet 365"}
-
-EXCLUDED_COUNTRIES = {
-    "algeria","angola","benin","botswana","burkina faso","burundi","cameroon",
-    "cape verde","chad","comoros","congo","congo dr","dr congo","cote d'ivoire",
-    "ivory coast","djibouti","egypt","equatorial guinea","eritrea","ethiopia",
-    "gabon","gambia","ghana","guinea","guinea-bissau","kenya","lesotho","liberia",
-    "libya","madagascar","malawi","mali","mauritania","mauritius","morocco",
-    "mozambique","namibia","niger","nigeria","rwanda","senegal","seychelles",
-    "sierra leone","somalia","south africa","south sudan","sudan","tanzania",
-    "togo","tunisia","uganda","zambia","zimbabwe","russia","serbia",
-}
-
-EXCLUDED_KEYWORDS = [
-    "friendly","friendlies","women","womens","femin","femmin",
-    "u19","u-19","u20","u-20","u21","u-21","u23","u-23",
-    "youth","junior","academy","reserve","reserves",
-]
-
+PREFERRED_BOOKMAKER_KEYS = {re.sub(r"[^a-z0-9]+", "", str(name or "").lower()) for name in PREFERRED_BOOKMAKER_NAMES}
+ODDS_API_IO_KEY = os.getenv("ODDS_API_IO_KEY", "").strip()
+ODDS_API_IO_BASE_URL = "https://api.odds-api.io/v3"
+ODDS_API_IO_TIMEOUT_SEC = int(os.getenv("ODDS_API_IO_TIMEOUT_SEC", "25"))
+ODDS_API_IO_BOOKMAKERS = [item.strip() for item in os.getenv("ODDS_API_IO_BOOKMAKERS", "Bet365,Unibet").split(",") if item.strip()]
+ODDS_API_IO_SESSION = requests.Session()
+ODDS_API_IO_DAY_EVENTS = {}
+ODDS_API_IO_DAY_PRIMED = set()
+ODDS_API_IO_ODDS_CACHE = {}
 
 # ==========================
 # UTILS
@@ -110,6 +110,344 @@ def to_float(x):
 def safe_div(a, b):
     try: return a / b if b not in (0, None) and a is not None else 0.0
     except: return 0.0
+
+def normalize_percent(value):
+    num = to_float(value)
+    if num is None:
+        return None
+    return num / 100.0 if num > 1 else num
+
+def clamp_prob(value, low=0.02, high=0.98):
+    return max(low, min(high, value))
+
+def nudge_prob(value, factor=1.04, low=0.03, high=0.97):
+    if value is None:
+        return None
+    centered = 0.5 + (float(value) - 0.5) * factor
+    return clamp_prob(centered, low, high)
+
+def half_lines(start, end):
+    start_i = int(round(float(start) * 2))
+    end_i = int(round(float(end) * 2))
+    return [round(value / 2.0, 1) for value in range(start_i, end_i + 1, 2)]
+
+def parse_over_under_label(label):
+    text = str(label or "").strip()
+    match = re.search(r"(over|under)\s*([0-9]+(?:[.,][0-9])?)", text, re.I)
+    if not match:
+        return None, None
+    side = match.group(1).lower()
+    try:
+        line = round(float(match.group(2).replace(",", ".")), 1)
+    except ValueError:
+        return None, None
+    return side, line
+
+def is_match_total_market_name(name, market_type):
+    text = normalize_key(name)
+    if not text:
+        return False
+
+    if any(token in text for token in (
+        "1sthalf", "firsthalf", "2ndhalf", "secondhalf", "hometeam", "awayteam",
+        "teamtotal", "hometotal", "awaytotal", "homecorners", "awaycorners",
+        "homecards", "awaycards", "homebookings", "awaybookings", "raceto",
+        "handicap", "spread",
+    )):
+        return False
+
+    if market_type == "corners":
+        if "corner" not in text:
+            return False
+        return any(token in text for token in (
+            "cornerstotals", "totalcorners", "alternativecorners", "corners2way", "corners",
+        ))
+
+    if market_type == "yellows":
+        if "red" in text:
+            return False
+        return any(token in text for token in (
+            "bookingstotals", "numberofcardsinmatch", "yellowcardsoverunder",
+            "cardsoverunder", "totalcards",
+        ))
+
+    return False
+
+def oddsapi_request(path, params=None, timeout=ODDS_API_IO_TIMEOUT_SEC):
+    if not ODDS_API_IO_KEY:
+        return None
+    query = dict(params or {})
+    query["apiKey"] = ODDS_API_IO_KEY
+    try:
+        resp = ODDS_API_IO_SESSION.get(f"{ODDS_API_IO_BASE_URL}{path}", params=query, timeout=timeout)
+        resp.raise_for_status()
+        return resp.json()
+    except Exception:
+        return None
+
+def chunked(items, size):
+    seq = list(items or [])
+    for index in range(0, len(seq), size):
+        yield seq[index:index + size]
+
+def team_name_variants(name):
+    raw = str(name or "").strip().lower().replace("&", "and")
+    tokens = [token for token in re.split(r"[^a-z0-9]+", raw) if token]
+    stopwords = {"fc", "cf", "sc", "ac", "afc", "fk", "sk", "club"}
+    slim_tokens = [token for token in tokens if token not in stopwords]
+    variants = {normalize_key(raw)}
+    if slim_tokens:
+        variants.add("".join(slim_tokens))
+    if tokens:
+        variants.add("".join(tokens))
+    return {variant for variant in variants if variant}
+
+def team_name_match_score(left, right):
+    left_variants = team_name_variants(left)
+    right_variants = team_name_variants(right)
+    if not left_variants or not right_variants:
+        return 0
+    if left_variants & right_variants:
+        return 3
+    for lval in left_variants:
+        for rval in right_variants:
+            if min(len(lval), len(rval)) >= 6 and (lval in rval or rval in lval):
+                return 2
+    return 0
+
+def oddsapi_fixture_dates(kickoff_at, target_date=None):
+    dates = []
+    kickoff = parse_iso_dt(kickoff_at)
+    if kickoff:
+        utc_day = kickoff.astimezone(timezone.utc).strftime("%Y-%m-%d")
+        local_day = kickoff.astimezone(LOCAL_TZ).strftime("%Y-%m-%d")
+        dates.extend([utc_day, local_day])
+    if target_date:
+        dates.append(str(target_date))
+    seen = []
+    for item in dates:
+        if item and item not in seen:
+            seen.append(item)
+    return seen[:3]
+
+def oddsapi_prime_day(date_str):
+    if not ODDS_API_IO_KEY or not date_str or date_str in ODDS_API_IO_DAY_PRIMED:
+        return
+    events_by_id = {}
+    for bookmaker in ODDS_API_IO_BOOKMAKERS:
+        rows = oddsapi_request("/events", {
+            "sport": "football",
+            "status": "pending,live,settled",
+            "bookmaker": bookmaker,
+            "from": f"{date_str}T00:00:00Z",
+            "to": f"{date_str}T23:59:59Z",
+            "limit": 500,
+        }) or []
+        if isinstance(rows, list):
+            for row in rows:
+                event_id = row.get("id")
+                if event_id is not None:
+                    events_by_id[int(event_id)] = row
+    ODDS_API_IO_DAY_EVENTS[date_str] = list(events_by_id.values())
+    for batch in chunked(sorted(events_by_id.keys()), 10):
+        rows = oddsapi_request("/odds/multi", {
+            "eventIds": ",".join(str(item) for item in batch),
+            "bookmakers": ",".join(ODDS_API_IO_BOOKMAKERS),
+        }) or []
+        if isinstance(rows, list):
+            for row in rows:
+                event_id = row.get("id")
+                if event_id is not None:
+                    ODDS_API_IO_ODDS_CACHE[int(event_id)] = row
+    ODDS_API_IO_DAY_PRIMED.add(date_str)
+
+def oddsapi_find_event(home, away, kickoff_at, target_date=None):
+    kickoff = parse_iso_dt(kickoff_at)
+    best = None
+    best_score = -1
+    for date_str in oddsapi_fixture_dates(kickoff_at, target_date):
+        oddsapi_prime_day(date_str)
+        for event in ODDS_API_IO_DAY_EVENTS.get(date_str, []):
+            home_score = team_name_match_score(home, event.get("home"))
+            away_score = team_name_match_score(away, event.get("away"))
+            if not home_score or not away_score:
+                continue
+            score = home_score + away_score
+            if kickoff:
+                event_dt = parse_iso_dt(event.get("date"))
+                if event_dt:
+                    diff_min = abs((event_dt - kickoff).total_seconds()) / 60.0
+                    if diff_min > 720:
+                        continue
+                    if diff_min <= 5:
+                        score += 8
+                    elif diff_min <= 30:
+                        score += 6
+                    elif diff_min <= 90:
+                        score += 4
+                    elif diff_min <= 240:
+                        score += 2
+            if score > best_score:
+                best = event
+                best_score = score
+    return best
+
+def _store_scalar_if_missing(container, key, odd_value, bookmaker, source_name="oddsapi"):
+    if container.get(key):
+        return
+    odd_num = to_float(odd_value)
+    if odd_num is None:
+        return
+    container[key] = round(float(odd_num), 3)
+    container.setdefault("market_sources", {})[key] = {"source": source_name, "bookmaker": bookmaker}
+
+def _store_total_if_missing(container, source_container, line, side, odd_value, bookmaker, source_name="oddsapi"):
+    odd_num = to_float(odd_value)
+    if line is None or side not in {"over", "under"} or odd_num is None:
+        return
+    line_key = f"{float(line):.1f}"
+    bucket = container.setdefault(line_key, {})
+    if side in bucket and bucket.get(side):
+        return
+    bucket[side] = round(float(odd_num), 3)
+    source_container.setdefault(line_key, {})[side] = {"source": source_name, "bookmaker": bookmaker}
+
+def is_preferred_bookmaker(bookmaker_name):
+    return re.sub(r"[^a-z0-9]+", "", str(bookmaker_name or "").lower()) in PREFERRED_BOOKMAKER_KEYS
+
+def should_replace_prop_odd(existing_meta, incoming_meta):
+    if not incoming_meta:
+        return False
+    if not existing_meta:
+        return True
+    existing_preferred = is_preferred_bookmaker((existing_meta or {}).get("bookmaker"))
+    incoming_preferred = is_preferred_bookmaker((incoming_meta or {}).get("bookmaker"))
+    if incoming_preferred and not existing_preferred:
+        return True
+    if existing_preferred and not incoming_preferred:
+        return False
+    return not existing_preferred
+
+def oddsapi_parse_event_odds(payload):
+    res = {
+        "bookmaker": "",
+        "corner_odds": {},
+        "yellow_odds": {},
+        "market_sources": {},
+        "corner_odds_sources": {},
+        "yellow_odds_sources": {},
+    }
+    bookmakers = (payload or {}).get("bookmakers") or {}
+    for bookmaker in ODDS_API_IO_BOOKMAKERS:
+        markets = bookmakers.get(bookmaker) or []
+        for market in markets:
+            name = str(market.get("name") or "").strip().lower()
+            rows = market.get("odds") or []
+            if name == "ml":
+                for row in rows:
+                    _store_scalar_if_missing(res, "odd_home", row.get("home"), bookmaker)
+                    _store_scalar_if_missing(res, "odd_draw", row.get("draw"), bookmaker)
+                    _store_scalar_if_missing(res, "odd_away", row.get("away"), bookmaker)
+            elif "double chance" in name:
+                for row in rows:
+                    label = normalize_key(row.get("label"))
+                    odd_value = row.get("under") or row.get("odd") or row.get("value")
+                    if label in {"1x", "homedraw"} or "ordraw" in label:
+                        _store_scalar_if_missing(res, "odd_1x", odd_value, bookmaker)
+                    elif label in {"x2", "drawaway"} or "drawor" in label:
+                        _store_scalar_if_missing(res, "odd_x2", odd_value, bookmaker)
+                    elif label in {"12", "homeaway"} or ("or" in label and "draw" not in label):
+                        _store_scalar_if_missing(res, "odd_12", odd_value, bookmaker)
+            elif "both teams to score" in name:
+                for row in rows:
+                    _store_scalar_if_missing(res, "odd_btts_y", row.get("yes"), bookmaker)
+                    _store_scalar_if_missing(res, "odd_btts_n", row.get("no"), bookmaker)
+            elif ("goals over/under" in name or name == "totals") and "corners" not in name and "bookings" not in name:
+                for row in rows:
+                    line = round(float(row.get("hdp")), 1) if to_float(row.get("hdp")) is not None else None
+                    if line == 1.5:
+                        _store_scalar_if_missing(res, "odd_o15", row.get("over"), bookmaker)
+                        _store_scalar_if_missing(res, "odd_u15", row.get("under"), bookmaker)
+                    elif line == 2.5:
+                        _store_scalar_if_missing(res, "odd_o25", row.get("over"), bookmaker)
+                        _store_scalar_if_missing(res, "odd_u25", row.get("under"), bookmaker)
+                    elif line == 3.5:
+                        _store_scalar_if_missing(res, "odd_o35", row.get("over"), bookmaker)
+                        _store_scalar_if_missing(res, "odd_u35", row.get("under"), bookmaker)
+            elif "totals ht" in name or ("first half" in name and "totals" in name):
+                for row in rows:
+                    line = round(float(row.get("hdp")), 1) if to_float(row.get("hdp")) is not None else None
+                    if line == 1.5:
+                        _store_scalar_if_missing(res, "odd_o15_ht", row.get("over"), bookmaker)
+                        _store_scalar_if_missing(res, "odd_u15_ht", row.get("under"), bookmaker)
+            elif "totals 2h" in name or "totals sh" in name or ("second half" in name and "totals" in name):
+                for row in rows:
+                    line = round(float(row.get("hdp")), 1) if to_float(row.get("hdp")) is not None else None
+                    if line == 1.5:
+                        _store_scalar_if_missing(res, "odd_o15_sh", row.get("over"), bookmaker)
+                        _store_scalar_if_missing(res, "odd_u15_sh", row.get("under"), bookmaker)
+            elif is_match_total_market_name(name, "corners"):
+                for row in rows:
+                    line = round(float(row.get("hdp")), 1) if to_float(row.get("hdp")) is not None else None
+                    _store_total_if_missing(res["corner_odds"], res["corner_odds_sources"], line, "over", row.get("over"), bookmaker)
+                    _store_total_if_missing(res["corner_odds"], res["corner_odds_sources"], line, "under", row.get("under"), bookmaker)
+            elif is_match_total_market_name(name, "yellows"):
+                for row in rows:
+                    line = round(float(row.get("hdp")), 1) if to_float(row.get("hdp")) is not None else None
+                    _store_total_if_missing(res["yellow_odds"], res["yellow_odds_sources"], line, "over", row.get("over"), bookmaker)
+                    _store_total_if_missing(res["yellow_odds"], res["yellow_odds_sources"], line, "under", row.get("under"), bookmaker)
+    return res
+
+def merge_odds(primary, fallback):
+    if not fallback:
+        return primary
+    merged = dict(primary or {})
+    merged.setdefault("corner_odds", {})
+    merged.setdefault("yellow_odds", {})
+    merged.setdefault("market_sources", dict((primary or {}).get("market_sources") or {}))
+    merged.setdefault("corner_odds_sources", dict((primary or {}).get("corner_odds_sources") or {}))
+    merged.setdefault("yellow_odds_sources", dict((primary or {}).get("yellow_odds_sources") or {}))
+    for key, value in (fallback.get("market_sources") or {}).items():
+        merged["market_sources"].setdefault(key, value)
+    for key, value in fallback.items():
+        if key in {"corner_odds", "yellow_odds", "market_sources", "corner_odds_sources", "yellow_odds_sources"}:
+            continue
+        if not merged.get(key) and value not in (None, "", {}):
+            merged[key] = value
+    for map_key, source_key in (("corner_odds", "corner_odds_sources"), ("yellow_odds", "yellow_odds_sources")):
+        source_map = fallback.get(map_key) or {}
+        source_meta_map = fallback.get(source_key) or {}
+        target_map = merged.setdefault(map_key, {})
+        target_meta_map = merged.setdefault(source_key, dict((primary or {}).get(source_key) or {}))
+        for line_key, sides in source_map.items():
+            bucket = target_map.setdefault(line_key, {})
+            meta_bucket = target_meta_map.setdefault(line_key, {})
+            for side, odd in (sides or {}).items():
+                incoming_meta = ((source_meta_map.get(line_key) or {}).get(side) or {})
+                existing_meta = meta_bucket.get(side) or {}
+                if side not in bucket or not bucket.get(side) or should_replace_prop_odd(existing_meta, incoming_meta):
+                    bucket[side] = odd
+                    if incoming_meta:
+                        meta_bucket[side] = incoming_meta
+                elif side not in meta_bucket and incoming_meta:
+                    meta_bucket[side] = incoming_meta
+    return merged
+
+def get_oddsapi_fallback(home, away, kickoff_at, target_date=None):
+    if not ODDS_API_IO_KEY:
+        return {}
+    event = oddsapi_find_event(home, away, kickoff_at, target_date=target_date)
+    if not event:
+        return {}
+    payload = ODDS_API_IO_ODDS_CACHE.get(int(event.get("id") or 0))
+    if not payload:
+        payload = oddsapi_request("/odds", {
+            "eventId": event.get("id"),
+            "bookmakers": ",".join(ODDS_API_IO_BOOKMAKERS),
+        }) or {}
+        if payload and payload.get("id") is not None:
+            ODDS_API_IO_ODDS_CACHE[int(payload["id"])] = payload
+    return oddsapi_parse_event_odds(payload)
 
 
 # ==========================
@@ -159,43 +497,293 @@ SB_HEADERS = {
     "Authorization": f"Bearer {SUPABASE_KEY}",
     "Content-Type": "application/json",
 }
+SB_SESSION = requests.Session()
 
 def sb_query(table, params):
     if not SB_REST or not SUPABASE_KEY:
         return []
     url = f"{SB_REST}/{table}"
-    if params: url += "?" + "&".join(f"{k}={v}" for k, v in params.items())
+    if params:
+        query = "&".join(
+            f"{quote(str(k), safe='')}={quote(str(v), safe='.*(),:-_%')}"
+            for k, v in params.items()
+        )
+        url += f"?{query}"
     try:
-        r = requests.get(url, headers=SB_HEADERS, timeout=30)
+        r = SB_SESSION.get(url, headers=SB_HEADERS, timeout=30)
         r.raise_for_status()
         return r.json()
     except:
         return []
 
+def sb_query_first_nonempty(table, params_variants):
+    for params in params_variants:
+        rows = sb_query(table, params)
+        if rows:
+            return rows
+    return []
+
+def mean_or_none(values):
+    vals = [float(v) for v in values if v is not None]
+    return (sum(vals) / len(vals)) if vals else None
+
+def normalize_key(value):
+    return re.sub(r"[^a-z0-9]+", "", str(value or "").lower())
+
+def row_num(row, *keys):
+    if not isinstance(row, dict) or not row:
+        return None
+    for key in keys:
+        num = to_float(row.get(key))
+        if num is not None:
+            return num
+    normalized = {normalize_key(k): v for k, v in row.items()}
+    for key in keys:
+        num = to_float(normalized.get(normalize_key(key)))
+        if num is not None:
+            return num
+    return None
+
+def row_num_tokens(row, include=(), exclude=()):
+    if not isinstance(row, dict) or not row:
+        return None
+    include_norm = [normalize_key(token) for token in include if token]
+    exclude_norm = [normalize_key(token) for token in exclude if token]
+    for raw_key, raw_value in row.items():
+        key = normalize_key(raw_key)
+        if not key:
+            continue
+        if include_norm and any(token not in key for token in include_norm):
+            continue
+        if exclude_norm and any(token in key for token in exclude_norm):
+            continue
+        num = to_float(raw_value)
+        if num is not None:
+            return num
+    return None
+
+def rows_metric_mean(rows, exact_keys=(), include=(), exclude=()):
+    values = []
+    for row in rows or []:
+        num = row_num(row, *exact_keys) if exact_keys else None
+        if num is None and include:
+            num = row_num_tokens(row, include, exclude)
+        if num is not None:
+            values.append(num)
+    return mean_or_none(values)
+
+def side_metric_avg(row, metric, side, against=False):
+    side = str(side or "").lower()
+    if metric == "corners":
+        if against:
+            return (
+                row_num(row, f"avg_corners_against_{side}", f"{side}_corners_against_avg", f"corners_against_{side}_avg")
+                or row_num_tokens(row, include=("corner", side, "against"), exclude=("total", "match"))
+                or row_num_tokens(row, include=("corner", side, "conceded"), exclude=("total", "match"))
+            )
+        return (
+            row_num(row, f"avg_corners_for_{side}", f"{side}_corners_for_avg", f"corners_for_{side}_avg")
+            or row_num_tokens(row, include=("corner", side, "for"), exclude=("total", "match"))
+            or row_num_tokens(row, include=("corner", side), exclude=("against", "conceded", "allowed", "total", "match"))
+        )
+    if metric == "cards":
+        if against:
+            return (
+                row_num(row, f"avg_yellows_against_{side}", f"avg_cards_against_{side}", f"{side}_cards_against_avg")
+                or row_num_tokens(row, include=("card", side, "against"), exclude=("red", "total", "match"))
+                or row_num_tokens(row, include=("yellow", side, "against"), exclude=("total", "match"))
+            )
+        return (
+            row_num(row, f"avg_yellows_for_{side}", f"avg_cards_for_{side}", f"avg_yellow_cards_{side}", f"{side}_cards_avg")
+            or row_num_tokens(row, include=("card", side, "for"), exclude=("red", "total", "match"))
+            or row_num_tokens(row, include=("yellow", side), exclude=("against", "conceded", "allowed", "red", "total", "match"))
+            or row_num_tokens(row, include=("card", side), exclude=("against", "conceded", "allowed", "red", "total", "match"))
+        )
+    return None
+
+def season_corners_avg(row):
+    return (
+        row_num(row, "corners_for_avg", "corners_avg", "avg_corners", "avg_corners_for", "corners_for_pg")
+        or row_num_tokens(row, include=("corner", "avg"), exclude=("against", "conceded", "allowed"))
+    )
+
+def season_yellows_avg(row):
+    return (
+        row_num(row, "yellow_avg", "cards_avg", "yellow_cards_avg", "avg_yellows", "avg_cards")
+        or row_num_tokens(row, include=("yellow", "avg"))
+        or row_num_tokens(row, include=("card", "avg"), exclude=("red",))
+    )
+
+def season_shots_avg(row):
+    return (
+        row_num(row, "shots_for_avg", "shots_avg", "shots_for_pg", "avg_shots", "avg_shots_for")
+        or row_num_tokens(row, include=("shot", "avg"), exclude=("against", "target", "conceded"))
+    )
+
+def season_fouls_avg(row):
+    return (
+        row_num(row, "fouls_for_avg", "fouls_avg", "fouls_for_pg", "avg_fouls", "avg_fouls_for")
+        or row_num_tokens(row, include=("foul", "avg"), exclude=("against", "suffered", "drawn"))
+    )
+
+def recent_metric_mean(rows, metric):
+    if metric == "corners_for":
+        return rows_metric_mean(rows,
+            exact_keys=("corners_for", "team_corners", "corners", "corners_won", "corners_taken"),
+            include=("corner",),
+            exclude=("against", "opp", "opponent", "allowed", "conceded", "red", "yellow", "total"),
+        )
+    if metric == "corners_against":
+        return rows_metric_mean(rows,
+            exact_keys=("corners_against", "opponent_corners", "opp_corners", "corners_allowed", "corners_conceded"),
+            include=("corner", "against"),
+            exclude=("red", "yellow"),
+        )
+    if metric == "cards_for":
+        return rows_metric_mean(rows,
+            exact_keys=("yellow_cards", "cards", "cards_for", "yellow_cards_for", "yellows"),
+            include=("card",),
+            exclude=("red", "against", "opp", "opponent", "allowed", "conceded", "total", "referee"),
+        ) or rows_metric_mean(rows,
+            include=("yellow",),
+            exclude=("red", "against", "opp", "opponent", "allowed", "conceded", "total", "referee"),
+        )
+    if metric == "fouls_for":
+        return rows_metric_mean(rows,
+            exact_keys=("fouls", "fouls_for", "fouls_committed"),
+            include=("foul",),
+            exclude=("against", "suffered", "drawn", "opp", "opponent", "total"),
+        )
+    if metric == "shots_for":
+        return rows_metric_mean(rows,
+            exact_keys=("shots", "shots_for", "team_shots", "total_shots"),
+            include=("shot",),
+            exclude=("target", "against", "opp", "opponent", "allowed"),
+        )
+    return None
+
 def sb_team_stats(team_id, season="2025"):
     """team_season_stats: shots, SoT, fouls, yellows, corners, possession."""
-    r = sb_query("team_season_stats", {"team_id": f"eq.{team_id}", "season": f"eq.{season}", "select": "*"})
-    return r[0] if r else {}
+    key = (team_id, str(season))
+    if key in SB_TEAM_STATS_CACHE:
+        return SB_TEAM_STATS_CACHE[key]
+    rows = sb_query_first_nonempty("team_season_stats", [
+        {"team_id": f"eq.{team_id}", "season": f"eq.{season}", "select": "*"},
+        {"team_id": f"eq.{team_id}", "select": "*", "order": "season.desc", "limit": "1"},
+        {"team_id": f"eq.{team_id}", "select": "*", "limit": "1"},
+    ])
+    SB_TEAM_STATS_CACHE[key] = rows[0] if rows else {}
+    return SB_TEAM_STATS_CACHE[key]
 
 def sb_corner_stats(team_id, league_id=None):
     """corner_team_stats: avg corners for/against home/away."""
-    p = {"team_id": f"eq.{team_id}", "select": "*"}
-    if league_id: p["league_id"] = f"eq.{league_id}"
-    r = sb_query("corner_team_stats", p)
-    if r: return r[0]
-    r = sb_query("corner_team_stats", {"team_id": f"eq.{team_id}", "select": "*", "order": "total_matches.desc", "limit": "1"})
-    return r[0] if r else {}
+    key = (team_id, league_id)
+    if key in SB_CORNER_STATS_CACHE:
+        return SB_CORNER_STATS_CACHE[key]
+    variants = []
+    if league_id:
+        variants.append({"team_id": f"eq.{team_id}", "league_id": f"eq.{league_id}", "select": "*", "limit": "1"})
+    variants.extend([
+        {"team_id": f"eq.{team_id}", "select": "*", "order": "total_matches.desc", "limit": "1"},
+        {"team_id": f"eq.{team_id}", "select": "*", "limit": "1"},
+    ])
+    rows = sb_query_first_nonempty("corner_team_stats", variants)
+    SB_CORNER_STATS_CACHE[key] = rows[0] if rows else {}
+    return SB_CORNER_STATS_CACHE[key]
 
 def sb_corner_h2h(hid, aid, n=5):
     """H2H corner average."""
-    r = sb_query("corner_match_stats", {
+    key = tuple(sorted((hid, aid))) + (n,)
+    if key in SB_CORNER_H2H_CACHE:
+        return SB_CORNER_H2H_CACHE[key]
+    rows = sb_query("corner_match_stats", {
         "or": f"(and(home_team_id.eq.{hid},away_team_id.eq.{aid}),and(home_team_id.eq.{aid},away_team_id.eq.{hid}))",
         "select": "total_corners", "order": "match_date.desc", "limit": str(n),
     })
-    if r:
-        vals = [to_float(m.get("total_corners")) or 0 for m in r]
-        return sum(vals) / len(vals) if vals else None
-    return None
+    values = [to_float(row.get("total_corners")) for row in rows]
+    SB_CORNER_H2H_CACHE[key] = mean_or_none(values)
+    return SB_CORNER_H2H_CACHE[key]
+
+def sb_cards_team_stats(team_id, league_id=None):
+    key = (team_id, league_id)
+    if key in SB_CARDS_TEAM_STATS_CACHE:
+        return SB_CARDS_TEAM_STATS_CACHE[key]
+    variants = []
+    if league_id:
+        variants.append({"team_id": f"eq.{team_id}", "league_id": f"eq.{league_id}", "select": "*", "limit": "1"})
+    variants.extend([
+        {"team_id": f"eq.{team_id}", "select": "*", "order": "total_matches.desc", "limit": "1"},
+        {"team_id": f"eq.{team_id}", "select": "*", "limit": "1"},
+    ])
+    rows = sb_query_first_nonempty("cards_team_stats", variants)
+    SB_CARDS_TEAM_STATS_CACHE[key] = rows[0] if rows else {}
+    return SB_CARDS_TEAM_STATS_CACHE[key]
+
+def sb_cards_h2h(hid, aid, n=5):
+    key = tuple(sorted((hid, aid))) + (n,)
+    if key in SB_CARDS_H2H_CACHE:
+        return SB_CARDS_H2H_CACHE[key]
+    rows = sb_query("cards_match_stats", {
+        "or": f"(and(home_team_id.eq.{hid},away_team_id.eq.{aid}),and(home_team_id.eq.{aid},away_team_id.eq.{hid}))",
+        "select": "*", "order": "match_date.desc", "limit": str(n),
+    })
+    values = []
+    for row in rows:
+        num = (
+            row_num(row, "total_yellows", "yellow_cards_total", "cards_total", "total_cards")
+            or row_num_tokens(row, include=("yellow", "total"))
+            or row_num_tokens(row, include=("card", "total"), exclude=("red",))
+        )
+        if num is not None:
+            values.append(num)
+    SB_CARDS_H2H_CACHE[key] = mean_or_none(values)
+    return SB_CARDS_H2H_CACHE[key]
+
+def sb_referee_cards(referee_name, league_id=None):
+    clean_name = str(referee_name or "").strip()
+    if not clean_name:
+        return None
+    key = (clean_name.lower(), league_id)
+    if key in SB_REFEREE_CARDS_CACHE:
+        return SB_REFEREE_CARDS_CACHE[key]
+    variants = []
+    for column in ("referee", "referee_name", "name"):
+        if league_id:
+            variants.append({column: f"ilike.*{clean_name}*", "league_id": f"eq.{league_id}", "select": "*", "limit": "1"})
+        variants.append({column: f"ilike.*{clean_name}*", "select": "*", "limit": "1"})
+    rows = sb_query_first_nonempty("cards_referee_stats", variants)
+    row = rows[0] if rows else {}
+    value = (
+        row_num(row, "yellow_avg", "cards_avg", "avg_yellow_cards", "avg_cards_total", "avg_cards", "yellow_cards_avg", "cards_per_match")
+        or row_num_tokens(row, include=("yellow", "avg"))
+        or row_num_tokens(row, include=("card", "avg"), exclude=("red",))
+    )
+    SB_REFEREE_CARDS_CACHE[key] = value
+    return value
+
+def sb_recent_match_team_stats(team_id, league_id=None, n=8):
+    key = (team_id, league_id, n)
+    if key in SB_MATCH_TEAM_STATS_CACHE:
+        return SB_MATCH_TEAM_STATS_CACHE[key]
+    variants = []
+    if league_id:
+        variants.extend([
+            {"team_id": f"eq.{team_id}", "league_id": f"eq.{league_id}", "select": "*", "order": "match_date.desc", "limit": str(n)},
+            {"team_id": f"eq.{team_id}", "league_id": f"eq.{league_id}", "select": "*", "limit": str(n)},
+        ])
+    variants.extend([
+        {"team_id": f"eq.{team_id}", "select": "*", "order": "match_date.desc", "limit": str(n)},
+        {"team_id": f"eq.{team_id}", "select": "*", "limit": str(n)},
+    ])
+    rows = sb_query_first_nonempty("match_team_stats", variants)
+    if rows:
+        rows = sorted(
+            rows,
+            key=lambda row: str(row.get("match_date") or row.get("date") or ""),
+            reverse=True,
+        )[:n]
+    SB_MATCH_TEAM_STATS_CACHE[key] = rows or []
+    return SB_MATCH_TEAM_STATS_CACHE[key]
 def get_all_fixtures(target_date, time_min, time_max):
     resp = api_get("/fixtures", params={"date": target_date, "timezone": MATCH_TIMEZONE}, timeout=30)
     print(f"# Fixtures totali per {target_date}: {len(resp)}", file=sys.stderr)
@@ -203,18 +791,9 @@ def get_all_fixtures(target_date, time_min, time_max):
     filtered = []
     for f in resp:
         fx = f.get("fixture", {}) or {}
-        league = f.get("league", {}) or {}
 
         st = (fx.get("status") or {}).get("short", "")
         if st in ("PST", "CANC", "ABD"): continue
-
-        country = (league.get("country") or "").strip().lower()
-        if country in EXCLUDED_COUNTRIES: continue
-
-        lname = (league.get("name") or "").strip().lower()
-        lround = (league.get("round") or "").strip().lower()
-        if any(kw in lname for kw in EXCLUDED_KEYWORDS) or any(kw in lround for kw in EXCLUDED_KEYWORDS):
-            continue
 
         dateiso = fx.get("date", "") or ""
         t = dateiso[11:16] if len(dateiso) >= 16 else ""
@@ -222,7 +801,7 @@ def get_all_fixtures(target_date, time_min, time_max):
 
         filtered.append(f)
 
-    print(f"# Dopo filtri ({time_min}-{time_max}): {len(filtered)}", file=sys.stderr)
+    print(f"# Dopo filtro orario ({time_min}-{time_max}): {len(filtered)}", file=sys.stderr)
     return filtered
 
 
@@ -241,10 +820,11 @@ def get_prediction(fixture_id):
     }
 
 
-def get_odds(fixture_id):
+def get_odds(fixture_id, home=None, away=None, kickoff_at=None, target_date=None):
     data0 = api_request("/odds", {"fixture": fixture_id, "page": 1})
     resp0 = data0.get("response", []) if isinstance(data0, dict) else []
-    if not resp0: return {}
+    if not resp0:
+        return get_oddsapi_fallback(home, away, kickoff_at, target_date=target_date)
 
     bookmakers = list(resp0[0].get("bookmakers") or [])
     paging = (data0.get("paging") or {}) if isinstance(data0, dict) else {}
@@ -263,37 +843,115 @@ def get_odds(fixture_id):
                 if nm and nm not in seen: bookmakers.append(bm); seen.add(nm)
             if any(_is_b365((b or {}).get("name")) for b in bookmakers): break
 
-    if not bookmakers: return {}
+    if not bookmakers:
+        return get_oddsapi_fallback(home, away, kickoff_at, target_date=target_date)
 
     chosen = next((b for b in bookmakers if _is_b365(b.get("name"))), bookmakers[0])
     bets = chosen.get("bets", [])
-    res = {"bookmaker": chosen.get("name", "")}
+    res = {
+        "bookmaker": chosen.get("name", ""),
+        "corner_odds": {},
+        "yellow_odds": {},
+        "corner_odds_sources": {},
+        "yellow_odds_sources": {},
+    }
+
+    def _n(s):
+        return str(s or "").strip().lower()
+
+    def _is_first_half(name):
+        n = _n(name)
+        return any(token in n for token in ("1st half", "first half", "1sthalf", "half time", "halftime"))
+
+    def _is_second_half(name):
+        n = _n(name)
+        return any(token in n for token in ("2nd half", "second half", "2ndhalf"))
+
+    def _store_total_odd(container, source_container, line, side, odd_value):
+        odd_num = to_float(odd_value)
+        if line is None or side not in {"over", "under"} or odd_num is None:
+            return
+        line_key = f"{line:.1f}"
+        bucket = container.setdefault(line_key, {})
+        bucket[side] = round(float(odd_num), 3)
+        source_container.setdefault(line_key, {})[side] = {"source": "api_football", "bookmaker": chosen.get("name", "")}
 
     for b in bets:
         if b.get("name") == "Match Winner":
             for v in b.get("values", []):
                 val = v.get("value")
-                if val == "Home": res["odd_home"] = v.get("odd", "")
-                elif val == "Draw": res["odd_draw"] = v.get("odd", "")
-                elif val == "Away": res["odd_away"] = v.get("odd", "")
+                if val == "Home":
+                    res["odd_home"] = v.get("odd", "")
+                elif val == "Draw":
+                    res["odd_draw"] = v.get("odd", "")
+                elif val == "Away":
+                    res["odd_away"] = v.get("odd", "")
 
     for b in bets:
-        if b.get("name") == "Goals Over/Under":
+        name = _n(b.get("name"))
+        is_goal_market = ("goal" in name or "goals" in name or "over/under" in name or "under/over" in name)
+
+        if is_goal_market and not _is_first_half(name) and not _is_second_half(name) and "corner" not in name and "card" not in name and "yellow" not in name:
             for v in b.get("values", []):
                 label = str(v.get("value", "")).strip()
-                if label == "Over 2.5": res["odd_o25"] = v.get("odd", "")
-                elif label == "Under 2.5": res["odd_u25"] = v.get("odd", "")
+                if label == "Over 1.5":
+                    res["odd_o15"] = v.get("odd", "")
+                elif label == "Under 1.5":
+                    res["odd_u15"] = v.get("odd", "")
+                elif label == "Over 2.5":
+                    res["odd_o25"] = v.get("odd", "")
+                elif label == "Under 2.5":
+                    res["odd_u25"] = v.get("odd", "")
+                elif label == "Over 3.5":
+                    res["odd_o35"] = v.get("odd", "")
+                elif label == "Under 3.5":
+                    res["odd_u35"] = v.get("odd", "")
 
-    def _n(s): return str(s or "").strip().lower()
-    for b in bets:
-        n = _n(b.get("name"))
-        if ("both" in n and "team" in n and "score" in n) or "btts" in n:
+        if _is_first_half(name) and is_goal_market:
+            for v in b.get("values", []):
+                side, line = parse_over_under_label(v.get("value"))
+                if line == 1.5 and side == "over":
+                    res["odd_o15_ht"] = v.get("odd", "")
+                elif line == 1.5 and side == "under":
+                    res["odd_u15_ht"] = v.get("odd", "")
+
+        if _is_second_half(name) and is_goal_market:
+            for v in b.get("values", []):
+                side, line = parse_over_under_label(v.get("value"))
+                if line == 1.5 and side == "over":
+                    res["odd_o15_sh"] = v.get("odd", "")
+                elif line == 1.5 and side == "under":
+                    res["odd_u15_sh"] = v.get("odd", "")
+
+        if "double chance" in name or "chance double" in name:
+            for v in b.get("values", []):
+                val = _n(v.get("value")).replace(" ", "")
+                if val in {"home/draw", "homedraw", "1x"}:
+                    res["odd_1x"] = v.get("odd", "")
+                elif val in {"draw/away", "drawaway", "x2"}:
+                    res["odd_x2"] = v.get("odd", "")
+                elif val in {"home/away", "homeaway", "12"}:
+                    res["odd_12"] = v.get("odd", "")
+
+        if ("both" in name and "team" in name and "score" in name) or "btts" in name:
             for v in b.get("values", []):
                 val = _n(v.get("value"))
-                if val in {"yes","y","si"}: res["odd_btts_y"] = v.get("odd","")
-                elif val in {"no","n"}: res["odd_btts_n"] = v.get("odd","")
+                if val in {"yes", "y", "si"}:
+                    res["odd_btts_y"] = v.get("odd", "")
+                elif val in {"no", "n"}:
+                    res["odd_btts_n"] = v.get("odd", "")
 
-    return res
+        if is_match_total_market_name(name, "corners") and any(token in name for token in ("over/under", "under/over", "total", "totals", "corner")):
+            for v in b.get("values", []):
+                side, line = parse_over_under_label(v.get("value"))
+                _store_total_odd(res["corner_odds"], res["corner_odds_sources"], line, side, v.get("odd"))
+
+        if is_match_total_market_name(name, "yellows") and any(token in name for token in ("over/under", "under/over", "total", "totals", "card", "booking")):
+            for v in b.get("values", []):
+                side, line = parse_over_under_label(v.get("value"))
+                _store_total_odd(res["yellow_odds"], res["yellow_odds_sources"], line, side, v.get("odd"))
+
+    return merge_odds(res, get_oddsapi_fallback(home, away, kickoff_at, target_date=target_date))
 
 
 def get_team_stats(league_id, season, team_id):
@@ -307,12 +965,44 @@ def get_team_stats(league_id, season, team_id):
     return ts
 
 
+def get_league_standings(league_id, season):
+    if not all([league_id, season]):
+        return {}
+    key = (league_id, season)
+    if key in LEAGUE_STANDINGS_CACHE:
+        return LEAGUE_STANDINGS_CACHE[key]
+    rows = api_get("/standings", {"league": league_id, "season": season}, 30)
+    standings_map = {}
+    if rows:
+        league_block = (rows[0] or {}).get("league") or {}
+        standing_groups = league_block.get("standings") or []
+        for group in standing_groups:
+            for row in (group or []):
+                team = row.get("team") or {}
+                team_id = team.get("id")
+                if not team_id:
+                    continue
+                standings_map[int(team_id)] = {
+                    "rank": row.get("rank"),
+                    "points": row.get("points"),
+                    "played": ((row.get("all") or {}).get("played")),
+                    "goal_diff": row.get("goalsDiff"),
+                    "group": row.get("group") or "",
+                    "description": row.get("description") or "",
+                    "form": row.get("form") or "",
+                    "status": ((row.get("status") or {}).get("description")) or "",
+                }
+    LEAGUE_STANDINGS_CACHE[key] = standings_map
+    time.sleep(0.05)
+    return standings_map
+
+
 # ==========================
 # PROFILE
 # ==========================
 def profile(ts_raw, side):
     o = {"played": 0, "played_side": 0, "gf_side": 0.0, "ga_side": 0.0,
-         "gf_total": 0.0, "ga_total": 0.0, "cs_rate": 0.0, "fts_rate": 0.0, "form": 0}
+         "gf_total": 0.0, "ga_total": 0.0, "cs_rate": 0.0, "fts_rate": 0.0, "form": 0, "form_code": ""}
     if not isinstance(ts_raw, dict) or not ts_raw: return o
     fx = ts_raw.get("fixtures") or {}
     pl = fx.get("played") or {}
@@ -332,6 +1022,7 @@ def profile(ts_raw, side):
     o["cs_rate"] = safe_div(to_float(cs.get(side)) or 0, sp)
     o["fts_rate"] = safe_div(to_float(fts.get(side)) or 0, sp)
     fm = (ts_raw.get("form") or "").upper()[-5:]
+    o["form_code"] = fm
     o["form"] = sum(3 if c == "W" else 1 if c == "D" else 0 for c in fm)
     return o
 
@@ -354,7 +1045,8 @@ def grid(lh, la, mx=7):
 # ==========================
 # PREDICTION ENGINE — ALL 3 MARKETS
 # ==========================
-def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, h_crn=None, a_crn=None, h2h_c=None):
+def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, h_crn=None, a_crn=None, h2h_c=None,
+                h_cards=None, a_cards=None, h2h_y=None, ref_cards=None, h_recent=None, a_recent=None):
     """
     Returns dict with ALL markets:
     Over/Under 2.5, Over 3.5, BTTS, No Goal, O2.5+BTTS combo, Corners, Yellows.
@@ -363,6 +1055,10 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     a_sb = a_sb or {}
     h_crn = h_crn or {}
     a_crn = a_crn or {}
+    h_cards = h_cards or {}
+    a_cards = a_cards or {}
+    h_recent = h_recent or []
+    a_recent = a_recent or []
 
     # --- BUILD LAMBDAS ---
     gh = to_float(pred.get("goals_home")) or 0.0
@@ -388,16 +1084,34 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     p_h_zero = 1.0 - p_h_scores  # home fails to score
     p_a_zero = 1.0 - p_a_scores  # away fails to score
 
+    p_over15_poi = p_over(lam_t, 2)
     p_over25_poi = p_over(lam_t, 3)
     p_btts_poi = p_h_scores * p_a_scores
+    g = grid(lam_h, lam_a)
+    p_home_win_poi = sum(p for (h, a), p in g.items() if h > a)
+    p_draw_poi = sum(p for (h, a), p in g.items() if h == a)
+    p_away_win_poi = sum(p for (h, a), p in g.items() if h < a)
+    p_one_x_poi = p_home_win_poi + p_draw_poi
+    p_x_two_poi = p_draw_poi + p_away_win_poi
 
     # --- MARKET IMPLIED (vig-removed) ---
+    o_o15 = to_float(odds.get("odd_o15"))
+    o_u15 = to_float(odds.get("odd_u15"))
     o_o25 = to_float(odds.get("odd_o25"))
     o_u25 = to_float(odds.get("odd_u25"))
+    o_o35 = to_float(odds.get("odd_o35"))
+    o_u35 = to_float(odds.get("odd_u35"))
+    o_o15_ht = to_float(odds.get("odd_o15_ht"))
+    o_u15_ht = to_float(odds.get("odd_u15_ht"))
+    o_o15_sh = to_float(odds.get("odd_o15_sh"))
+    o_u15_sh = to_float(odds.get("odd_u15_sh"))
     o_by = to_float(odds.get("odd_btts_y"))
     o_bn = to_float(odds.get("odd_btts_n"))
     o_h = to_float(odds.get("odd_home"))
+    o_d = to_float(odds.get("odd_draw"))
     o_a = to_float(odds.get("odd_away"))
+    o_1x = to_float(odds.get("odd_1x"))
+    o_x2 = to_float(odds.get("odd_x2"))
 
     def vig_free(o1, o2):
         if o1 and o2 and o1 > 1 and o2 > 1:
@@ -406,11 +1120,84 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
             return (i1/t, i2/t) if t > 0 else (0.5, 0.5)
         return None, None
 
+    def vig_free_three(o1, o2, o3):
+        vals = [o1, o2, o3]
+        if all(v and v > 1 for v in vals):
+            inv = [1.0 / v for v in vals]
+            total = sum(inv)
+            if total > 0:
+                return tuple(v / total for v in inv)
+        return (None, None, None)
+
+    mkt_over15, mkt_under15 = vig_free(o_o15, o_u15)
     mkt_over, mkt_under = vig_free(o_o25, o_u25)
+    mkt_over35, mkt_under35 = vig_free(o_o35, o_u35)
+    mkt_over15_ht, mkt_under15_ht = vig_free(o_o15_ht, o_u15_ht)
+    mkt_over15_sh, mkt_under15_sh = vig_free(o_o15_sh, o_u15_sh)
     mkt_btts_y, mkt_btts_n = vig_free(o_by, o_bn)
+    mkt_home, mkt_draw, mkt_away = vig_free_three(o_h, o_d, o_a)
+    p_over25_bridge = clamp_prob(
+        (p_over25_poi * 0.62) + ((mkt_over if mkt_over is not None else p_over25_poi) * 0.38),
+        0.08,
+        0.94,
+    )
+
+    api_home = normalize_percent(pred.get("prob_home"))
+    api_draw = normalize_percent(pred.get("prob_draw"))
+    api_away = normalize_percent(pred.get("prob_away"))
+    api_one_x = None if api_home is None or api_draw is None else api_home + api_draw
+    api_x_two = None if api_draw is None or api_away is None else api_draw + api_away
 
     # ============================================================
-    # 1) OVER / UNDER 2.5
+    # 1) OVER / UNDER 1.5
+    # ============================================================
+    ou15_signals = [("Poisson", p_over15_poi, 0.55)]
+
+    if mkt_over15 is not None:
+        ou15_signals.append(("Market", mkt_over15, 0.25))
+
+    attack_total = hp["gf_side"] + ap["ga_side"] + ap["gf_side"] + hp["ga_side"]
+    if hp["played"] >= 3 and ap["played"] >= 3:
+        p_prof15 = clamp_prob((attack_total - 0.7) / 2.5, 0.20, 0.94)
+        p_prof15 -= ((hp["fts_rate"] + ap["fts_rate"]) / 2.0) * 0.16
+        ou15_signals.append(("Profile", clamp_prob(p_prof15, 0.15, 0.94), 0.10))
+
+    if gh > 0 and ga > 0:
+        goals_hint = gh + ga
+        p_api15 = clamp_prob((goals_hint - 0.8) / 2.0, 0.20, 0.92)
+        ou15_signals.append(("API goals", p_api15, 0.10))
+
+    tw15 = sum(w for _, _, w in ou15_signals)
+    p_over15 = sum(p * w for _, p, w in ou15_signals) / tw15 if tw15 > 0 else 0.65
+    p_over15 = nudge_prob(p_over15, factor=1.05, low=0.12, high=0.975)
+    p_under15 = 1.0 - p_over15
+
+    # ============================================================
+    # 1b) OVER / UNDER 1.5 1st half + 2nd half
+    # ============================================================
+    lam_ht = lam_t * 0.46
+    lam_sh = lam_t * 0.54
+
+    ht_signals = [("Poisson", p_over(lam_ht, 2), 0.62)]
+    if mkt_over15_ht is not None:
+        ht_signals.append(("Market", mkt_over15_ht, 0.25))
+    ht_signals.append(("Bridge", clamp_prob((p_over25_bridge * 0.86) - 0.03, 0.08, 0.90), 0.13))
+    tw_ht = sum(weight for _, _, weight in ht_signals)
+    p_over15_ht = sum(prob * weight for _, prob, weight in ht_signals) / tw_ht if tw_ht > 0 else p_over(lam_ht, 2)
+    p_over15_ht = nudge_prob(p_over15_ht, factor=1.035, low=0.06, high=0.92)
+    p_under15_ht = 1.0 - p_over15_ht
+
+    sh_signals = [("Poisson", p_over(lam_sh, 2), 0.60)]
+    if mkt_over15_sh is not None:
+        sh_signals.append(("Market", mkt_over15_sh, 0.25))
+    sh_signals.append(("Bridge", clamp_prob((p_over25_bridge * 0.92) + 0.02, 0.10, 0.94), 0.15))
+    tw_sh = sum(weight for _, _, weight in sh_signals)
+    p_over15_sh = sum(prob * weight for _, prob, weight in sh_signals) / tw_sh if tw_sh > 0 else p_over(lam_sh, 2)
+    p_over15_sh = nudge_prob(p_over15_sh, factor=1.04, low=0.08, high=0.94)
+    p_under15_sh = 1.0 - p_over15_sh
+
+    # ============================================================
+    # 2) OVER / UNDER 2.5
     # ============================================================
     ou_signals = []
 
@@ -423,8 +1210,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
 
     # Attack/defense profile (0.20)
     if hp["played"] >= 3 and ap["played"] >= 3:
-        ad = hp["gf_side"] + ap["ga_side"] + ap["gf_side"] + hp["ga_side"]
-        p_prof = max(0.05, min(0.95, (ad - 1.5) / 3.0))
+        p_prof = max(0.05, min(0.95, (attack_total - 1.5) / 3.0))
         cs_pen = (hp["cs_rate"] + ap["cs_rate"]) / 2.0
         fts_pen = (hp["fts_rate"] + ap["fts_rate"]) / 2.0
         p_prof -= cs_pen * 0.15 + fts_pen * 0.10
@@ -463,11 +1249,11 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
 
     tw = sum(w for _, _, w in ou_signals)
     p_over25 = sum(p * w for _, p, w in ou_signals) / tw if tw > 0 else 0.50
-    p_over25 = max(0.05, min(0.95, p_over25))
+    p_over25 = nudge_prob(p_over25, factor=1.05, low=0.05, high=0.955)
     p_under25 = 1.0 - p_over25
 
     # ============================================================
-    # 2) BTTS YES / NO
+    # 3) BTTS YES / NO
     # ============================================================
     btts_signals = []
 
@@ -506,7 +1292,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
 
     tw2 = sum(w for _, _, w in btts_signals)
     p_btts = sum(p * w for _, p, w in btts_signals) / tw2 if tw2 > 0 else 0.50
-    p_btts = max(0.08, min(0.92, p_btts))
+    p_btts = nudge_prob(p_btts, factor=1.045, low=0.08, high=0.925)
     p_btts_no = 1.0 - p_btts
 
     # ============================================================
@@ -536,23 +1322,58 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     if gh > 0 and gh < 0.5: p_home_blanked = min(0.90, p_home_blanked + 0.08)
     if ga > 0 and ga < 0.5: p_away_blanked = min(0.90, p_away_blanked + 0.08)
 
-    p_home_blanked = max(0.05, min(0.90, p_home_blanked))
-    p_away_blanked = max(0.05, min(0.90, p_away_blanked))
-    p_nogol = max(0.10, min(0.90, p_nogol))
+    p_home_blanked = clamp_prob(p_home_blanked, 0.05, 0.90)
+    p_away_blanked = clamp_prob(p_away_blanked, 0.05, 0.90)
+    p_nogol = nudge_prob(p_nogol, factor=1.04, low=0.10, high=0.91)
     p_both_score = 1.0 - p_nogol
 
     # Score grid
-    g = grid(lam_h, lam_a)
     ml = sorted(g.items(), key=lambda x: x[1], reverse=True)[:5]
     p_00 = g.get((0, 0), 0)
 
     # ============================================================
-    # 4) OVER 3.5
+    # 4) OVER / UNDER 3.5
     # ============================================================
-    p_over35 = p_over(lam_t, 4)
+    over35_signals = [("Poisson", p_over(lam_t, 4), 0.58)]
+    if mkt_over35 is not None:
+        over35_signals.append(("Market", mkt_over35, 0.25))
+    if gh > 0 and ga > 0:
+        p_api35 = clamp_prob(((gh + ga) - 2.1) / 2.4, 0.10, 0.82)
+        over35_signals.append(("API goals", p_api35, 0.10))
+    over35_signals.append(("OU bridge", clamp_prob((p_over25 - 0.35) / 0.75, 0.08, 0.90), 0.07))
+    tw35 = sum(w for _, _, w in over35_signals)
+    p_over35 = sum(p * w for _, p, w in over35_signals) / tw35 if tw35 > 0 else p_over(lam_t, 4)
+    p_over35 = nudge_prob(p_over35, factor=1.04, low=0.04, high=0.89)
+    p_under35 = 1.0 - p_over35
 
     # ============================================================
-    # 5) COMBO: Over 2.5 + BTTS YES
+    # 5) DOUBLE CHANCE 1X / X2
+    # ============================================================
+    fav_home_bias = clamp_prob(0.50 + (lam_h - lam_a) * 0.10 + (hp["form"] - ap["form"]) * 0.015, 0.12, 0.88)
+    fav_away_bias = clamp_prob(0.50 + (lam_a - lam_h) * 0.10 + (ap["form"] - hp["form"]) * 0.015, 0.12, 0.88)
+
+    dc_one_x_signals = [("Poisson", p_one_x_poi, 0.38)]
+    dc_x_two_signals = [("Poisson", p_x_two_poi, 0.38)]
+    if mkt_home is not None and mkt_draw is not None:
+        dc_one_x_signals.append(("1X2 market", clamp_prob(mkt_home + mkt_draw, 0.20, 0.94), 0.27))
+    if mkt_draw is not None and mkt_away is not None:
+        dc_x_two_signals.append(("1X2 market", clamp_prob(mkt_draw + mkt_away, 0.20, 0.94), 0.27))
+    if api_one_x is not None:
+        dc_one_x_signals.append(("API", clamp_prob(api_one_x, 0.20, 0.94), 0.25))
+    if api_x_two is not None:
+        dc_x_two_signals.append(("API", clamp_prob(api_x_two, 0.20, 0.94), 0.25))
+    dc_one_x_signals.append(("Bias", fav_home_bias, 0.10))
+    dc_x_two_signals.append(("Bias", fav_away_bias, 0.10))
+
+    tw1x = sum(w for _, _, w in dc_one_x_signals)
+    twx2 = sum(w for _, _, w in dc_x_two_signals)
+    p_1x = sum(p * w for _, p, w in dc_one_x_signals) / tw1x if tw1x > 0 else p_one_x_poi
+    p_x2 = sum(p * w for _, p, w in dc_x_two_signals) / twx2 if twx2 > 0 else p_x_two_poi
+    p_1x = nudge_prob(p_1x, factor=1.05, low=0.18, high=0.97)
+    p_x2 = nudge_prob(p_x2, factor=1.05, low=0.18, high=0.97)
+
+    # ============================================================
+    # 6) COMBO: Over 2.5 + BTTS YES
     # P(O2.5 ∩ BTTS) = P(total≥3 AND both score)
     # Calculated from score grid directly (exact, not approximated)
     # ============================================================
@@ -562,36 +1383,53 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
             p_o25_btts += p
 
     # ============================================================
-    # 6) CORNERS — expected total + Over 7.5 / 8.5 / 9.5 / 10.5
-    # From Supabase corner_team_stats (home corners for + away corners for)
-    # Fallback: team_season_stats corners_for_avg
+    # 6) CORNERS — blended from season, recent matches and H2H
+    # Uses Supabase corner_team_stats + match_team_stats + team_season_stats
     # ============================================================
-    h_cpg_home = to_float(h_crn.get("avg_corners_for_home")) or to_float(h_sb.get("corners_for_avg")) or 0.0
-    a_cpg_away = to_float(a_crn.get("avg_corners_for_away")) or to_float(a_sb.get("corners_for_avg")) or 0.0
-    h_cpg_against = to_float(h_crn.get("avg_corners_against_home")) or 0.0
-    a_cpg_against = to_float(a_crn.get("avg_corners_against_away")) or 0.0
+    h_season_corners = season_corners_avg(h_sb) or 0.0
+    a_season_corners = season_corners_avg(a_sb) or 0.0
+    h_cpg_home = side_metric_avg(h_crn, "corners", "home", against=False) or h_season_corners or 0.0
+    a_cpg_away = side_metric_avg(a_crn, "corners", "away", against=False) or a_season_corners or 0.0
+    h_cpg_against = side_metric_avg(h_crn, "corners", "home", against=True) or 0.0
+    a_cpg_against = side_metric_avg(a_crn, "corners", "away", against=True) or 0.0
+    h_recent_corners_for = recent_metric_mean(h_recent, "corners_for") or 0.0
+    a_recent_corners_for = recent_metric_mean(a_recent, "corners_for") or 0.0
+    h_recent_corners_against = recent_metric_mean(h_recent, "corners_against") or 0.0
+    a_recent_corners_against = recent_metric_mean(a_recent, "corners_against") or 0.0
 
-    # Expected corners: average of (home_for + away_for) and (home_against + away_against)
+    corner_components = []
     if h_cpg_home > 0 and a_cpg_away > 0:
-        exp_corners_attack = h_cpg_home + a_cpg_away
-        if h_cpg_against > 0 and a_cpg_against > 0:
-            exp_corners_defense = h_cpg_against + a_cpg_against
-            exp_corners = (exp_corners_attack + exp_corners_defense) / 2.0
-        else:
-            exp_corners = exp_corners_attack
-    elif to_float(h_sb.get("corners_for_avg")) and to_float(a_sb.get("corners_for_avg")):
-        exp_corners = (to_float(h_sb.get("corners_for_avg")) or 0) + (to_float(a_sb.get("corners_for_avg")) or 0)
-    else:
-        exp_corners = 0.0
+        corner_components.append((h_cpg_home + a_cpg_away, 0.42))
+    if h_cpg_against > 0 and a_cpg_against > 0:
+        corner_components.append((h_cpg_against + a_cpg_against, 0.16))
+    if h_recent_corners_for > 0 and a_recent_corners_for > 0:
+        corner_components.append((h_recent_corners_for + a_recent_corners_for, 0.18))
+    if h_recent_corners_against > 0 and a_recent_corners_against > 0:
+        corner_components.append((h_recent_corners_against + a_recent_corners_against, 0.10))
+    if h_season_corners > 0 and a_season_corners > 0:
+        corner_components.append((h_season_corners + a_season_corners, 0.14))
+    total_corner_weight = sum(weight for _, weight in corner_components)
+    exp_corners = (sum(value * weight for value, weight in corner_components) / total_corner_weight) if total_corner_weight > 0 else 0.0
 
-    # H2H adjustment
+    h_shots = recent_metric_mean(h_recent, "shots_for") or season_shots_avg(h_sb) or 0.0
+    a_shots = recent_metric_mean(a_recent, "shots_for") or season_shots_avg(a_sb) or 0.0
+    shots_total = h_shots + a_shots
+    if shots_total >= 29:
+        exp_corners += 0.6
+    elif shots_total >= 25:
+        exp_corners += 0.3
+    elif 0 < shots_total <= 17:
+        exp_corners -= 0.2
+
     if h2h_c and exp_corners > 0:
-        exp_corners = exp_corners * 0.75 + h2h_c * 0.25
+        exp_corners = exp_corners * 0.80 + h2h_c * 0.20
+    if exp_corners > 0:
+        exp_corners = max(4.0, min(16.0, exp_corners))
 
     # Corner over probabilities using normal approximation (std ≈ 3.0 for corners)
     corner_std = 3.0
     corner_overs = {}
-    for line in [7.5, 8.5, 9.5, 10.5]:
+    for line in half_lines(7.5, 13.5):
         if exp_corners > 0:
             z = (line - exp_corners) / corner_std
             p_c_over = 1.0 - 0.5 * (1.0 + math.erf(z / math.sqrt(2)))
@@ -600,17 +1438,51 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
             corner_overs[str(line)] = None
 
     # ============================================================
-    # 7) YELLOWS — expected total + Over 2.5 / 3.5 / 4.5
-    # From Supabase team_season_stats: yellow_avg
+    # 7) YELLOWS — blended from cards tables, recent matches and referee
+    # Uses cards_team_stats + cards_match_stats + cards_referee_stats + match_team_stats
     # ============================================================
-    h_yel = to_float(h_sb.get("yellow_avg")) or 0.0
-    a_yel = to_float(a_sb.get("yellow_avg")) or 0.0
-    exp_yellows = h_yel + a_yel
+    h_yel = season_yellows_avg(h_sb) or 0.0
+    a_yel = season_yellows_avg(a_sb) or 0.0
+    h_cards_home = side_metric_avg(h_cards, "cards", "home", against=False) or h_yel or 0.0
+    a_cards_away = side_metric_avg(a_cards, "cards", "away", against=False) or a_yel or 0.0
+    h_cards_against = side_metric_avg(h_cards, "cards", "home", against=True) or 0.0
+    a_cards_against = side_metric_avg(a_cards, "cards", "away", against=True) or 0.0
+    h_recent_cards = recent_metric_mean(h_recent, "cards_for") or 0.0
+    a_recent_cards = recent_metric_mean(a_recent, "cards_for") or 0.0
+
+    yellow_components = []
+    if h_cards_home > 0 and a_cards_away > 0:
+        yellow_components.append((h_cards_home + a_cards_away, 0.44))
+    if h_recent_cards > 0 and a_recent_cards > 0:
+        yellow_components.append((h_recent_cards + a_recent_cards, 0.22))
+    if h_yel > 0 and a_yel > 0:
+        yellow_components.append((h_yel + a_yel, 0.18))
+    if h_cards_against > 0 and a_cards_against > 0:
+        yellow_components.append((h_cards_against + a_cards_against, 0.08))
+    total_yellow_weight = sum(weight for _, weight in yellow_components)
+    exp_yellows = (sum(value * weight for value, weight in yellow_components) / total_yellow_weight) if total_yellow_weight > 0 else 0.0
+
+    h_fouls = recent_metric_mean(h_recent, "fouls_for") or season_fouls_avg(h_sb) or 0.0
+    a_fouls = recent_metric_mean(a_recent, "fouls_for") or season_fouls_avg(a_sb) or 0.0
+    fouls_total = h_fouls + a_fouls
+    if fouls_total >= 29:
+        exp_yellows += 0.45
+    elif fouls_total >= 24:
+        exp_yellows += 0.22
+    elif 0 < fouls_total <= 18:
+        exp_yellows -= 0.12
+
+    if h2h_y and exp_yellows > 0:
+        exp_yellows = exp_yellows * 0.82 + h2h_y * 0.18
+    if ref_cards and ref_cards > 0:
+        exp_yellows = (exp_yellows * 0.72 + ref_cards * 0.28) if exp_yellows > 0 else ref_cards
+    if exp_yellows > 0:
+        exp_yellows = max(1.5, min(7.2, exp_yellows))
 
     # Yellow over probabilities using Poisson
     yellow_overs = {}
-    for line_int in [2, 3, 4]:
-        line = line_int + 0.5  # over 2.5, 3.5, 4.5
+    for line in half_lines(1.5, 4.5):
+        line_int = int(math.floor(line))
         if exp_yellows > 0:
             p_y_over = p_over(exp_yellows, line_int + 1)
             yellow_overs[str(line)] = round(max(0.02, min(0.98, p_y_over)), 4)
@@ -618,6 +1490,27 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
             yellow_overs[str(line)] = None
 
     return {
+        # Over/Under 1.5
+        "p_over15": round(p_over15, 4),
+        "p_under15": round(p_under15, 4),
+        "ou15_pick": "Over 1.5" if p_over15 >= 0.50 else "Under 1.5",
+        "ou15_conf": round(max(p_over15, p_under15), 4),
+        "odd_o15": o_o15, "odd_u15": o_u15,
+
+        # Over/Under 1.5 1st half
+        "p_over15_ht": round(p_over15_ht, 4),
+        "p_under15_ht": round(p_under15_ht, 4),
+        "ht15_pick": "Over 1.5 HT" if p_over15_ht >= 0.50 else "Under 1.5 HT",
+        "ht15_conf": round(max(p_over15_ht, p_under15_ht), 4),
+        "odd_o15_ht": o_o15_ht, "odd_u15_ht": o_u15_ht,
+
+        # Over/Under 1.5 2nd half
+        "p_over15_sh": round(p_over15_sh, 4),
+        "p_under15_sh": round(p_under15_sh, 4),
+        "sh15_pick": "Over 1.5 2H" if p_over15_sh >= 0.50 else "Under 1.5 2H",
+        "sh15_conf": round(max(p_over15_sh, p_under15_sh), 4),
+        "odd_o15_sh": o_o15_sh, "odd_u15_sh": o_u15_sh,
+
         # Over/Under 2.5
         "p_over25": round(p_over25, 4),
         "p_under25": round(p_under25, 4),
@@ -625,9 +1518,12 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
         "ou_conf": round(max(p_over25, p_under25), 4),
         "odd_o25": o_o25, "odd_u25": o_u25,
 
-        # Over 3.5
+        # Over/Under 3.5
         "p_over35": round(p_over35, 4),
-        "p_under35": round(1.0 - p_over35, 4),
+        "p_under35": round(p_under35, 4),
+        "ou35_pick": "Over 3.5" if p_over35 >= 0.50 else "Under 3.5",
+        "ou35_conf": round(max(p_over35, p_under35), 4),
+        "odd_o35": o_o35, "odd_u35": o_u35,
 
         # BTTS
         "p_btts_yes": round(p_btts, 4),
@@ -635,6 +1531,14 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
         "btts_pick": "BTTS YES" if p_btts >= 0.50 else "BTTS NO",
         "btts_conf": round(max(p_btts, p_btts_no), 4),
         "odd_btts_y": o_by, "odd_btts_n": o_bn,
+
+        # Double chance
+        "p_1x": round(p_1x, 4),
+        "p_x2": round(p_x2, 4),
+        "dc_pick": "1X" if p_1x >= p_x2 else "X2",
+        "dc_conf": round(max(p_1x, p_x2), 4),
+        "odd_1x": o_1x,
+        "odd_x2": o_x2,
 
         # Combo Over 2.5 + BTTS
         "p_o25_btts": round(p_o25_btts, 4),
@@ -651,10 +1555,12 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
         # Corners
         "exp_corners": round(exp_corners, 1) if exp_corners > 0 else None,
         "corner_overs": corner_overs,
+        "corner_odds": odds.get("corner_odds") or {},
 
         # Yellows
         "exp_yellows": round(exp_yellows, 1) if exp_yellows > 0 else None,
         "yellow_overs": yellow_overs,
+        "yellow_odds": odds.get("yellow_odds") or {},
 
         # Shared
         "lam_home": round(lam_h, 3), "lam_away": round(lam_a, 3), "lam_total": round(lam_t, 3),
@@ -687,6 +1593,7 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
         fx = f.get("fixture", {}) or {}
         league = f.get("league", {}) or {}
         teams = f.get("teams", {}) or {}
+        score = f.get("score", {}) or {}
 
         fid = fx.get("id")
         lid = league.get("id")
@@ -699,16 +1606,20 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
         mtime = dateiso[11:16] if len(dateiso) >= 16 else ""
         lname = league.get("name", "")
         country = league.get("country", "")
+        referee = str(fx.get("referee") or "").strip()
 
         if idx % 20 == 0 or idx == 1:
             print(f"# Progresso: {idx}/{total}...", file=sys.stderr)
 
         pred = get_prediction(fid)
-        odds = get_odds(fid)
+        odds = get_odds(fid, home=hn, away=an, kickoff_at=dateiso, target_date=target)
         h_ts = get_team_stats(lid, season, hid)
         a_ts = get_team_stats(lid, season, aid)
         hp_ = profile(h_ts, "home")
         ap_ = profile(a_ts, "away")
+        standings_map = get_league_standings(lid, season) if lid and season else {}
+        home_standing = standings_map.get(int(hid)) if hid and standings_map else None
+        away_standing = standings_map.get(int(aid)) if aid and standings_map else None
 
         # Supabase: domestic stats (richer sample than European-only)
         h_sb = sb_team_stats(hid) if hid else {}
@@ -716,19 +1627,43 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
         h_crn = sb_corner_stats(hid, lid) if hid else {}
         a_crn = sb_corner_stats(aid, lid) if aid else {}
         h2h_c = sb_corner_h2h(hid, aid) if (hid and aid) else None
+        h_cards = sb_cards_team_stats(hid, lid) if hid else {}
+        a_cards = sb_cards_team_stats(aid, lid) if aid else {}
+        h2h_y = sb_cards_h2h(hid, aid) if (hid and aid) else None
+        ref_cards = sb_referee_cards(referee, lid) if referee else None
+        h_recent = sb_recent_match_team_stats(hid, lid) if hid else []
+        a_recent = sb_recent_match_team_stats(aid, lid) if aid else []
 
         result = predict_all(hp_, ap_, pred, odds, hn, an,
-                             h_sb=h_sb, a_sb=a_sb, h_crn=h_crn, a_crn=a_crn, h2h_c=h2h_c)
+                             h_sb=h_sb, a_sb=a_sb, h_crn=h_crn, a_crn=a_crn, h2h_c=h2h_c,
+                             h_cards=h_cards, a_cards=a_cards, h2h_y=h2h_y, ref_cards=ref_cards,
+                             h_recent=h_recent, a_recent=a_recent)
 
         results.append({
             "fixture_id": fid, "date": target, "league": lname, "country": country,
             "match_time": mtime, "home": hn, "away": an,
+            "kickoff_at": dateiso,
+            "kickoff_ts": fx.get("timestamp"),
+            "league_id": lid,
+            "league_season": season,
+            "league_round": league.get("round", ""),
+            "league_has_standings": bool(league.get("standings")),
+            "home_team_id": hid,
+            "away_team_id": aid,
             "home_logo": ht.get("logo", ""), "away_logo": at.get("logo", ""),
             "league_logo": league.get("logo", ""),
             "status_short": str((fx.get("status") or {}).get("short", "")).upper(),
             "status_long": str((fx.get("status") or {}).get("long", "")).strip(),
             "goals_home": f.get("goals", {}).get("home"),
             "goals_away": f.get("goals", {}).get("away"),
+            "ht_goals_home": (score.get("halftime") or {}).get("home"),
+            "ht_goals_away": (score.get("halftime") or {}).get("away"),
+            "home_form": hp_.get("form_code", ""),
+            "away_form": ap_.get("form_code", ""),
+            "home_form_points": hp_.get("form"),
+            "away_form_points": ap_.get("form"),
+            "home_standing": home_standing,
+            "away_standing": away_standing,
             "total_corners": None,
             "total_yellows": None,
             "final_score": (
@@ -759,13 +1694,21 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
 
         for r in lr:
             print(f"\n  [{r['match_time']}] {r['home']} vs {r['away']}", file=sys.stderr)
+            ou15_odds = ""
+            if r["odd_o15"]: ou15_odds = f" [O@{r['odd_o15']} U@{r.get('odd_u15','?')}]"
+            print(f"    Over 1.5: {r['p_over15']*100:.1f}%  |  Under 1.5: {r['p_under15']*100:.1f}%{ou15_odds}", file=sys.stderr)
 
             # Over/Under
             ou_e = "🟢" if r["ou_pick"] == "Over 2.5" else "🔴"
             ou_odds = ""
             if r["odd_o25"]: ou_odds = f" [O@{r['odd_o25']} U@{r.get('odd_u25','?')}]"
             print(f"    {ou_e} Over 2.5: {r['p_over25']*100:.1f}%  |  Under 2.5: {r['p_under25']*100:.1f}%{ou_odds}", file=sys.stderr)
-            print(f"       Over 3.5: {r['p_over35']*100:.1f}%", file=sys.stderr)
+            ou35_odds = ""
+            if r["odd_u35"] or r["odd_o35"]: ou35_odds = f" [O@{r.get('odd_o35','?')} U@{r.get('odd_u35','?')}]"
+            print(f"       Over 3.5: {r['p_over35']*100:.1f}%  |  Under 3.5: {r['p_under35']*100:.1f}%{ou35_odds}", file=sys.stderr)
+            dc_odds = ""
+            if r["odd_1x"] or r["odd_x2"]: dc_odds = f" [1X@{r.get('odd_1x','?')} X2@{r.get('odd_x2','?')}]"
+            print(f"    1X: {r['p_1x']*100:.1f}%  |  X2: {r['p_x2']*100:.1f}%{dc_odds}", file=sys.stderr)
 
             # BTTS
             bt_e = "✅" if r["btts_pick"] == "BTTS YES" else "❌"
@@ -803,6 +1746,14 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
     print(f"  ⭐ MIGLIORI PICK (confidence ≥ 60%)", file=sys.stderr)
     print(f"{'='*70}", file=sys.stderr)
 
+    # Best Over 1.5
+    best_over15 = sorted([r for r in results if r["p_over15"] >= 0.72], key=lambda x: x["p_over15"], reverse=True)
+    if best_over15:
+        print(f"\n  OVER 1.5:", file=sys.stderr)
+        for r in best_over15[:8]:
+            o = f" @{r['odd_o15']}" if r['odd_o15'] else ""
+            print(f"     {r['home']} vs {r['away']}: {r['p_over15']*100:.1f}%{o} - {r['country']}/{r['league']}", file=sys.stderr)
+
     # Best Over 2.5
     best_over = sorted([r for r in results if r["p_over25"] >= 0.60], key=lambda x: x["p_over25"], reverse=True)
     if best_over:
@@ -818,6 +1769,30 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
         for r in best_under[:8]:
             o = f" @{r['odd_u25']}" if r['odd_u25'] else ""
             print(f"     {r['home']} vs {r['away']}: {r['p_under25']*100:.1f}%{o} — {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Best Under 3.5
+    best_under35 = sorted([r for r in results if r["p_under35"] >= 0.68], key=lambda x: x["p_under35"], reverse=True)
+    if best_under35:
+        print(f"\n  UNDER 3.5:", file=sys.stderr)
+        for r in best_under35[:8]:
+            o = f" @{r['odd_u35']}" if r['odd_u35'] else ""
+            print(f"     {r['home']} vs {r['away']}: {r['p_under35']*100:.1f}%{o} - {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Best 1X
+    best_1x = sorted([r for r in results if r["p_1x"] >= 0.68], key=lambda x: x["p_1x"], reverse=True)
+    if best_1x:
+        print(f"\n  DOUBLE CHANCE 1X:", file=sys.stderr)
+        for r in best_1x[:8]:
+            o = f" @{r['odd_1x']}" if r['odd_1x'] else ""
+            print(f"     {r['home']} vs {r['away']}: {r['p_1x']*100:.1f}%{o} - {r['country']}/{r['league']}", file=sys.stderr)
+
+    # Best X2
+    best_x2 = sorted([r for r in results if r["p_x2"] >= 0.68], key=lambda x: x["p_x2"], reverse=True)
+    if best_x2:
+        print(f"\n  DOUBLE CHANCE X2:", file=sys.stderr)
+        for r in best_x2[:8]:
+            o = f" @{r['odd_x2']}" if r['odd_x2'] else ""
+            print(f"     {r['home']} vs {r['away']}: {r['p_x2']*100:.1f}%{o} - {r['country']}/{r['league']}", file=sys.stderr)
 
     # Best BTTS YES
     best_btts = sorted([r for r in results if r["p_btts_yes"] >= 0.60], key=lambda x: x["p_btts_yes"], reverse=True)
@@ -849,7 +1824,8 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
     if best_o35:
         print(f"\n  🔥 OVER 3.5:", file=sys.stderr)
         for r in best_o35[:8]:
-            print(f"     {r['home']} vs {r['away']}: {r['p_over35']*100:.1f}% — {r['country']}/{r['league']}", file=sys.stderr)
+            o = f" @{r['odd_o35']}" if r['odd_o35'] else ""
+            print(f"     {r['home']} vs {r['away']}: {r['p_over35']*100:.1f}%{o} - {r['country']}/{r['league']}", file=sys.stderr)
 
     # Best Combo O2.5 + BTTS
     best_combo = sorted([r for r in results if r["p_o25_btts"] >= 0.30], key=lambda x: x["p_o25_btts"], reverse=True)
@@ -969,11 +1945,16 @@ def update_matches_from_fixture_rows(payload, fixture_rows, fixture_stats=None):
             continue
         fixture = row.get("fixture", {}) or {}
         goals = row.get("goals", {}) or {}
+        score = row.get("score", {}) or {}
         status = fixture.get("status", {}) or {}
         match["status_short"] = str(status.get("short", "")).upper()
         match["status_long"] = str(status.get("long", "")).strip()
+        match["kickoff_at"] = fixture.get("date") or match.get("kickoff_at")
+        match["kickoff_ts"] = fixture.get("timestamp") or match.get("kickoff_ts")
         match["goals_home"] = goals.get("home")
         match["goals_away"] = goals.get("away")
+        match["ht_goals_home"] = (score.get("halftime") or {}).get("home")
+        match["ht_goals_away"] = (score.get("halftime") or {}).get("away")
         if goals.get("home") is not None and goals.get("away") is not None:
             match["final_score"] = f"{goals.get('home')}-{goals.get('away')}"
         else:
