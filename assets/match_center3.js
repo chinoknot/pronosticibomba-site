@@ -368,6 +368,8 @@
     mcLivePill: document.getElementById("mc-live-pill"),
     mcWonPill: document.getElementById("mc-won-pill"),
     mcLostPill: document.getElementById("mc-lost-pill"),
+    mcCollapseAll: document.getElementById("mc-collapse-all"),
+    mcExpandAll: document.getElementById("mc-expand-all"),
   };
 
   function escapeHtml(value) {
@@ -1948,7 +1950,8 @@
   function getDetailMatch() {
     if (!state.detailFixtureId) return null;
     const derivedMatch = getDerivedMatches().find(match => String(match.fixture_id) === String(state.detailFixtureId));
-    const rawMatch = getPreparedMatches().find(match => String(match.fixture_id) === String(state.detailFixtureId));
+    const rawMatch = getPreparedMatches().find(match => String(match.fixture_id) === String(state.detailFixtureId))
+      || (state.liveOnlyMatches || []).find(match => String(match.fixture_id) === String(state.detailFixtureId));
     if (!rawMatch) return null;
     const markets = (Array.isArray(rawMatch.markets) ? rawMatch.markets : buildMarkets(rawMatch)).filter(market => Number(market.pickProbability || 0) > 0 || (market.options || []).some(option => option.probability != null));
     const filteredMarkets = markets.map(market => remapMarketForOutcomeFilters(rawMatch, market)).filter(Boolean);
@@ -2907,7 +2910,7 @@
         <div class="league-header">
           <div class="league-title"><span class="league-live-dot"></span><span>${escapeHtml(f.league)} | ${escapeHtml(f.country)}</span><span class="league-live-badge">LIVE</span></div>
         </div>
-        <article class="match-row status-live">
+        <article class="match-row status-live" data-fixture-open="${f.fixture_id}">
           <div class="match-row-inner">
             <div class="match-time-block"><div class="match-time">${escapeHtml(f.match_time || "--:--")}</div></div>
             <div class="match-teams">
@@ -2918,7 +2921,7 @@
               </div>
               <div class="match-score"><span class="live-score-badge">${score}</span><span class="live-status-label">${escapeHtml(elapsed)}</span></div>
             </div>
-            <div class="match-action"><strong>${IS_EN ? "RFO" : "Solo Finale"}</strong><small>&nbsp;</small></div>
+            <div class="match-action"><strong>${IS_EN ? "Details" : "Dettaglio"}</strong><small>${IS_EN ? "live" : "live"}</small></div>
           </div>
         </article>
       </section>`;
@@ -3827,6 +3830,12 @@
       state.quickFilter = wasActive ? null : 'lost';
       invalidateDerivedViewCaches({ prefilter: true });
       render();
+    });
+    if (dom.mcCollapseAll) dom.mcCollapseAll.addEventListener("click", () => {
+      document.querySelectorAll(".league-accordion").forEach(el => { el.open = false; });
+    });
+    if (dom.mcExpandAll) dom.mcExpandAll.addEventListener("click", () => {
+      document.querySelectorAll(".league-accordion").forEach(el => { el.open = true; });
     });
     dom.marketsAll.addEventListener("click", () => {
       state.groups = new Set(GROUPS.map(group => group.id));
