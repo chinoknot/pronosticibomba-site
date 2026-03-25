@@ -473,10 +473,11 @@
     }
     dom.matches.innerHTML = matches.map(match => {
       const fixtureStatus = String(match.status_short || "").toUpperCase();
+      const liveScore = getLiveScore(match);
       const badge = FINAL_STATUSES.has(fixtureStatus)
-        ? `<span class="status-pill status-unresolved">${t("final")} | ${escapeHtml(match.final_score || "-")}</span>`
+        ? `<span class="status-pill status-unresolved">${t("final")} | ${escapeHtml(liveScore || "-")}</span>`
         : LIVE_STATUSES.has(fixtureStatus)
-          ? `<span class="status-pill status-live">${t("live")} | ${escapeHtml(match.final_score || "0-0")}</span>`
+          ? `<span class="status-pill status-live">${t("live")} | ${escapeHtml(liveScore || "0-0")}</span>`
           : `<span class="status-pill status-scheduled">${statusLabel("scheduled")}</span>`;
 
       return `
@@ -497,7 +498,7 @@
             </div>
             <div class="match-right">
               <div class="kickoff">${t("kickoff")} | ${escapeHtml(match.match_time || "--:--")}</div>
-              <div class="scoreline">${escapeHtml(match.final_score || "-")}</div>
+              <div class="scoreline">${escapeHtml(liveScore || "-")}</div>
               ${badge}
             </div>
           </div>
@@ -545,6 +546,16 @@
         ${options}
       </div>
     `;
+  }
+
+  function getLiveScore(match) {
+    if (match.final_score) return match.final_score;
+    const fixtureStatus = String(match.status_short || "").toUpperCase();
+    if ((LIVE_STATUSES.has(fixtureStatus) || FINAL_STATUSES.has(fixtureStatus)) &&
+        match.goals_home != null && match.goals_away != null) {
+      return `${match.goals_home}-${match.goals_away}`;
+    }
+    return null;
   }
 
   function escapeHtml(value) {
@@ -717,6 +728,8 @@
   }
 
   async function refreshData() {
+    const isUpdate = state.cache !== null;
+    const scrollY = isUpdate ? window.scrollY : 0;
     try {
       await loadManifest();
       await loadCacheForDate(state.selectedDate);
@@ -725,6 +738,9 @@
       state.cache = null;
     }
     render();
+    if (isUpdate && scrollY > 0) {
+      requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: "instant" }));
+    }
   }
 
   function startAutoRefresh() {
