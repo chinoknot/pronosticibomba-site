@@ -3447,7 +3447,10 @@
       height:100%;
       border-radius:999px;
       background:linear-gradient(90deg,#39c2ff,#8fd5ff);
+      transition:width .8s cubic-bezier(.34,1,.64,1);
     }
+    @keyframes statFlash{0%{background:rgba(255,200,0,.22);border-radius:6px}100%{background:transparent}}
+    .detail-stat-row.stat-changed{animation:statFlash 1.4s ease-out forwards}
 
     /* Detail sheet: chiusura animata */
     .detail-sheet { transition: transform .28s cubic-bezier(.32,.72,0,1); }

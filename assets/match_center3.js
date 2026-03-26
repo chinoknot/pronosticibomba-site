@@ -259,6 +259,9 @@
     renderRequestToken: 0,
     detailRequestToken: 0,
     detailAbortController: null,
+    detailClockBase: null,
+    detailDataLive: null,
+    detailPrevStats: null,
     filterWorker: null,
     filterWorkerReady: false,
     filterWorkerFailed: false,
@@ -3297,7 +3300,7 @@
     `;
   }
 
-  function renderDetailStatsSafe(statistics) {
+  function renderDetailStatsSafe(statistics, prevStatistics) {
     const source = Array.isArray(statistics) ? statistics : [];
     const home = source[0];
     const away = source[1];
@@ -3336,6 +3339,10 @@
     };
     const homeStats = new Map((home.statistics || []).map(stat => [stat.type, stat.value]));
     const awayStats = new Map((away.statistics || []).map(stat => [stat.type, stat.value]));
+    const prevSrc = Array.isArray(prevStatistics) ? prevStatistics : [];
+    const prevHomeStats = new Map((prevSrc[0]?.statistics || []).map(s => [s.type, s.value]));
+    const prevAwayStats = new Map((prevSrc[1]?.statistics || []).map(s => [s.type, s.value]));
+    const hasPrev = prevSrc.length > 0;
     const rows = [...homeStats.keys()].map(type => {
       const label = statLabels[type] || type;
       const homeValue = homeStats.get(type) ?? "-";
@@ -3343,11 +3350,13 @@
       const homeNumeric = parseFloat(String(homeValue).replace("%", ""));
       const awayNumeric = parseFloat(String(awayValue).replace("%", ""));
       const total = homeNumeric + awayNumeric;
+      const barPct = total > 0 ? Math.round((homeNumeric / total) * 100) : 0;
       const bar = total > 0
-        ? `<div class="detail-stat-bar"><div class="detail-stat-bar-home" style="width:${Math.round((homeNumeric / total) * 100)}%"></div></div>`
+        ? `<div class="detail-stat-bar"><div class="detail-stat-bar-home" style="width:${barPct}%"></div></div>`
         : "";
+      const changed = hasPrev && (prevHomeStats.get(type) !== homeValue || prevAwayStats.get(type) !== awayValue);
       return `
-        <div class="detail-stat-row">
+        <div class="detail-stat-row${changed ? " stat-changed" : ""}">
           <span class="detail-stat-home">${escapeHtml(String(homeValue))}</span>
           <span class="detail-stat-label"><strong>${escapeHtml(label)}</strong>${bar}</span>
           <span class="detail-stat-away">${escapeHtml(String(awayValue))}</span>
@@ -3435,9 +3444,7 @@
           </div>
         </article>
         <div class="detail-stack">
-          ${loadingBlock}
-          ${eventsBlock}
-          ${statsBlock}
+          <div class="detail-live-sections">${loadingBlock}${eventsBlock}${statsBlock}</div>
           <details class="detail-accordion" open>
             <summary class="detail-summary"><span>${TEXT.detailPrimary}</span>${match.primaryMarket ? summaryMeta(marketSummaryLabel(match.primaryMarket)) : ""}</summary>
             <div class="detail-section"><div class="market-grid">${match.primaryMarket ? renderMarketCard(match.primaryMarket) : `<div class="empty-state">${TEXT.empty}</div>`}</div></div>
@@ -3454,7 +3461,8 @@
 
     // Partial live patch: update only score and status in-place (no innerHTML replacement = no blink)
     const liveKey = `${liveScore ? `${liveScore.home}-${liveScore.away}-${liveScore.elapsed || ""}-${liveScore.status || ""}` : "ns"}|${scoreChanged ? "c" : ""}`;
-    if (liveKey === state.detailLiveKey) return;
+    const hasNewLiveData = Boolean(state.detailDataLive);
+    if (liveKey === state.detailLiveKey && !hasNewLiveData) return;
     state.detailLiveKey = liveKey;
 
     const vsEl = dom.detailBody.querySelector(".detail-vs");
@@ -3464,6 +3472,25 @@
     }
     const statusEl = dom.detailBody.querySelector(".detail-status-strong");
     if (statusEl) statusEl.innerHTML = buildStatusText();
+
+    // Clock ticker patch (estimated elapsed between API refreshes)
+    if (isLive && state.detailClockBase) {
+      const estElapsed = state.detailClockBase.elapsed + Math.floor((Date.now() - state.detailClockBase.at) / 60000);
+      const tagEl = dom.detailBody.querySelector(".detail-status-tag");
+      if (tagEl && estElapsed > 0) tagEl.textContent = `${estElapsed}'`;
+    }
+
+    // Live sections patch (events + stats) when new data arrived from periodic re-fetch
+    if (hasNewLiveData) {
+      const newEvents = extractDetailEvents(state.detailDataLive);
+      const newStats = extractDetailStatistics(state.detailDataLive);
+      const liveSectionsEl = dom.detailBody.querySelector(".detail-live-sections");
+      if (liveSectionsEl) {
+        liveSectionsEl.innerHTML = renderDetailEventsPanel(newEvents, match) + renderDetailStatsSafe(newStats, state.detailPrevStats);
+      }
+      state.detailDataLive = null;
+      state.detailPrevStats = null;
+    }
   }
 
   async function render() {
@@ -3607,6 +3634,37 @@
     syncAllCustomSelects();
   }
 
+  // Periodic re-fetch of detail data (events + stats) while a live match is open
+  async function refreshDetailLive() {
+    const fixtureId = state.detailFixtureId;
+    if (!fixtureId) return;
+    const ls = state.liveScores[String(fixtureId)];
+    if (!ls || !LIVE_STATUSES.has(String(ls.status || "").toUpperCase())) return;
+    try {
+      const WORKER = "https://pronostici-bomba-push.pronosticibomba.workers.dev";
+      const res = await fetch(`${WORKER}/fixtures/detail?id=${fixtureId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.ok && state.detailFixtureId === String(fixtureId)) {
+        state.detailPrevStats = extractDetailStatistics(state.detailData || state.detailDataLive);
+        state.detailDataLive = data;
+        renderDetail();
+      }
+    } catch (e) {
+      console.warn("Detail live refresh failed:", e);
+    }
+  }
+
+  // Tick the displayed clock every 30s using a local estimate
+  function patchDetailClock() {
+    if (!state.detailFixtureId || !state.detailClockBase || !dom.detailBody) return;
+    const ls = state.liveScores[String(state.detailFixtureId)];
+    if (!ls || !LIVE_STATUSES.has(String(ls.status || "").toUpperCase())) return;
+    const estElapsed = state.detailClockBase.elapsed + Math.floor((Date.now() - state.detailClockBase.at) / 60000);
+    const tagEl = dom.detailBody.querySelector(".detail-status-tag");
+    if (tagEl && estElapsed > 0) tagEl.textContent = `${estElapsed}'`;
+  }
+
   async function fetchLiveScores() {
     try {
       const WORKER = "https://pronostici-bomba-push.pronosticibomba.workers.dev";
@@ -3670,11 +3728,20 @@
       }
       state.liveScores = scores;
       state.liveOnlyMatches = extraMatches;
+      // Update clock base for the open detail (if it's a live match)
+      if (state.detailFixtureId) {
+        const detailLs = scores[String(state.detailFixtureId)];
+        if (detailLs && LIVE_STATUSES.has(String(detailLs.status || "").toUpperCase()) && detailLs.elapsed) {
+          state.detailClockBase = { elapsed: detailLs.elapsed, at: Date.now() };
+        }
+      }
       invalidateMatchCaches();
       render();
       if (state.scoreChangedIds.size) {
         setTimeout(() => { state.scoreChangedIds.clear(); }, 2000);
       }
+      // Refresh events/stats for the open live detail
+      refreshDetailLive();
     } catch (e) {
       console.warn("Live scores fetch failed:", e);
     }
@@ -4121,6 +4188,10 @@
     window.setInterval(() => {
       if (!document.hidden) fetchLiveScores();
     }, LIVE_SCORES_REFRESH_MS);
+    // Smooth clock ticker: update displayed minute every 30s between live refreshes
+    window.setInterval(() => {
+      if (!document.hidden) patchDetailClock();
+    }, 30_000);
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) { refreshData(); fetchLiveScores(); }
     });
