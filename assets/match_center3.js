@@ -1242,6 +1242,10 @@
     return /\b2\b|segunda|serie b|serie c|league one|league two|championship|liga 2|ligue 2|superettan|obos|1st division|1\. division|eerste|tweede|derde|challenge league|challenger|amateur|1\. lig|2\. lig|3\. lig|super league 2|fnl|prva liga|persha|regionalliga|landesliga|lowland|highland|frauen|u\d{1,2}|women|femin|primavera|reserve|reserves|youth|cup/i.test(String(league || ""));
   }
 
+  function isWorldCupRelated(league) {
+    return /\bworld cup\b|world cup qual|nations league|copa america|african cup|olympic games|euro 20\d\d/i.test(String(league || ""));
+  }
+
   function isEliteWorldCompetition(league) {
     return /\buefa champions league\b|\buefa europa league\b|\buefa europa conference league\b|\bchampions league women\b/i.test(String(league || ""));
   }
@@ -1271,6 +1275,7 @@
   }
 
   function competitionTier(country, league) {
+    if (country === "World" && isWorldCupRelated(league)) return [-1, 0];
     if (country === "World" && isEliteWorldCompetition(league)) return [0, 0];
     const majorRank = topLeaguePriority(country, league);
     if (majorRank !== 999) return [1, majorRank];
@@ -2890,9 +2895,11 @@
         }),
     }));
     const allMajorGroups = groups.filter(isMajorLeagueGroup);
-    // Live major leagues bubble to the top of the major block
-    const liveMajorGroups = allMajorGroups.filter(g => groupHasLiveMatches(g));
-    const nonLiveMajorGroups = allMajorGroups.filter(g => !groupHasLiveMatches(g));
+    // Live major leagues bubble to the top; within each subset sort by tier (WC/intl = -1 first)
+    const liveMajorGroups = allMajorGroups.filter(g => groupHasLiveMatches(g))
+      .sort((a, b) => compareCompositeKeys(groupSortKey(a), groupSortKey(b)));
+    const nonLiveMajorGroups = allMajorGroups.filter(g => !groupHasLiveMatches(g))
+      .sort((a, b) => compareCompositeKeys(groupSortKey(a), groupSortKey(b)));
     const majorGroups = [...liveMajorGroups, ...nonLiveMajorGroups];
     const regularGroups = groups.filter(group => !isMajorLeagueGroup(group));
     const liveRegularGroups = regularGroups
