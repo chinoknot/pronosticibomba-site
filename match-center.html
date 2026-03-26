@@ -669,6 +669,8 @@
     .detail-live-score-live.score-changed{animation:scoreGlow .9s ease-out forwards}
     .detail-vs-score:has(.score-changed){animation:scoreRing .7s ease-out forwards}
     .live-score-badge.score-changed{animation:badgePop .55s cubic-bezier(.34,1.56,.64,1) forwards}
+    @keyframes tickBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+    .tick-mark{animation:tickBlink 1s step-end infinite;display:inline}
     .detail-summary-static{cursor:default;pointer-events:none}.detail-summary-static::after{display:none !important}
     .detail-events{display:flex;flex-direction:column;gap:6px}
     .detail-event-row{display:grid;grid-template-columns:36px 24px 1fr;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(148,163,184,.08)}

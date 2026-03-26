@@ -384,6 +384,9 @@
       .replaceAll("'", "&#39;");
   }
 
+  // Returns "45<span class='tick-mark'>'</span>" — the tick blinks via CSS, no JS interval needed
+  const tickMin = n => `${n}<span class="tick-mark" aria-hidden="true">'</span>`;
+
   function formatPercent(value) {
     if (value == null || Number.isNaN(Number(value))) return "-";
     return `${Math.round(Number(value) * 100)}%`;
@@ -2780,10 +2783,10 @@
         return `<span class="live-score-final">${escapeHtml(match.final_score || "-")}</span>`;
       }
       if (liveScore && LIVE_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
-        const elapsedStr = liveScore.status === "HT" ? "HT" : (liveScore.elapsed ? `${liveScore.elapsed}'` : liveScore.status);
+        const elapsedHtml = liveScore.status === "HT" ? "HT" : (liveScore.elapsed ? tickMin(liveScore.elapsed) : escapeHtml(liveScore.status || ""));
         const goals = (liveScore.events || []).filter(e => e.type === "Goal" && e.detail !== "Missed Penalty");
         const goalIcons = goals.map(e => `<span class="live-event-icon" title="${escapeHtml(e.playerName || "")} ${e.elapsed ? `(${e.elapsed}')` : ""}">⚽</span>`).join("");
-        return `<span class="live-score-badge${rowScoreChanged ? " score-changed" : ""}">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${escapeHtml(elapsedStr)}</span>${goalIcons}`;
+        return `<span class="live-score-badge${rowScoreChanged ? " score-changed" : ""}">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${elapsedHtml}</span>${goalIcons}`;
       }
       return (match.most_likely_scores || []).slice(0, 2).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("") || escapeHtml(match.status_long || "");
     })();
@@ -2834,10 +2837,10 @@
         return `<span class="live-score-final">${escapeHtml(match.final_score || "-")}</span>`;
       }
       if (liveScore && LIVE_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
-        const elapsedStr = liveScore.status === "HT" ? "HT" : (liveScore.elapsed ? `${liveScore.elapsed}'` : liveScore.status);
+        const elapsedHtml = liveScore.status === "HT" ? "HT" : (liveScore.elapsed ? tickMin(liveScore.elapsed) : escapeHtml(liveScore.status || ""));
         const redCards = (liveScore.events || []).filter(event => event.type === "Card" && /Red Card|Second Yellow/i.test(String(event.detail || "")));
         const redBadge = redCards.length ? `<span class="live-red-badge" title="${escapeHtml(IS_EN ? "Red card" : "Cartellino rosso")}">RC${redCards.length > 1 ? ` ${redCards.length}` : ""}</span>` : "";
-        return `<span class="live-score-badge${featScoreChanged ? " score-changed" : ""}">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${escapeHtml(elapsedStr)}</span>${redBadge}`;
+        return `<span class="live-score-badge${featScoreChanged ? " score-changed" : ""}">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${elapsedHtml}</span>${redBadge}`;
       }
       return (match.most_likely_scores || []).slice(0, 2).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("") || escapeHtml(match.status_long || "");
     })();
@@ -2909,7 +2912,7 @@
     // Partite live non nel JSON (coppe, ET, ecc.) — renderizzate in cima
     const liveOnlyHtml = (state.liveOnlyMatches || []).map(f => {
       const liveScore = state.liveScores[String(f.fixture_id)];
-      const elapsed = liveScore?.elapsed ? `${liveScore.elapsed}'` : (liveScore?.status || "LIVE");
+      const elapsedHtml = liveScore?.elapsed ? tickMin(liveScore.elapsed) : escapeHtml(liveScore?.status || "LIVE");
       const score = liveScore ? `${liveScore.home} - ${liveScore.away}` : "- -";
       return `<section class="league-block league-block-major league-block-live">
         <div class="league-header">
@@ -2924,7 +2927,7 @@
                 <span class="match-vs">vs</span>
                 <span class="club-line"><strong>${escapeHtml(f.away)}</strong></span>
               </div>
-              <div class="match-score"><span class="live-score-badge">${score}</span><span class="live-status-label">${escapeHtml(elapsed)}</span></div>
+              <div class="match-score"><span class="live-score-badge">${score}</span><span class="live-status-label">${elapsedHtml}</span></div>
             </div>
             <div class="match-action"><strong>${TEXT.viewMatch}</strong></div>
           </div>
@@ -3396,14 +3399,14 @@
     const fixtureStatus = String((liveScore?.status || match.status_short || "")).toUpperCase();
     const isLive = LIVE_STATUSES.has(fixtureStatus);
     const isFinal = FINAL_STATUSES.has(fixtureStatus);
-    const elapsedTag = liveScore
-      ? (liveScore.status === "HT" ? "HT" : isFinal ? "FT" : (liveScore.elapsed ? `${liveScore.elapsed}'` : liveScore.status))
+    const elapsedTagHtml = liveScore
+      ? (liveScore.status === "HT" ? "HT" : isFinal ? "FT" : (liveScore.elapsed ? tickMin(liveScore.elapsed) : escapeHtml(liveScore.status || "")))
       : "";
     const scoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
 
     // Helpers shared between full and partial render
     const buildScoreDisplay = () => liveScore
-      ? `<div class="detail-live-score${isLive ? " detail-live-score-live" : ""}${scoreChanged ? " score-changed" : ""}"><span class="score-num">${liveScore.home} - ${liveScore.away}</span>${elapsedTag ? `<span class="detail-status-tag">${escapeHtml(elapsedTag)}</span>` : ""}</div>`
+      ? `<div class="detail-live-score${isLive ? " detail-live-score-live" : ""}${scoreChanged ? " score-changed" : ""}"><span class="score-num">${liveScore.home} - ${liveScore.away}</span>${elapsedTagHtml ? `<span class="detail-status-tag">${elapsedTagHtml}</span>` : ""}</div>`
       : "";
     const buildStatusText = () => isFinal
       ? `Fine | ${liveScore ? `${liveScore.home}-${liveScore.away}` : (match.final_score || "-")}`
@@ -3477,7 +3480,7 @@
     if (isLive && state.detailClockBase) {
       const estElapsed = state.detailClockBase.elapsed + Math.floor((Date.now() - state.detailClockBase.at) / 60000);
       const tagEl = dom.detailBody.querySelector(".detail-status-tag");
-      if (tagEl && estElapsed > 0) tagEl.textContent = `${estElapsed}'`;
+      if (tagEl && estElapsed > 0) tagEl.innerHTML = tickMin(estElapsed);
     }
 
     // Live sections patch (events + stats) when new data arrived from periodic re-fetch
