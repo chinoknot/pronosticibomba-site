@@ -8,6 +8,8 @@
   const FILTER_WORKER_URL = "/assets/match_center3_worker.js?v=20260322b";
   const AUTO_REFRESH_MS = 5 * 60 * 1000;
   const LIVE_SCORES_URL = "https://pronostici-bomba-push.pronosticibomba.workers.dev/scores";
+  const SB_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
+  const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
   const LIVE_SCORES_REFRESH_MS = 60 * 1000;
   const PAGE_LANG = String(document.documentElement.lang || "it").toLowerCase();
   const IS_EN = PAGE_LANG.startsWith("en");
@@ -262,6 +264,8 @@
     detailClockBase: null,
     detailDataLive: null,
     detailPrevStats: null,
+    detailTeamStats: null,
+    detailTeamStatsId: null,
     filterWorker: null,
     filterWorkerReady: false,
     filterWorkerFailed: false,
@@ -3070,6 +3074,58 @@
       .replace(/[^a-z0-9]+/g, "");
   }
 
+  async function sbFetchTeamMatchRows(teamId) {
+    const cols = "is_home,goals_scored,goals_conceded,shots_total,shots_on_target,possession,corners,yellow_cards";
+    const url = `${SB_URL}/rest/v1/match_team_stats?team_id=eq.${teamId}&order=match_date.desc&limit=38&select=${cols}`;
+    try {
+      const res = await fetch(url, { headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` } });
+      if (!res.ok) return [];
+      return await res.json();
+    } catch (e) { return []; }
+  }
+
+  function computeTeamAvg(rows) {
+    if (!Array.isArray(rows) || !rows.length) return null;
+    const homeRows = rows.filter(r => r.is_home);
+    const awayRows = rows.filter(r => !r.is_home);
+    const avg = (arr, key) => {
+      const vals = arr.map(r => Number(r[key])).filter(v => Number.isFinite(v));
+      return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+    };
+    const slice = arr => arr.length ? {
+      n: arr.length,
+      goals_scored:    avg(arr, "goals_scored"),
+      goals_conceded:  avg(arr, "goals_conceded"),
+      shots_total:     avg(arr, "shots_total"),
+      shots_on_target: avg(arr, "shots_on_target"),
+      possession:      avg(arr, "possession"),
+      corners:         avg(arr, "corners"),
+      yellow_cards:    avg(arr, "yellow_cards"),
+    } : null;
+    return { all: slice(rows), home: slice(homeRows), away: slice(awayRows) };
+  }
+
+  async function fetchDetailTeamStats(match) {
+    const hid = match.home_team_id;
+    const aid = match.away_team_id;
+    const fid = String(match.fixture_id);
+    if (!hid && !aid) return;
+    state.detailTeamStats = null;
+    state.detailTeamStatsId = fid;
+    try {
+      const [hRows, aRows] = await Promise.all([
+        hid ? sbFetchTeamMatchRows(hid) : Promise.resolve([]),
+        aid ? sbFetchTeamMatchRows(aid) : Promise.resolve([]),
+      ]);
+      if (state.detailTeamStatsId !== fid) return;
+      const result = { home: computeTeamAvg(hRows), away: computeTeamAvg(aRows) };
+      if (!result.home && !result.away) return;
+      state.detailTeamStats = result;
+      state.detailStructureKey = null;
+      renderDetail();
+    } catch (e) {}
+  }
+
   function renderFormDots(formStr) {
     const str = String(formStr || "").toUpperCase();
     if (!str) return "";
@@ -3095,9 +3151,11 @@
     const awayForm = String(match.away_form || "");
     const homeStanding = match.home_standing || null;
     const awayStanding = match.away_standing || null;
+    const ts = state.detailTeamStats;
     const hasForm = homeForm || awayForm;
     const hasStanding = homeStanding || awayStanding;
-    if (!hasForm && !hasStanding) return "";
+    const hasTeamStats = ts && (ts.home || ts.away);
+    if (!hasForm && !hasStanding && !hasTeamStats) return "";
 
     const formSection = hasForm ? `
       <div class="prematch-section">
@@ -3126,11 +3184,59 @@
         </table>
       </div>` : "";
 
+    const teamStatsSection = hasTeamStats ? (() => {
+      const fmt = (v, dec = 1) => v != null ? Number(v).toFixed(dec) : "—";
+      const fmtP = v => v != null ? `${Math.round(v)}%` : "—";
+      const hAll = ts.home?.all, hH = ts.home?.home, hA = ts.home?.away;
+      const aAll = ts.away?.all, aH = ts.away?.home, aA = ts.away?.away;
+      const hn = ts.home?.all?.n || 0, an = ts.away?.all?.n || 0;
+      const teamHeader = (name, all, h, a) =>
+        `<th colspan="3" class="ts-team-head">${escapeHtml(name)}<small>${all?.n || 0} partite</small></th>`;
+      const row = (label, key, fmtFn = fmt) => {
+        const hv = [hAll, hH, hA].map(s => fmtFn(s?.[key]));
+        const av = [aAll, aH, aA].map(s => fmtFn(s?.[key]));
+        return `<tr>
+          <td class="ts-val ts-home">${hv[0]}</td><td class="ts-val ts-home ts-sub">${hv[1]}</td><td class="ts-val ts-home ts-sub">${hv[2]}</td>
+          <td class="ts-label">${label}</td>
+          <td class="ts-val ts-away ts-sub">${av[2]}</td><td class="ts-val ts-away ts-sub">${av[1]}</td><td class="ts-val ts-away">${av[0]}</td>
+        </tr>`;
+      };
+      return `
+        <div class="prematch-section">
+          <div class="prematch-label">Statistiche stagione (media per partita)</div>
+          <div class="ts-scroll">
+            <table class="ts-table">
+              <thead>
+                <tr>
+                  ${teamHeader(match.home, hAll, hH, hA)}
+                  <th class="ts-label-head"></th>
+                  ${teamHeader(match.away, aAll, aH, aA)}
+                </tr>
+                <tr class="ts-subhead">
+                  <th>Tot</th><th>H</th><th>A</th>
+                  <th class="ts-label-head"></th>
+                  <th>A</th><th>H</th><th>Tot</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${row("Gol segnati", "goals_scored")}
+                ${row("Gol subiti", "goals_conceded")}
+                ${row("Tiri totali", "shots_total")}
+                ${row("Tiri in porta", "shots_on_target")}
+                ${row("Possesso", "possession", fmtP)}
+                ${row("Corner", "corners")}
+                ${row("Gialli", "yellow_cards")}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+    })() : (match.home_team_id || match.away_team_id) ? `<div class="prematch-loading">Caricamento statistiche…</div>` : "";
+
     return `
       <details class="detail-accordion" open>
         <summary class="detail-summary"><span>Statistiche pre-partita</span></summary>
         <div class="detail-section prematch-block">
-          ${formSection}${standingSection}
+          ${formSection}${standingSection}${teamStatsSection}
         </div>
       </details>`;
   }
@@ -3524,7 +3630,7 @@
       : escapeHtml(match.status_long || statusLabel("scheduled"));
 
     // Full re-render only when fixture changes or data loads/clears
-    const structureKey = `${state.detailFixtureId}|${state.detailData ? "d" : "nd"}`;
+    const structureKey = `${state.detailFixtureId}|${state.detailData ? "d" : "nd"}|${state.detailTeamStats ? "ts" : "nts"}`;
     if (structureKey !== state.detailStructureKey) {
       state.detailStructureKey = structureKey;
       state.detailLiveKey = null;
@@ -3979,24 +4085,19 @@
         syncModalState();
       });
     }
-    dom.detailClose.addEventListener("click", () => {
+    const closeDetail = () => {
       state.detailFixtureId = null;
       state.detailData = null;
+      state.detailTeamStats = null;
+      state.detailTeamStatsId = null;
       if (state.detailAbortController) {
         try { state.detailAbortController.abort(); } catch (error) {}
         state.detailAbortController = null;
       }
       syncModalState();
-    });
-    dom.detailOverlay.addEventListener("click", () => {
-      state.detailFixtureId = null;
-      state.detailData = null;
-      if (state.detailAbortController) {
-        try { state.detailAbortController.abort(); } catch (error) {}
-        state.detailAbortController = null;
-      }
-      syncModalState();
-    });
+    };
+    dom.detailClose.addEventListener("click", closeDetail);
+    dom.detailOverlay.addEventListener("click", closeDetail);
     dom.timeFrom.addEventListener("change", () => applyTimeFilter(dom.timeFrom.value, state.timeTo));
     dom.timeTo.addEventListener("change", () => applyTimeFilter(state.timeFrom, dom.timeTo.value));
     if (dom.probabilityMinInput) dom.probabilityMinInput.addEventListener("change", () => applyProbabilityRange(dom.probabilityMinInput.value, state.maxProbability, "min"));
@@ -4280,9 +4381,13 @@
         state.detailDataId = String(nextFixtureId || "");
         state.detailStructureKey = null;
         state.detailLiveKey = null;
+        state.detailTeamStats = null;
+        state.detailTeamStatsId = null;
         syncModalState();
         renderDetail();
         fetchDetailData(nextFixtureId);
+        const openMatch = getDetailMatch();
+        if (openMatch) fetchDetailTeamStats(openMatch);
         return;
       }
     });

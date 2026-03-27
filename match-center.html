@@ -802,10 +802,19 @@
     .prob-bar-purple{background:rgba(167,139,250,.7)}
     .prob-bar-red{background:rgba(248,113,113,.7)}
     .prob-bar-muted{background:rgba(100,116,139,.4)}
-    .prematch-extra{display:flex;flex-wrap:wrap;gap:8px}
-    .prematch-extra-item{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:10px;background:rgba(30,41,59,.7);border:1px solid rgba(148,163,184,.1);font-size:.75rem}
-    .prematch-extra-item span{color:#94a3b8}
-    .prematch-extra-item strong{color:#dbe7f8;font-weight:700}
+    .prematch-loading{font-size:.72rem;color:#64748b;padding:6px 0}
+    .ts-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .ts-table{width:100%;border-collapse:collapse;font-size:.74rem;table-layout:auto}
+    .ts-team-head{text-align:center;padding:5px 4px;color:#dbe7f8;font-weight:700;font-size:.72rem;border-bottom:1px solid rgba(148,163,184,.14)}
+    .ts-team-head small{display:block;font-size:.62rem;color:#64748b;font-weight:400;margin-top:1px}
+    .ts-label-head{width:90px}
+    .ts-subhead th{padding:3px 4px;font-size:.62rem;color:#64748b;font-weight:600;text-align:center;border-bottom:1px solid rgba(148,163,184,.1)}
+    .ts-label{text-align:center;color:#94a3b8;font-size:.71rem;padding:5px 6px;white-space:nowrap}
+    .ts-val{text-align:center;padding:5px 4px;font-weight:600;color:#cbd5e1;white-space:nowrap}
+    .ts-val.ts-home{color:#93c5fd}
+    .ts-val.ts-away{color:#86efac}
+    .ts-val.ts-sub{color:#64748b;font-weight:400;font-size:.69rem}
+    .ts-table tbody tr:nth-child(odd){background:rgba(148,163,184,.04)}
     .bet-master-shell{position:relative;gap:12px;padding:18px 16px 16px;overflow:hidden;border:1px solid rgba(250,204,21,.22);background:
       linear-gradient(180deg,rgba(250,204,21,.16),rgba(250,204,21,0) 58px),
       radial-gradient(circle at top right,rgba(250,204,21,.14),transparent 30%),
@@ -2949,7 +2958,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3.js?v=20260327c"></script>
+  <script src="/assets/match_center3.js?v=20260327d"></script>
   <script>
     (function () {
       const ready = () => {
