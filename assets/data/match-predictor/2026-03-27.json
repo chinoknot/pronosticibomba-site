@@ -3171,13 +3171,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/1566.png",
       "away_logo": "https://media.api-sports.io/football/teams/5530.png",
       "league_logo": "https://media.api-sports.io/football/leagues/1222.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "2H",
+      "status_long": "Second Half",
+      "goals_home": 1,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "1-0",
       "p_over15": 0.6527,
       "p_under15": 0.3473,
       "ou15_pick": "Over 1.5",
@@ -3274,8 +3274,8 @@
       ],
       "kickoff_at": "2026-03-27T07:00:00+01:00",
       "kickoff_ts": 1774591200,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 1,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1537172,
@@ -3405,13 +3405,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/4673.png",
       "away_logo": "https://media.api-sports.io/football/teams/1099.png",
       "league_logo": "https://media.api-sports.io/football/leagues/1222.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "HT",
+      "status_long": "Halftime",
+      "goals_home": 0,
+      "goals_away": 1,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-1",
       "p_over15": 0.6527,
       "p_under15": 0.3473,
       "ou15_pick": "Over 1.5",
@@ -3508,8 +3508,8 @@
       ],
       "kickoff_at": "2026-03-27T07:15:00+01:00",
       "kickoff_ts": 1774592100,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 1
     },
     {
       "fixture_id": 1503195,
@@ -41519,5 +41519,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-03-27T23:57:13.328212+00:00",
-  "refreshed_at": "2026-03-27T05:10:37.072556+00:00"
+  "refreshed_at": "2026-03-27T07:14:22.626548+00:00"
 }
