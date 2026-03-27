@@ -267,13 +267,66 @@
       }
     }
 
+    function parseStoredScore(scoreStr) {
+      const m = String(scoreStr || "").match(/^(\d+)\s*[-:]\s*(\d+)/);
+      return m ? { gh: Number(m[1]), ga: Number(m[2]) } : null;
+    }
+
+    function evalResolvedPick(pickText, gh, ga) {
+      const total = Number(gh) + Number(ga);
+      const pickUpper = String(pickText || "").toUpperCase().trim()
+        .replace(/([A-Z0-9])\s*\+\s*([A-Z])/g, "$1 & $2");
+      if (!pickUpper) return "UNKNOWN";
+      if (pickUpper.includes("&")) {
+        const parts = pickUpper.split("&").map(p => p.trim()).filter(Boolean);
+        if (!parts.length) return "UNKNOWN";
+        const sub = parts.map(part => evalResolvedPick(part, gh, ga));
+        if (sub.includes("LOSE")) return "LOSE";
+        if (sub.every(r => r === "WIN")) return "WIN";
+        return "UNKNOWN";
+      }
+      const pickNorm = pickUpper.replace(/\([^)]*\)/g, "").trim();
+      if (pickNorm.includes("AWAY WINS") || pickNorm === "2") return ga > gh ? "WIN" : "LOSE";
+      if (pickNorm.includes("HOME WINS") || pickNorm === "1") return gh > ga ? "WIN" : "LOSE";
+      if (pickNorm.includes("DRAW") || pickNorm === "X") return gh === ga ? "WIN" : "LOSE";
+      if (pickNorm.includes("OVER")) {
+        const match = pickNorm.match(/OVER\s+(\d+(?:\.\d+)?)/);
+        if (!match) return "UNKNOWN";
+        return total > Number(match[1]) ? "WIN" : "LOSE";
+      }
+      if (pickNorm.includes("UNDER")) {
+        const match = pickNorm.match(/UNDER\s+(\d+(?:\.\d+)?)/);
+        if (!match) return "UNKNOWN";
+        return total < Number(match[1]) ? "WIN" : "LOSE";
+      }
+      if (pickNorm.includes("1X")) return gh >= ga ? "WIN" : "LOSE";
+      if (pickNorm.includes("X2")) return ga >= gh ? "WIN" : "LOSE";
+      if (pickNorm.includes("BOTH") || pickNorm.includes("BTTS")) {
+        if (pickNorm.includes("NO")) return !(gh > 0 && ga > 0) ? "WIN" : "LOSE";
+        return gh > 0 && ga > 0 ? "WIN" : "LOSE";
+      }
+      if (pickNorm === "GG") return gh > 0 && ga > 0 ? "WIN" : "LOSE";
+      if (pickNorm === "NG") return !(gh > 0 && ga > 0) ? "WIN" : "LOSE";
+      return "UNKNOWN";
+    }
+
     function pickResult(p) {
       const pd = String(p.match_date || "").trim();
       const fid = String(p.fixture_id || "").trim();
       const pickText = String(p.pick || "").trim();
       const key = pd + "__" + fid + "__" + pickText;
       const res = resultMap.get(key) || {};
-      return (res.result || "").toUpperCase();
+      const stored = (res.result || "").toUpperCase();
+      // For combo picks, re-evaluate from final_score in case backend stored wrong result
+      const isCombo = /[+&]/.test(pickText.toUpperCase());
+      if (isCombo && (stored === "WIN" || stored === "LOSE") && res.final_score) {
+        const score = parseStoredScore(res.final_score);
+        if (score) {
+          const derived = evalResolvedPick(pickText, score.gh, score.ga);
+          if (derived === "WIN" || derived === "LOSE") return derived;
+        }
+      }
+      return stored;
     }
 
     function chooseBestResolvedPick(list) {

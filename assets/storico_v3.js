@@ -250,8 +250,33 @@
     return "UNKNOWN";
   }
 
+  function parseStoredScore(scoreStr) {
+    const m = String(scoreStr || "").match(/^(\d+)\s*[-:]\s*(\d+)/);
+    return m ? { gh: Number(m[1]), ga: Number(m[2]) } : null;
+  }
+
   function deriveResolvedResult(resultRow, pickRow, liveFixture) {
     const currentResult = String(resultRow?.result || "").toUpperCase();
+    const isCombo = /[+&]/.test(String(pickRow?.pick || "").toUpperCase());
+
+    if (isCombo && (currentResult === "WIN" || currentResult === "LOSE" || currentResult === "VOID")) {
+      // Backend may have scored combo picks wrong — always re-evaluate
+      if (!isCornerLikePick(pickRow)) {
+        // 1) live fixture (recent match still in feed)
+        if (liveFixture?.isFinal) {
+          const derived = evalResolvedPick(pickRow?.pick, liveFixture.homeGoals, liveFixture.awayGoals);
+          if (derived === "WIN" || derived === "LOSE") return derived;
+        }
+        // 2) parse final_score stored in the DB result row (works for all historical picks)
+        const stored = parseStoredScore(resultRow?.final_score);
+        if (stored) {
+          const derived = evalResolvedPick(pickRow?.pick, stored.gh, stored.ga);
+          if (derived === "WIN" || derived === "LOSE") return derived;
+        }
+      }
+      return currentResult;
+    }
+
     if (currentResult === "WIN" || currentResult === "LOSE" || currentResult === "VOID") {
       return currentResult;
     }

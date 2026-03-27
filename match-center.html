@@ -625,7 +625,7 @@
     .match-row-featured .match-action{border-color:rgba(34,197,94,.58);background:linear-gradient(135deg,rgba(20,79,52,.98),rgba(10,24,23,.98))}
     .match-row-featured .match-action small{color:#bbf7d0}
     .league-header{padding:10px 12px;background:linear-gradient(90deg,rgba(82,98,126,.36),rgba(12,19,38,.94))}
-    .league-title{display:flex;align-items:center;gap:10px}
+    .league-title{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
     .league-title h3{margin:0;font-size:.96rem;line-height:1.1}
     .league-title p{margin:2px 0 0;color:#b2c0d8;font-size:.72rem}
     .league-logo{width:28px;height:28px;padding:2px;background:rgba(255,255,255,.08)}
@@ -707,7 +707,7 @@
     .mc-stat-lost strong{color:#f87171}
     .mc-stat-lost:hover,.mc-stat-lost.active{border-color:rgba(248,113,113,.38)!important;background:rgba(248,113,113,.09)!important}
     .mc-stat-roi strong{color:#fbbf24}
-    .league-count{min-width:30px;min-height:30px;padding:0 8px;background:rgba(59,130,246,.18);font-size:.78rem}
+    .league-count{min-width:28px;height:28px;padding:0 8px;background:rgba(59,130,246,.18);font-size:.78rem;font-weight:600;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
     .league-summary{list-style:none;cursor:pointer}
     .league-summary::-webkit-details-marker{display:none}
     .league-summary .league-count{margin-left:auto}
@@ -2902,7 +2902,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3.js?v=20260323c"></script>
+  <script src="/assets/match_center3.js?v=20260326a"></script>
   <script>
     (function () {
       const ready = () => {

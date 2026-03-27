@@ -908,8 +908,36 @@
       return "UNKNOWN";
     }
 
+    function parseStoredScore(scoreStr) {
+      const m = String(scoreStr || "").match(/^(\d+)\s*[-:]\s*(\d+)/);
+      return m ? { gh: Number(m[1]), ga: Number(m[2]) } : null;
+    }
+
     function deriveResolvedRow(pickRow, resultRow, liveFixture) {
       const currentResult = String(resultRow?.result || "").toUpperCase();
+      const isCombo = /[+&]/.test(String(pickRow?.pick || "").toUpperCase());
+
+      if (isCombo && (currentResult === "WIN" || currentResult === "LOSE" || currentResult === "VOID")) {
+        // Backend may have scored combo picks wrong — always re-evaluate
+        // 1) live fixture (recent match still in feed)
+        if (liveFixture?.isFinal && !isCornerLikePick(pickRow?.category, pickRow?.pick)) {
+          const derived = evalResolvedPick(pickRow?.pick, liveFixture.homeGoals, liveFixture.awayGoals);
+          if (derived === "WIN" || derived === "LOSE") {
+            return { ...(resultRow || {}), result: derived, final_score: liveFixture.score || resultRow?.final_score || "" };
+          }
+        }
+        // 2) parse final_score already stored in DB (e.g. "4-2") — works for all historical picks
+        const stored = parseStoredScore(resultRow?.final_score);
+        if (stored && !isCornerLikePick(pickRow?.category, pickRow?.pick)) {
+          const derived = evalResolvedPick(pickRow?.pick, stored.gh, stored.ga);
+          if (derived === "WIN" || derived === "LOSE") {
+            return { ...(resultRow || {}), result: derived };
+          }
+        }
+        return resultRow || {};
+      }
+
+      // Non-combo: trust stored result if already resolved
       if (currentResult === "WIN" || currentResult === "LOSE" || currentResult === "VOID") {
         return resultRow || {};
       }
