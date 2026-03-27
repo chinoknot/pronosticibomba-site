@@ -2991,34 +2991,27 @@
         : defaultOpen;
       return `<details class="league-block league-accordion${isLive ? " league-block-live" : ""}" data-gk="${escapeHtml(groupKey)}"${shouldBeOpen ? " open" : ""}><summary class="league-header league-summary">${header}<span class="league-caret" aria-hidden="true"></span></summary>${content}</details>`;
     });
-    // Preserve scroll position — clearing innerHTML shrinks the page momentarily
+    // Preserve scroll position across chunked rebuild.
+    // Capture BEFORE clearing, restore immediately after clear (page height collapses),
+    // then re-apply after every chunk so a mid-render race with the next refresh
+    // doesn't leave the page stuck at 0.
     const savedScrollY = window.scrollY;
     dom.leagueFeed.innerHTML = liveOnlyHtml;
+    // Immediately restore — innerHTML clear collapses height and browser jumps to 0
+    if (savedScrollY > 0) window.scrollTo(0, savedScrollY);
     const chunkSize = 6;
     let index = 0;
     function appendChunk() {
       if (renderToken !== state.feedRenderToken) return;
       const chunk = groupHtml.slice(index, index + chunkSize);
-      if (!chunk.length) {
-        // All chunks done — restore scroll if browser jumped
-        if (Math.abs(window.scrollY - savedScrollY) > 4) {
-          window.scrollTo(0, savedScrollY);
-        }
-        return;
-      }
+      if (!chunk.length) return;
       dom.leagueFeed.insertAdjacentHTML("beforeend", chunk.join(""));
       index += chunkSize;
-      if (index < groupHtml.length) {
-        requestAnimationFrame(appendChunk);
-      } else {
-        // Last chunk — restore scroll
-        requestAnimationFrame(() => {
-          if (renderToken !== state.feedRenderToken) return;
-          if (Math.abs(window.scrollY - savedScrollY) > 4) {
-            window.scrollTo(0, savedScrollY);
-          }
-        });
+      // Re-apply scroll after every chunk — guards against mid-render interruption
+      if (savedScrollY > 0 && Math.abs(window.scrollY - savedScrollY) > 1) {
+        window.scrollTo(0, savedScrollY);
       }
+      requestAnimationFrame(appendChunk);
     }
     requestAnimationFrame(appendChunk);
   }
