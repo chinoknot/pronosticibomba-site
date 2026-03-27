@@ -114,6 +114,10 @@ def build_payload_from_fixtures(fixtures, target_date, time_min, time_max, shard
         a_crn = mp.sb_corner_stats(aid, lid) if aid else {}
         h2h_c = mp.sb_corner_h2h(hid, aid) if (hid and aid) else None
 
+        standings_map = mp.get_league_standings(lid, season) if lid and season else {}
+        home_standing = standings_map.get(int(hid)) if hid and standings_map else None
+        away_standing = standings_map.get(int(aid)) if aid and standings_map else None
+
         result = mp.predict_all(
             hp_,
             ap_,
@@ -150,6 +154,14 @@ def build_payload_from_fixtures(fixtures, target_date, time_min, time_max, shard
                 if f.get("goals", {}).get("home") is not None and f.get("goals", {}).get("away") is not None
                 else ""
             ),
+            "home_team_id": hid,
+            "away_team_id": aid,
+            "league_id": lid,
+            "league_season": season,
+            "home_form": hp_.get("form_code", ""),
+            "away_form": ap_.get("form_code", ""),
+            "home_standing": home_standing,
+            "away_standing": away_standing,
             **result,
         })
 

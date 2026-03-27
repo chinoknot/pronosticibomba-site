@@ -3070,6 +3070,81 @@
       .replace(/[^a-z0-9]+/g, "");
   }
 
+  function renderFormDots(formStr) {
+    const str = String(formStr || "").toUpperCase();
+    if (!str) return "";
+    const dots = str.split("").map(c => {
+      const cls = c === "W" ? "form-dot-w" : c === "D" ? "form-dot-d" : "form-dot-l";
+      return `<span class="form-dot ${cls}" title="${c === "W" ? "Win" : c === "D" ? "Draw" : "Loss"}">${c}</span>`;
+    });
+    return `<div class="form-dots">${dots.join("")}</div>`;
+  }
+
+  function renderStandingRow(standing, teamName, side) {
+    if (!standing) return "";
+    const rank = standing.rank != null ? `#${standing.rank}` : "-";
+    const pts = standing.points != null ? standing.points : "-";
+    const played = standing.played != null ? standing.played : "-";
+    const gd = standing.goal_diff != null ? (standing.goal_diff > 0 ? `+${standing.goal_diff}` : String(standing.goal_diff)) : "-";
+    const desc = standing.description ? `<small class="standing-desc">${escapeHtml(standing.description)}</small>` : "";
+    return `<tr class="standing-row standing-${side}"><td class="standing-rank">${rank}</td><td class="standing-team">${escapeHtml(teamName)}${desc}</td><td>${played}</td><td class="standing-pts">${pts}</td><td>${gd}</td></tr>`;
+  }
+
+  function renderPrematchBlock(match) {
+    const homeForm = String(match.home_form || "");
+    const awayForm = String(match.away_form || "");
+    const homeStanding = match.home_standing || null;
+    const awayStanding = match.away_standing || null;
+    const hasForm = homeForm || awayForm;
+    const hasStanding = homeStanding || awayStanding;
+    const hasXG = match.lam_home != null && match.lam_away != null;
+    if (!hasForm && !hasStanding && !hasXG) return "";
+
+    const formSection = hasForm ? `
+      <div class="prematch-section">
+        <div class="prematch-row">
+          <div class="prematch-team-col">
+            <span class="prematch-team-label">${escapeHtml(match.home)}</span>
+            ${renderFormDots(homeForm)}
+          </div>
+          <div class="prematch-team-col prematch-team-col-away">
+            <span class="prematch-team-label">${escapeHtml(match.away)}</span>
+            ${renderFormDots(awayForm)}
+          </div>
+        </div>
+      </div>` : "";
+
+    const standingSection = hasStanding ? `
+      <div class="prematch-section">
+        <div class="prematch-label">Classifica</div>
+        <table class="standing-mini">
+          <thead><tr><th>#</th><th>Squadra</th><th>G</th><th>Pti</th><th>GD</th></tr></thead>
+          <tbody>
+            ${renderStandingRow(homeStanding, match.home, "home")}
+            ${renderStandingRow(awayStanding, match.away, "away")}
+          </tbody>
+        </table>
+      </div>` : "";
+
+    const xgSection = hasXG ? `
+      <div class="prematch-section">
+        <div class="prematch-label">Gol attesi (modello)</div>
+        <div class="xg-row">
+          <span class="xg-home">${escapeHtml(match.home)}<strong>${Number(match.lam_home).toFixed(2)}</strong></span>
+          <span class="xg-sep">vs</span>
+          <span class="xg-away"><strong>${Number(match.lam_away).toFixed(2)}</strong>${escapeHtml(match.away)}</span>
+        </div>
+      </div>` : "";
+
+    return `
+      <details class="detail-accordion" open>
+        <summary class="detail-summary"><span>Statistiche pre-partita</span></summary>
+        <div class="detail-section prematch-block">
+          ${formSection}${standingSection}${xgSection}
+        </div>
+      </details>`;
+  }
+
   function extractDetailEvents(detailData) {
     if (!detailData) return [];
     if (Array.isArray(detailData.events)) return detailData.events;
@@ -3479,6 +3554,7 @@
       const detailStatistics = extractDetailStatistics(state.detailData);
       const eventsBlock = state.detailData ? renderDetailEventsPanel(detailEvents, match) : "";
       const statsBlock = state.detailData ? renderDetailStatsPanel(detailStatistics) : "";
+      const prematchBlock = renderPrematchBlock(match);
       dom.detailBody.innerHTML = `
         <article class="detail-hero">
           <div class="detail-teams">
@@ -3494,6 +3570,7 @@
         </article>
         <div class="detail-stack">
           <div class="detail-live-sections">${loadingBlock}${eventsBlock}${statsBlock}</div>
+          ${prematchBlock}
           <details class="detail-accordion" open>
             <summary class="detail-summary"><span>${TEXT.detailPrimary}</span>${match.primaryMarket ? summaryMeta(marketSummaryLabel(match.primaryMarket)) : ""}</summary>
             <div class="detail-section"><div class="market-grid">${match.primaryMarket ? renderMarketCard(match.primaryMarket) : `<div class="empty-state">${TEXT.empty}</div>`}</div></div>

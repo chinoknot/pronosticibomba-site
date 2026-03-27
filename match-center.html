@@ -759,6 +759,34 @@
     .detail-summary{padding:12px 14px;font-size:.92rem;display:flex;align-items:center;gap:10px}
     .detail-summary>span:first-child{min-width:0;flex:1 1 auto}
     .detail-summary-meta{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.18);background:rgba(15,23,42,.7);color:#dbe7f8;font-size:.72rem;font-weight:700;max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+    .prematch-block{display:flex;flex-direction:column;gap:16px}
+    .prematch-section{display:flex;flex-direction:column;gap:8px}
+    .prematch-label{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#7c8faa}
+    .prematch-row{display:flex;gap:12px}
+    .prematch-team-col{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+    .prematch-team-col-away{align-items:flex-end}
+    .prematch-team-label{font-size:.78rem;font-weight:600;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+    .form-dots{display:flex;gap:4px;flex-wrap:wrap}
+    .prematch-team-col-away .form-dots{justify-content:flex-end}
+    .form-dot{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:.65rem;font-weight:800;flex-shrink:0}
+    .form-dot-w{background:rgba(34,197,94,.22);color:#4ade80;border:1px solid rgba(34,197,94,.3)}
+    .form-dot-d{background:rgba(148,163,184,.16);color:#94a3b8;border:1px solid rgba(148,163,184,.2)}
+    .form-dot-l{background:rgba(239,68,68,.18);color:#f87171;border:1px solid rgba(239,68,68,.28)}
+    .standing-mini{width:100%;border-collapse:collapse;font-size:.78rem}
+    .standing-mini th{padding:4px 6px;color:#7c8faa;font-weight:600;font-size:.68rem;text-align:left;border-bottom:1px solid rgba(148,163,184,.1)}
+    .standing-mini td{padding:5px 6px;border-bottom:1px solid rgba(148,163,184,.07)}
+    .standing-rank{font-weight:800;color:#94a3b8;width:32px}
+    .standing-team{font-weight:600;color:#dbe7f8}
+    .standing-pts{font-weight:800;color:#60a5fa}
+    .standing-desc{display:block;font-size:.64rem;color:#7c8faa;font-weight:400;margin-top:1px}
+    .standing-row-home td{color:#e2e8f0}
+    .standing-row-away td{color:#e2e8f0}
+    .xg-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0}
+    .xg-home,.xg-away{display:flex;align-items:center;gap:6px;font-size:.78rem;color:#94a3b8;flex:1;min-width:0}
+    .xg-home strong,.xg-away strong{font-size:1.1rem;font-weight:800;color:#60a5fa}
+    .xg-home{flex-direction:row}
+    .xg-away{flex-direction:row-reverse;text-align:right}
+    .xg-sep{font-size:.7rem;color:#475569;font-weight:600;flex-shrink:0}
     .bet-master-shell{position:relative;gap:12px;padding:18px 16px 16px;overflow:hidden;border:1px solid rgba(250,204,21,.22);background:
       linear-gradient(180deg,rgba(250,204,21,.16),rgba(250,204,21,0) 58px),
       radial-gradient(circle at top right,rgba(250,204,21,.14),transparent 30%),
@@ -2902,7 +2930,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3.js?v=20260326a"></script>
+  <script src="/assets/match_center3.js?v=20260327a"></script>
   <script>
     (function () {
       const ready = () => {
