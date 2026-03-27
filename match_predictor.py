@@ -990,7 +990,7 @@ def get_league_standings(league_id, season):
                     "group": row.get("group") or "",
                     "description": row.get("description") or "",
                     "form": row.get("form") or "",
-                    "status": ((row.get("status") or {}).get("description")) or "",
+                    "status": (lambda s: s.get("description") if isinstance(s, dict) else str(s or ""))(row.get("status") or ""),
                 }
     LEAGUE_STANDINGS_CACHE[key] = standings_map
     time.sleep(0.05)
