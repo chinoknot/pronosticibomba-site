@@ -787,6 +787,25 @@
     .xg-home{flex-direction:row}
     .xg-away{flex-direction:row-reverse;text-align:right}
     .xg-sep{font-size:.7rem;color:#475569;font-weight:600;flex-shrink:0}
+    .xg-total{font-size:.72rem;color:#64748b;font-weight:600;flex-shrink:0}
+    .prematch-probs{display:flex;flex-direction:column;gap:8px}
+    .prematch-prob-row{display:grid;grid-template-columns:110px 1fr auto;align-items:center;gap:8px}
+    .prematch-prob-label{font-size:.72rem;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .prematch-prob-bars{display:flex;flex-direction:column;gap:3px;min-width:0}
+    .prematch-prob-val{font-size:.72rem;font-weight:700;color:#dbe7f8;text-align:right;white-space:nowrap}
+    .prematch-prob-val em{font-style:normal;font-weight:400;color:#64748b}
+    .prob-bar-track{height:5px;background:rgba(148,163,184,.1);border-radius:3px;overflow:hidden}
+    .prob-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+    .prob-bar-blue{background:rgba(96,165,250,.7)}
+    .prob-bar-green{background:rgba(74,222,128,.7)}
+    .prob-bar-amber{background:rgba(251,191,36,.7)}
+    .prob-bar-purple{background:rgba(167,139,250,.7)}
+    .prob-bar-red{background:rgba(248,113,113,.7)}
+    .prob-bar-muted{background:rgba(100,116,139,.4)}
+    .prematch-extra{display:flex;flex-wrap:wrap;gap:8px}
+    .prematch-extra-item{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:10px;background:rgba(30,41,59,.7);border:1px solid rgba(148,163,184,.1);font-size:.75rem}
+    .prematch-extra-item span{color:#94a3b8}
+    .prematch-extra-item strong{color:#dbe7f8;font-weight:700}
     .bet-master-shell{position:relative;gap:12px;padding:18px 16px 16px;overflow:hidden;border:1px solid rgba(250,204,21,.22);background:
       linear-gradient(180deg,rgba(250,204,21,.16),rgba(250,204,21,0) 58px),
       radial-gradient(circle at top right,rgba(250,204,21,.14),transparent 30%),
@@ -2930,7 +2949,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3.js?v=20260327a"></script>
+  <script src="/assets/match_center3.js?v=20260327b"></script>
   <script>
     (function () {
       const ready = () => {

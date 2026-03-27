@@ -3090,6 +3090,11 @@
     return `<tr class="standing-row standing-${side}"><td class="standing-rank">${rank}</td><td class="standing-team">${escapeHtml(teamName)}${desc}</td><td>${played}</td><td class="standing-pts">${pts}</td><td>${gd}</td></tr>`;
   }
 
+  function renderProbBar(pct, colorClass) {
+    const w = Math.round(Math.max(0, Math.min(100, (pct || 0) * 100)));
+    return `<div class="prob-bar-track"><div class="prob-bar-fill ${colorClass}" style="width:${w}%"></div></div>`;
+  }
+
   function renderPrematchBlock(match) {
     const homeForm = String(match.home_form || "");
     const awayForm = String(match.away_form || "");
@@ -3098,10 +3103,12 @@
     const hasForm = homeForm || awayForm;
     const hasStanding = homeStanding || awayStanding;
     const hasXG = match.lam_home != null && match.lam_away != null;
-    if (!hasForm && !hasStanding && !hasXG) return "";
+    const pct = v => v != null ? `${Math.round((v || 0) * 100)}%` : "-";
 
+    // Forma squadre
     const formSection = hasForm ? `
       <div class="prematch-section">
+        <div class="prematch-label">Stato forma (ultimi 5)</div>
         <div class="prematch-row">
           <div class="prematch-team-col">
             <span class="prematch-team-label">${escapeHtml(match.home)}</span>
@@ -3114,6 +3121,7 @@
         </div>
       </div>` : "";
 
+    // Classifica
     const standingSection = hasStanding ? `
       <div class="prematch-section">
         <div class="prematch-label">Classifica</div>
@@ -3126,21 +3134,95 @@
         </table>
       </div>` : "";
 
+    // Gol attesi
     const xgSection = hasXG ? `
       <div class="prematch-section">
-        <div class="prematch-label">Gol attesi (modello)</div>
+        <div class="prematch-label">Gol attesi (modello Poisson)</div>
         <div class="xg-row">
           <span class="xg-home">${escapeHtml(match.home)}<strong>${Number(match.lam_home).toFixed(2)}</strong></span>
-          <span class="xg-sep">vs</span>
+          <span class="xg-sep">·</span>
+          <span class="xg-total">${Number(match.lam_total || (match.lam_home + match.lam_away)).toFixed(2)} tot</span>
+          <span class="xg-sep">·</span>
           <span class="xg-away"><strong>${Number(match.lam_away).toFixed(2)}</strong>${escapeHtml(match.away)}</span>
         </div>
       </div>` : "";
+
+    // Probabilità chiave con barre visive
+    const p25 = match.p_over25; const p_u25 = match.p_under25;
+    const pBtts = match.p_btts_yes; const pNoBtts = match.p_btts_no;
+    const p1x = match.p_1x; const px2 = match.p_x2;
+    const pHB = match.p_home_blanked; const pAB = match.p_away_blanked;
+    const hasProbs = p25 != null || pBtts != null;
+
+    const probRows = [];
+    if (p25 != null) probRows.push(`
+      <div class="prematch-prob-row">
+        <span class="prematch-prob-label">Over 2.5</span>
+        <div class="prematch-prob-bars">
+          ${renderProbBar(p25, "prob-bar-blue")}
+          ${renderProbBar(p_u25, "prob-bar-muted")}
+        </div>
+        <span class="prematch-prob-val">${pct(p25)} <em>/ ${pct(p_u25)}</em></span>
+      </div>`);
+    if (pBtts != null) probRows.push(`
+      <div class="prematch-prob-row">
+        <span class="prematch-prob-label">BTTS</span>
+        <div class="prematch-prob-bars">
+          ${renderProbBar(pBtts, "prob-bar-green")}
+          ${renderProbBar(pNoBtts, "prob-bar-muted")}
+        </div>
+        <span class="prematch-prob-val">${pct(pBtts)} <em>/ ${pct(pNoBtts)}</em></span>
+      </div>`);
+    if (p1x != null) probRows.push(`
+      <div class="prematch-prob-row">
+        <span class="prematch-prob-label">1X / X2</span>
+        <div class="prematch-prob-bars">
+          ${renderProbBar(p1x, "prob-bar-amber")}
+          ${renderProbBar(px2, "prob-bar-purple")}
+        </div>
+        <span class="prematch-prob-val">${pct(p1x)} <em>/ ${pct(px2)}</em></span>
+      </div>`);
+    if (pHB != null) probRows.push(`
+      <div class="prematch-prob-row">
+        <span class="prematch-prob-label">${escapeHtml(match.home)} non segna</span>
+        <div class="prematch-prob-bars">
+          ${renderProbBar(pHB, "prob-bar-red")}
+        </div>
+        <span class="prematch-prob-val">${pct(pHB)}</span>
+      </div>`);
+    if (pAB != null) probRows.push(`
+      <div class="prematch-prob-row">
+        <span class="prematch-prob-label">${escapeHtml(match.away)} non segna</span>
+        <div class="prematch-prob-bars">
+          ${renderProbBar(pAB, "prob-bar-red")}
+        </div>
+        <span class="prematch-prob-val">${pct(pAB)}</span>
+      </div>`);
+
+    const probSection = hasProbs ? `
+      <div class="prematch-section">
+        <div class="prematch-label">Probabilità principali</div>
+        <div class="prematch-probs">${probRows.join("")}</div>
+      </div>` : "";
+
+    // Corners / Yellows expected
+    const expCrn = match.exp_corners; const expYlw = match.exp_yellows;
+    const extraRows = [];
+    if (expCrn) extraRows.push(`<div class="prematch-extra-item"><span>Corner attesi</span><strong>${Number(expCrn).toFixed(1)}</strong></div>`);
+    if (expYlw) extraRows.push(`<div class="prematch-extra-item"><span>Ammonizioni attese</span><strong>${Number(expYlw).toFixed(1)}</strong></div>`);
+    const extraSection = extraRows.length ? `
+      <div class="prematch-section">
+        <div class="prematch-label">Proiezioni aggiuntive</div>
+        <div class="prematch-extra">${extraRows.join("")}</div>
+      </div>` : "";
+
+    if (!hasForm && !hasStanding && !hasXG && !hasProbs && !extraRows.length) return "";
 
     return `
       <details class="detail-accordion" open>
         <summary class="detail-summary"><span>Statistiche pre-partita</span></summary>
         <div class="detail-section prematch-block">
-          ${formSection}${standingSection}${xgSection}
+          ${formSection}${standingSection}${xgSection}${probSection}${extraSection}
         </div>
       </details>`;
   }
