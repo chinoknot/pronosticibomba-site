@@ -3530,8 +3530,15 @@
         <div class="prematch-note">${escapeHtml(coverageNote)}${table.groupLabel ? ` | ${escapeHtml(table.groupLabel)}` : ""}</div>
         <div class="standing-full-wrap">
           <table class="standing-full">
+            <colgroup>
+              <col class="standing-col-rank">
+              <col class="standing-col-team">
+              <col class="standing-col-played">
+              <col class="standing-col-points">
+              <col class="standing-col-gd">
+            </colgroup>
             <thead>
-              <tr><th>#</th><th>${IS_EN ? "Team" : "Squadra"}</th><th>G</th><th>Pti</th><th>GD</th><th>${IS_EN ? "Form" : "Forma"}</th></tr>
+              <tr><th>#</th><th>${IS_EN ? "Team" : "Squadra"}</th><th>G</th><th>Pti</th><th>GD</th></tr>
             </thead>
             <tbody>
               ${table.rows.map(row => {
@@ -3541,7 +3548,6 @@
                 const gd = row.goal_diff != null ? (row.goal_diff > 0 ? `+${row.goal_diff}` : String(row.goal_diff)) : "-";
                 const focusBadge = row.focus ? `<span class="standing-focus-badge standing-focus-${row.focus}">${row.focus === "home" ? (IS_EN ? "Home" : "Casa") : (IS_EN ? "Away" : "Trasferta")}</span>` : "";
                 const desc = row.description ? `<small class="standing-desc">${escapeHtml(row.description)}</small>` : "";
-                const form = row.form ? renderFormDots(row.form) : `<span class="standing-form-empty">-</span>`;
                 return `<tr class="standing-row standing-row-full${row.focus ? ` standing-focus-${row.focus}` : ""}">
                   <td class="standing-rank">${rank}</td>
                   <td class="standing-team">
@@ -3551,7 +3557,6 @@
                   <td>${played}</td>
                   <td class="standing-pts">${pts}</td>
                   <td>${gd}</td>
-                  <td class="standing-form-cell">${form}</td>
                 </tr>`;
               }).join("")}
             </tbody>
@@ -3598,8 +3603,7 @@
     const hasForm = homeForm || awayForm;
     const hasStanding = homeStanding || awayStanding;
     const hasTeamStats = statsStatus === "ready" && ts && (ts.home || ts.away);
-    const hasStatsState = ["loading", "ready", "empty"].includes(statsStatus);
-    if (!hasForm && !hasStanding && !hasStatsState) return "";
+    if (!hasForm && !hasStanding && !hasTeamStats) return "";
 
     const formSection = hasForm ? `
       <div class="prematch-section">
@@ -3627,7 +3631,7 @@
         </div>
       </div>` : "";
 
-    const teamStatsSection = statsStatus === "ready" && hasTeamStats ? (() => {
+    const teamStatsSection = hasTeamStats ? (() => {
       const fmt = (v, dec = 1) => v != null ? Number(v).toFixed(dec) : "—";
       const fmtP = v => v != null ? `${Math.round(v)}%` : "—";
       const hAll = ts.home?.all, hH = ts.home?.home, hA = ts.home?.away;
@@ -3673,24 +3677,13 @@
             </table>
           </div>
         </div>`;
-    })() : (match.home_team_id || match.away_team_id) ? `<div class="prematch-loading">Caricamento statistiche…</div>` : "";
-
-    const resolvedTeamStatsSection = statsStatus === "empty"
-      ? `
-        <div class="prematch-section">
-          <div class="prematch-label">${IS_EN ? "Season stats" : "Statistiche stagione"}</div>
-          ${coverageSection}
-          <div class="prematch-empty">${IS_EN ? "No stats available in the DB for these teams yet." : "Nessuna statistica disponibile nel DB per queste squadre."}</div>
-        </div>`
-      : statsStatus === "loading"
-        ? `<div class="prematch-section"><div class="prematch-label">${IS_EN ? "Season stats" : "Statistiche stagione"}</div><div class="prematch-loading">${IS_EN ? "Loading stats..." : "Caricamento statistiche..."}</div></div>`
-        : teamStatsSection;
+    })() : "";
 
     return `
       <details class="detail-accordion" open>
         <summary class="detail-summary"><span>Statistiche pre-partita</span></summary>
         <div class="detail-section prematch-block">
-          ${formSection}${standingSection}${resolvedTeamStatsSection}
+          ${formSection}${standingSection}${teamStatsSection}
         </div>
       </details>`;
   }

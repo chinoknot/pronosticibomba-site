@@ -2963,29 +2963,46 @@
       line-height:1.45;
     }
     .standing-full-wrap{
-      overflow:auto;
+      overflow:hidden;
       border:1px solid rgba(148,163,184,.08);
       border-radius:14px;
       background:rgba(7,12,24,.46);
+      width:100%;
     }
     .standing-full{
       width:100%;
-      min-width:560px;
+      min-width:0;
       border-collapse:collapse;
-      font-size:.76rem;
+      table-layout:fixed;
+      font-size:.75rem;
+    }
+    .standing-full .standing-col-rank{
+      width:46px;
+    }
+    .standing-full .standing-col-played,
+    .standing-full .standing-col-points,
+    .standing-full .standing-col-gd{
+      width:58px;
     }
     .standing-full th{
-      padding:7px 8px;
+      padding:8px 7px;
       color:#7c8faa;
       font-weight:700;
       font-size:.67rem;
-      text-align:left;
+      text-align:center;
       border-bottom:1px solid rgba(148,163,184,.12);
     }
+    .standing-full th:nth-child(2){
+      text-align:left;
+    }
     .standing-full td{
-      padding:7px 8px;
+      padding:8px 7px;
       border-bottom:1px solid rgba(148,163,184,.08);
       vertical-align:middle;
+      text-align:center;
+    }
+    .standing-full td:nth-child(2){
+      text-align:left;
     }
     .standing-full tbody tr:last-child td{
       border-bottom:none;
@@ -3002,6 +3019,9 @@
       gap:6px;
       flex-wrap:wrap;
       font-weight:700;
+      line-height:1.2;
+      white-space:normal;
+      word-break:break-word;
     }
     .standing-focus-badge{
       display:inline-flex;
@@ -3024,13 +3044,6 @@
       color:#fdba74;
       border-color:rgba(249,115,22,.28);
       background:rgba(249,115,22,.12);
-    }
-    .standing-form-cell .form-dots{
-      flex-wrap:nowrap;
-    }
-    .standing-form-empty{
-      color:#64748b;
-      font-size:.74rem;
     }
     .prematch-coverage-grid{
       display:grid;
@@ -3087,6 +3100,21 @@
       line-height:1.5;
     }
     @media (max-width:980px){
+      .standing-full{
+        font-size:.72rem;
+      }
+      .standing-full th,
+      .standing-full td{
+        padding:7px 5px;
+      }
+      .standing-full .standing-col-rank{
+        width:40px;
+      }
+      .standing-full .standing-col-played,
+      .standing-full .standing-col-points,
+      .standing-full .standing-col-gd{
+        width:48px;
+      }
       .prematch-coverage-grid{
         grid-template-columns:1fr;
       }
@@ -3110,7 +3138,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3.js?v=20260328i"></script>
+  <script src="/assets/match_center3.js?v=20260328j"></script>
   <script>
     (function () {
       const ready = () => {
