@@ -121,8 +121,8 @@ def build_payload_from_fixtures(fixtures, target_date, time_min, time_max, shard
         standings_key = mp.standings_cache_key(lid, season)
         if standings_key and standings_key not in standings_index:
             standings_index[standings_key] = mp.serialize_league_standings_bundle(standings_bundle)
-        home_standing = standings_map.get(int(hid)) if hid and standings_map else None
-        away_standing = standings_map.get(int(aid)) if aid and standings_map else None
+        home_standing = mp.compact_match_standing(standings_map.get(int(hid))) if hid and standings_map else None
+        away_standing = mp.compact_match_standing(standings_map.get(int(aid))) if aid and standings_map else None
 
         result = mp.predict_all(
             hp_,
@@ -250,7 +250,7 @@ def cmd_merge(args):
     }
 
     mp.ensure_cache_dir(args.cache_dir)
-    mp.write_cache(mp.cache_file_path(args.cache_dir, args.date), payload)
+    mp.write_cache_bundle(args.cache_dir, payload)
     manifest = mp.rebuild_manifest(args.cache_dir)
     print(json.dumps({
         "date": args.date,

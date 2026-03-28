@@ -1104,6 +1104,65 @@ def get_league_standings(league_id, season):
     return dict((get_league_standings_bundle(league_id, season) or {}).get("by_team") or {})
 
 
+def compact_match_standing(standing):
+    if not isinstance(standing, dict):
+        return None
+    return {
+        "rank": standing.get("rank"),
+        "points": standing.get("points"),
+        "played": standing.get("played"),
+        "goal_diff": standing.get("goal_diff"),
+        "group": standing.get("group") or "",
+    }
+
+
+def compact_payload_match_standings(payload):
+    for match in (payload or {}).get("matches", []) or []:
+        match["home_standing"] = compact_match_standing(match.get("home_standing"))
+        match["away_standing"] = compact_match_standing(match.get("away_standing"))
+    return payload
+
+
+def slim_standings_index_for_cache(index):
+    if not isinstance(index, dict):
+        return {}
+    slim = {}
+    for key, bundle in index.items():
+        if not isinstance(bundle, dict):
+            continue
+        groups = []
+        for group in (bundle.get("groups") or []):
+            rows = []
+            for row in (group.get("rows") or []):
+                rows.append({
+                    "team_id": row.get("team_id"),
+                    "team_name": row.get("team_name") or "",
+                    "rank": row.get("rank"),
+                    "points": row.get("points"),
+                    "played": row.get("played"),
+                    "won": row.get("won"),
+                    "draw": row.get("draw"),
+                    "lost": row.get("lost"),
+                    "goals_for": row.get("goals_for"),
+                    "goals_against": row.get("goals_against"),
+                    "goal_diff": row.get("goal_diff"),
+                })
+            if rows:
+                groups.append({
+                    "group": group.get("group") or "",
+                    "total_teams": group.get("total_teams") or len(rows),
+                    "rows": rows,
+                })
+        if groups:
+            slim[str(key)] = {
+                "league_id": bundle.get("league_id"),
+                "season": bundle.get("season"),
+                "total_teams": bundle.get("total_teams") or sum(len(group.get("rows", [])) for group in groups),
+                "groups": groups,
+            }
+    return slim
+
+
 # ==========================
 # PROFILE
 # ==========================
@@ -1730,8 +1789,8 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
         standings_key = standings_cache_key(lid, season)
         if standings_key and standings_key not in standings_index:
             standings_index[standings_key] = serialize_league_standings_bundle(standings_bundle)
-        home_standing = standings_map.get(int(hid)) if hid and standings_map else None
-        away_standing = standings_map.get(int(aid)) if aid and standings_map else None
+        home_standing = compact_match_standing(standings_map.get(int(hid))) if hid and standings_map else None
+        away_standing = compact_match_standing(standings_map.get(int(aid))) if aid and standings_map else None
 
         # Supabase: domestic stats (richer sample than European-only)
         h_sb = sb_team_stats(hid) if hid else {}
@@ -2002,12 +2061,46 @@ def ensure_cache_dir(cache_dir):
 def cache_file_path(cache_dir, date_str):
     return Path(cache_dir) / f"{date_str}.json"
 
+
+def standings_cache_file_path(cache_dir, date_str):
+    return Path(cache_dir) / f"{date_str}.standings.json"
+
+
+def latest_standings_cache_file_path(cache_dir):
+    return Path(cache_dir) / "latest.standings.json"
+
 def load_cache(path):
     with open(path, "r", encoding="utf-8") as fh:
         return json.load(fh)
 
 def write_cache(path, payload):
     Path(path).write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def build_standings_cache_payload(payload):
+    return {
+        "date": payload.get("date"),
+        "generated_at": payload.get("generated_at"),
+        "refreshed_at": payload.get("refreshed_at"),
+        "standings": slim_standings_index_for_cache(payload.get("standings") or {}),
+    }
+
+
+def write_cache_bundle(cache_dir, payload):
+    ensure_cache_dir(cache_dir)
+    compact_payload_match_standings(payload)
+    standings_payload = build_standings_cache_payload(payload)
+    standings = standings_payload.get("standings") or {}
+    date_str = payload.get("date")
+    if date_str:
+        if standings:
+            write_cache(standings_cache_file_path(cache_dir, date_str), standings_payload)
+        else:
+            standings_cache_file_path(cache_dir, date_str).unlink(missing_ok=True)
+    payload.pop("standings", None)
+    if date_str:
+        write_cache(cache_file_path(cache_dir, date_str), payload)
+    return payload
 
 def chunked(seq, size):
     for i in range(0, len(seq), size):
@@ -2083,7 +2176,7 @@ def build_cache_for_date(cache_dir, target_date, time_min="00:00", time_max="23:
     payload = run(target_date, time_min, time_max, emit_json=False)
     payload["timezone"] = MATCH_TIMEZONE
     payload["expires_at"] = (now_utc() + timedelta(hours=CACHE_TTL_HOURS)).isoformat()
-    write_cache(cache_file_path(cache_dir, target_date), payload)
+    write_cache_bundle(cache_dir, payload)
     return payload
 
 def refresh_existing_caches(cache_dir):
@@ -2104,7 +2197,7 @@ def refresh_existing_caches(cache_dir):
                 final_ids.append(match.get("fixture_id"))
         stats_map = get_fixture_statistics_map(final_ids) if final_ids else {}
         refreshed_payload = update_matches_from_fixture_rows(payload, rows, stats_map)
-        write_cache(path, refreshed_payload)
+        write_cache_bundle(cache_dir, refreshed_payload)
         refreshed.append(refreshed_payload)
     return refreshed
 
@@ -2121,6 +2214,7 @@ def cleanup_expired_caches(cache_dir):
         expires_at = parse_iso_dt(payload.get("expires_at"))
         if expires_at and expires_at <= now_utc():
             path.unlink(missing_ok=True)
+            standings_cache_file_path(cache_dir, path.stem).unlink(missing_ok=True)
             removed.append(path.name)
     return removed
 
@@ -2134,10 +2228,16 @@ def rebuild_manifest(cache_dir):
             "date": payload.get("date"),
             "file": path.name,
             "generated_at": payload.get("generated_at"),
+            "refreshed_at": payload.get("refreshed_at"),
             "expires_at": payload.get("expires_at"),
             "matches": payload.get("total_matches", 0),
             "final_matches": sum(1 for match in payload.get("matches", []) if str(match.get("status_short") or "").upper() in FINAL_STATUSES),
+            "standings_file": "",
+            "standings_stamp": payload.get("refreshed_at") or payload.get("generated_at"),
         }
+        standings_path = standings_cache_file_path(cache_dir, payload.get("date"))
+        if standings_path.exists():
+            summary["standings_file"] = standings_path.name
         entries.append(summary)
         if latest is None or str(payload.get("date") or "") > str(latest.get("date") or ""):
             latest = payload
@@ -2149,6 +2249,12 @@ def rebuild_manifest(cache_dir):
     }
     write_cache(Path(cache_dir) / "manifest.json", manifest)
     write_cache(Path(cache_dir) / "latest.json", latest or {"generated_at": now_utc().isoformat(), "matches": []})
+    latest_date = latest.get("date") if latest else ""
+    latest_standings_path = standings_cache_file_path(cache_dir, latest_date) if latest_date else None
+    if latest_standings_path and latest_standings_path.exists():
+        write_cache(latest_standings_cache_file_path(cache_dir), load_cache(latest_standings_path))
+    else:
+        latest_standings_cache_file_path(cache_dir).unlink(missing_ok=True)
     return manifest
 
 def run_daemon(cache_dir):

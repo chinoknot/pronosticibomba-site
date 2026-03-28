@@ -11,6 +11,9 @@
   const SB_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
   const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
   const LIVE_SCORES_REFRESH_MS = 60 * 1000;
+  const JSON_MEMORY_CACHE = new Map();
+  const TEAM_STATS_MEMORY_CACHE = new Map();
+  const TEAM_STATS_PROMISE_CACHE = new Map();
   const PAGE_LANG = String(document.documentElement.lang || "it").toLowerCase();
   const IS_EN = PAGE_LANG.startsWith("en");
   const APP_LOCALE = IS_EN ? "en-GB" : "it-IT";
@@ -234,6 +237,10 @@
     manifest: null,
     selectedDate: "",
     cache: null,
+    standingsCacheByDate: Object.create(null),
+    standingsVersionByDate: Object.create(null),
+    standingsLoadByDate: Object.create(null),
+    standingsRenderVersion: 0,
     liveScores: {},
     liveOnlyMatches: [],
     detailData: null,
@@ -564,7 +571,7 @@
 
   function currentDataRefreshSignature() {
     const manifestDates = Array.isArray(state.manifest?.dates)
-      ? state.manifest.dates.map(entry => `${entry.date || ""}:${entry.file || ""}:${entry.matches || 0}`).join("|")
+      ? state.manifest.dates.map(entry => `${entry.date || ""}:${entry.file || ""}:${entry.matches || 0}:${entry.refreshed_at || entry.generated_at || ""}`).join("|")
       : "";
     return JSON.stringify({
       manifestLatestDate: state.manifest?.latest_date || "",
@@ -838,14 +845,21 @@
     return date.toISOString().slice(0, 10);
   }
 
-  function cacheBust(url) {
-    return `${url}?v=${Date.now()}`;
+  function cloneJson(value) {
+    if (typeof structuredClone === "function") return structuredClone(value);
+    return JSON.parse(JSON.stringify(value));
   }
 
-  async function fetchJson(url) {
-    const response = await fetch(cacheBust(url), { cache: "no-store" });
+  async function fetchJson(url, options = {}) {
+    const cacheKey = options.cacheKey ? String(options.cacheKey) : "";
+    if (cacheKey && JSON_MEMORY_CACHE.has(cacheKey)) {
+      return cloneJson(JSON_MEMORY_CACHE.get(cacheKey));
+    }
+    const response = await fetch(url, { cache: options.cacheMode || "default" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
+    const data = await response.json();
+    if (cacheKey) JSON_MEMORY_CACHE.set(cacheKey, data);
+    return cloneJson(data);
   }
 
   function buildTimeOptions() {
@@ -3041,9 +3055,9 @@
           <div class="match-teams">
             ${showLeagueLine ? `<div class="match-league-line">${escapeHtml(match.league)} | ${escapeHtml(match.country)}</div>` : ""}
             <div class="clubs-inline">
-              <span class="club-line">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" />` : ""}<strong>${escapeHtml(match.home)}</strong></span>
+              <span class="club-line">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" decoding="async" />` : ""}<strong>${escapeHtml(match.home)}</strong></span>
               <span class="match-vs">vs</span>
-              <span class="club-line">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" />` : ""}<strong>${escapeHtml(match.away)}</strong></span>
+              <span class="club-line">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" decoding="async" />` : ""}<strong>${escapeHtml(match.away)}</strong></span>
             </div>
             <div class="match-score">${scoreText}</div>
           </div>
@@ -3071,9 +3085,9 @@
           <div class="match-teams">
             ${showLeagueLine ? `<div class="match-league-line">${escapeHtml(match.league)} | ${escapeHtml(match.country)}</div>` : ""}
             <div class="clubs-inline">
-              <span class="club-line">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" />` : ""}<strong>${escapeHtml(match.home)}</strong></span>
+              <span class="club-line">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" decoding="async" />` : ""}<strong>${escapeHtml(match.home)}</strong></span>
               <span class="match-vs">vs</span>
-              <span class="club-line">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" />` : ""}<strong>${escapeHtml(match.away)}</strong></span>
+              <span class="club-line">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" decoding="async" />` : ""}<strong>${escapeHtml(match.away)}</strong></span>
             </div>
             <div class="match-score">${scoreText}</div>
           </div>
@@ -3092,7 +3106,7 @@
     const liveBadge = isLive ? `<span class="league-live-badge">LIVE</span>` : "";
     const header = `
       <div class="league-title" style="flex:1;min-width:0">
-        ${group.logo ? `<img class="league-logo" src="${group.logo}" alt="" loading="lazy" />` : `<span class="league-dot" aria-hidden="true"></span>`}
+        ${group.logo ? `<img class="league-logo" src="${group.logo}" alt="" loading="lazy" decoding="async" />` : `<span class="league-dot" aria-hidden="true"></span>`}
         <div>
           <h3>${escapeHtml(group.league)}</h3>
           <p>${escapeHtml(group.country)}</p>
@@ -3204,7 +3218,7 @@
       dom.leagueFeed.style.minHeight = "";
     }
     dom.leagueFeed.innerHTML = liveOnlyHtml;
-    const chunkSize = 6;
+    const chunkSize = window.matchMedia("(max-width: 720px)").matches ? 3 : 6;
     let index = 0;
     function appendChunk() {
       if (renderToken !== state.feedRenderToken) return;
@@ -3295,6 +3309,22 @@
     return fallback;
   }
 
+  function teamStatsCacheKey(teamId, context = {}) {
+    const safeTeamId = teamId != null ? String(teamId) : "";
+    if (!safeTeamId) return "";
+    const season = context?.season != null ? String(context.season) : "";
+    const leagueId = context?.leagueId != null ? String(context.leagueId) : "";
+    return `${safeTeamId}:${leagueId}:${season}`;
+  }
+
+  function rememberTeamStatsCache(key, bundle) {
+    if (!key) return;
+    TEAM_STATS_MEMORY_CACHE.set(key, bundle);
+    if (TEAM_STATS_MEMORY_CACHE.size <= 180) return;
+    const oldestKey = TEAM_STATS_MEMORY_CACHE.keys().next().value;
+    if (oldestKey) TEAM_STATS_MEMORY_CACHE.delete(oldestKey);
+  }
+
   async function sbFetchTableRows(table, params) {
     const search = new URLSearchParams();
     Object.entries(params || {}).forEach(([key, value]) => {
@@ -3314,6 +3344,13 @@
   }
 
   async function sbFetchTeamMatchRows(teamId, context = {}) {
+    const cacheKey = teamStatsCacheKey(teamId, context);
+    if (cacheKey && TEAM_STATS_MEMORY_CACHE.has(cacheKey)) {
+      return cloneJson(TEAM_STATS_MEMORY_CACHE.get(cacheKey));
+    }
+    if (cacheKey && TEAM_STATS_PROMISE_CACHE.has(cacheKey)) {
+      return cloneJson(await TEAM_STATS_PROMISE_CACHE.get(cacheKey));
+    }
     const cols = "fixture_id,league_id,season,match_date,is_home,goals_scored,goals_conceded,shots_total,shots_on_target,possession,corners,yellow_cards";
     const limit = 80;
     const season = context?.season != null ? String(context.season) : "";
@@ -3338,14 +3375,24 @@
       scopeLabel: IS_EN ? "Team history" : "Storico team",
       params: { team_id: `eq.${teamId}`, order: "match_date.desc", limit, select: cols },
     });
-    for (const variant of variants) {
-      const result = await sbFetchTableRows("match_team_stats", variant.params);
-      if (result.rows.length) {
-        return { rows: result.rows, totalCount: result.count || result.rows.length, scope: variant.scope, scopeLabel: variant.scopeLabel };
+    const loadPromise = (async () => {
+      for (const variant of variants) {
+        const result = await sbFetchTableRows("match_team_stats", variant.params);
+        if (result.rows.length) {
+          return { rows: result.rows, totalCount: result.count || result.rows.length, scope: variant.scope, scopeLabel: variant.scopeLabel };
+        }
       }
+      const fallback = variants[0] || { scope: "all", scopeLabel: IS_EN ? "Team history" : "Storico team" };
+      return { rows: [], totalCount: 0, scope: fallback.scope, scopeLabel: fallback.scopeLabel };
+    })();
+    if (cacheKey) TEAM_STATS_PROMISE_CACHE.set(cacheKey, loadPromise);
+    try {
+      const bundle = await loadPromise;
+      if (cacheKey) rememberTeamStatsCache(cacheKey, bundle);
+      return cloneJson(bundle);
+    } finally {
+      if (cacheKey) TEAM_STATS_PROMISE_CACHE.delete(cacheKey);
     }
-    const fallback = variants[0] || { scope: "all", scopeLabel: IS_EN ? "Team history" : "Storico team" };
-    return { rows: [], totalCount: 0, scope: fallback.scope, scopeLabel: fallback.scopeLabel };
   }
 
   function computeTeamAvg(rows) {
@@ -3480,7 +3527,7 @@
   function hasLeagueStandingData(match) {
     const cacheKey = standingCacheKey(match);
     if (!cacheKey) return false;
-    const groups = state.cache?.standings?.[cacheKey]?.groups;
+    const groups = standingsIndexForDate()[cacheKey]?.groups;
     return Array.isArray(groups) && groups.some(group => Array.isArray(group?.rows) && group.rows.length);
   }
 
@@ -3493,7 +3540,7 @@
         .map(normalizeStandingGroup)
         .filter(Boolean),
     );
-    const standingsIndex = state.cache?.standings || {};
+    const standingsIndex = standingsIndexForDate();
     const cachedTable = standingsIndex[standingCacheKey(match)];
     if (cachedTable && Array.isArray(cachedTable.groups) && cachedTable.groups.length) {
       let selectedGroups = cachedTable.groups.filter(group => {
@@ -3597,11 +3644,16 @@
 
   function renderStandingFullTable(match) {
     const table = collectLeagueStandingRows(match);
-    if (!table.rows.length) return "";
-    const coverageLabel = table.total ? `${table.rows.length}/${table.total}` : String(table.rows.length);
-    const coverageNote = table.complete
-      ? (IS_EN ? `Full standings ${coverageLabel} teams` : `Classifica completa ${coverageLabel} squadre`)
-      : (IS_EN ? `Feed coverage ${coverageLabel} teams, some entries missing` : `Copertura feed ${coverageLabel} squadre, alcune mancanti`);
+    if (!table.rows.length) {
+      if (hasStandingsSidecarForDate() && standingsLoadPending()) {
+        return `
+          <div class="prematch-section">
+            <div class="prematch-label">${IS_EN ? "Standings" : "Classifica"}</div>
+            <div class="prematch-loading">${IS_EN ? "Loading standings..." : "Caricamento classifica..."}</div>
+          </div>`;
+      }
+      return "";
+    }
     const columns = [
       { key: "played", label: "G", colClass: "standing-col-stat" },
       { key: "won", label: "V", colClass: "standing-col-stat" },
@@ -3614,8 +3666,7 @@
     ];
     return `
       <div class="prematch-section">
-        <div class="prematch-label">${IS_EN ? "League table" : "Classifica campionato"}</div>
-        <div class="prematch-note">${escapeHtml(coverageNote)}${table.groupLabel ? ` | ${escapeHtml(table.groupLabel)}` : ""}</div>
+        <div class="prematch-label">${IS_EN ? "Standings" : "Classifica"}</div>
         <div class="standing-full-wrap">
           <table class="standing-full">
             <colgroup>
@@ -3630,12 +3681,10 @@
               ${table.rows.map(row => {
                 const rank = row.rank != null ? row.rank : "-";
                 const focusBadge = row.focus ? `<span class="standing-focus-badge standing-focus-${row.focus}">${row.focus === "home" ? (IS_EN ? "Home" : "Casa") : (IS_EN ? "Away" : "Trasferta")}</span>` : "";
-                const desc = row.description ? `<small class="standing-desc">${escapeHtml(row.description)}</small>` : "";
                 return `<tr class="standing-row standing-row-full${row.focus ? ` standing-focus-${row.focus}` : ""}">
                   <td class="standing-rank">${rank}</td>
                   <td class="standing-team">
-                    <div class="standing-team-main">${escapeHtml(row.teamName)}${focusBadge}</div>
-                    ${desc}
+                    <div class="standing-team-main"><span class="standing-team-name">${escapeHtml(row.teamName)}</span>${focusBadge}</div>
                   </td>
                   ${columns.map(col => {
                     const value = row[col.key];
@@ -3686,7 +3735,8 @@
     const statsMeta = state.detailTeamStatsMeta;
     const statsStatus = state.detailTeamStatsStatus;
     const hasForm = homeForm || awayForm;
-    const hasStanding = homeStanding || awayStanding || hasLeagueStandingData(match);
+    const standingsSidecarAvailable = hasStandingsSidecarForDate();
+    const hasStanding = hasLeagueStandingData(match) || standingsLoadPending() || (!standingsSidecarAvailable && (homeStanding || awayStanding));
     const hasTeamStats = statsStatus === "ready" && ts && (ts.home || ts.away);
     if (!hasForm && !hasStanding && !hasTeamStats) return "";
 
@@ -4162,7 +4212,7 @@
       : escapeHtml(match.status_long || statusLabel("scheduled"));
 
     // Full re-render only when fixture changes or data loads/clears
-    const structureKey = `${state.detailFixtureId}|${state.detailData ? "d" : "nd"}|${state.detailTeamStatsStatus}|${state.detailTeamStats ? "ts" : "nts"}`;
+    const structureKey = `${state.detailFixtureId}|${state.detailData ? "d" : "nd"}|${state.detailTeamStatsStatus}|${state.detailTeamStats ? "ts" : "nts"}|${state.standingsRenderVersion}`;
     if (structureKey !== state.detailStructureKey) {
       state.detailStructureKey = structureKey;
       state.detailLiveKey = null;
@@ -4186,9 +4236,9 @@
       dom.detailBody.innerHTML = `
         <article class="detail-hero">
           <div class="detail-teams">
-            <div class="detail-team">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" />` : ""}<h3>${escapeHtml(match.home)}</h3></div>
+            <div class="detail-team">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" decoding="async" />` : ""}<h3>${escapeHtml(match.home)}</h3></div>
             <div class="detail-vs${liveScore ? ' detail-vs-score' : ''}">${scoreDisplay || "VS"}</div>
-            <div class="detail-team">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" />` : ""}<h3>${escapeHtml(match.away)}</h3></div>
+            <div class="detail-team">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" decoding="async" />` : ""}<h3>${escapeHtml(match.away)}</h3></div>
           </div>
           <div class="detail-meta-grid">
             <div class="detail-meta-card"><span>Campionato</span><strong>${escapeHtml(match.league)}</strong></div>
@@ -4384,7 +4434,9 @@
   }
 
   async function loadManifest() {
-    state.manifest = await fetchJson(`${CACHE_BASE}/manifest.json`);
+    state.manifest = await fetchJson(`${CACHE_BASE}/manifest.json`, {
+      cacheMode: "no-store",
+    });
     const dates = Array.isArray(state.manifest?.dates) ? state.manifest.dates : [];
     const available = new Set(dates.map(item => item.date));
     const previousDate = state.selectedDate;
@@ -4394,14 +4446,71 @@
     dom.dateSelect.value = state.selectedDate;
   }
 
+  function manifestEntryForDate(date = state.selectedDate) {
+    return (state.manifest?.dates || []).find(item => item.date === date) || null;
+  }
+
+  function standingsIndexForDate(date = state.selectedDate) {
+    return state.standingsCacheByDate[date] || state.cache?.standings || {};
+  }
+
+  function hasStandingsSidecarForDate(date = state.selectedDate) {
+    const entry = manifestEntryForDate(date);
+    return Boolean(entry?.standings_file);
+  }
+
+  function standingsLoadPending(date = state.selectedDate) {
+    return Boolean(state.standingsLoadByDate[date]);
+  }
+
+  async function ensureStandingsCacheForDate(date = state.selectedDate) {
+    if (!date) return {};
+    const entry = manifestEntryForDate(date);
+    const file = entry?.standings_file || `${date}.standings.json`;
+    const version = `${file}:${entry?.standings_stamp || entry?.refreshed_at || entry?.generated_at || ""}`;
+    if (state.standingsVersionByDate[date] === version && state.standingsCacheByDate[date]) {
+      return state.standingsCacheByDate[date];
+    }
+    if (state.standingsLoadByDate[date]?.version === version) {
+      return state.standingsLoadByDate[date].promise;
+    }
+    const promise = (async () => {
+      try {
+        const payload = await fetchJson(`${CACHE_BASE}/${file}`, {
+          cacheKey: `standings:${version}`,
+        });
+        const standings = payload?.standings && typeof payload.standings === "object" ? payload.standings : {};
+        state.standingsCacheByDate[date] = standings;
+        state.standingsVersionByDate[date] = version;
+        return standings;
+      } catch (error) {
+        console.warn("Standings cache load failed:", error);
+        const fallback = state.cache?.standings && typeof state.cache.standings === "object" ? state.cache.standings : {};
+        state.standingsCacheByDate[date] = fallback;
+        state.standingsVersionByDate[date] = version;
+        return fallback;
+      } finally {
+        delete state.standingsLoadByDate[date];
+        state.standingsRenderVersion += 1;
+        renderDetail();
+      }
+    })();
+    state.standingsLoadByDate[date] = { version, promise };
+    return promise;
+  }
+
   async function loadCacheForDate(date) {
     if (!date) {
       state.cache = null;
       invalidateMatchCaches();
       return;
     }
-    const entry = (state.manifest?.dates || []).find(item => item.date === date);
-    state.cache = await fetchJson(`${CACHE_BASE}/${entry?.file || `${date}.json`}`);
+    const entry = manifestEntryForDate(date);
+    const file = entry?.file || `${date}.json`;
+    const version = `${file}:${entry?.refreshed_at || entry?.generated_at || ""}:${entry?.matches || 0}:${entry?.final_matches || 0}`;
+    state.cache = await fetchJson(`${CACHE_BASE}/${file}`, {
+      cacheKey: `cache:${version}`,
+    });
     invalidateMatchCaches();
   }
 
@@ -4996,6 +5105,7 @@
         state.detailTeamStatsId = null;
         state.detailTeamStatsStatus = "idle";
         state.detailTeamStatsMeta = null;
+        ensureStandingsCacheForDate(state.selectedDate);
         syncModalState();
         renderDetail();
         fetchDetailData(nextFixtureId);
