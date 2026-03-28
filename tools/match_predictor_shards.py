@@ -76,9 +76,11 @@ def build_payload_from_fixtures(fixtures, target_date, time_min, time_max, shard
             "generated_at": mp.now_utc().isoformat(),
             "total_matches": 0,
             "matches": [],
+            "standings": {},
         }
 
     results = []
+    standings_index = {}
     total = len(ordered)
 
     for idx, f in enumerate(ordered, 1):
@@ -114,7 +116,11 @@ def build_payload_from_fixtures(fixtures, target_date, time_min, time_max, shard
         a_crn = mp.sb_corner_stats(aid, lid) if aid else {}
         h2h_c = mp.sb_corner_h2h(hid, aid) if (hid and aid) else None
 
-        standings_map = mp.get_league_standings(lid, season) if lid and season else {}
+        standings_bundle = mp.get_league_standings_bundle(lid, season) if lid and season else {}
+        standings_map = (standings_bundle or {}).get("by_team") or {}
+        standings_key = mp.standings_cache_key(lid, season)
+        if standings_key and standings_key not in standings_index:
+            standings_index[standings_key] = mp.serialize_league_standings_bundle(standings_bundle)
         home_standing = standings_map.get(int(hid)) if hid and standings_map else None
         away_standing = standings_map.get(int(aid)) if aid and standings_map else None
 
@@ -172,6 +178,7 @@ def build_payload_from_fixtures(fixtures, target_date, time_min, time_max, shard
         "generated_at": mp.now_utc().isoformat(),
         "total_matches": len(results),
         "matches": results,
+        "standings": standings_index,
     }
 
 
@@ -221,11 +228,14 @@ def cmd_merge(args):
     parts_dir = Path(args.parts_dir)
     part_paths = sorted(parts_dir.glob("*.json"))
     merged = {}
+    merged_standings = {}
 
     for path in part_paths:
         payload = load_json(path)
         for match in payload.get("matches", []) or []:
             merged[str(match.get("fixture_id") or "")] = match
+        for key, value in (payload.get("standings") or {}).items():
+            merged_standings[str(key)] = value
 
     matches = sorted(merged.values(), key=match_sort_key)
     payload = {
@@ -234,6 +244,7 @@ def cmd_merge(args):
         "generated_at": mp.now_utc().isoformat(),
         "total_matches": len(matches),
         "matches": matches,
+        "standings": merged_standings,
         "timezone": mp.MATCH_TIMEZONE,
         "expires_at": (mp.now_utc() + mp.timedelta(hours=mp.CACHE_TTL_HOURS)).isoformat(),
     }

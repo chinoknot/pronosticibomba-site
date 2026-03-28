@@ -965,43 +965,143 @@ def get_team_stats(league_id, season, team_id):
     return ts
 
 
-def get_league_standings(league_id, season):
+def standings_cache_key(league_id, season):
     if not all([league_id, season]):
-        return {}
+        return ""
+    return f"{league_id}:{season}"
+
+
+def _standing_status_text(value):
+    if isinstance(value, dict):
+        return str(value.get("description") or value.get("short") or "").strip()
+    return str(value or "").strip()
+
+
+def _build_standing_entry(row):
+    team = row.get("team") or {}
+    all_stats = row.get("all") or {}
+    all_goals = all_stats.get("goals") or {}
+    team_id = team.get("id")
+    return {
+        "team_id": team_id,
+        "team_name": team.get("name") or "",
+        "team_logo": team.get("logo") or "",
+        "rank": row.get("rank"),
+        "points": row.get("points"),
+        "played": all_stats.get("played") if all_stats.get("played") is not None else all_stats.get("matchsPlayed"),
+        "won": all_stats.get("win"),
+        "draw": all_stats.get("draw"),
+        "lost": all_stats.get("lose") if all_stats.get("lose") is not None else all_stats.get("lost"),
+        "goals_for": all_goals.get("for") if all_goals.get("for") is not None else all_stats.get("goalsFor"),
+        "goals_against": all_goals.get("against") if all_goals.get("against") is not None else all_stats.get("goalsAgainst"),
+        "goal_diff": row.get("goalsDiff"),
+        "group": row.get("group") or "",
+        "description": row.get("description") or "",
+        "form": row.get("form") or "",
+        "status": _standing_status_text(row.get("status")),
+    }
+
+
+def get_league_standings_bundle(league_id, season):
+    if not all([league_id, season]):
+        return {
+            "league_id": league_id,
+            "season": season,
+            "league_name": "",
+            "country": "",
+            "league_logo": "",
+            "groups": [],
+            "by_team": {},
+            "total_teams": 0,
+        }
     key = (league_id, season)
     if key in LEAGUE_STANDINGS_CACHE:
         return LEAGUE_STANDINGS_CACHE[key]
+
     rows = api_get("/standings", {"league": league_id, "season": season}, 30)
-    standings_map = {}
+    bundle = {
+        "league_id": league_id,
+        "season": season,
+        "league_name": "",
+        "country": "",
+        "league_logo": "",
+        "groups": [],
+        "by_team": {},
+        "total_teams": 0,
+    }
     if rows:
         league_block = (rows[0] or {}).get("league") or {}
+        bundle["league_name"] = league_block.get("name") or ""
+        bundle["country"] = league_block.get("country") or ""
+        bundle["league_logo"] = league_block.get("logo") or ""
         standing_groups = league_block.get("standings") or []
         for group in standing_groups:
+            group_rows = []
+            group_name = ""
             for row in (group or []):
-                team = row.get("team") or {}
-                all_stats = row.get("all") or {}
-                all_goals = all_stats.get("goals") or {}
-                team_id = team.get("id")
+                entry = _build_standing_entry(row)
+                team_id = entry.get("team_id")
                 if not team_id:
                     continue
-                standings_map[int(team_id)] = {
-                    "rank": row.get("rank"),
-                    "points": row.get("points"),
-                    "played": all_stats.get("played") if all_stats.get("played") is not None else all_stats.get("matchsPlayed"),
-                    "won": all_stats.get("win"),
-                    "draw": all_stats.get("draw"),
-                    "lost": all_stats.get("lose") if all_stats.get("lose") is not None else all_stats.get("lost"),
-                    "goals_for": all_goals.get("for") if all_goals.get("for") is not None else all_stats.get("goalsFor"),
-                    "goals_against": all_goals.get("against") if all_goals.get("against") is not None else all_stats.get("goalsAgainst"),
-                    "goal_diff": row.get("goalsDiff"),
-                    "group": row.get("group") or "",
-                    "description": row.get("description") or "",
-                    "form": row.get("form") or "",
-                    "status": (lambda s: s.get("description") if isinstance(s, dict) else str(s or ""))(row.get("status") or ""),
-                }
-    LEAGUE_STANDINGS_CACHE[key] = standings_map
+                if not group_name:
+                    group_name = str(entry.get("group") or "").strip()
+                group_rows.append(entry)
+                bundle["by_team"][int(team_id)] = entry
+            if group_rows:
+                bundle["groups"].append({
+                    "group": group_name,
+                    "rows": group_rows,
+                    "total_teams": len(group_rows),
+                })
+        bundle["total_teams"] = sum(len(group.get("rows", [])) for group in bundle["groups"])
+    LEAGUE_STANDINGS_CACHE[key] = bundle
     time.sleep(0.05)
-    return standings_map
+    return bundle
+
+
+def serialize_league_standings_bundle(bundle):
+    if not isinstance(bundle, dict):
+        return {"groups": [], "total_teams": 0}
+    return {
+        "league_id": bundle.get("league_id"),
+        "season": bundle.get("season"),
+        "league_name": bundle.get("league_name") or "",
+        "country": bundle.get("country") or "",
+        "league_logo": bundle.get("league_logo") or "",
+        "total_teams": bundle.get("total_teams") or 0,
+        "groups": [
+            {
+                "group": group.get("group") or "",
+                "total_teams": group.get("total_teams") or len(group.get("rows", []) or []),
+                "rows": [
+                    {
+                        "team_id": row.get("team_id"),
+                        "team_name": row.get("team_name") or "",
+                        "team_logo": row.get("team_logo") or "",
+                        "rank": row.get("rank"),
+                        "points": row.get("points"),
+                        "played": row.get("played"),
+                        "won": row.get("won"),
+                        "draw": row.get("draw"),
+                        "lost": row.get("lost"),
+                        "goals_for": row.get("goals_for"),
+                        "goals_against": row.get("goals_against"),
+                        "goal_diff": row.get("goal_diff"),
+                        "group": row.get("group") or "",
+                        "description": row.get("description") or "",
+                        "form": row.get("form") or "",
+                        "status": row.get("status") or "",
+                    }
+                    for row in (group.get("rows") or [])
+                ],
+            }
+            for group in (bundle.get("groups") or [])
+        ],
+    }
+
+
+def get_league_standings(league_id, season):
+    return dict((get_league_standings_bundle(league_id, season) or {}).get("by_team") or {})
 
 
 # ==========================
@@ -1588,12 +1688,13 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
     fixtures = get_all_fixtures(target, time_min, time_max)
     if not fixtures:
         print("# Nessuna partita trovata.", file=sys.stderr)
-        output = {"date": target, "time_range": f"{time_min}-{time_max}", "generated_at": datetime.now(TZ).isoformat(), "total_matches": 0, "matches": []}
+        output = {"date": target, "time_range": f"{time_min}-{time_max}", "generated_at": datetime.now(TZ).isoformat(), "total_matches": 0, "matches": [], "standings": {}}
         if emit_json:
             print(json.dumps(output, indent=2, ensure_ascii=False))
         return output
 
     results = []
+    standings_index = {}
     total = len(fixtures)
 
     for idx, f in enumerate(fixtures, 1):
@@ -1624,7 +1725,11 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
         a_ts = get_team_stats(lid, season, aid)
         hp_ = profile(h_ts, "home")
         ap_ = profile(a_ts, "away")
-        standings_map = get_league_standings(lid, season) if lid and season else {}
+        standings_bundle = get_league_standings_bundle(lid, season) if lid and season else {}
+        standings_map = (standings_bundle or {}).get("by_team") or {}
+        standings_key = standings_cache_key(lid, season)
+        if standings_key and standings_key not in standings_index:
+            standings_index[standings_key] = serialize_league_standings_bundle(standings_bundle)
         home_standing = standings_map.get(int(hid)) if hid and standings_map else None
         away_standing = standings_map.get(int(aid)) if aid and standings_map else None
 
@@ -1881,6 +1986,7 @@ def run(target_date=None, time_min="00:00", time_max="23:59", emit_json=True):
         "generated_at": datetime.now(TZ).isoformat(),
         "total_matches": len(results),
         "matches": results,
+        "standings": standings_index,
     }
     if emit_json:
         print("\n" + json.dumps(output, indent=2, ensure_ascii=False))

@@ -3454,27 +3454,94 @@
     return score;
   }
 
+  function standingCacheKey(match) {
+    const leagueId = String(match?.league_id || "").trim();
+    const season = String(match?.league_season || "").trim();
+    return leagueId && season ? `${leagueId}:${season}` : "";
+  }
+
+  function resolveStandingFocus(match, teamId, teamName) {
+    if (String(teamId || "") === String(match?.home_team_id || "") || normalizeTeamKey(teamName) === normalizeTeamKey(match?.home)) return "home";
+    if (String(teamId || "") === String(match?.away_team_id || "") || normalizeTeamKey(teamName) === normalizeTeamKey(match?.away)) return "away";
+    return "";
+  }
+
+  function sortStandingRows(rows) {
+    return [...rows].sort((a, b) => {
+      const aRank = Number(a.rank);
+      const bRank = Number(b.rank);
+      if (Number.isFinite(aRank) && Number.isFinite(bRank) && aRank !== bRank) return aRank - bRank;
+      if (Number.isFinite(aRank)) return -1;
+      if (Number.isFinite(bRank)) return 1;
+      return String(a.teamName || "").localeCompare(String(b.teamName || ""));
+    });
+  }
+
   function collectLeagueStandingRows(match) {
     const targetLeagueId = String(match?.league_id || "");
     const targetSeason = String(match?.league_season || "");
     const sourceMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
-    if (!targetLeagueId || !targetSeason || !sourceMatches.length) {
-      return { rows: [], complete: false, total: 0, groupLabel: "" };
-    }
     const preferredGroups = new Set(
       [match.home_standing?.group, match.away_standing?.group]
         .map(normalizeStandingGroup)
         .filter(Boolean),
     );
+    const standingsIndex = state.cache?.standings || {};
+    const cachedTable = standingsIndex[standingCacheKey(match)];
+    if (cachedTable && Array.isArray(cachedTable.groups) && cachedTable.groups.length) {
+      let selectedGroups = cachedTable.groups.filter(group => {
+        const groupKey = normalizeStandingGroup(group?.group);
+        return preferredGroups.size ? preferredGroups.has(groupKey) : true;
+      });
+      if (!selectedGroups.length) {
+        selectedGroups = cachedTable.groups.filter(group =>
+          (group?.rows || []).some(row => resolveStandingFocus(match, row.team_id, row.team_name))
+        );
+      }
+      if (!selectedGroups.length) selectedGroups = cachedTable.groups;
+      const rows = sortStandingRows(
+        selectedGroups.flatMap(group =>
+          (group?.rows || []).map(row => ({
+            teamId: row.team_id ?? null,
+            teamName: row.team_name || "",
+            teamLogo: row.team_logo || "",
+            rank: row.rank,
+            points: row.points,
+            played: row.played,
+            won: row.won,
+            draw: row.draw,
+            lost: row.lost,
+            goals_for: row.goals_for,
+            goals_against: row.goals_against,
+            goal_diff: row.goal_diff,
+            group: String(row.group || group.group || "").trim(),
+            description: row.description || "",
+            form: row.form || "",
+            focus: resolveStandingFocus(match, row.team_id, row.team_name),
+          }))
+        )
+      );
+      const total = selectedGroups.reduce((sum, group) => sum + Number(group?.total_teams || (group?.rows || []).length || 0), 0) || rows.length;
+      const groupLabel = selectedGroups.length === 1
+        ? String(selectedGroups[0]?.group || "").trim()
+        : String(cachedTable.league_name || match.league || "").trim();
+      return {
+        rows,
+        complete: rows.length > 0 && rows.length === total,
+        total,
+        groupLabel,
+        source: "cache",
+      };
+    }
+    if (!targetLeagueId || !targetSeason || !sourceMatches.length) {
+      return { rows: [], complete: false, total: 0, groupLabel: "" };
+    }
     const rowsByTeam = new Map();
     const addCandidate = (teamId, teamName, standing) => {
       if (!standing) return;
       const standingGroupKey = normalizeStandingGroup(standing.group);
       if (preferredGroups.size && standingGroupKey && !preferredGroups.has(standingGroupKey)) return;
-      const focus =
-        String(teamId || "") === String(match.home_team_id || "") || normalizeTeamKey(teamName) === normalizeTeamKey(match.home)
-          ? "home"
-          : (String(teamId || "") === String(match.away_team_id || "") || normalizeTeamKey(teamName) === normalizeTeamKey(match.away) ? "away" : "");
+      const focus = resolveStandingFocus(match, teamId, teamName);
       const key = teamId != null ? `id:${teamId}` : `name:${normalizeTeamKey(teamName)}`;
       const candidate = {
         teamId: teamId ?? null,
@@ -3503,14 +3570,7 @@
       addCandidate(entry.home_team_id, entry.home, entry.home_standing);
       addCandidate(entry.away_team_id, entry.away, entry.away_standing);
     });
-    const rows = [...rowsByTeam.values()].sort((a, b) => {
-      const aRank = Number(a.rank);
-      const bRank = Number(b.rank);
-      if (Number.isFinite(aRank) && Number.isFinite(bRank) && aRank !== bRank) return aRank - bRank;
-      if (Number.isFinite(aRank)) return -1;
-      if (Number.isFinite(bRank)) return 1;
-      return String(a.teamName || "").localeCompare(String(b.teamName || ""));
-    });
+    const rows = sortStandingRows([...rowsByTeam.values()]);
     const ranks = rows.map(row => Number(row.rank)).filter(Number.isFinite).sort((a, b) => a - b);
     const maxRank = ranks.length ? Math.max(...ranks) : rows.length;
     const complete = Boolean(
@@ -3524,6 +3584,7 @@
       complete,
       total: maxRank || rows.length,
       groupLabel: rows.find(row => row.group)?.group || String(match.home_standing?.group || match.away_standing?.group || "").trim(),
+      source: "matches",
     };
   }
 
@@ -3532,31 +3593,18 @@
     if (!table.rows.length) return "";
     const coverageLabel = table.total ? `${table.rows.length}/${table.total}` : String(table.rows.length);
     const coverageNote = table.complete
-      ? (IS_EN ? `Feed coverage ${coverageLabel} teams` : `Copertura feed ${coverageLabel} squadre`)
+      ? (IS_EN ? `Full standings ${coverageLabel} teams` : `Classifica completa ${coverageLabel} squadre`)
       : (IS_EN ? `Feed coverage ${coverageLabel} teams, some entries missing` : `Copertura feed ${coverageLabel} squadre, alcune mancanti`);
-    const hasExtendedStats = table.rows.some(row =>
-      row.won != null
-      || row.draw != null
-      || row.lost != null
-      || row.goals_for != null
-      || row.goals_against != null
-    );
-    const columns = hasExtendedStats
-      ? [
-          { key: "points", label: "PTS", colClass: "standing-col-points", cellClass: "standing-pts" },
-          { key: "played", label: "MP", colClass: "standing-col-stat" },
-          { key: "won", label: "W", colClass: "standing-col-stat" },
-          { key: "draw", label: "D", colClass: "standing-col-stat" },
-          { key: "lost", label: "L", colClass: "standing-col-stat" },
-          { key: "goals_for", label: "GF", colClass: "standing-col-stat" },
-          { key: "goals_against", label: "GA", colClass: "standing-col-stat" },
-          { key: "goal_diff", label: "GD", colClass: "standing-col-stat standing-col-gd", format: value => value > 0 ? `+${value}` : String(value) },
-        ]
-      : [
-          { key: "points", label: "PTS", colClass: "standing-col-points", cellClass: "standing-pts" },
-          { key: "played", label: "MP", colClass: "standing-col-stat" },
-          { key: "goal_diff", label: "GD", colClass: "standing-col-stat standing-col-gd", format: value => value > 0 ? `+${value}` : String(value) },
-        ];
+    const columns = [
+      { key: "played", label: "G", colClass: "standing-col-stat" },
+      { key: "won", label: "V", colClass: "standing-col-stat" },
+      { key: "draw", label: "N", colClass: "standing-col-stat" },
+      { key: "lost", label: "P", colClass: "standing-col-stat" },
+      { key: "goals_for", label: "GF", colClass: "standing-col-stat" },
+      { key: "goals_against", label: "GS", colClass: "standing-col-stat" },
+      { key: "goal_diff", label: "DR", colClass: "standing-col-stat standing-col-gd", format: value => value > 0 ? `+${value}` : String(value) },
+      { key: "points", label: "Pti", colClass: "standing-col-points", cellClass: "standing-pts" },
+    ];
     return `
       <div class="prematch-section">
         <div class="prematch-label">${IS_EN ? "League table" : "Classifica campionato"}</div>
