@@ -64,6 +64,7 @@
     { id: "corners", short: "CRN", label: "Corner" },
     { id: "yellows", short: "YC", label: "Cartellini" },
   ];
+  const GROUP_META = new Map(GROUPS.map(group => [group.id, group]));
   const QUICK_GROUPS = [
     { id: "all", label: "Top pronostici", note: "Tutti" },
     { id: "goals", label: "Goal", note: "O/U" },
@@ -266,6 +267,8 @@
     detailPrevStats: null,
     detailTeamStats: null,
     detailTeamStatsId: null,
+    detailTeamStatsStatus: "idle",
+    detailTeamStatsMeta: null,
     filterWorker: null,
     filterWorkerReady: false,
     filterWorkerFailed: false,
@@ -2878,6 +2881,10 @@
     dom.activeFilters.innerHTML = chips.map(chip => `<button type="button" class="active-filter" data-clear-filter="${chip.key}">${escapeHtml(chip.label)} <span aria-hidden="true">x</span></button>`).join("");
   }
 
+  function marketTypeLabel(groupId) {
+    return GROUP_META.get(groupId)?.label || "Pick";
+  }
+
   function renderTopPicks(topPicks) {
     if (!topPicks.length) {
       dom.topPicks.innerHTML = `<div class="empty-state">${emptyStateMessage()}</div>`;
@@ -2905,7 +2912,8 @@
                 <span class="club-line compact"><strong>${escapeHtml(pick.away)}</strong></span>
               </div>
             </div>
-            <div class="match-action${pick.highImpact ? " match-action-impact" : ""}">
+            <div class="match-action match-action-labeled${pick.highImpact ? " match-action-impact" : ""}">
+              ${pick.group ? `<span class="match-action-type">${escapeHtml(marketTypeLabel(pick.group))}</span>` : ""}
               <strong>${escapeHtml(pick.pickLabel || "-")}</strong>
               <small>${renderActionMeta(meta)}</small>
             </div>
@@ -2934,7 +2942,8 @@
     return {
       primary,
       displayStatus,
-      actionClass: `match-action${primary?.highImpact ? " match-action-impact" : ""}`,
+      actionClass: `match-action${primary?.highImpact ? " match-action-impact" : ""}${primary ? " match-action-labeled" : ""}`,
+      actionTypeLabel: primary ? marketTypeLabel(primary.group) : "",
       actionLabel: primary?.pickLabel || TEXT.viewMatch,
       actionMetaHtml: renderActionMeta(meta),
     };
@@ -2975,8 +2984,19 @@
     const actionEl = rowEl.querySelector(".match-action");
     if (!actionEl) return;
     actionEl.className = actionState.actionClass;
+    let actionTypeEl = actionEl.querySelector(".match-action-type");
     const actionTitleEl = actionEl.querySelector("strong");
     const actionMetaEl = actionEl.querySelector("small");
+    if (actionState.actionTypeLabel) {
+      if (!actionTypeEl && actionTitleEl) {
+        actionTypeEl = document.createElement("span");
+        actionTypeEl.className = "match-action-type";
+        actionEl.insertBefore(actionTypeEl, actionTitleEl);
+      }
+      if (actionTypeEl) actionTypeEl.textContent = actionState.actionTypeLabel;
+    } else if (actionTypeEl) {
+      actionTypeEl.remove();
+    }
     if (actionTitleEl) actionTitleEl.textContent = actionState.actionLabel;
     if (actionMetaEl) actionMetaEl.innerHTML = actionState.actionMetaHtml;
   }
@@ -3027,7 +3047,8 @@
             </div>
             <div class="match-score">${scoreText}</div>
           </div>
-          <div class="match-action${primary?.highImpact ? " match-action-impact" : ""}">
+          <div class="match-action${primary?.highImpact ? " match-action-impact" : ""}${primary ? " match-action-labeled" : ""}">
+            ${primary ? `<span class="match-action-type">${escapeHtml(marketTypeLabel(primary.group))}</span>` : ""}
             <strong>${escapeHtml(primary?.pickLabel || TEXT.viewMatch)}</strong>
             <small>${renderActionMeta(meta)}</small>
           </div>
@@ -3057,6 +3078,7 @@
             <div class="match-score">${scoreText}</div>
           </div>
           <div class="${actionState.actionClass}">
+            ${actionState.actionTypeLabel ? `<span class="match-action-type">${escapeHtml(actionState.actionTypeLabel)}</span>` : ""}
             <strong>${escapeHtml(actionState.actionLabel)}</strong>
             <small>${actionState.actionMetaHtml}</small>
           </div>
@@ -3255,14 +3277,75 @@
       .replace(/[^a-z0-9]+/g, "");
   }
 
-  async function sbFetchTeamMatchRows(teamId) {
-    const cols = "is_home,goals_scored,goals_conceded,shots_total,shots_on_target,possession,corners,yellow_cards";
-    const url = `${SB_URL}/rest/v1/match_team_stats?team_id=eq.${teamId}&order=match_date.desc&limit=38&select=${cols}`;
+  function sbAuthHeaders(extra = {}) {
+    return {
+      apikey: SB_ANON,
+      Authorization: `Bearer ${SB_ANON}`,
+      ...extra,
+    };
+  }
+
+  function sbCountFromResponse(res, fallback = 0) {
+    const range = String(res?.headers?.get("content-range") || "");
+    const match = range.match(/\/(\d+|\*)$/);
+    if (match && match[1] !== "*") {
+      const parsed = Number(match[1]);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+    return fallback;
+  }
+
+  async function sbFetchTableRows(table, params) {
+    const search = new URLSearchParams();
+    Object.entries(params || {}).forEach(([key, value]) => {
+      if (value == null || value === "") return;
+      search.set(key, String(value));
+    });
+    const url = `${SB_URL}/rest/v1/${table}?${search.toString()}`;
     try {
-      const res = await fetch(url, { headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` } });
-      if (!res.ok) return [];
-      return await res.json();
-    } catch (e) { return []; }
+      const res = await fetch(url, { headers: sbAuthHeaders({ Prefer: "count=exact" }) });
+      if (!res.ok) return { rows: [], count: 0 };
+      const rows = await res.json();
+      const safeRows = Array.isArray(rows) ? rows : [];
+      return { rows: safeRows, count: sbCountFromResponse(res, safeRows.length) };
+    } catch (e) {
+      return { rows: [], count: 0 };
+    }
+  }
+
+  async function sbFetchTeamMatchRows(teamId, context = {}) {
+    const cols = "fixture_id,league_id,season,match_date,is_home,goals_scored,goals_conceded,shots_total,shots_on_target,possession,corners,yellow_cards";
+    const limit = 80;
+    const season = context?.season != null ? String(context.season) : "";
+    const leagueId = context?.leagueId != null ? String(context.leagueId) : "";
+    const variants = [];
+    if (leagueId && season) {
+      variants.push({
+        scope: "league-season",
+        scopeLabel: IS_EN ? `League ${season}` : `Campionato ${season}`,
+        params: { team_id: `eq.${teamId}`, league_id: `eq.${leagueId}`, season: `eq.${season}`, order: "match_date.desc", limit, select: cols },
+      });
+    }
+    if (season) {
+      variants.push({
+        scope: "season",
+        scopeLabel: IS_EN ? `Season ${season}` : `Stagione ${season}`,
+        params: { team_id: `eq.${teamId}`, season: `eq.${season}`, order: "match_date.desc", limit, select: cols },
+      });
+    }
+    variants.push({
+      scope: "all",
+      scopeLabel: IS_EN ? "Team history" : "Storico team",
+      params: { team_id: `eq.${teamId}`, order: "match_date.desc", limit, select: cols },
+    });
+    for (const variant of variants) {
+      const result = await sbFetchTableRows("match_team_stats", variant.params);
+      if (result.rows.length) {
+        return { rows: result.rows, totalCount: result.count || result.rows.length, scope: variant.scope, scopeLabel: variant.scopeLabel };
+      }
+    }
+    const fallback = variants[0] || { scope: "all", scopeLabel: IS_EN ? "Team history" : "Storico team" };
+    return { rows: [], totalCount: 0, scope: fallback.scope, scopeLabel: fallback.scopeLabel };
   }
 
   function computeTeamAvg(rows) {
@@ -3286,25 +3369,58 @@
     return { all: slice(rows), home: slice(homeRows), away: slice(awayRows) };
   }
 
+  function buildTeamStatsMeta(bundle, teamName, standing) {
+    const rows = Array.isArray(bundle?.rows) ? bundle.rows : [];
+    return {
+      teamName,
+      totalCount: Number.isFinite(bundle?.totalCount) ? bundle.totalCount : rows.length,
+      loadedRows: rows.length,
+      scope: bundle?.scope || "all",
+      scopeLabel: bundle?.scopeLabel || (IS_EN ? "Team history" : "Storico team"),
+      standingPlayed: standing?.played != null ? Number(standing.played) : null,
+      lastMatchDate: rows[0]?.match_date || null,
+    };
+  }
+
   async function fetchDetailTeamStats(match) {
     const hid = match.home_team_id;
     const aid = match.away_team_id;
     const fid = String(match.fixture_id);
     if (!hid && !aid) return;
     state.detailTeamStats = null;
+    state.detailTeamStatsMeta = null;
     state.detailTeamStatsId = fid;
+    state.detailTeamStatsStatus = "loading";
+    renderDetail();
     try {
-      const [hRows, aRows] = await Promise.all([
-        hid ? sbFetchTeamMatchRows(hid) : Promise.resolve([]),
-        aid ? sbFetchTeamMatchRows(aid) : Promise.resolve([]),
+      const context = { leagueId: match.league_id, season: match.league_season };
+      const [homeBundle, awayBundle] = await Promise.all([
+        hid ? sbFetchTeamMatchRows(hid, context) : Promise.resolve({ rows: [], totalCount: 0, scope: "none", scopeLabel: "" }),
+        aid ? sbFetchTeamMatchRows(aid, context) : Promise.resolve({ rows: [], totalCount: 0, scope: "none", scopeLabel: "" }),
       ]);
       if (state.detailTeamStatsId !== fid) return;
-      const result = { home: computeTeamAvg(hRows), away: computeTeamAvg(aRows) };
-      if (!result.home && !result.away) return;
-      state.detailTeamStats = result;
+      state.detailTeamStats = {
+        home: computeTeamAvg(homeBundle.rows),
+        away: computeTeamAvg(awayBundle.rows),
+      };
+      state.detailTeamStatsMeta = {
+        home: hid ? buildTeamStatsMeta(homeBundle, match.home, match.home_standing) : null,
+        away: aid ? buildTeamStatsMeta(awayBundle, match.away, match.away_standing) : null,
+      };
+      state.detailTeamStatsStatus = (state.detailTeamStats.home || state.detailTeamStats.away) ? "ready" : "empty";
       state.detailStructureKey = null;
       renderDetail();
-    } catch (e) {}
+    } catch (e) {
+      if (state.detailTeamStatsId !== fid) return;
+      state.detailTeamStats = { home: null, away: null };
+      state.detailTeamStatsMeta = {
+        home: hid ? { teamName: match.home, totalCount: 0, loadedRows: 0, scope: "none", scopeLabel: "", standingPlayed: match.home_standing?.played ?? null, lastMatchDate: null } : null,
+        away: aid ? { teamName: match.away, totalCount: 0, loadedRows: 0, scope: "none", scopeLabel: "", standingPlayed: match.away_standing?.played ?? null, lastMatchDate: null } : null,
+      };
+      state.detailTeamStatsStatus = "empty";
+      state.detailStructureKey = null;
+      renderDetail();
+    }
   }
 
   function renderFormDots(formStr) {
@@ -3317,14 +3433,158 @@
     return `<div class="form-dots">${dots.join("")}</div>`;
   }
 
-  function renderStandingRow(standing, teamName, side) {
-    if (!standing) return "";
-    const rank = standing.rank != null ? `#${standing.rank}` : "-";
-    const pts = standing.points != null ? standing.points : "-";
-    const played = standing.played != null ? standing.played : "-";
-    const gd = standing.goal_diff != null ? (standing.goal_diff > 0 ? `+${standing.goal_diff}` : String(standing.goal_diff)) : "-";
-    const desc = standing.description ? `<small class="standing-desc">${escapeHtml(standing.description)}</small>` : "";
-    return `<tr class="standing-row standing-${side}"><td class="standing-rank">${rank}</td><td class="standing-team">${escapeHtml(teamName)}${desc}</td><td>${played}</td><td class="standing-pts">${pts}</td><td>${gd}</td></tr>`;
+  function normalizeStandingGroup(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function standingDataScore(entry) {
+    if (!entry) return -1;
+    let score = 0;
+    if (entry.rank != null) score += 4;
+    if (entry.points != null) score += 3;
+    if (entry.played != null) score += 3;
+    if (entry.goal_diff != null) score += 2;
+    if (entry.form) score += Math.min(5, String(entry.form).length);
+    if (entry.description) score += 1;
+    return score;
+  }
+
+  function collectLeagueStandingRows(match) {
+    const targetLeagueId = String(match?.league_id || "");
+    const targetSeason = String(match?.league_season || "");
+    const sourceMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
+    if (!targetLeagueId || !targetSeason || !sourceMatches.length) {
+      return { rows: [], complete: false, total: 0, groupLabel: "" };
+    }
+    const preferredGroups = new Set(
+      [match.home_standing?.group, match.away_standing?.group]
+        .map(normalizeStandingGroup)
+        .filter(Boolean),
+    );
+    const rowsByTeam = new Map();
+    const addCandidate = (teamId, teamName, standing) => {
+      if (!standing) return;
+      const standingGroupKey = normalizeStandingGroup(standing.group);
+      if (preferredGroups.size && standingGroupKey && !preferredGroups.has(standingGroupKey)) return;
+      const focus =
+        String(teamId || "") === String(match.home_team_id || "") || normalizeTeamKey(teamName) === normalizeTeamKey(match.home)
+          ? "home"
+          : (String(teamId || "") === String(match.away_team_id || "") || normalizeTeamKey(teamName) === normalizeTeamKey(match.away) ? "away" : "");
+      const key = teamId != null ? `id:${teamId}` : `name:${normalizeTeamKey(teamName)}`;
+      const candidate = {
+        teamId: teamId ?? null,
+        teamName,
+        rank: standing.rank,
+        points: standing.points,
+        played: standing.played,
+        goal_diff: standing.goal_diff,
+        group: String(standing.group || "").trim(),
+        description: standing.description || "",
+        form: standing.form || "",
+        focus,
+      };
+      const current = rowsByTeam.get(key);
+      const picked = standingDataScore(candidate) >= standingDataScore(current) ? candidate : current;
+      if (current?.focus || candidate.focus) picked.focus = current?.focus || candidate.focus;
+      rowsByTeam.set(key, picked);
+    };
+    sourceMatches.forEach(entry => {
+      if (String(entry.league_id || "") !== targetLeagueId || String(entry.league_season || "") !== targetSeason) return;
+      addCandidate(entry.home_team_id, entry.home, entry.home_standing);
+      addCandidate(entry.away_team_id, entry.away, entry.away_standing);
+    });
+    const rows = [...rowsByTeam.values()].sort((a, b) => {
+      const aRank = Number(a.rank);
+      const bRank = Number(b.rank);
+      if (Number.isFinite(aRank) && Number.isFinite(bRank) && aRank !== bRank) return aRank - bRank;
+      if (Number.isFinite(aRank)) return -1;
+      if (Number.isFinite(bRank)) return 1;
+      return String(a.teamName || "").localeCompare(String(b.teamName || ""));
+    });
+    const ranks = rows.map(row => Number(row.rank)).filter(Number.isFinite).sort((a, b) => a - b);
+    const maxRank = ranks.length ? Math.max(...ranks) : rows.length;
+    const complete = Boolean(
+      ranks.length
+      && rows.length === maxRank
+      && new Set(ranks).size === rows.length
+      && ranks.every((rank, index) => rank === index + 1),
+    );
+    return {
+      rows,
+      complete,
+      total: maxRank || rows.length,
+      groupLabel: rows.find(row => row.group)?.group || String(match.home_standing?.group || match.away_standing?.group || "").trim(),
+    };
+  }
+
+  function renderStandingFullTable(match) {
+    const table = collectLeagueStandingRows(match);
+    if (!table.rows.length) return "";
+    const coverageLabel = table.total ? `${table.rows.length}/${table.total}` : String(table.rows.length);
+    const coverageNote = table.complete
+      ? (IS_EN ? `Feed coverage ${coverageLabel} teams` : `Copertura feed ${coverageLabel} squadre`)
+      : (IS_EN ? `Feed coverage ${coverageLabel} teams, some entries missing` : `Copertura feed ${coverageLabel} squadre, alcune mancanti`);
+    return `
+      <div class="prematch-section">
+        <div class="prematch-label">${IS_EN ? "League table" : "Classifica campionato"}</div>
+        <div class="prematch-note">${escapeHtml(coverageNote)}${table.groupLabel ? ` | ${escapeHtml(table.groupLabel)}` : ""}</div>
+        <div class="standing-full-wrap">
+          <table class="standing-full">
+            <thead>
+              <tr><th>#</th><th>${IS_EN ? "Team" : "Squadra"}</th><th>G</th><th>Pti</th><th>GD</th><th>${IS_EN ? "Form" : "Forma"}</th></tr>
+            </thead>
+            <tbody>
+              ${table.rows.map(row => {
+                const rank = row.rank != null ? `#${row.rank}` : "-";
+                const pts = row.points != null ? row.points : "-";
+                const played = row.played != null ? row.played : "-";
+                const gd = row.goal_diff != null ? (row.goal_diff > 0 ? `+${row.goal_diff}` : String(row.goal_diff)) : "-";
+                const focusBadge = row.focus ? `<span class="standing-focus-badge standing-focus-${row.focus}">${row.focus === "home" ? (IS_EN ? "Home" : "Casa") : (IS_EN ? "Away" : "Trasferta")}</span>` : "";
+                const desc = row.description ? `<small class="standing-desc">${escapeHtml(row.description)}</small>` : "";
+                const form = row.form ? renderFormDots(row.form) : `<span class="standing-form-empty">-</span>`;
+                return `<tr class="standing-row standing-row-full${row.focus ? ` standing-focus-${row.focus}` : ""}">
+                  <td class="standing-rank">${rank}</td>
+                  <td class="standing-team">
+                    <div class="standing-team-main">${escapeHtml(row.teamName)}${focusBadge}</div>
+                    ${desc}
+                  </td>
+                  <td>${played}</td>
+                  <td class="standing-pts">${pts}</td>
+                  <td>${gd}</td>
+                  <td class="standing-form-cell">${form}</td>
+                </tr>`;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  function renderStatsCoverageCard(meta, focus = "") {
+    if (!meta) return "";
+    const totalCount = Number(meta.totalCount || 0);
+    const standingPlayed = Number.isFinite(meta.standingPlayed) ? meta.standingPlayed : null;
+    const compareWithStanding = meta.scope === "league-season" && standingPlayed != null;
+    const countLabel = totalCount === 1
+      ? (IS_EN ? "1 match found in DB" : "1 partita trovata nel DB")
+      : (IS_EN ? `${totalCount} matches found in DB` : `${totalCount} partite trovate nel DB`);
+    const lead = totalCount > 0
+      ? (compareWithStanding
+        ? (IS_EN ? `DB coverage ${totalCount}/${standingPlayed} league matches` : `Copertura DB ${totalCount}/${standingPlayed} gare campionato`)
+        : countLabel)
+      : (IS_EN ? "No DB rows found" : "Nessuna riga trovata nel DB");
+    const lastDate = meta.lastMatchDate ? formatDate(meta.lastMatchDate, { day: "2-digit", month: "2-digit", year: "numeric" }) : "";
+    const scopeLine = meta.scopeLabel || (IS_EN ? "Team history" : "Storico team");
+    const tone = totalCount === 0 ? "empty" : (compareWithStanding && totalCount < standingPlayed ? "warn" : "ok");
+    return `
+      <article class="prematch-coverage-card prematch-coverage-${tone}${focus ? ` prematch-coverage-${focus}` : ""}">
+        <div class="prematch-coverage-head">
+          <strong>${escapeHtml(meta.teamName || "-")}</strong>
+          ${focus ? `<span class="standing-focus-badge standing-focus-${focus}">${focus === "home" ? (IS_EN ? "Home" : "Casa") : (IS_EN ? "Away" : "Trasferta")}</span>` : ""}
+        </div>
+        <div class="prematch-coverage-line">${escapeHtml(lead)}</div>
+        <div class="prematch-coverage-sub">${escapeHtml(scopeLine)}${lastDate ? ` | ${escapeHtml(lastDate)}` : ""}</div>
+      </article>`;
   }
 
   function renderPrematchBlock(match) {
@@ -3333,10 +3593,13 @@
     const homeStanding = match.home_standing || null;
     const awayStanding = match.away_standing || null;
     const ts = state.detailTeamStats;
+    const statsMeta = state.detailTeamStatsMeta;
+    const statsStatus = state.detailTeamStatsStatus;
     const hasForm = homeForm || awayForm;
     const hasStanding = homeStanding || awayStanding;
-    const hasTeamStats = ts && (ts.home || ts.away);
-    if (!hasForm && !hasStanding && !hasTeamStats) return "";
+    const hasTeamStats = statsStatus === "ready" && ts && (ts.home || ts.away);
+    const hasStatsState = ["loading", "ready", "empty"].includes(statsStatus);
+    if (!hasForm && !hasStanding && !hasStatsState) return "";
 
     const formSection = hasForm ? `
       <div class="prematch-section">
@@ -3353,25 +3616,23 @@
         </div>
       </div>` : "";
 
-    const standingSection = hasStanding ? `
+    const standingSection = hasStanding ? renderStandingFullTable(match) : "";
+
+    const coverageSection = statsMeta ? `
       <div class="prematch-section">
-        <div class="prematch-label">Classifica</div>
-        <table class="standing-mini">
-          <thead><tr><th>#</th><th>Squadra</th><th>G</th><th>Pti</th><th>GD</th></tr></thead>
-          <tbody>
-            ${renderStandingRow(homeStanding, match.home, "home")}
-            ${renderStandingRow(awayStanding, match.away, "away")}
-          </tbody>
-        </table>
+        <div class="prematch-label">${IS_EN ? "DB coverage" : "Copertura statistiche DB"}</div>
+        <div class="prematch-coverage-grid">
+          ${renderStatsCoverageCard(statsMeta.home, "home")}
+          ${renderStatsCoverageCard(statsMeta.away, "away")}
+        </div>
       </div>` : "";
 
-    const teamStatsSection = hasTeamStats ? (() => {
+    const teamStatsSection = statsStatus === "ready" && hasTeamStats ? (() => {
       const fmt = (v, dec = 1) => v != null ? Number(v).toFixed(dec) : "—";
       const fmtP = v => v != null ? `${Math.round(v)}%` : "—";
       const hAll = ts.home?.all, hH = ts.home?.home, hA = ts.home?.away;
       const aAll = ts.away?.all, aH = ts.away?.home, aA = ts.away?.away;
-      const hn = ts.home?.all?.n || 0, an = ts.away?.all?.n || 0;
-      const teamHeader = (name, all, h, a) =>
+      const teamHeader = (name, all) =>
         `<th colspan="3" class="ts-team-head">${escapeHtml(name)}<small>${all?.n || 0} partite</small></th>`;
       const row = (label, key, fmtFn = fmt) => {
         const hv = [hAll, hH, hA].map(s => fmtFn(s?.[key]));
@@ -3384,14 +3645,15 @@
       };
       return `
         <div class="prematch-section">
-          <div class="prematch-label">Statistiche stagione (media per partita)</div>
+          <div class="prematch-label">${IS_EN ? "Season stats (per-match average)" : "Statistiche stagione (media per partita)"}</div>
+          ${coverageSection}
           <div class="ts-scroll">
             <table class="ts-table">
               <thead>
                 <tr>
-                  ${teamHeader(match.home, hAll, hH, hA)}
+                  ${teamHeader(match.home, hAll)}
                   <th class="ts-label-head"></th>
-                  ${teamHeader(match.away, aAll, aH, aA)}
+                  ${teamHeader(match.away, aAll)}
                 </tr>
                 <tr class="ts-subhead">
                   <th>Tot</th><th>H</th><th>A</th>
@@ -3413,11 +3675,22 @@
         </div>`;
     })() : (match.home_team_id || match.away_team_id) ? `<div class="prematch-loading">Caricamento statistiche…</div>` : "";
 
+    const resolvedTeamStatsSection = statsStatus === "empty"
+      ? `
+        <div class="prematch-section">
+          <div class="prematch-label">${IS_EN ? "Season stats" : "Statistiche stagione"}</div>
+          ${coverageSection}
+          <div class="prematch-empty">${IS_EN ? "No stats available in the DB for these teams yet." : "Nessuna statistica disponibile nel DB per queste squadre."}</div>
+        </div>`
+      : statsStatus === "loading"
+        ? `<div class="prematch-section"><div class="prematch-label">${IS_EN ? "Season stats" : "Statistiche stagione"}</div><div class="prematch-loading">${IS_EN ? "Loading stats..." : "Caricamento statistiche..."}</div></div>`
+        : teamStatsSection;
+
     return `
       <details class="detail-accordion" open>
         <summary class="detail-summary"><span>Statistiche pre-partita</span></summary>
         <div class="detail-section prematch-block">
-          ${formSection}${standingSection}${teamStatsSection}
+          ${formSection}${standingSection}${resolvedTeamStatsSection}
         </div>
       </details>`;
   }
@@ -3811,7 +4084,7 @@
       : escapeHtml(match.status_long || statusLabel("scheduled"));
 
     // Full re-render only when fixture changes or data loads/clears
-    const structureKey = `${state.detailFixtureId}|${state.detailData ? "d" : "nd"}|${state.detailTeamStats ? "ts" : "nts"}`;
+    const structureKey = `${state.detailFixtureId}|${state.detailData ? "d" : "nd"}|${state.detailTeamStatsStatus}|${state.detailTeamStats ? "ts" : "nts"}`;
     if (structureKey !== state.detailStructureKey) {
       state.detailStructureKey = structureKey;
       state.detailLiveKey = null;
@@ -4348,6 +4621,8 @@
       state.detailData = null;
       state.detailTeamStats = null;
       state.detailTeamStatsId = null;
+      state.detailTeamStatsStatus = "idle";
+      state.detailTeamStatsMeta = null;
       if (state.detailAbortController) {
         try { state.detailAbortController.abort(); } catch (error) {}
         state.detailAbortController = null;
@@ -4641,6 +4916,8 @@
         state.detailLiveKey = null;
         state.detailTeamStats = null;
         state.detailTeamStatsId = null;
+        state.detailTeamStatsStatus = "idle";
+        state.detailTeamStatsMeta = null;
         syncModalState();
         renderDetail();
         fetchDetailData(nextFixtureId);
