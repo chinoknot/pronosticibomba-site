@@ -278,6 +278,11 @@
     leagueLayoutMode: "auto",
     mutingAccordionSync: false,
     lastUserScrollAt: 0,
+    renderedFeedIdsSignature: "",
+    renderedTopPickIdsSignature: "",
+    renderedLiveOnlyIdsSignature: "",
+    dataRefreshSignature: "",
+    livePatchToken: 0,
     betMaster: {
       count: 4,
       oddFrom: 1.2,
@@ -546,6 +551,31 @@
       state.filteredIdsCacheKey = "";
       state.filteredIdsCacheValue = null;
     }
+  }
+
+  function idsSignature(ids) {
+    return [...new Set((ids || []).map(value => String(value || "")))]
+      .sort()
+      .join("|");
+  }
+
+  function currentDataRefreshSignature() {
+    const manifestDates = Array.isArray(state.manifest?.dates)
+      ? state.manifest.dates.map(entry => `${entry.date || ""}:${entry.file || ""}:${entry.matches || 0}`).join("|")
+      : "";
+    return JSON.stringify({
+      manifestLatestDate: state.manifest?.latest_date || "",
+      manifestDates,
+      selectedDate: state.selectedDate || "",
+      cacheStamp: state.cache?.refreshed_at || state.cache?.generated_at || "",
+      cacheMatches: Array.isArray(state.cache?.matches) ? state.cache.matches.length : 0,
+    });
+  }
+
+  function rememberRenderedView(orderedMatches, topPicks) {
+    state.renderedFeedIdsSignature = idsSignature((orderedMatches || []).map(match => match.fixture_id));
+    state.renderedTopPickIdsSignature = idsSignature((topPicks || []).map(pick => pick.fixtureId));
+    state.renderedLiveOnlyIdsSignature = idsSignature((state.liveOnlyMatches || []).map(match => match.fixture_id));
   }
 
   function formatOddRange(fromValue, toValue) {
@@ -2885,6 +2915,72 @@
     }).join("")}</div>`;
   }
 
+  function matchDisplayStatus(match) {
+    const primary = match?.primaryMarket;
+    const fixtureStatus = String(match?.status_short || "").toUpperCase();
+    return primary?.status || (FINAL_STATUSES.has(fixtureStatus) ? "unresolved" : (LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled"));
+  }
+
+  function matchActionState(match) {
+    const primary = match?.primaryMarket || null;
+    const displayStatus = matchDisplayStatus(match);
+    const picked = pickedOption(primary);
+    const meta = buildActionMeta({
+      status: displayStatus,
+      probability: primary?.pickProbability,
+      odd: picked?.odd,
+      tag: primary?.tag,
+    });
+    return {
+      primary,
+      displayStatus,
+      actionClass: `match-action${primary?.highImpact ? " match-action-impact" : ""}`,
+      actionLabel: primary?.pickLabel || TEXT.viewMatch,
+      actionMetaHtml: renderActionMeta(meta),
+    };
+  }
+
+  function renderMatchScoreMarkup(match, options = {}) {
+    const featured = options.featured === true;
+    const fixtureStatus = String(match.status_short || "").toUpperCase();
+    const liveScore = state.liveScores[String(match.fixture_id)];
+    const scoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
+    if (liveScore && FINAL_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
+      return `<span class="live-score-final">${liveScore.home}-${liveScore.away}</span>`;
+    }
+    if (FINAL_STATUSES.has(fixtureStatus) && !liveScore) {
+      return `<span class="live-score-final">${escapeHtml(match.final_score || "-")}</span>`;
+    }
+    if (liveScore && LIVE_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
+      const elapsedHtml = liveScore.status === "HT" ? "HT" : (liveScore.elapsed ? tickMin(liveScore.elapsed) : escapeHtml(liveScore.status || ""));
+      if (featured) {
+        const redCards = (liveScore.events || []).filter(event => event.type === "Card" && /Red Card|Second Yellow/i.test(String(event.detail || "")));
+        const redBadge = redCards.length ? `<span class="live-red-badge" title="${escapeHtml(IS_EN ? "Red card" : "Cartellino rosso")}">RC${redCards.length > 1 ? ` ${redCards.length}` : ""}</span>` : "";
+        return `<span class="live-score-badge${scoreChanged ? " score-changed" : ""}">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${elapsedHtml}</span>${redBadge}`;
+      }
+      const goals = (liveScore.events || []).filter(event => event.type === "Goal" && event.detail !== "Missed Penalty");
+      const goalIcons = goals.map(event => `<span class="live-event-icon" title="${escapeHtml(event.playerName || "")} ${event.elapsed ? `(${event.elapsed}')` : ""}">âš½</span>`).join("");
+      return `<span class="live-score-badge${scoreChanged ? " score-changed" : ""}">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${elapsedHtml}</span>${goalIcons}`;
+    }
+    return (match.most_likely_scores || []).slice(0, 2).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("") || escapeHtml(match.status_long || "");
+  }
+
+  function patchMatchRowElement(rowEl, match) {
+    if (!rowEl || !match) return;
+    const featured = rowEl.classList.contains("match-row-featured");
+    const actionState = matchActionState(match);
+    rowEl.className = `match-row${featured ? " match-row-featured" : ""} status-${actionState.displayStatus}`;
+    const scoreEl = rowEl.querySelector(".match-score");
+    if (scoreEl) scoreEl.innerHTML = renderMatchScoreMarkup(match, { featured });
+    const actionEl = rowEl.querySelector(".match-action");
+    if (!actionEl) return;
+    actionEl.className = actionState.actionClass;
+    const actionTitleEl = actionEl.querySelector("strong");
+    const actionMetaEl = actionEl.querySelector("small");
+    if (actionTitleEl) actionTitleEl.textContent = actionState.actionLabel;
+    if (actionMetaEl) actionMetaEl.innerHTML = actionState.actionMetaHtml;
+  }
+
   function renderMatchRow(match, options = {}) {
     const showLeagueLine = options.showLeagueLine !== false;
     const primary = match.primaryMarket;
@@ -2942,35 +3038,10 @@
 
   renderMatchRow = function renderMatchRowOptimized(match, options = {}) {
     const showLeagueLine = options.showLeagueLine !== false;
-    const primary = match.primaryMarket;
-    const fixtureStatus = String(match.status_short || "").toUpperCase();
-    const displayStatus = primary?.status || (FINAL_STATUSES.has(fixtureStatus) ? "unresolved" : (LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled"));
-    const picked = pickedOption(primary);
-    const meta = buildActionMeta({
-      status: displayStatus,
-      probability: primary?.pickProbability,
-      odd: picked?.odd,
-      tag: primary?.tag,
-    });
-    const liveScore = state.liveScores[String(match.fixture_id)];
-    const featScoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
-    const scoreText = (() => {
-      if (liveScore && FINAL_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
-        return `<span class="live-score-final">${liveScore.home}-${liveScore.away}</span>`;
-      }
-      if (FINAL_STATUSES.has(fixtureStatus) && !liveScore) {
-        return `<span class="live-score-final">${escapeHtml(match.final_score || "-")}</span>`;
-      }
-      if (liveScore && LIVE_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
-        const elapsedHtml = liveScore.status === "HT" ? "HT" : (liveScore.elapsed ? tickMin(liveScore.elapsed) : escapeHtml(liveScore.status || ""));
-        const redCards = (liveScore.events || []).filter(event => event.type === "Card" && /Red Card|Second Yellow/i.test(String(event.detail || "")));
-        const redBadge = redCards.length ? `<span class="live-red-badge" title="${escapeHtml(IS_EN ? "Red card" : "Cartellino rosso")}">RC${redCards.length > 1 ? ` ${redCards.length}` : ""}</span>` : "";
-        return `<span class="live-score-badge${featScoreChanged ? " score-changed" : ""}">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${elapsedHtml}</span>${redBadge}`;
-      }
-      return (match.most_likely_scores || []).slice(0, 2).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("") || escapeHtml(match.status_long || "");
-    })();
+    const actionState = matchActionState(match);
+    const scoreText = renderMatchScoreMarkup(match, { featured: true });
     return `
-      <article class="match-row status-${displayStatus}" data-fixture-open="${match.fixture_id}">
+      <article class="match-row status-${actionState.displayStatus}" data-fixture-open="${match.fixture_id}">
         <div class="match-row-inner">
           <div class="match-time-block">
             <div class="match-time">${escapeHtml(match.localMatchTime || match.match_time || "--:--")}</div>
@@ -2985,14 +3056,42 @@
             </div>
             <div class="match-score">${scoreText}</div>
           </div>
-          <div class="match-action${primary?.highImpact ? " match-action-impact" : ""}">
-            <strong>${escapeHtml(primary?.pickLabel || TEXT.viewMatch)}</strong>
-            <small>${renderActionMeta(meta)}</small>
+          <div class="${actionState.actionClass}">
+            <strong>${escapeHtml(actionState.actionLabel)}</strong>
+            <small>${actionState.actionMetaHtml}</small>
           </div>
         </div>
       </article>
     `;
   };
+
+  function renderLeagueHeaderMarkup(group, isLive, collapsible = false) {
+    const liveDot = isLive ? `<span class="league-live-dot" aria-label="Live" title="Live"></span>` : "";
+    const liveBadge = isLive ? `<span class="league-live-badge">LIVE</span>` : "";
+    const header = `
+      <div class="league-title" style="flex:1;min-width:0">
+        ${group.logo ? `<img class="league-logo" src="${group.logo}" alt="" loading="lazy" />` : `<span class="league-dot" aria-hidden="true"></span>`}
+        <div>
+          <h3>${escapeHtml(group.league)}</h3>
+          <p>${escapeHtml(group.country)}</p>
+        </div>
+        ${liveDot}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">${liveBadge}<span class="league-count">${group.matches.length}</span></div>
+    `;
+    return collapsible ? `${header}<span class="league-caret" aria-hidden="true"></span>` : header;
+  }
+
+  function syncLeagueGroupShell(groupEl, group) {
+    if (!groupEl || !group) return;
+    const isLive = groupHasLiveMatches(group);
+    groupEl.classList.toggle("league-block-live", isLive);
+    groupEl.classList.toggle("league-block-major", isMajorLeagueGroup(group));
+    const headerEl = groupEl.firstElementChild;
+    if (headerEl) headerEl.innerHTML = renderLeagueHeaderMarkup(group, isLive, true);
+    groupEl.dataset.leagueKey = leagueStateKey(group);
+    groupEl.open = isLeagueOpen(group);
+  }
 
   function renderLeagueFeed(matches, options = {}) {
     const preserveLayout = Boolean(options.preserveLayout);
@@ -3048,7 +3147,7 @@
       const liveScore = state.liveScores[String(f.fixture_id)];
       const elapsedHtml = liveScore?.elapsed ? tickMin(liveScore.elapsed) : escapeHtml(liveScore?.status || "LIVE");
       const score = liveScore ? `${liveScore.home} - ${liveScore.away}` : "- -";
-      return `<section class="league-block league-block-major league-block-live">
+      return `<section class="league-block league-block-major league-block-live" data-live-only-id="${escapeHtml(String(f.fixture_id))}">
         <div class="league-header">
           <div class="league-title"><span class="league-live-dot"></span><span>${escapeHtml(f.league)} | ${escapeHtml(f.country)}</span><span class="league-live-badge">LIVE</span></div>
         </div>
@@ -3071,22 +3170,10 @@
 
     const groupHtml = orderedGroups.map(group => {
       const isLive = groupHasLiveMatches(group);
-      const liveDot = isLive ? `<span class="league-live-dot" aria-label="Live" title="Live"></span>` : "";
-      const liveBadge = isLive ? `<span class="league-live-badge">LIVE</span>` : "";
-      const leagueKey = leagueStateKey(group);
-      const header = `
-        <div class="league-title" style="flex:1;min-width:0">
-          ${group.logo ? `<img class="league-logo" src="${group.logo}" alt="" loading="lazy" />` : `<span class="league-dot" aria-hidden="true"></span>`}
-          <div>
-            <h3>${escapeHtml(group.league)}</h3>
-            <p>${escapeHtml(group.country)}</p>
-          </div>
-          ${liveDot}
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">${liveBadge}<span class="league-count">${group.matches.length}</span></div>
-      `;
+      const header = renderLeagueHeaderMarkup(group, isLive, true);
       const content = `<div class="match-list">${group.matches.map(match => renderMatchRow(match, { showLeagueLine: false })).join("")}</div>`;
-      return `<details class="league-block league-accordion${isMajorLeagueGroup(group) ? " league-block-major" : ""}${isLive ? " league-block-live" : ""}" data-league-key="${escapeHtml(leagueKey)}"${isLeagueOpen(group) ? " open" : ""}><summary class="league-header league-summary">${header}<span class="league-caret" aria-hidden="true"></span></summary>${content}</details>`;
+      const leagueKey = leagueStateKey(group);
+      return `<details class="league-block league-accordion${isMajorLeagueGroup(group) ? " league-block-major" : ""}${isLive ? " league-block-live" : ""}" data-league-key="${escapeHtml(leagueKey)}"${isLeagueOpen(group) ? " open" : ""}><summary class="league-header league-summary">${header}</summary>${content}</details>`;
     });
     state.mutingAccordionSync = true;
     if (preserveLayout && scrollSnapshot?.feedHeight && dom.leagueFeed) {
@@ -3809,13 +3896,9 @@
     }
   }
 
-  async function render(options = {}) {
-    const preserveLayout = Boolean(options.preserveLayout);
-    const scrollSnapshot = preserveLayout ? captureScrollSnapshot() : null;
-    const renderToken = ++state.renderRequestToken;
+  async function buildVisibleView() {
     const prefilterKey = queryPrefilterKey();
     const prefilterIds = await computePrefilterIds();
-    if (renderToken !== state.renderRequestToken) return;
     const filteredSet = prefilterIds ? new Set(prefilterIds.map(String)) : null;
     let matches = getDerivedMatches(filteredSet, prefilterIds ? prefilterKey : "");
     if (
@@ -3835,19 +3918,90 @@
     }
     const orderedMatches = sortMatchesForFeed(matches);
     const topPicks = getTopPicks(matches);
+    return { matches, orderedMatches, topPicks };
+  }
+
+  function patchVisibleLeagueGroups(orderedMatches) {
+    const groupsByKey = new Map(groupMatches(orderedMatches).map(group => [leagueStateKey(group), group]));
+    let missingGroup = false;
+    dom.leagueFeed.querySelectorAll(".league-accordion[data-league-key]").forEach(groupEl => {
+      const groupKey = String(groupEl.dataset.leagueKey || "");
+      const group = groupsByKey.get(groupKey);
+      if (!group) {
+        missingGroup = true;
+        return;
+      }
+      syncLeagueGroupShell(groupEl, group);
+      groupsByKey.delete(groupKey);
+    });
+    return !missingGroup && groupsByKey.size === 0;
+  }
+
+  async function patchLiveViewIncrementally() {
+    const patchToken = ++state.livePatchToken;
+    const view = await buildVisibleView();
+    if (patchToken !== state.livePatchToken) return;
+    const feedIdsSignature = idsSignature(view.orderedMatches.map(match => match.fixture_id));
+    const liveOnlyIdsSignature = idsSignature((state.liveOnlyMatches || []).map(match => match.fixture_id));
+    const topPickIdsSignature = idsSignature(view.topPicks.map(pick => pick.fixtureId));
+    const feedNeedsStructureRender = !state.renderedFeedIdsSignature
+      || feedIdsSignature !== state.renderedFeedIdsSignature
+      || liveOnlyIdsSignature !== state.renderedLiveOnlyIdsSignature;
+    if (feedNeedsStructureRender) {
+      await render();
+      return;
+    }
+    renderFeedToolbar(view.orderedMatches);
+    renderSummary(view.orderedMatches, view.topPicks);
+    if (state.betMaster.generated) state.betMaster.profileMap = buildBetMasterProfiles().profileMap;
+    renderBetMaster();
+    if (topPickIdsSignature !== state.renderedTopPickIdsSignature) {
+      renderTopPicks(view.topPicks);
+    }
+    const groupPatchOk = patchVisibleLeagueGroups(view.orderedMatches);
+    if (!groupPatchOk) {
+      await render();
+      return;
+    }
+    const matchMap = new Map();
+    view.orderedMatches.forEach(match => {
+      matchMap.set(String(match.fixture_id), match);
+    });
+    (state.liveOnlyMatches || []).forEach(match => {
+      const fixtureId = String(match.fixture_id);
+      if (!matchMap.has(fixtureId)) matchMap.set(fixtureId, match);
+    });
+    document.querySelectorAll(".match-row[data-fixture-open]").forEach(rowEl => {
+      const fixtureId = String(rowEl.getAttribute("data-fixture-open") || "");
+      const match = matchMap.get(fixtureId);
+      if (match) patchMatchRowElement(rowEl, match);
+    });
+    renderDetail();
+    rememberRenderedView(view.orderedMatches, view.topPicks);
+  }
+
+  async function render(options = {}) {
+    state.livePatchToken += 1;
+    const preserveLayout = Boolean(options.preserveLayout);
+    const scrollSnapshot = preserveLayout ? captureScrollSnapshot() : null;
+    const renderToken = ++state.renderRequestToken;
+    const view = await buildVisibleView();
+    if (renderToken !== state.renderRequestToken) return;
     if (state.betMaster.generated) state.betMaster.profileMap = buildBetMasterProfiles().profileMap;
     renderDateTabs();
     renderQuickRanges();
     renderFilterChips();
-    renderFeedToolbar(orderedMatches);
-    renderSummary(orderedMatches, topPicks);
+    renderFeedToolbar(view.orderedMatches);
+    renderSummary(view.orderedMatches, view.topPicks);
     renderBetMaster();
     renderYesterdayBanner();
     renderActiveFilters();
-    renderTopPicks(topPicks);
-    renderLeagueFeed(orderedMatches, { preserveLayout, scrollSnapshot });
+    renderTopPicks(view.topPicks);
+    renderLeagueFeed(view.orderedMatches, { preserveLayout, scrollSnapshot });
     renderDetail();
     syncModalState();
+    rememberRenderedView(view.orderedMatches, view.topPicks);
+    state.dataRefreshSignature = currentDataRefreshSignature();
   }
 
   function clearFilter(key) {
@@ -3909,6 +4063,7 @@
   }
 
   async function refreshData() {
+    const previousSignature = state.dataRefreshSignature || currentDataRefreshSignature();
     try {
       await loadManifest();
       await loadCacheForDate(state.selectedDate);
@@ -3917,7 +4072,12 @@
       state.cache = null;
       invalidateMatchCaches();
     }
-    render({ preserveLayout: true });
+    const nextSignature = currentDataRefreshSignature();
+    if (!state.dataRefreshSignature || previousSignature !== nextSignature) {
+      await render({ preserveLayout: true });
+    } else {
+      state.dataRefreshSignature = nextSignature;
+    }
     fetchLiveScores();
   }
 
@@ -4054,9 +4214,12 @@
         }
       }
       invalidateMatchCaches();
-      render({ preserveLayout: true });
+      await patchLiveViewIncrementally();
       if (state.scoreChangedIds.size) {
-        setTimeout(() => { state.scoreChangedIds.clear(); }, 2000);
+        setTimeout(() => {
+          state.scoreChangedIds.clear();
+          document.querySelectorAll(".score-changed").forEach(el => el.classList.remove("score-changed"));
+        }, 2000);
       }
       refreshDetailLive();
     } catch (e) {
