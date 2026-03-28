@@ -273,10 +273,11 @@
     filterWorkerResolvers: new Map(),
     filteredIdsCacheKey: "",
     filteredIdsCacheValue: null,
-    expandAllMode: false,
-    collapseAllMode: false,
-    userOpenedGroups: new Set(),
-    userClosedGroups: new Set(),
+    leagueOpenState: Object.create(null),
+    leagueOrderKeys: [],
+    leagueLayoutMode: "auto",
+    mutingAccordionSync: false,
+    lastUserScrollAt: 0,
     betMaster: {
       count: 4,
       oddFrom: 1.2,
@@ -1340,6 +1341,72 @@
       if (aKey[index] > bKey[index]) return 1;
     }
     return 0;
+  }
+
+  function leagueStateKey(group) {
+    return `${String(group.country || "").trim()}__${String(group.league || "").trim()}`;
+  }
+
+  function snapshotLeagueOpenState() {
+    if (!dom.leagueFeed) return;
+    dom.leagueFeed.querySelectorAll(".league-accordion[data-league-key]").forEach(node => {
+      const key = node.dataset.leagueKey;
+      if (!key) return;
+      state.leagueOpenState[key] = Boolean(node.open);
+    });
+  }
+
+  function defaultLeagueOpen(group) {
+    if (state.search) return true;
+    if (state.quickFilter) return true;
+    if (isMajorLeagueGroup(group)) return true;
+    if (groupHasLiveMatches(group)) return true;
+    if (groupStartsWithinHours(group, 2)) return true;
+    return false;
+  }
+
+  function isLeagueOpen(group) {
+    if (state.leagueLayoutMode === "expand-all") return true;
+    if (state.leagueLayoutMode === "collapse-all") return false;
+    const key = leagueStateKey(group);
+    if (Object.prototype.hasOwnProperty.call(state.leagueOpenState, key)) {
+      return Boolean(state.leagueOpenState[key]);
+    }
+    return defaultLeagueOpen(group);
+  }
+
+  function stableLeagueOrder(groups, preserveLayout) {
+    if (!preserveLayout || !state.leagueOrderKeys.length) {
+      state.leagueOrderKeys = groups.map(leagueStateKey);
+      return groups;
+    }
+    const existing = new Map(state.leagueOrderKeys.map((key, index) => [key, index]));
+    const sorted = [...groups].sort((a, b) => {
+      const aRank = existing.has(leagueStateKey(a)) ? existing.get(leagueStateKey(a)) : Number.MAX_SAFE_INTEGER;
+      const bRank = existing.has(leagueStateKey(b)) ? existing.get(leagueStateKey(b)) : Number.MAX_SAFE_INTEGER;
+      if (aRank !== bRank) return aRank - bRank;
+      return compareCompositeKeys(groupSortKey(a), groupSortKey(b));
+    });
+    state.leagueOrderKeys = [
+      ...new Set([...state.leagueOrderKeys, ...sorted.map(leagueStateKey)]),
+    ].filter(key => sorted.some(group => leagueStateKey(group) === key));
+    return sorted;
+  }
+
+  function captureScrollSnapshot() {
+    return {
+      y: window.scrollY || window.pageYOffset || 0,
+      marker: state.lastUserScrollAt,
+    };
+  }
+
+  function restoreScrollSnapshot(snapshot, expectedToken) {
+    if (!snapshot) return;
+    requestAnimationFrame(() => {
+      if (expectedToken != null && expectedToken !== state.feedRenderToken) return;
+      if (state.lastUserScrollAt !== snapshot.marker) return;
+      window.scrollTo(0, snapshot.y);
+    });
   }
 
   function soonKickoffThresholdHours() {
@@ -2882,24 +2949,15 @@
     `;
   };
 
-  function renderLeagueFeed(matches) {
+  function renderLeagueFeed(matches, options = {}) {
+    const preserveLayout = Boolean(options.preserveLayout);
+    const scrollSnapshot = options.scrollSnapshot || null;
     if (!matches.length && !(state.liveOnlyMatches || []).length) {
       dom.leagueFeed.innerHTML = `<div class="empty-state">${emptyStateMessage()}</div>`;
       return;
     }
-    // Snapshot BEFORE building HTML — so shouldBeOpen uses the current DOM truth
-    dom.leagueFeed.querySelectorAll(".league-accordion[data-gk]").forEach(el => {
-      const key = el.dataset.gk;
-      if (!key) return;
-      if (el.open) {
-        state.userOpenedGroups.add(key);
-        state.userClosedGroups.delete(key);
-      } else {
-        state.userClosedGroups.add(key);
-        state.userOpenedGroups.delete(key);
-      }
-    });
     const renderToken = ++state.feedRenderToken;
+    snapshotLeagueOpenState();
     const groups = groupMatches(matches).map(group => ({
       ...group,
       matches: state.sortMode === "time"
@@ -2934,7 +2992,10 @@
         return compareCompositeKeys(groupSortKey(a), groupSortKey(b));
       });
     const laterGroups = nonLiveRegularGroups.filter(group => !soonGroups.includes(group));
-    const orderedGroups = [...majorGroups, ...liveRegularGroups, ...soonGroups, ...laterGroups];
+    const orderedGroups = stableLeagueOrder(
+      [...majorGroups, ...liveRegularGroups, ...soonGroups, ...laterGroups],
+      preserveLayout,
+    );
 
     // Partite live non nel JSON (coppe, ET, ecc.) — renderizzate in cima
     const liveOnlyHtml = (state.liveOnlyMatches || []).map(f => {
@@ -2966,6 +3027,7 @@
       const isLive = groupHasLiveMatches(group);
       const liveDot = isLive ? `<span class="league-live-dot" aria-label="Live" title="Live"></span>` : "";
       const liveBadge = isLive ? `<span class="league-live-badge">LIVE</span>` : "";
+      const leagueKey = leagueStateKey(group);
       const header = `
         <div class="league-title" style="flex:1;min-width:0">
           ${group.logo ? `<img class="league-logo" src="${group.logo}" alt="" loading="lazy" />` : `<span class="league-dot" aria-hidden="true"></span>`}
@@ -2978,40 +3040,28 @@
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">${liveBadge}<span class="league-count">${group.matches.length}</span></div>
       `;
       const content = `<div class="match-list">${group.matches.map(match => renderMatchRow(match, { showLeagueLine: false })).join("")}</div>`;
-      if (isMajorLeagueGroup(group)) {
-        return `<section class="league-block league-block-major${isLive ? " league-block-live" : ""}"><div class="league-header">${header}</div>${content}</section>`;
-      }
-      const openSoon = groupStartsWithinHours(group, 0.5);
-      const groupKey = `${group.league}|${group.country}`;
-      const defaultOpen = !!(state.search || isLive || openSoon);
-      const shouldBeOpen = state.expandAllMode ? true
-        : state.collapseAllMode ? false
-        : state.userOpenedGroups.has(groupKey) ? true
-        : state.userClosedGroups.has(groupKey) ? false
-        : defaultOpen;
-      return `<details class="league-block league-accordion${isLive ? " league-block-live" : ""}" data-gk="${escapeHtml(groupKey)}"${shouldBeOpen ? " open" : ""}><summary class="league-header league-summary">${header}<span class="league-caret" aria-hidden="true"></span></summary>${content}</details>`;
+      return `<details class="league-block league-accordion${isMajorLeagueGroup(group) ? " league-block-major" : ""}${isLive ? " league-block-live" : ""}" data-league-key="${escapeHtml(leagueKey)}"${isLeagueOpen(group) ? " open" : ""}><summary class="league-header league-summary">${header}<span class="league-caret" aria-hidden="true"></span></summary>${content}</details>`;
     });
-    // Preserve scroll position across chunked rebuild.
-    // Capture BEFORE clearing, restore immediately after clear (page height collapses),
-    // then re-apply after every chunk so a mid-render race with the next refresh
-    // doesn't leave the page stuck at 0.
-    const savedScrollY = window.scrollY;
+    state.mutingAccordionSync = true;
     dom.leagueFeed.innerHTML = liveOnlyHtml;
-    // Immediately restore — innerHTML clear collapses height and browser jumps to 0
-    if (savedScrollY > 0) window.scrollTo(0, savedScrollY);
     const chunkSize = 6;
     let index = 0;
     function appendChunk() {
       if (renderToken !== state.feedRenderToken) return;
       const chunk = groupHtml.slice(index, index + chunkSize);
-      if (!chunk.length) return;
+      if (!chunk.length) {
+        state.mutingAccordionSync = false;
+        restoreScrollSnapshot(scrollSnapshot, renderToken);
+        return;
+      }
       dom.leagueFeed.insertAdjacentHTML("beforeend", chunk.join(""));
       index += chunkSize;
-      // Re-apply scroll after every chunk — guards against mid-render interruption
-      if (savedScrollY > 0 && Math.abs(window.scrollY - savedScrollY) > 1) {
-        window.scrollTo(0, savedScrollY);
+      if (index < groupHtml.length) {
+        requestAnimationFrame(appendChunk);
+      } else {
+        state.mutingAccordionSync = false;
+        restoreScrollSnapshot(scrollSnapshot, renderToken);
       }
-      requestAnimationFrame(appendChunk);
     }
     requestAnimationFrame(appendChunk);
   }
@@ -3708,7 +3758,9 @@
     }
   }
 
-  async function render() {
+  async function render(options = {}) {
+    const preserveLayout = Boolean(options.preserveLayout);
+    const scrollSnapshot = preserveLayout ? captureScrollSnapshot() : null;
     const renderToken = ++state.renderRequestToken;
     const prefilterKey = queryPrefilterKey();
     const prefilterIds = await computePrefilterIds();
@@ -3742,7 +3794,7 @@
     renderYesterdayBanner();
     renderActiveFilters();
     renderTopPicks(topPicks);
-    renderLeagueFeed(orderedMatches);
+    renderLeagueFeed(orderedMatches, { preserveLayout, scrollSnapshot });
     renderDetail();
     syncModalState();
   }
@@ -3814,7 +3866,7 @@
       state.cache = null;
       invalidateMatchCaches();
     }
-    render();
+    render({ preserveLayout: true });
     fetchLiveScores();
   }
 
@@ -3951,11 +4003,10 @@
         }
       }
       invalidateMatchCaches();
-      render();
+      render({ preserveLayout: true });
       if (state.scoreChangedIds.size) {
         setTimeout(() => { state.scoreChangedIds.clear(); }, 2000);
       }
-      // Refresh events/stats for the open live detail
       refreshDetailLive();
     } catch (e) {
       console.warn("Live scores fetch failed:", e);
@@ -4153,21 +4204,21 @@
       render();
     });
     if (dom.mcCollapseAll) dom.mcCollapseAll.addEventListener("click", () => {
-      state.collapseAllMode = true;
-      state.expandAllMode = false;
-      state.userOpenedGroups.clear();
-      state.userClosedGroups.clear();
-      document.querySelectorAll(".league-accordion").forEach(el => { el.open = false; });
+      state.leagueLayoutMode = "collapse-all";
+      document.querySelectorAll(".league-accordion[data-league-key]").forEach(el => {
+        const key = el.dataset.leagueKey;
+        if (key) state.leagueOpenState[key] = false;
+        el.open = false;
+      });
     });
     if (dom.mcExpandAll) dom.mcExpandAll.addEventListener("click", () => {
-      state.expandAllMode = true;
-      state.collapseAllMode = false;
-      state.userOpenedGroups.clear();
-      state.userClosedGroups.clear();
-      document.querySelectorAll(".league-accordion").forEach(el => { el.open = true; });
+      state.leagueLayoutMode = "expand-all";
+      document.querySelectorAll(".league-accordion[data-league-key]").forEach(el => {
+        const key = el.dataset.leagueKey;
+        if (key) state.leagueOpenState[key] = true;
+        el.open = true;
+      });
     });
-    // No toggle listener needed — open/closed state is snapshotted in renderLeagueFeed
-    // before each innerHTML clear, so the state is always consistent.
     dom.marketsAll.addEventListener("click", () => {
       state.groups = new Set(GROUPS.map(group => group.id));
       pruneOutcomeFilters();
@@ -4402,6 +4453,19 @@
       if (event.target.closest(".custom-select-ready")) return;
       closeAllCustomSelects();
     });
+    if (dom.leagueFeed) {
+      dom.leagueFeed.addEventListener("toggle", event => {
+        const details = event.target.closest(".league-accordion[data-league-key]");
+        if (!details || !dom.leagueFeed.contains(details) || state.mutingAccordionSync) return;
+        const key = details.dataset.leagueKey;
+        if (!key) return;
+        state.leagueOpenState[key] = Boolean(details.open);
+        state.leagueLayoutMode = "manual";
+      }, true);
+    }
+    window.addEventListener("scroll", () => {
+      state.lastUserScrollAt = Date.now();
+    }, { passive: true });
     window.addEventListener("resize", () => closeAllCustomSelects());
   }
 
