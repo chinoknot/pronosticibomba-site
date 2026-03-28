@@ -1394,19 +1394,64 @@
   }
 
   function captureScrollSnapshot() {
+    const candidates = dom.leagueFeed
+      ? Array.from(dom.leagueFeed.querySelectorAll(".match-row[data-fixture-open], .league-accordion[data-league-key]"))
+      : [];
+    let anchor = null;
+    for (const node of candidates) {
+      const rect = node.getBoundingClientRect();
+      if (rect.bottom > 84) {
+        anchor = node;
+        break;
+      }
+    }
+    const anchorKind = anchor?.matches?.(".match-row[data-fixture-open]") ? "fixture" : anchor?.matches?.(".league-accordion[data-league-key]") ? "league" : null;
+    const anchorKey = anchorKind === "fixture"
+      ? String(anchor.dataset.fixtureOpen || "")
+      : anchorKind === "league"
+        ? String(anchor.dataset.leagueKey || "")
+        : "";
     return {
       y: window.scrollY || window.pageYOffset || 0,
       marker: state.lastUserScrollAt,
+      feedHeight: dom.leagueFeed?.offsetHeight || 0,
+      anchorKind,
+      anchorKey,
+      anchorTop: anchor?.getBoundingClientRect().top || 0,
     };
   }
 
   function restoreScrollSnapshot(snapshot, expectedToken) {
     if (!snapshot) return;
-    requestAnimationFrame(() => {
+    const escapeAttr = value => {
+      if (typeof CSS !== "undefined" && CSS.escape) return CSS.escape(value);
+      return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    };
+    const restore = () => {
       if (expectedToken != null && expectedToken !== state.feedRenderToken) return;
       if (state.lastUserScrollAt !== snapshot.marker) return;
-      window.scrollTo(0, snapshot.y);
-    });
+      let restored = false;
+      if (snapshot.anchorKind === "fixture" && snapshot.anchorKey) {
+        const node = dom.leagueFeed?.querySelector(`.match-row[data-fixture-open="${escapeAttr(snapshot.anchorKey)}"]`);
+        if (node) {
+          const delta = node.getBoundingClientRect().top - snapshot.anchorTop;
+          if (Math.abs(delta) > 1) window.scrollBy(0, delta);
+          restored = true;
+        }
+      } else if (snapshot.anchorKind === "league" && snapshot.anchorKey) {
+        const node = dom.leagueFeed?.querySelector(`.league-accordion[data-league-key="${escapeAttr(snapshot.anchorKey)}"]`);
+        if (node) {
+          const delta = node.getBoundingClientRect().top - snapshot.anchorTop;
+          if (Math.abs(delta) > 1) window.scrollBy(0, delta);
+          restored = true;
+        }
+      }
+      if (!restored) {
+        window.scrollTo(0, snapshot.y);
+      }
+      if (dom.leagueFeed) dom.leagueFeed.style.minHeight = "";
+    };
+    requestAnimationFrame(() => requestAnimationFrame(restore));
   }
 
   function soonKickoffThresholdHours() {
@@ -2953,6 +2998,7 @@
     const preserveLayout = Boolean(options.preserveLayout);
     const scrollSnapshot = options.scrollSnapshot || null;
     if (!matches.length && !(state.liveOnlyMatches || []).length) {
+      if (dom.leagueFeed) dom.leagueFeed.style.minHeight = "";
       dom.leagueFeed.innerHTML = `<div class="empty-state">${emptyStateMessage()}</div>`;
       return;
     }
@@ -3043,6 +3089,11 @@
       return `<details class="league-block league-accordion${isMajorLeagueGroup(group) ? " league-block-major" : ""}${isLive ? " league-block-live" : ""}" data-league-key="${escapeHtml(leagueKey)}"${isLeagueOpen(group) ? " open" : ""}><summary class="league-header league-summary">${header}<span class="league-caret" aria-hidden="true"></span></summary>${content}</details>`;
     });
     state.mutingAccordionSync = true;
+    if (preserveLayout && scrollSnapshot?.feedHeight && dom.leagueFeed) {
+      dom.leagueFeed.style.minHeight = `${scrollSnapshot.feedHeight}px`;
+    } else if (dom.leagueFeed) {
+      dom.leagueFeed.style.minHeight = "";
+    }
     dom.leagueFeed.innerHTML = liveOnlyHtml;
     const chunkSize = 6;
     let index = 0;
