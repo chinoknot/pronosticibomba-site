@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-28T06:00:48.140918+00:00",
+  "generated_at": "2026-03-28T07:04:23.578845+00:00",
   "timezone": "Europe/Rome",
   "latest_date": "2026-03-28",
   "dates": [
@@ -9,7 +9,7 @@
       "generated_at": "2026-03-28T01:39:20.885250+00:00",
       "expires_at": "2026-03-29T01:39:20.885270+00:00",
       "matches": 1493,
-      "final_matches": 41
+      "final_matches": 63
     }
   ]
 }
