@@ -3839,6 +3839,95 @@
     return [];
   }
 
+  function extractDetailFixtureBundle(detailData) {
+    if (!detailData) return null;
+    if (detailData.fixture && typeof detailData.fixture === "object" && !Array.isArray(detailData.fixture)) return detailData.fixture;
+    if (detailData.response?.[0] && typeof detailData.response[0] === "object") return detailData.response[0];
+    return null;
+  }
+
+  function extractDetailFixtureCore(detailData) {
+    const bundle = extractDetailFixtureBundle(detailData);
+    if (!bundle) return null;
+    if (bundle.fixture && typeof bundle.fixture === "object") return bundle.fixture;
+    return bundle;
+  }
+
+  function formatCapacity(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num) || num <= 0) return "";
+    return new Intl.NumberFormat(APP_LOCALE).format(num);
+  }
+
+  function formatWeatherLabel(weather) {
+    if (!weather) return "";
+    if (typeof weather === "string") return weather.trim();
+    if (typeof weather !== "object") return "";
+    const label = String(
+      weather.description
+      || weather.main
+      || weather.text
+      || weather.summary
+      || weather.condition
+      || weather.conditions
+      || ""
+    ).trim();
+    const tempRaw = weather.temp ?? weather.temperature ?? weather.temp_c ?? weather.temperature_c;
+    const temp = Number(tempRaw);
+    if (label && Number.isFinite(temp)) return `${Math.round(temp)}°C | ${label}`;
+    if (label) return label;
+    if (Number.isFinite(temp)) return `${Math.round(temp)}°C`;
+    const humidity = Number(weather.humidity);
+    if (Number.isFinite(humidity)) return `${humidity}% umidita`;
+    return "";
+  }
+
+  function extractDetailGeneralInfo(detailData) {
+    const bundle = extractDetailFixtureBundle(detailData);
+    const fixture = extractDetailFixtureCore(detailData);
+    if (!bundle || !fixture) return [];
+    const league = bundle.league || {};
+    const venue = fixture.venue || bundle.venue || {};
+    const venueName = String(venue?.name || fixture?.stadium || "").trim();
+    const venueCity = String(venue?.city || bundle?.city || "").trim();
+    const venueCapacity = formatCapacity(venue?.capacity || bundle?.venue_capacity || bundle?.capacity);
+    const referee = String(fixture?.referee || bundle?.referee || "").trim();
+    const round = String(league?.round || bundle?.round || "").trim();
+    const timezone = String(fixture?.timezone || bundle?.timezone || "").trim();
+    const weather = formatWeatherLabel(
+      bundle?.weather
+      || fixture?.weather
+      || bundle?.weather_report
+      || fixture?.weather_report
+      || bundle?.weatherReport
+      || fixture?.weatherReport
+    );
+    const items = [];
+    if (venueName) items.push({ label: IS_EN ? "Stadium" : "Stadio", value: venueName, accent: "blue" });
+    if (venueCity) items.push({ label: IS_EN ? "City" : "Citta", value: venueCity, accent: "neutral" });
+    if (venueCapacity) items.push({ label: IS_EN ? "Capacity" : "Capienza", value: venueCapacity, accent: "amber" });
+    if (referee) items.push({ label: IS_EN ? "Referee" : "Arbitro", value: referee, accent: "neutral" });
+    if (weather) items.push({ label: IS_EN ? "Weather" : "Meteo", value: weather, accent: "cyan" });
+    if (round) items.push({ label: IS_EN ? "Round" : "Turno", value: round, accent: "neutral" });
+    if (timezone && !items.length) items.push({ label: "Timezone", value: timezone, accent: "neutral" });
+    return items;
+  }
+
+  function renderDetailGeneralInfo(detailData) {
+    const items = extractDetailGeneralInfo(detailData);
+    if (!items.length) return "";
+    return `
+      <div class="detail-info-grid">
+        ${items.map(item => `
+          <article class="detail-info-card detail-info-${escapeHtml(item.accent || "neutral")}">
+            <span>${escapeHtml(item.label)}</span>
+            <strong>${escapeHtml(item.value)}</strong>
+          </article>
+        `).join("")}
+      </div>
+    `;
+  }
+
   function resolveDetailEventSideSafe(event, match) {
     const homeKey = normalizeTeamKey(match?.home);
     const awayKey = normalizeTeamKey(match?.away);
@@ -4232,6 +4321,7 @@
       const detailStatistics = extractDetailStatistics(state.detailData);
       const eventsBlock = state.detailData ? renderDetailEventsPanel(detailEvents, match) : "";
       const statsBlock = state.detailData ? renderDetailStatsPanel(detailStatistics) : "";
+      const generalInfoBlock = state.detailData ? renderDetailGeneralInfo(state.detailData) : "";
       const prematchBlock = renderPrematchBlock(match);
       dom.detailBody.innerHTML = `
         <article class="detail-hero">
@@ -4245,6 +4335,7 @@
             <div class="detail-meta-card"><span>Kickoff</span><strong>${escapeHtml(match.localMatchTime || match.match_time)} | ${escapeHtml(match.localMatchDateLabel || formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</strong></div>
             <div class="detail-meta-card"><span>Stato</span><strong class="detail-status-strong">${buildStatusText()}</strong></div>
           </div>
+          ${generalInfoBlock}
         </article>
         <div class="detail-stack">
           <div class="detail-live-sections">${loadingBlock}${eventsBlock}${statsBlock}</div>
