@@ -3477,6 +3477,13 @@
     });
   }
 
+  function hasLeagueStandingData(match) {
+    const cacheKey = standingCacheKey(match);
+    if (!cacheKey) return false;
+    const groups = state.cache?.standings?.[cacheKey]?.groups;
+    return Array.isArray(groups) && groups.some(group => Array.isArray(group?.rows) && group.rows.length);
+  }
+
   function collectLeagueStandingRows(match) {
     const targetLeagueId = String(match?.league_id || "");
     const targetSeason = String(match?.league_season || "");
@@ -3679,7 +3686,7 @@
     const statsMeta = state.detailTeamStatsMeta;
     const statsStatus = state.detailTeamStatsStatus;
     const hasForm = homeForm || awayForm;
-    const hasStanding = homeStanding || awayStanding;
+    const hasStanding = homeStanding || awayStanding || hasLeagueStandingData(match);
     const hasTeamStats = statsStatus === "ready" && ts && (ts.home || ts.away);
     if (!hasForm && !hasStanding && !hasTeamStats) return "";
 
