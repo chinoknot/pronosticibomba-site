@@ -979,13 +979,20 @@ def get_league_standings(league_id, season):
         for group in standing_groups:
             for row in (group or []):
                 team = row.get("team") or {}
+                all_stats = row.get("all") or {}
+                all_goals = all_stats.get("goals") or {}
                 team_id = team.get("id")
                 if not team_id:
                     continue
                 standings_map[int(team_id)] = {
                     "rank": row.get("rank"),
                     "points": row.get("points"),
-                    "played": ((row.get("all") or {}).get("played")),
+                    "played": all_stats.get("played") if all_stats.get("played") is not None else all_stats.get("matchsPlayed"),
+                    "won": all_stats.get("win"),
+                    "draw": all_stats.get("draw"),
+                    "lost": all_stats.get("lose") if all_stats.get("lose") is not None else all_stats.get("lost"),
+                    "goals_for": all_goals.get("for") if all_goals.get("for") is not None else all_stats.get("goalsFor"),
+                    "goals_against": all_goals.get("against") if all_goals.get("against") is not None else all_stats.get("goalsAgainst"),
                     "goal_diff": row.get("goalsDiff"),
                     "group": row.get("group") or "",
                     "description": row.get("description") or "",

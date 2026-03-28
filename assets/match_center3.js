@@ -3443,6 +3443,11 @@
     if (entry.rank != null) score += 4;
     if (entry.points != null) score += 3;
     if (entry.played != null) score += 3;
+    if (entry.won != null) score += 2;
+    if (entry.draw != null) score += 2;
+    if (entry.lost != null) score += 2;
+    if (entry.goals_for != null) score += 2;
+    if (entry.goals_against != null) score += 2;
     if (entry.goal_diff != null) score += 2;
     if (entry.form) score += Math.min(5, String(entry.form).length);
     if (entry.description) score += 1;
@@ -3477,6 +3482,11 @@
         rank: standing.rank,
         points: standing.points,
         played: standing.played,
+        won: standing.won,
+        draw: standing.draw,
+        lost: standing.lost,
+        goals_for: standing.goals_for,
+        goals_against: standing.goals_against,
         goal_diff: standing.goal_diff,
         group: String(standing.group || "").trim(),
         description: standing.description || "",
@@ -3524,6 +3534,29 @@
     const coverageNote = table.complete
       ? (IS_EN ? `Feed coverage ${coverageLabel} teams` : `Copertura feed ${coverageLabel} squadre`)
       : (IS_EN ? `Feed coverage ${coverageLabel} teams, some entries missing` : `Copertura feed ${coverageLabel} squadre, alcune mancanti`);
+    const hasExtendedStats = table.rows.some(row =>
+      row.won != null
+      || row.draw != null
+      || row.lost != null
+      || row.goals_for != null
+      || row.goals_against != null
+    );
+    const columns = hasExtendedStats
+      ? [
+          { key: "points", label: "PTS", colClass: "standing-col-points", cellClass: "standing-pts" },
+          { key: "played", label: "MP", colClass: "standing-col-stat" },
+          { key: "won", label: "W", colClass: "standing-col-stat" },
+          { key: "draw", label: "D", colClass: "standing-col-stat" },
+          { key: "lost", label: "L", colClass: "standing-col-stat" },
+          { key: "goals_for", label: "GF", colClass: "standing-col-stat" },
+          { key: "goals_against", label: "GA", colClass: "standing-col-stat" },
+          { key: "goal_diff", label: "GD", colClass: "standing-col-stat standing-col-gd", format: value => value > 0 ? `+${value}` : String(value) },
+        ]
+      : [
+          { key: "points", label: "PTS", colClass: "standing-col-points", cellClass: "standing-pts" },
+          { key: "played", label: "MP", colClass: "standing-col-stat" },
+          { key: "goal_diff", label: "GD", colClass: "standing-col-stat standing-col-gd", format: value => value > 0 ? `+${value}` : String(value) },
+        ];
     return `
       <div class="prematch-section">
         <div class="prematch-label">${IS_EN ? "League table" : "Classifica campionato"}</div>
@@ -3533,19 +3566,14 @@
             <colgroup>
               <col class="standing-col-rank">
               <col class="standing-col-team">
-              <col class="standing-col-played">
-              <col class="standing-col-points">
-              <col class="standing-col-gd">
+              ${columns.map(col => `<col class="${col.colClass}">`).join("")}
             </colgroup>
             <thead>
-              <tr><th>#</th><th>${IS_EN ? "Team" : "Squadra"}</th><th>G</th><th>Pti</th><th>GD</th></tr>
+              <tr><th>#</th><th>${IS_EN ? "Team" : "Squadra"}</th>${columns.map(col => `<th>${col.label}</th>`).join("")}</tr>
             </thead>
             <tbody>
               ${table.rows.map(row => {
-                const rank = row.rank != null ? `#${row.rank}` : "-";
-                const pts = row.points != null ? row.points : "-";
-                const played = row.played != null ? row.played : "-";
-                const gd = row.goal_diff != null ? (row.goal_diff > 0 ? `+${row.goal_diff}` : String(row.goal_diff)) : "-";
+                const rank = row.rank != null ? row.rank : "-";
                 const focusBadge = row.focus ? `<span class="standing-focus-badge standing-focus-${row.focus}">${row.focus === "home" ? (IS_EN ? "Home" : "Casa") : (IS_EN ? "Away" : "Trasferta")}</span>` : "";
                 const desc = row.description ? `<small class="standing-desc">${escapeHtml(row.description)}</small>` : "";
                 return `<tr class="standing-row standing-row-full${row.focus ? ` standing-focus-${row.focus}` : ""}">
@@ -3554,9 +3582,11 @@
                     <div class="standing-team-main">${escapeHtml(row.teamName)}${focusBadge}</div>
                     ${desc}
                   </td>
-                  <td>${played}</td>
-                  <td class="standing-pts">${pts}</td>
-                  <td>${gd}</td>
+                  ${columns.map(col => {
+                    const value = row[col.key];
+                    const formatted = value == null ? "-" : (typeof col.format === "function" ? col.format(value) : value);
+                    return `<td class="${col.cellClass || ""}">${formatted}</td>`;
+                  }).join("")}
                 </tr>`;
               }).join("")}
             </tbody>
