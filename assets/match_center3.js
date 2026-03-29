@@ -4059,6 +4059,28 @@
     };
   }
 
+  function extractDetailScoreModel(detailData) {
+    const bundle = extractDetailFixtureBundle(detailData);
+    const fixture = extractDetailFixtureCore(detailData);
+    const goals = bundle?.goals || detailData?.goals || null;
+    const statusShort = String(fixture?.status?.short || bundle?.fixture?.status?.short || "");
+    const elapsed = Number(fixture?.status?.elapsed ?? bundle?.fixture?.status?.elapsed);
+    const home = Number(goals?.home);
+    const away = Number(goals?.away);
+    if (!Number.isFinite(home) || !Number.isFinite(away)) return null;
+    return {
+      home,
+      away,
+      status: statusShort,
+      elapsed: Number.isFinite(elapsed) ? elapsed : null,
+      events: extractDetailEvents(detailData),
+    };
+  }
+
+  function resolveDetailScoreModel(match, liveScore, detailData) {
+    return extractDetailScoreModel(detailData) || liveScore || buildDetailFallbackLiveScore(match);
+  }
+
   function hasUsefulDetailPayload(detailData) {
     if (!detailData || typeof detailData !== "object") return false;
     return Boolean(extractDetailFixtureCore(detailData))
@@ -4618,12 +4640,14 @@
       state.detailLiveKey = null;
       return;
     }
-    const liveScore = state.liveScores[String(match.fixture_id)] || buildDetailFallbackLiveScore(match);
-    const fixtureStatus = String((liveScore?.status || match.status_short || "")).toUpperCase();
+    const liveFeedScore = state.liveScores[String(match.fixture_id)];
+    const scoreModel = resolveDetailScoreModel(match, liveFeedScore, state.detailData);
+    const liveScore = scoreModel;
+    const fixtureStatus = String((scoreModel?.status || match.status_short || "")).toUpperCase();
     const isLive = LIVE_STATUSES.has(fixtureStatus);
     const isFinal = FINAL_STATUSES.has(fixtureStatus);
-    const liveElapsed = liveScore ? (estimateLiveElapsed(liveScore.status, state.detailClockBase) ?? liveScore.elapsed) : null;
-    const elapsedTagHtml = liveScore ? formatLiveMinuteHtml(liveScore.status, liveElapsed) : "";
+    const liveElapsed = scoreModel ? (estimateLiveElapsed(scoreModel.status, state.detailClockBase) ?? scoreModel.elapsed) : null;
+    const elapsedTagHtml = scoreModel ? formatLiveMinuteHtml(scoreModel.status, liveElapsed) : "";
     const standingBaseTable = collectLeagueStandingRows(match);
     const standingTable = buildDynamicStandingTable(match, standingBaseTable);
     const standingLiveKey = liveStandingSignature(match, standingBaseTable);
@@ -4661,18 +4685,18 @@
         .filter(group => group.markets.length);
       const summaryMeta = label => `<span class="detail-summary-meta">${escapeHtml(label)}</span>`;
       const loadingBlock = !state.detailData && state.detailDataId ? `<div class="empty-state" style="padding:10px">Caricamento dati live…</div>` : "";
-      const detailEvents = resolveDetailEventsFeed(state.detailData, liveScore);
+      const detailEvents = resolveDetailEventsFeed(state.detailData, liveFeedScore || scoreModel);
       const detailStatistics = extractDetailStatistics(state.detailData);
       const eventsBlock = detailEvents.length ? renderDetailEventsPanel(detailEvents, match) : "";
       const statsBlock = state.detailData ? renderDetailStatsSafe(detailStatistics) : "";
       const generalInfoBlock = state.detailData ? renderDetailGeneralInfo(state.detailData) : "";
-      const spotlightBlock = renderDetailLiveSpotlight(match, liveScore, detailEvents, standingTable);
+      const spotlightBlock = renderDetailLiveSpotlight(match, scoreModel, detailEvents, standingTable);
       const prematchBlock = renderPrematchBlock(match);
       dom.detailBody.innerHTML = `
         <article class="detail-hero">
           <div class="detail-teams">
             <div class="detail-team">${match.home_logo ? `<img class="team-logo" src="${match.home_logo}" alt="" loading="lazy" decoding="async" />` : ""}<h3>${escapeHtml(match.home)}</h3></div>
-            <div class="detail-vs${liveScore ? ' detail-vs-score' : ''}">${scoreDisplay || "VS"}</div>
+            <div class="detail-vs${scoreModel ? ' detail-vs-score' : ''}">${scoreDisplay || "VS"}</div>
             <div class="detail-team">${match.away_logo ? `<img class="team-logo" src="${match.away_logo}" alt="" loading="lazy" decoding="async" />` : ""}<h3>${escapeHtml(match.away)}</h3></div>
           </div>
           <div class="detail-meta-grid">
@@ -4701,15 +4725,15 @@
     }
 
     // Partial live patch: update only score and status in-place (no innerHTML replacement = no blink)
-    const currentDetailEvents = resolveDetailEventsFeed(state.detailData, liveScore);
-    const liveKey = `${liveScore ? `${liveScore.home}-${liveScore.away}-${liveElapsed || ""}-${liveScore.status || ""}` : "ns"}|${standingLiveKey}|${detailEventFeedSignature(currentDetailEvents)}|${scoreChanged ? "c" : ""}`;
+    const currentDetailEvents = resolveDetailEventsFeed(state.detailData, liveFeedScore);
+    const liveKey = `${scoreModel ? `${scoreModel.home}-${scoreModel.away}-${liveElapsed || ""}-${scoreModel.status || ""}` : "ns"}|${standingLiveKey}|${detailEventFeedSignature(currentDetailEvents)}|${scoreChanged ? "c" : ""}`;
     const hasNewLiveData = Boolean(state.detailDataLive);
     if (liveKey === state.detailLiveKey && !hasNewLiveData) return;
     state.detailLiveKey = liveKey;
 
     const vsEl = dom.detailBody.querySelector(".detail-vs");
     if (vsEl) {
-      vsEl.className = `detail-vs${liveScore ? " detail-vs-score" : ""}`;
+      vsEl.className = `detail-vs${scoreModel ? " detail-vs-score" : ""}`;
       vsEl.innerHTML = buildScoreDisplay() || "VS";
     }
     const statusEl = dom.detailBody.querySelector(".detail-status-strong");
@@ -4717,9 +4741,9 @@
 
     // Clock ticker patch (estimated elapsed between API refreshes)
     if (isLive && state.detailClockBase) {
-      const estElapsed = estimateLiveElapsed(liveScore?.status, state.detailClockBase);
+      const estElapsed = estimateLiveElapsed(scoreModel?.status, state.detailClockBase);
       const tagEl = dom.detailBody.querySelector(".detail-status-tag");
-      if (tagEl) tagEl.innerHTML = formatLiveMinuteHtml(liveScore?.status, estElapsed);
+      if (tagEl) tagEl.innerHTML = formatLiveMinuteHtml(scoreModel?.status, estElapsed);
     }
 
     const standingBodyEl = dom.detailBody.querySelector(".standing-full-body");
@@ -4739,8 +4763,8 @@
     if (standingBadgeEl) standingBadgeEl.innerHTML = renderStandingLiveBadge(standingTable);
     const spotlightHtml = renderDetailLiveSpotlight(
       match,
-      liveScore,
-      hasNewLiveData ? resolveDetailEventsFeed(state.detailDataLive, liveScore) : currentDetailEvents,
+      scoreModel,
+      hasNewLiveData ? resolveDetailEventsFeed(state.detailDataLive, liveFeedScore || scoreModel) : currentDetailEvents,
       standingTable
     );
     const spotlightEl = dom.detailBody.querySelector(".detail-live-spotlight-shell");
@@ -4753,7 +4777,7 @@
     // Live sections patch (events + stats) when new data arrived from periodic re-fetch
     if (hasNewLiveData || !state.detailData) {
       const liveDataSource = hasNewLiveData ? state.detailDataLive : state.detailData;
-      const newEvents = resolveDetailEventsFeed(liveDataSource, liveScore);
+      const newEvents = resolveDetailEventsFeed(liveDataSource, liveFeedScore || scoreModel);
       const previousEventKeys = new Set((state.detailPrevEvents || []).map(detailEventStableKey).filter(Boolean));
       const recentEventKeys = new Set(
         newEvents
@@ -4764,7 +4788,7 @@
       if (liveSectionsEl) {
         liveSectionsEl.innerHTML = renderDetailLiveSections(
           match,
-          liveScore,
+          liveFeedScore || scoreModel,
           liveDataSource,
           hasNewLiveData ? recentEventKeys : new Set(),
           hasNewLiveData ? state.detailPrevStats : null
