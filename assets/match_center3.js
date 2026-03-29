@@ -3171,7 +3171,7 @@
         </div>
         ${liveDot}
       </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">${liveBadge}<span class="league-count">${group.matches.length}</span></div>
+      <div class="league-header-right">${liveBadge}<span class="league-count">${group.matches.length}</span></div>
     `;
     return collapsible ? `${header}<span class="league-caret" aria-hidden="true"></span>` : header;
   }
