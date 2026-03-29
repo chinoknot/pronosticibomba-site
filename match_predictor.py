@@ -2109,6 +2109,27 @@ def write_cache_bundle(cache_dir, payload):
         write_cache(cache_file_path(cache_dir, date_str), payload)
     return payload
 
+
+def hydrate_payload_standings_from_sidecar(cache_dir, payload):
+    if not isinstance(payload, dict):
+        return payload
+    if isinstance(payload.get("standings"), dict) and payload.get("standings"):
+        return payload
+    date_str = str(payload.get("date") or "").strip()
+    if not date_str:
+        return payload
+    sidecar_path = standings_cache_file_path(cache_dir, date_str)
+    if not sidecar_path.exists():
+        return payload
+    try:
+        sidecar = load_cache(sidecar_path)
+    except Exception:
+        return payload
+    standings = sidecar.get("standings") if isinstance(sidecar, dict) else None
+    if isinstance(standings, dict) and standings:
+        payload["standings"] = standings
+    return payload
+
 def chunked(seq, size):
     for i in range(0, len(seq), size):
         yield seq[i:i + size]
@@ -2190,7 +2211,7 @@ def refresh_existing_caches(cache_dir):
     ensure_cache_dir(cache_dir)
     refreshed = []
     for path in sorted(Path(cache_dir).glob("????-??-??.json")):
-        payload = load_cache(path)
+        payload = hydrate_payload_standings_from_sidecar(cache_dir, load_cache(path))
         expires_at = parse_iso_dt(payload.get("expires_at"))
         if expires_at and expires_at <= now_utc():
             continue
