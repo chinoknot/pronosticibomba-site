@@ -446,6 +446,21 @@
     return baseElapsed + Math.floor((Date.now() - Number(clockBase?.at || 0)) / 60000);
   }
 
+  function formatLiveStatusText(status, elapsed) {
+    const statusShort = String(status || "").toUpperCase();
+    const minute = formatLiveMinuteText(statusShort, elapsed);
+    if (statusShort === "HT" || statusShort === "INT") return IS_EN ? "Half-time" : "Intervallo";
+    if (statusShort === "1H") return minute ? `${IS_EN ? "First half" : "Primo tempo"} | ${minute}` : (IS_EN ? "First half" : "Primo tempo");
+    if (statusShort === "2H" || statusShort === "LIVE") return minute ? `${IS_EN ? "Second half" : "Secondo tempo"} | ${minute}` : (IS_EN ? "Second half" : "Secondo tempo");
+    if (statusShort === "ET") return minute ? `${IS_EN ? "Extra time" : "Tempi supplementari"} | ${minute}` : (IS_EN ? "Extra time" : "Tempi supplementari");
+    if (statusShort === "BT") return IS_EN ? "Extra-time break" : "Intervallo supplementari";
+    if (statusShort === "P") return IS_EN ? "Penalties" : "Rigori";
+    if (statusShort === "FT") return IS_EN ? "Final" : "Finale";
+    if (statusShort === "AET") return IS_EN ? "Final after extra time" : "Finale dopo supplementari";
+    if (statusShort === "PEN") return IS_EN ? "Final after penalties" : "Finale dopo rigori";
+    return "";
+  }
+
   const tickMin = n => formatLiveMinuteHtml("", n);
 
   function formatPercent(value) {
@@ -4561,9 +4576,16 @@
     const buildScoreDisplay = () => liveScore
       ? `<div class="detail-live-score${isLive ? " detail-live-score-live" : ""}${scoreChanged ? " score-changed" : ""}"><span class="score-num">${liveScore.home} - ${liveScore.away}</span>${elapsedTagHtml ? `<span class="detail-status-tag">${elapsedTagHtml}</span>` : ""}</div>`
       : "";
-    const buildStatusText = () => isFinal
-      ? `Fine | ${liveScore ? `${liveScore.home}-${liveScore.away}` : (match.final_score || "-")}`
-      : escapeHtml(match.status_long || statusLabel("scheduled"));
+    const buildStatusText = () => {
+      if (liveScore) {
+        const liveStatusText = formatLiveStatusText(liveScore.status, liveElapsed);
+        if (liveStatusText) return escapeHtml(liveStatusText);
+      }
+      if (isFinal) {
+        return escapeHtml(IS_EN ? `Final | ${liveScore ? `${liveScore.home}-${liveScore.away}` : (match.final_score || "-")}` : `Fine | ${liveScore ? `${liveScore.home}-${liveScore.away}` : (match.final_score || "-")}`);
+      }
+      return escapeHtml(match.status_long || statusLabel("scheduled"));
+    };
 
     // Full re-render only when fixture changes or data loads/clears
     const structureKey = `${state.detailFixtureId}|${state.detailData ? "d" : "nd"}|${state.detailTeamStatsStatus}|${state.detailTeamStats ? "ts" : "nts"}|${state.standingsRenderVersion}`;
