@@ -3187,7 +3187,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3.js?v=20260328p"></script>
+  <script src="/assets/match_center3.js?v=20260329live1"></script>
   <script>
     (function () {
       const ready = () => {
@@ -3724,8 +3724,23 @@
       background:linear-gradient(90deg,#39c2ff,#8fd5ff);
       transition:width .8s cubic-bezier(.34,1,.64,1);
     }
+    @keyframes detailStatGrow{
+      from{width:var(--stat-from,0%)}
+      to{width:var(--stat-to,100%)}
+    }
+    .detail-stat-bar-home.stat-bar-grow{
+      animation:detailStatGrow .9s cubic-bezier(.22,1,.36,1);
+    }
     @keyframes statFlash{0%{background:rgba(255,200,0,.22);border-radius:6px}100%{background:transparent}}
     .detail-stat-row.stat-changed{animation:statFlash 1.4s ease-out forwards}
+    @keyframes detailEventEnter{
+      0%{opacity:0;transform:translateY(10px) scale(.98);filter:brightness(1.22)}
+      100%{opacity:1;transform:translateY(0) scale(1);filter:brightness(1)}
+    }
+    .detail-event-row-new{
+      animation:detailEventEnter .55s cubic-bezier(.22,1,.36,1), statFlash 1.15s ease-out forwards;
+      transform-origin:center;
+    }
 
     /* Detail sheet: chiusura animata */
     .detail-sheet { transition: transform .28s cubic-bezier(.32,.72,0,1); }

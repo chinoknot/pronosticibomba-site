@@ -272,6 +272,7 @@
     detailClockBase: null,
     detailDataLive: null,
     detailPrevStats: null,
+    detailPrevEvents: null,
     detailTeamStats: null,
     detailTeamStatsId: null,
     detailTeamStatsStatus: "idle",
@@ -409,7 +410,43 @@
   }
 
   // Returns "45<span class='tick-mark'>'</span>" — the tick blinks via CSS, no JS interval needed
-  const tickMin = n => `${n}<span class="tick-mark" aria-hidden="true">'</span>`;
+  function formatLiveMinuteText(status, elapsed) {
+    const statusShort = String(status || "").toUpperCase();
+    const minute = Number(elapsed);
+    if (statusShort === "HT" || statusShort === "INT") return "HT";
+    if (FINAL_STATUSES.has(statusShort)) return "FT";
+    if (!Number.isFinite(minute) || minute <= 0) {
+      return LIVE_STATUSES.has(statusShort) && statusShort !== "LIVE" ? statusShort : "";
+    }
+    if ((statusShort === "1H" || statusShort === "HT" || statusShort === "INT") && minute > 45) {
+      return `45+${minute - 45}`;
+    }
+    if ((statusShort === "2H" || statusShort === "LIVE") && minute > 90) {
+      return `90+${minute - 90}`;
+    }
+    if ((statusShort === "ET" || statusShort === "BT" || statusShort === "P") && minute > 105) {
+      return `105+${minute - 105}`;
+    }
+    return String(minute);
+  }
+
+  function formatLiveMinuteHtml(status, elapsed) {
+    const label = formatLiveMinuteText(status, elapsed);
+    if (!label) return "";
+    return /^\d+(?:\+\d+)?$/.test(label)
+      ? `${escapeHtml(label)}<span class="tick-mark" aria-hidden="true">'</span>`
+      : escapeHtml(label);
+  }
+
+  function estimateLiveElapsed(status, clockBase) {
+    const baseElapsed = Number(clockBase?.elapsed);
+    if (!Number.isFinite(baseElapsed) || baseElapsed <= 0) return null;
+    const statusShort = String(status || "").toUpperCase();
+    if (statusShort === "HT" || statusShort === "INT" || FINAL_STATUSES.has(statusShort)) return baseElapsed;
+    return baseElapsed + Math.floor((Date.now() - Number(clockBase?.at || 0)) / 60000);
+  }
+
+  const tickMin = n => formatLiveMinuteHtml("", n);
 
   function formatPercent(value) {
     if (value == null || Number.isNaN(Number(value))) return "-";
@@ -2975,7 +3012,7 @@
       return `<span class="live-score-final">${escapeHtml(match.final_score || "-")}</span>`;
     }
     if (liveScore && LIVE_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
-      const elapsedHtml = liveScore.status === "HT" ? "HT" : (liveScore.elapsed ? tickMin(liveScore.elapsed) : escapeHtml(liveScore.status || ""));
+      const elapsedHtml = formatLiveMinuteHtml(liveScore.status, liveScore.elapsed);
       if (featured) {
         const redCards = (liveScore.events || []).filter(event => event.type === "Card" && /Red Card|Second Yellow/i.test(String(event.detail || "")));
         const redBadge = redCards.length ? `<span class="live-red-badge" title="${escapeHtml(IS_EN ? "Red card" : "Cartellino rosso")}">RC${redCards.length > 1 ? ` ${redCards.length}` : ""}</span>` : "";
@@ -3038,7 +3075,7 @@
         return `<span class="live-score-final">${escapeHtml(match.final_score || "-")}</span>`;
       }
       if (liveScore && LIVE_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
-        const elapsedHtml = liveScore.status === "HT" ? "HT" : (liveScore.elapsed ? tickMin(liveScore.elapsed) : escapeHtml(liveScore.status || ""));
+        const elapsedHtml = formatLiveMinuteHtml(liveScore.status, liveScore.elapsed);
         const goals = (liveScore.events || []).filter(e => e.type === "Goal" && e.detail !== "Missed Penalty");
         const goalIcons = goals.map(e => `<span class="live-event-icon" title="${escapeHtml(e.playerName || "")} ${e.elapsed ? `(${e.elapsed}')` : ""}">⚽</span>`).join("");
         return `<span class="live-score-badge${rowScoreChanged ? " score-changed" : ""}">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${elapsedHtml}</span>${goalIcons}`;
@@ -3181,7 +3218,7 @@
     // Partite live non nel JSON (coppe, ET, ecc.) — renderizzate in cima
     const liveOnlyHtml = (state.liveOnlyMatches || []).map(f => {
       const liveScore = state.liveScores[String(f.fixture_id)];
-      const elapsedHtml = liveScore?.elapsed ? tickMin(liveScore.elapsed) : escapeHtml(liveScore?.status || "LIVE");
+      const elapsedHtml = formatLiveMinuteHtml(liveScore?.status, liveScore?.elapsed) || escapeHtml(liveScore?.status || "LIVE");
       const score = liveScore ? `${liveScore.home} - ${liveScore.away}` : "- -";
       return `<section class="league-block league-block-major league-block-live" data-live-only-id="${escapeHtml(String(f.fixture_id))}">
         <div class="league-header">
@@ -3534,6 +3571,151 @@
     return Array.isArray(groups) && groups.some(group => Array.isArray(group?.rows) && group.rows.length);
   }
 
+  function standingRowIdentity(row) {
+    if (!row) return "";
+    if (row.teamId != null || row.team_id != null) return `id:${row.teamId ?? row.team_id}`;
+    const teamName = row.teamName || row.team_name || "";
+    return teamName ? `name:${normalizeTeamKey(teamName)}` : "";
+  }
+
+  function standingMatchTeamIdentity(match, side) {
+    if (!match) return "";
+    const teamId = match[`${side}_team_id`];
+    if (teamId != null && teamId !== "") return `id:${teamId}`;
+    return `name:${normalizeTeamKey(match[side])}`;
+  }
+
+  function standingMetric(value) {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : 0;
+  }
+
+  function collectLeagueLiveStandingMatches(match, tableRows) {
+    const targetLeagueId = String(match?.league_id || "");
+    const targetSeason = String(match?.league_season || "");
+    if (!targetLeagueId || !targetSeason || !Array.isArray(tableRows) || !tableRows.length) return [];
+    const teamKeys = new Set(tableRows.map(standingRowIdentity).filter(Boolean));
+    if (teamKeys.size < 2) return [];
+    const seenFixtureIds = new Set();
+    return [...getPreparedMatches(), ...(state.liveOnlyMatches || [])].filter(entry => {
+      const fixtureId = String(entry?.fixture_id || "");
+      if (!fixtureId || seenFixtureIds.has(fixtureId)) return false;
+      seenFixtureIds.add(fixtureId);
+      if (String(entry?.league_id || "") !== targetLeagueId || String(entry?.league_season || "") !== targetSeason) return false;
+      const status = String(entry?.status_short || entry?.status || "").toUpperCase();
+      if (!LIVE_STATUSES.has(status)) return false;
+      const homeKey = standingMatchTeamIdentity(entry, "home");
+      const awayKey = standingMatchTeamIdentity(entry, "away");
+      if (!homeKey || !awayKey) return false;
+      return teamKeys.has(homeKey) && teamKeys.has(awayKey);
+    });
+  }
+
+  function sortDynamicStandingRows(rows) {
+    return [...rows].sort((a, b) => {
+      const pointsDiff = standingMetric(b.points) - standingMetric(a.points);
+      if (pointsDiff) return pointsDiff;
+      const gdDiff = standingMetric(b.goal_diff) - standingMetric(a.goal_diff);
+      if (gdDiff) return gdDiff;
+      const gfDiff = standingMetric(b.goals_for) - standingMetric(a.goals_for);
+      if (gfDiff) return gfDiff;
+      const winsDiff = standingMetric(b.won) - standingMetric(a.won);
+      if (winsDiff) return winsDiff;
+      const rankA = Number(a.rank);
+      const rankB = Number(b.rank);
+      if (Number.isFinite(rankA) && Number.isFinite(rankB) && rankA !== rankB) return rankA - rankB;
+      return String(a.teamName || "").localeCompare(String(b.teamName || ""));
+    });
+  }
+
+  function buildDynamicStandingTable(match, table) {
+    if (!table?.rows?.length) return table;
+    const groupBuckets = new Set(table.rows.map(row => Number(row.groupOrder ?? 0)));
+    if (groupBuckets.size > 1) return table;
+    const liveMatches = collectLeagueLiveStandingMatches(match, table.rows);
+    if (!liveMatches.length) return table;
+    const rowsMap = new Map(
+      table.rows.map(row => [standingRowIdentity(row), {
+        ...row,
+        points: standingMetric(row.points),
+        played: standingMetric(row.played),
+        won: standingMetric(row.won),
+        draw: standingMetric(row.draw),
+        lost: standingMetric(row.lost),
+        goals_for: standingMetric(row.goals_for),
+        goals_against: standingMetric(row.goals_against),
+        goal_diff: standingMetric(row.goal_diff),
+      }])
+    );
+    liveMatches.forEach(entry => {
+      const homeGoals = Number(entry?.goals_home);
+      const awayGoals = Number(entry?.goals_away);
+      if (!Number.isFinite(homeGoals) || !Number.isFinite(awayGoals)) return;
+      const homeKey = standingMatchTeamIdentity(entry, "home");
+      const awayKey = standingMatchTeamIdentity(entry, "away");
+      const homeRow = rowsMap.get(homeKey);
+      const awayRow = rowsMap.get(awayKey);
+      if (!homeRow || !awayRow) return;
+      homeRow.played += 1;
+      awayRow.played += 1;
+      homeRow.goals_for += homeGoals;
+      homeRow.goals_against += awayGoals;
+      awayRow.goals_for += awayGoals;
+      awayRow.goals_against += homeGoals;
+      homeRow.goal_diff = homeRow.goals_for - homeRow.goals_against;
+      awayRow.goal_diff = awayRow.goals_for - awayRow.goals_against;
+      if (homeGoals > awayGoals) {
+        homeRow.won += 1;
+        awayRow.lost += 1;
+        homeRow.points += 3;
+      } else if (homeGoals < awayGoals) {
+        awayRow.won += 1;
+        homeRow.lost += 1;
+        awayRow.points += 3;
+      } else {
+        homeRow.draw += 1;
+        awayRow.draw += 1;
+        homeRow.points += 1;
+        awayRow.points += 1;
+      }
+    });
+    const rows = sortDynamicStandingRows([...rowsMap.values()]).map((row, index) => ({
+      ...row,
+      rank: index + 1,
+    }));
+    return {
+      ...table,
+      rows,
+      liveAdjusted: true,
+      liveCount: liveMatches.length,
+    };
+  }
+
+  function liveStandingSignature(match, table) {
+    return collectLeagueLiveStandingMatches(match, table?.rows || [])
+      .map(entry => `${entry.fixture_id}:${String(entry.status_short || entry.status || "").toUpperCase()}:${entry.goals_home ?? "-"}-${entry.goals_away ?? "-"}`)
+      .join("|");
+  }
+
+  function renderStandingTableRows(match, rows, columns) {
+    return rows.map(row => {
+      const rank = row.rank != null ? row.rank : "-";
+      const focus = row.focus || resolveStandingFocus(match, row.teamId, row.teamName);
+      const focusBadge = focus ? `<span class="standing-focus-badge standing-focus-${focus}">${focus === "home" ? (IS_EN ? "Home" : "Casa") : (IS_EN ? "Away" : "Trasferta")}</span>` : "";
+      return `<tr class="standing-row standing-row-full${focus ? ` standing-focus-${focus}` : ""}">
+        <td class="standing-rank">${rank}</td>
+        <td class="standing-team">
+          <div class="standing-team-main"><span class="standing-team-name">${escapeHtml(row.teamName)}</span>${focusBadge}</div>
+        </td>
+        ${columns.map(col => {
+          const value = row[col.key];
+          const formatted = value == null ? "-" : (typeof col.format === "function" ? col.format(value) : value);
+          return `<td class="${col.cellClass || ""}">${formatted}</td>`;
+        }).join("")}
+      </tr>`;
+    }).join("");
+  }
+
   function collectLeagueStandingRows(match) {
     const targetLeagueId = String(match?.league_id || "");
     const targetSeason = String(match?.league_season || "");
@@ -3548,15 +3730,21 @@
     if (cachedTable && Array.isArray(cachedTable.groups) && cachedTable.groups.length) {
       let selectedGroups = cachedTable.groups;
       if (cachedTable.groups.length > 1) {
+        const exactGroups = cachedTable.groups.filter(group => {
+          const teamIds = new Set((group?.rows || []).map(row => Number(row?.team_id || 0)).filter(Boolean));
+          return teamIds.has(Number(match?.home_team_id || 0)) && teamIds.has(Number(match?.away_team_id || 0));
+        });
+        if (exactGroups.length) selectedGroups = exactGroups;
         if (preferredGroups.size) {
-          const filteredGroups = cachedTable.groups.filter(group => preferredGroups.has(normalizeStandingGroup(group?.group)));
+          const filteredGroups = selectedGroups.filter(group => preferredGroups.has(normalizeStandingGroup(group?.group)));
           if (filteredGroups.length) selectedGroups = filteredGroups;
         } else {
-          const focusGroups = cachedTable.groups.filter(group =>
+          const focusGroups = selectedGroups.filter(group =>
             (group?.rows || []).some(row => resolveStandingFocus(match, row.team_id, row.team_name))
           );
           if (focusGroups.length) selectedGroups = focusGroups;
         }
+        if (selectedGroups.length > 1 && exactGroups.length) selectedGroups = [exactGroups[0]];
       }
       const rows = sortStandingRows(
         selectedGroups.flatMap((group, groupIndex) =>
@@ -3650,7 +3838,7 @@
   }
 
   function renderStandingFullTable(match) {
-    const table = collectLeagueStandingRows(match);
+    const table = buildDynamicStandingTable(match, collectLeagueStandingRows(match));
     if (!table.rows.length) {
       if (hasStandingsSidecarForDate() && standingsLoadPending()) {
         return `
@@ -3684,23 +3872,7 @@
             <thead>
               <tr><th>#</th><th>${IS_EN ? "Team" : "Squadra"}</th>${columns.map(col => `<th>${col.label}</th>`).join("")}</tr>
             </thead>
-            <tbody>
-              ${table.rows.map(row => {
-                const rank = row.rank != null ? row.rank : "-";
-                const focusBadge = row.focus ? `<span class="standing-focus-badge standing-focus-${row.focus}">${row.focus === "home" ? (IS_EN ? "Home" : "Casa") : (IS_EN ? "Away" : "Trasferta")}</span>` : "";
-                return `<tr class="standing-row standing-row-full${row.focus ? ` standing-focus-${row.focus}` : ""}">
-                  <td class="standing-rank">${rank}</td>
-                  <td class="standing-team">
-                    <div class="standing-team-main"><span class="standing-team-name">${escapeHtml(row.teamName)}</span>${focusBadge}</div>
-                  </td>
-                  ${columns.map(col => {
-                    const value = row[col.key];
-                    const formatted = value == null ? "-" : (typeof col.format === "function" ? col.format(value) : value);
-                    return `<td class="${col.cellClass || ""}">${formatted}</td>`;
-                  }).join("")}
-                </tr>`;
-              }).join("")}
-            </tbody>
+            <tbody class="standing-full-body">${renderStandingTableRows(match, table.rows, columns)}</tbody>
           </table>
         </div>
       </div>`;
@@ -4082,7 +4254,16 @@
     `;
   }
 
-  function renderDetailEventsSafe(events, match) {
+  function detailEventStableKey(event) {
+    const elapsed = event?.time?.elapsed ?? event?.elapsed ?? "";
+    const extra = event?.time?.extra ?? event?.extra ?? "";
+    const team = event?.team?.id || event?.team?.name || event?.teamName || "";
+    const player = event?.player?.id || event?.player?.name || event?.playerName || "";
+    const assist = event?.assist?.id || event?.assist?.name || event?.assistName || "";
+    return [event?.type || "", event?.detail || "", elapsed, extra, team, player, assist].join("|");
+  }
+
+  function renderDetailEventsSafe(events, match, recentEventKeys = new Set()) {
     const source = Array.isArray(events) ? events : [];
     if (!source.length || !match) return "";
     const relevant = source.filter(event => {
@@ -4177,8 +4358,9 @@
           const elapsed = event?.time?.elapsed || event?.elapsed;
           const extra = event?.time?.extra || event?.extra;
           const minute = elapsed ? `${elapsed}${extra ? `+${extra}` : ""}'` : "";
+          const isNew = recentEventKeys.has(detailEventStableKey(event));
           return `
-            <div class="detail-event-row detail-event-row-${side || "neutral"}">
+            <div class="detail-event-row detail-event-row-${side || "neutral"}${isNew ? " detail-event-row-new" : ""}">
               <div class="detail-event-home">${side === "home" ? renderDetailEventSideSafe(event, match, "home") : ""}</div>
               <div class="detail-event-center"><span class="detail-event-time">${escapeHtml(minute)}</span></div>
               <div class="detail-event-away">${side === "away" ? renderDetailEventSideSafe(event, match, "away") : ""}</div>
@@ -4249,10 +4431,16 @@
       const awayNumeric = parseFloat(String(awayValue).replace("%", ""));
       const total = homeNumeric + awayNumeric;
       const barPct = total > 0 ? Math.round((homeNumeric / total) * 100) : 0;
+      const prevHomeValue = prevHomeStats.get(type);
+      const prevAwayValue = prevAwayStats.get(type);
+      const prevHomeNumeric = parseFloat(String(prevHomeValue ?? "").replace("%", ""));
+      const prevAwayNumeric = parseFloat(String(prevAwayValue ?? "").replace("%", ""));
+      const prevTotal = prevHomeNumeric + prevAwayNumeric;
+      const prevBarPct = prevTotal > 0 ? Math.round((prevHomeNumeric / prevTotal) * 100) : 0;
       const bar = total > 0
-        ? `<div class="detail-stat-bar"><div class="detail-stat-bar-home" style="width:${barPct}%"></div></div>`
+        ? `<div class="detail-stat-bar"><div class="detail-stat-bar-home${hasPrev && prevBarPct !== barPct ? " stat-bar-grow" : ""}" style="--stat-from:${prevBarPct}%;--stat-to:${barPct}%;width:${barPct}%"></div></div>`
         : "";
-      const changed = hasPrev && (prevHomeStats.get(type) !== homeValue || prevAwayStats.get(type) !== awayValue);
+      const changed = hasPrev && (prevHomeValue !== homeValue || prevAwayValue !== awayValue);
       return `
         <div class="detail-stat-row${changed ? " stat-changed" : ""}">
           <span class="detail-stat-home">${escapeHtml(String(homeValue))}</span>
@@ -4274,8 +4462,8 @@
     `;
   }
 
-  function renderDetailEventsPanel(events, match) {
-    return renderDetailEventsSafe(events, match);
+  function renderDetailEventsPanel(events, match, recentEventKeys) {
+    return renderDetailEventsSafe(events, match, recentEventKeys);
   }
 
   function renderDetailStatsPanel(statistics) {
@@ -4294,9 +4482,11 @@
     const fixtureStatus = String((liveScore?.status || match.status_short || "")).toUpperCase();
     const isLive = LIVE_STATUSES.has(fixtureStatus);
     const isFinal = FINAL_STATUSES.has(fixtureStatus);
-    const elapsedTagHtml = liveScore
-      ? (liveScore.status === "HT" ? "HT" : isFinal ? "FT" : (liveScore.elapsed ? tickMin(liveScore.elapsed) : escapeHtml(liveScore.status || "")))
-      : "";
+    const liveElapsed = liveScore ? (estimateLiveElapsed(liveScore.status, state.detailClockBase) ?? liveScore.elapsed) : null;
+    const elapsedTagHtml = liveScore ? formatLiveMinuteHtml(liveScore.status, liveElapsed) : "";
+    const standingBaseTable = collectLeagueStandingRows(match);
+    const standingTable = buildDynamicStandingTable(match, standingBaseTable);
+    const standingLiveKey = liveStandingSignature(match, standingBaseTable);
     const scoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
 
     // Helpers shared between full and partial render
@@ -4362,7 +4552,7 @@
     }
 
     // Partial live patch: update only score and status in-place (no innerHTML replacement = no blink)
-    const liveKey = `${liveScore ? `${liveScore.home}-${liveScore.away}-${liveScore.elapsed || ""}-${liveScore.status || ""}` : "ns"}|${scoreChanged ? "c" : ""}`;
+    const liveKey = `${liveScore ? `${liveScore.home}-${liveScore.away}-${liveElapsed || ""}-${liveScore.status || ""}` : "ns"}|${standingLiveKey}|${scoreChanged ? "c" : ""}`;
     const hasNewLiveData = Boolean(state.detailDataLive);
     if (liveKey === state.detailLiveKey && !hasNewLiveData) return;
     state.detailLiveKey = liveKey;
@@ -4377,21 +4567,42 @@
 
     // Clock ticker patch (estimated elapsed between API refreshes)
     if (isLive && state.detailClockBase) {
-      const estElapsed = state.detailClockBase.elapsed + Math.floor((Date.now() - state.detailClockBase.at) / 60000);
+      const estElapsed = estimateLiveElapsed(liveScore?.status, state.detailClockBase);
       const tagEl = dom.detailBody.querySelector(".detail-status-tag");
-      if (tagEl && estElapsed > 0) tagEl.innerHTML = tickMin(estElapsed);
+      if (tagEl) tagEl.innerHTML = formatLiveMinuteHtml(liveScore?.status, estElapsed);
+    }
+
+    const standingBodyEl = dom.detailBody.querySelector(".standing-full-body");
+    if (standingBodyEl && standingTable?.rows?.length) {
+      standingBodyEl.innerHTML = renderStandingTableRows(match, standingTable.rows, [
+        { key: "played" },
+        { key: "won" },
+        { key: "draw" },
+        { key: "lost" },
+        { key: "goals_for" },
+        { key: "goals_against" },
+        { key: "goal_diff", format: value => value > 0 ? `+${value}` : String(value) },
+        { key: "points", cellClass: "standing-pts" },
+      ]);
     }
 
     // Live sections patch (events + stats) when new data arrived from periodic re-fetch
     if (hasNewLiveData) {
       const newEvents = extractDetailEvents(state.detailDataLive);
       const newStats = extractDetailStatistics(state.detailDataLive);
+      const previousEventKeys = new Set((state.detailPrevEvents || []).map(detailEventStableKey).filter(Boolean));
+      const recentEventKeys = new Set(
+        newEvents
+          .map(detailEventStableKey)
+          .filter(key => key && !previousEventKeys.has(key))
+      );
       const liveSectionsEl = dom.detailBody.querySelector(".detail-live-sections");
       if (liveSectionsEl) {
-        liveSectionsEl.innerHTML = renderDetailEventsPanel(newEvents, match) + renderDetailStatsSafe(newStats, state.detailPrevStats);
+        liveSectionsEl.innerHTML = renderDetailEventsPanel(newEvents, match, recentEventKeys) + renderDetailStatsSafe(newStats, state.detailPrevStats);
       }
       state.detailDataLive = null;
       state.detailPrevStats = null;
+      state.detailPrevEvents = null;
     }
   }
 
@@ -4648,6 +4859,9 @@
     const controller = new AbortController();
     state.detailAbortController = controller;
     state.detailData = null;
+    state.detailDataLive = null;
+    state.detailPrevStats = null;
+    state.detailPrevEvents = null;
     state.detailDataId = String(fixtureId);
     renderDetail();
     try {
@@ -4656,6 +4870,11 @@
       if (!res.ok) return;
       const data = await res.json();
       if (data.ok && requestToken === state.detailRequestToken && state.detailDataId === String(fixtureId)) {
+        const detailStatus = String(data?.fixture?.fixture?.status?.short || "");
+        const detailElapsed = Number(data?.fixture?.fixture?.status?.elapsed);
+        if (LIVE_STATUSES.has(detailStatus.toUpperCase()) && Number.isFinite(detailElapsed) && detailElapsed > 0) {
+          state.detailClockBase = { elapsed: detailElapsed, at: Date.now() };
+        }
         state.detailData = data;
         renderDetail();
       }
@@ -4682,7 +4901,14 @@
       if (!res.ok) return;
       const data = await res.json();
       if (data.ok && state.detailFixtureId === String(fixtureId)) {
+        const detailStatus = String(data?.fixture?.fixture?.status?.short || "");
+        const detailElapsed = Number(data?.fixture?.fixture?.status?.elapsed);
+        if (LIVE_STATUSES.has(detailStatus.toUpperCase()) && Number.isFinite(detailElapsed) && detailElapsed > 0) {
+          state.detailClockBase = { elapsed: detailElapsed, at: Date.now() };
+        }
         state.detailPrevStats = extractDetailStatistics(state.detailData || state.detailDataLive);
+        state.detailPrevEvents = extractDetailEvents(state.detailData || state.detailDataLive);
+        state.detailData = data;
         state.detailDataLive = data;
         renderDetail();
       }
@@ -4696,9 +4922,9 @@
     if (!state.detailFixtureId || !state.detailClockBase || !dom.detailBody) return;
     const ls = state.liveScores[String(state.detailFixtureId)];
     if (!ls || !LIVE_STATUSES.has(String(ls.status || "").toUpperCase())) return;
-    const estElapsed = state.detailClockBase.elapsed + Math.floor((Date.now() - state.detailClockBase.at) / 60000);
+    const estElapsed = estimateLiveElapsed(ls.status, state.detailClockBase);
     const tagEl = dom.detailBody.querySelector(".detail-status-tag");
-    if (tagEl && estElapsed > 0) tagEl.textContent = `${estElapsed}'`;
+    if (tagEl) tagEl.innerHTML = formatLiveMinuteHtml(ls.status, estElapsed);
   }
 
   async function fetchLiveScores() {
@@ -4742,6 +4968,7 @@
             league: f.league?.name || "",
             country: f.league?.country || "",
             league_id: f.league?.id || 0,
+            league_season: f.league?.season || 0,
             date: (f.fixture?.date || "").slice(0, 10),
             match_date: (f.fixture?.date || "").slice(0, 10),
             kickoff_at: f.fixture?.date || null,
@@ -4749,6 +4976,8 @@
             status_short: status,
             goals_home: f.goals?.home ?? null,
             goals_away: f.goals?.away ?? null,
+            home_team_id: f.teams?.home?.id || null,
+            away_team_id: f.teams?.away?.id || null,
             _liveOnly: true,
           });
         }
@@ -4904,6 +5133,10 @@
     const closeDetail = () => {
       state.detailFixtureId = null;
       state.detailData = null;
+      state.detailDataLive = null;
+      state.detailPrevStats = null;
+      state.detailPrevEvents = null;
+      state.detailClockBase = null;
       state.detailTeamStats = null;
       state.detailTeamStatsId = null;
       state.detailTeamStatsStatus = "idle";
@@ -5199,6 +5432,10 @@
         state.detailDataId = String(nextFixtureId || "");
         state.detailStructureKey = null;
         state.detailLiveKey = null;
+        state.detailDataLive = null;
+        state.detailPrevStats = null;
+        state.detailPrevEvents = null;
+        state.detailClockBase = null;
         state.detailTeamStats = null;
         state.detailTeamStatsId = null;
         state.detailTeamStatsStatus = "idle";
@@ -5218,6 +5455,10 @@
       if (state.detailFixtureId) {
         state.detailFixtureId = null;
         state.detailData = null;
+        state.detailDataLive = null;
+        state.detailPrevStats = null;
+        state.detailPrevEvents = null;
+        state.detailClockBase = null;
         if (state.detailAbortController) {
           try { state.detailAbortController.abort(); } catch (error) {}
           state.detailAbortController = null;
