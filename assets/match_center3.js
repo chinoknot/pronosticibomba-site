@@ -3515,6 +3515,9 @@
 
   function sortStandingRows(rows) {
     return [...rows].sort((a, b) => {
+      if (Number.isFinite(Number(a.groupOrder)) && Number.isFinite(Number(b.groupOrder)) && Number(a.groupOrder) !== Number(b.groupOrder)) {
+        return Number(a.groupOrder) - Number(b.groupOrder);
+      }
       const aRank = Number(a.rank);
       const bRank = Number(b.rank);
       if (Number.isFinite(aRank) && Number.isFinite(bRank) && aRank !== bRank) return aRank - bRank;
@@ -3535,26 +3538,12 @@
     const targetLeagueId = String(match?.league_id || "");
     const targetSeason = String(match?.league_season || "");
     const sourceMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
-    const preferredGroups = new Set(
-      [match.home_standing?.group, match.away_standing?.group]
-        .map(normalizeStandingGroup)
-        .filter(Boolean),
-    );
     const standingsIndex = standingsIndexForDate();
     const cachedTable = standingsIndex[standingCacheKey(match)];
     if (cachedTable && Array.isArray(cachedTable.groups) && cachedTable.groups.length) {
-      let selectedGroups = cachedTable.groups.filter(group => {
-        const groupKey = normalizeStandingGroup(group?.group);
-        return preferredGroups.size ? preferredGroups.has(groupKey) : true;
-      });
-      if (!selectedGroups.length) {
-        selectedGroups = cachedTable.groups.filter(group =>
-          (group?.rows || []).some(row => resolveStandingFocus(match, row.team_id, row.team_name))
-        );
-      }
-      if (!selectedGroups.length) selectedGroups = cachedTable.groups;
+      const selectedGroups = cachedTable.groups;
       const rows = sortStandingRows(
-        selectedGroups.flatMap(group =>
+        selectedGroups.flatMap((group, groupIndex) =>
           (group?.rows || []).map(row => ({
             teamId: row.team_id ?? null,
             teamName: row.team_name || "",
@@ -3569,6 +3558,7 @@
             goals_against: row.goals_against,
             goal_diff: row.goal_diff,
             group: String(row.group || group.group || "").trim(),
+            groupOrder: groupIndex,
             description: row.description || "",
             form: row.form || "",
             focus: resolveStandingFocus(match, row.team_id, row.team_name),
@@ -3593,8 +3583,6 @@
     const rowsByTeam = new Map();
     const addCandidate = (teamId, teamName, standing) => {
       if (!standing) return;
-      const standingGroupKey = normalizeStandingGroup(standing.group);
-      if (preferredGroups.size && standingGroupKey && !preferredGroups.has(standingGroupKey)) return;
       const focus = resolveStandingFocus(match, teamId, teamName);
       const key = teamId != null ? `id:${teamId}` : `name:${normalizeTeamKey(teamName)}`;
       const candidate = {
@@ -3610,6 +3598,7 @@
         goals_against: standing.goals_against,
         goal_diff: standing.goal_diff,
         group: String(standing.group || "").trim(),
+        groupOrder: 0,
         description: standing.description || "",
         form: standing.form || "",
         focus,

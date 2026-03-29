@@ -1111,8 +1111,15 @@ def compact_match_standing(standing):
         "rank": standing.get("rank"),
         "points": standing.get("points"),
         "played": standing.get("played"),
+        "won": standing.get("won"),
+        "draw": standing.get("draw"),
+        "lost": standing.get("lost"),
+        "goals_for": standing.get("goals_for"),
+        "goals_against": standing.get("goals_against"),
         "goal_diff": standing.get("goal_diff"),
         "group": standing.get("group") or "",
+        "description": standing.get("description") or "",
+        "form": standing.get("form") or "",
     }
 
 
