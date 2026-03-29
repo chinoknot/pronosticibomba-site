@@ -2184,7 +2184,12 @@
     const rawMatch = getPreparedMatches().find(match => String(match.fixture_id) === String(state.detailFixtureId))
       || (state.liveOnlyMatches || []).find(match => String(match.fixture_id) === String(state.detailFixtureId));
     if (!rawMatch) return null;
-    const markets = (Array.isArray(rawMatch.markets) ? rawMatch.markets : buildMarkets(rawMatch)).filter(market => Number(market.pickProbability || 0) > 0 || (market.options || []).some(option => option.probability != null));
+    const markets = (Array.isArray(rawMatch.markets) ? rawMatch.markets : buildMarkets(rawMatch)).filter(market => {
+      const options = Array.isArray(market.options) ? market.options : [];
+      const hasProbability = Number(market.pickProbability || 0) > 0 || options.some(option => option.probability != null);
+      const hasLabels = Boolean(String(market.pickLabel || "").trim()) || options.some(option => Boolean(String(option?.label || "").trim()));
+      return hasProbability || hasLabels;
+    });
     const filteredMarkets = markets.map(market => remapMarketForOutcomeFilters(rawMatch, market)).filter(Boolean);
     const primaryMarket = derivedMatch?.primaryMarket || (filteredMarkets.length ? selectHeadlineMarket(filteredMarkets, rawMatch) : selectPrimaryMarket(markets, rawMatch));
     return { ...rawMatch, markets, primaryMarket };
@@ -4651,6 +4656,7 @@
       state.detailLiveKey = null;
       const scoreDisplay = buildScoreDisplay();
       const scoreChips = (match.most_likely_scores || []).slice(0, 5).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("");
+      const hasScoreChips = Boolean(scoreChips);
       const marketGroups = GROUPS
         .map(group => ({
           label: group.label,
@@ -4683,14 +4689,14 @@
         <div class="detail-stack">
           <div class="detail-live-sections">${liveSections.html}</div>
           ${prematchBlock}
-          <details class="detail-accordion" open>
+          ${match.primaryMarket ? `<details class="detail-accordion" open>
             <summary class="detail-summary"><span>${TEXT.detailPrimary}</span>${match.primaryMarket ? summaryMeta(marketSummaryLabel(match.primaryMarket)) : ""}</summary>
             <div class="detail-section"><div class="market-grid">${match.primaryMarket ? renderMarketCard(match.primaryMarket) : `<div class="empty-state">${TEXT.empty}</div>`}</div></div>
-          </details>
-          <details class="detail-accordion" open>
+          </details>` : ""}
+          ${hasScoreChips ? `<details class="detail-accordion" open>
             <summary class="detail-summary"><span>${TEXT.detailScores}</span>${summaryMeta(`${Math.min((match.most_likely_scores || []).length, 5)} score`)}</summary>
             <div class="detail-section"><div class="score-chips">${scoreChips || `<span class="mini-chip">-</span>`}</div></div>
-          </details>
+          </details>` : ""}
           ${marketGroups.map(group => `<details class="detail-accordion"><summary class="detail-summary"><span>${escapeHtml(group.label)}</span>${summaryMeta(marketSummaryLabel(group.markets[0], `${group.markets.length} pick`))}</summary><div class="detail-section"><div class="market-grid">${group.markets.map(renderMarketCard).join("")}</div></div></details>`).join("")}
         </div>
       `;
