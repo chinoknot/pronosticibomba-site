@@ -57,6 +57,13 @@
       font-weight:400;
       font-style:normal;
     }
+    @font-face{
+      font-family:"PB Moon Get";
+      src:url("/assets/fonts/control-room/moon_get-heavy.ttf") format("truetype");
+      font-display:swap;
+      font-weight:800;
+      font-style:normal;
+    }
     :root{--bg:#07111f;--panel:rgba(12,20,40,.88);--panel-strong:rgba(18,28,52,.94);--border:rgba(148,163,184,.22);--text:#ecf3ff;--muted:#a9bad3;--soft:#7d8faa;--accent:#ff7a18;--blue:#3dd5f3;--success:#22c55e;--danger:#ef4444;--warning:#facc15;--shadow:0 24px 70px rgba(2,10,26,.34);--radius-xl:28px;--radius-lg:22px;--radius-md:16px}
     *{box-sizing:border-box}html,body{margin:0;min-height:100%;max-width:100%;overflow-x:hidden;color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top left,rgba(61,213,243,.22),transparent 30%),radial-gradient(circle at 82% 0%,rgba(255,122,24,.24),transparent 24%),radial-gradient(circle at 50% 100%,rgba(255,196,61,.12),transparent 28%),linear-gradient(180deg,#081223 0%,#0a1629 36%,#08121f 100%);-webkit-font-smoothing:antialiased}body{padding:14px 10px 42px}body.modal-open{overflow:hidden}a{color:inherit}button,input,select{font:inherit}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     .app-shell{width:100%;max-width:1440px;margin:0 auto;display:flex;flex-direction:column;gap:16px}.panel{border:1px solid var(--border);border-radius:var(--radius-lg);background:radial-gradient(circle at top right,rgba(61,213,243,.14),transparent 32%),radial-gradient(circle at left center,rgba(255,122,24,.1),transparent 28%),linear-gradient(145deg,var(--panel-strong),rgba(9,14,27,.96));box-shadow:var(--shadow)}
@@ -655,11 +662,12 @@
     .live-score-final{display:inline-flex;align-items:center;font-size:.9rem;font-weight:700;color:#a3e635;letter-spacing:.04em}
     .live-event-icon{font-size:.8rem;margin-left:2px;cursor:default}
     /* ── Detail score – aggressive look ── */
-    .detail-live-score{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:2.6rem;font-weight:900;letter-spacing:-.02em;color:#fff;white-space:nowrap;line-height:1;font-variant-numeric:tabular-nums}
+    .detail-live-score{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 18px 8px;border-radius:22px;border:1px solid rgba(214,223,234,.56);background:radial-gradient(circle at top,rgba(226,232,240,.13),transparent 54%),linear-gradient(180deg,rgba(14,22,39,.98),rgba(7,12,24,.98));box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 14px 34px rgba(2,8,22,.38);font-size:2.6rem;font-weight:900;letter-spacing:-.02em;color:#fff;white-space:nowrap;line-height:1;font-variant-numeric:tabular-nums;overflow:hidden}
+    .detail-live-score::before{content:"";position:absolute;inset:1px;border-radius:20px;border:1px solid rgba(255,255,255,.06);pointer-events:none}
     .detail-live-score-live{color:#ff3322;text-shadow:0 0 24px rgba(255,51,34,.55),0 0 48px rgba(255,80,40,.25)}
-    .detail-live-score .score-num{display:inline-block}
+    .detail-live-score .score-num{display:inline-block;font-family:"PB Moon Get","PB Tottenham Display",sans-serif;letter-spacing:.025em;line-height:.84}
     .detail-status-tag{display:block;font-size:.72rem;font-weight:700;background:rgba(255,255,255,.1);border:1px solid rgba(148,163,184,.2);border-radius:8px;padding:3px 10px;margin-top:5px;color:#a9bad3;text-align:center;letter-spacing:.05em}
-    .detail-vs-score{width:auto !important;min-width:110px;height:auto !important;font-size:inherit !important;background:none !important;border:none !important;box-shadow:none !important}
+    .detail-vs-score{width:auto !important;min-width:136px;height:auto !important;padding:2px;font-size:inherit !important;background:linear-gradient(135deg,rgba(255,255,255,.42),rgba(154,166,184,.08) 32%,rgba(255,255,255,.58) 56%,rgba(131,144,165,.12) 84%,rgba(255,255,255,.28)) !important;border:1px solid rgba(220,229,243,.34) !important;border-radius:24px;box-shadow:0 14px 36px rgba(2,8,22,.28),inset 0 1px 0 rgba(255,255,255,.14) !important}
     /* ── Score change animations ── */
     @keyframes scoreFlip{
       0%  {transform:perspective(400px) rotateX(0) scale(1);opacity:1}
@@ -3202,7 +3210,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3.js?v=20260329live4"></script>
+  <script src="/assets/match_center3.js?v=20260329live5"></script>
   <script>
     (function () {
       const ready = () => {
