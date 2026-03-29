@@ -4526,19 +4526,7 @@
     const source = Array.isArray(statistics) ? statistics : [];
     const home = source[0];
     const away = source[1];
-    if (!home || !away) {
-      return `
-        <section class="detail-live-panel detail-live-panel-stats">
-          <header class="detail-live-panel-head">
-            <span class="detail-live-panel-title">${escapeHtml(IS_EN ? "Live stats" : "Statistiche live")}</span>
-            <span class="detail-live-panel-kicker">${escapeHtml(IS_EN ? "No data" : "Nessun dato")}</span>
-          </header>
-          <div class="detail-live-panel-body">
-            <div class="detail-live-empty">${escapeHtml(IS_EN ? "Live statistics not available yet." : "Statistiche live non ancora disponibili.")}</div>
-          </div>
-        </section>
-      `;
-    }
+    if (!home || !away) return "";
     const statLabels = {
       "Ball Possession": IS_EN ? "Possession" : "Possesso",
       "Total Shots": IS_EN ? "Total shots" : "Tiri tot.",
@@ -4616,9 +4604,6 @@
     const detailEvents = resolveDetailEventsFeed(detailData, liveScore);
     const detailStatistics = extractDetailStatistics(detailData);
     const parts = [];
-    if (state.detailLoading && state.detailDataId && !detailEvents.length && !detailStatistics.length) {
-      parts.push(`<div class="empty-state" style="padding:10px">Caricamento dati live...</div>`);
-    }
     if (detailEvents.length) {
       parts.push(renderDetailEventsPanel(detailEvents, match, recentEventKeys));
     }
@@ -4685,11 +4670,7 @@
         .filter(group => group.markets.length);
       const summaryMeta = label => `<span class="detail-summary-meta">${escapeHtml(label)}</span>`;
       const liveSections = renderDetailLiveSections(match, liveFeedScore || scoreModel, state.detailData);
-      const loadingBlock = !state.detailData && state.detailDataId ? `<div class="empty-state" style="padding:10px">Caricamento dati live…</div>` : "";
       const detailEvents = liveSections.events;
-      const detailStatistics = extractDetailStatistics(state.detailData);
-      const eventsBlock = detailEvents.length ? renderDetailEventsPanel(detailEvents, match) : "";
-      const statsBlock = state.detailData ? renderDetailStatsSafe(detailStatistics) : "";
       const generalInfoBlock = state.detailData ? renderDetailGeneralInfo(state.detailData) : "";
       const spotlightBlock = renderDetailLiveSpotlight(match, scoreModel, detailEvents, standingTable);
       const prematchBlock = renderPrematchBlock(match);
