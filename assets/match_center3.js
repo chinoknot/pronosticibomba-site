@@ -4346,15 +4346,6 @@
 
   function renderDetailLiveSpotlight(match, liveScore, events, table) {
     const cards = [];
-    if (liveScore && LIVE_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
-      cards.push(`
-        <article class="detail-live-spotlight-card detail-live-spotlight-status">
-          <span class="detail-live-spotlight-eyebrow">${escapeHtml(IS_EN ? "Live pulse" : "Momento live")}</span>
-          <strong class="detail-live-spotlight-primary">${escapeHtml(`${liveScore.home} - ${liveScore.away}`)}</strong>
-          <span class="detail-live-spotlight-secondary">${formatLiveMinuteHtml(liveScore.status, estimateLiveElapsed(liveScore.status, state.detailClockBase) ?? liveScore.elapsed) || escapeHtml(liveScore.status || "")}</span>
-        </article>
-      `);
-    }
     const latestEvent = latestRelevantDetailEvent(events);
     if (latestEvent) {
       const side = resolveDetailEventSideSafe(latestEvent, match) || "home";
