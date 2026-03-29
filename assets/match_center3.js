@@ -4036,6 +4036,12 @@
     return [];
   }
 
+  function resolveDetailEventsFeed(detailData, liveScore) {
+    const detailEvents = extractDetailEvents(detailData);
+    if (detailEvents.length) return detailEvents;
+    return Array.isArray(liveScore?.events) ? liveScore.events : [];
+  }
+
   function extractDetailFixtureBundle(detailData) {
     if (!detailData) return null;
     if (detailData.fixture && typeof detailData.fixture === "object" && !Array.isArray(detailData.fixture)) return detailData.fixture;
@@ -4346,6 +4352,13 @@
     return [event?.type || "", event?.detail || "", elapsed, extra, team, player, assist].join("|");
   }
 
+  function detailEventFeedSignature(events) {
+    const source = Array.isArray(events) ? events : [];
+    if (!source.length) return "0";
+    const lastKey = detailEventStableKey(source[source.length - 1]) || "";
+    return `${source.length}:${lastKey}`;
+  }
+
   function renderDetailEventsSafe(events, match, recentEventKeys = new Set()) {
     const source = Array.isArray(events) ? events : [];
     if (!source.length || !match) return "";
@@ -4553,6 +4566,26 @@
     return renderDetailStatsSafe(statistics);
   }
 
+  function renderDetailLiveSections(match, liveScore, detailData, recentEventKeys = new Set(), prevStatistics = null) {
+    const detailEvents = resolveDetailEventsFeed(detailData, liveScore);
+    const detailStatistics = extractDetailStatistics(detailData);
+    const parts = [];
+    if (!detailData && state.detailDataId && !detailEvents.length) {
+      parts.push(`<div class="empty-state" style="padding:10px">Caricamento dati live...</div>`);
+    }
+    if (detailEvents.length) {
+      parts.push(renderDetailEventsPanel(detailEvents, match, recentEventKeys));
+    }
+    if (detailData) {
+      parts.push(renderDetailStatsSafe(detailStatistics, prevStatistics));
+    }
+    return {
+      html: parts.join(""),
+      events: detailEvents,
+      statistics: detailStatistics,
+    };
+  }
+
   function renderDetail() {
     const match = getDetailMatch();
     if (!match) {
@@ -4604,10 +4637,10 @@
         .filter(group => group.markets.length);
       const summaryMeta = label => `<span class="detail-summary-meta">${escapeHtml(label)}</span>`;
       const loadingBlock = !state.detailData && state.detailDataId ? `<div class="empty-state" style="padding:10px">Caricamento dati live…</div>` : "";
-      const detailEvents = extractDetailEvents(state.detailData);
+      const detailEvents = resolveDetailEventsFeed(state.detailData, liveScore);
       const detailStatistics = extractDetailStatistics(state.detailData);
-      const eventsBlock = state.detailData ? renderDetailEventsPanel(detailEvents, match) : "";
-      const statsBlock = state.detailData ? renderDetailStatsPanel(detailStatistics) : "";
+      const eventsBlock = detailEvents.length ? renderDetailEventsPanel(detailEvents, match) : "";
+      const statsBlock = state.detailData ? renderDetailStatsSafe(detailStatistics) : "";
       const generalInfoBlock = state.detailData ? renderDetailGeneralInfo(state.detailData) : "";
       const spotlightBlock = renderDetailLiveSpotlight(match, liveScore, detailEvents, standingTable);
       const prematchBlock = renderPrematchBlock(match);
@@ -4627,7 +4660,7 @@
           ${spotlightBlock}
         </article>
         <div class="detail-stack">
-          <div class="detail-live-sections">${loadingBlock}${eventsBlock}${statsBlock}</div>
+          <div class="detail-live-sections">${detailEvents.length ? "" : loadingBlock}${eventsBlock}${statsBlock}</div>
           ${prematchBlock}
           <details class="detail-accordion" open>
             <summary class="detail-summary"><span>${TEXT.detailPrimary}</span>${match.primaryMarket ? summaryMeta(marketSummaryLabel(match.primaryMarket)) : ""}</summary>
@@ -4644,7 +4677,8 @@
     }
 
     // Partial live patch: update only score and status in-place (no innerHTML replacement = no blink)
-    const liveKey = `${liveScore ? `${liveScore.home}-${liveScore.away}-${liveElapsed || ""}-${liveScore.status || ""}` : "ns"}|${standingLiveKey}|${scoreChanged ? "c" : ""}`;
+    const currentDetailEvents = resolveDetailEventsFeed(state.detailData, liveScore);
+    const liveKey = `${liveScore ? `${liveScore.home}-${liveScore.away}-${liveElapsed || ""}-${liveScore.status || ""}` : "ns"}|${standingLiveKey}|${detailEventFeedSignature(currentDetailEvents)}|${scoreChanged ? "c" : ""}`;
     const hasNewLiveData = Boolean(state.detailDataLive);
     if (liveKey === state.detailLiveKey && !hasNewLiveData) return;
     state.detailLiveKey = liveKey;
@@ -4682,7 +4716,7 @@
     const spotlightHtml = renderDetailLiveSpotlight(
       match,
       liveScore,
-      hasNewLiveData ? extractDetailEvents(state.detailDataLive) : extractDetailEvents(state.detailData),
+      hasNewLiveData ? resolveDetailEventsFeed(state.detailDataLive, liveScore) : currentDetailEvents,
       standingTable
     );
     const spotlightEl = dom.detailBody.querySelector(".detail-live-spotlight-shell");
@@ -4693,9 +4727,9 @@
     }
 
     // Live sections patch (events + stats) when new data arrived from periodic re-fetch
-    if (hasNewLiveData) {
-      const newEvents = extractDetailEvents(state.detailDataLive);
-      const newStats = extractDetailStatistics(state.detailDataLive);
+    if (hasNewLiveData || !state.detailData) {
+      const liveDataSource = hasNewLiveData ? state.detailDataLive : state.detailData;
+      const newEvents = resolveDetailEventsFeed(liveDataSource, liveScore);
       const previousEventKeys = new Set((state.detailPrevEvents || []).map(detailEventStableKey).filter(Boolean));
       const recentEventKeys = new Set(
         newEvents
@@ -4704,8 +4738,16 @@
       );
       const liveSectionsEl = dom.detailBody.querySelector(".detail-live-sections");
       if (liveSectionsEl) {
-        liveSectionsEl.innerHTML = renderDetailEventsPanel(newEvents, match, recentEventKeys) + renderDetailStatsSafe(newStats, state.detailPrevStats);
+        liveSectionsEl.innerHTML = renderDetailLiveSections(
+          match,
+          liveScore,
+          liveDataSource,
+          hasNewLiveData ? recentEventKeys : new Set(),
+          hasNewLiveData ? state.detailPrevStats : null
+        ).html;
       }
+    }
+    if (hasNewLiveData) {
       state.detailDataLive = null;
       state.detailPrevStats = null;
       state.detailPrevEvents = null;
