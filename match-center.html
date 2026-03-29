@@ -662,12 +662,11 @@
     .live-score-final{display:inline-flex;align-items:center;font-size:.9rem;font-weight:700;color:#a3e635;letter-spacing:.04em}
     .live-event-icon{font-size:.8rem;margin-left:2px;cursor:default}
     /* ── Detail score – aggressive look ── */
-    .detail-live-score{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 18px 8px;border-radius:22px;border:1px solid rgba(214,223,234,.56);background:radial-gradient(circle at top,rgba(226,232,240,.13),transparent 54%),linear-gradient(180deg,rgba(14,22,39,.98),rgba(7,12,24,.98));box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 14px 34px rgba(2,8,22,.38);font-size:2.6rem;font-weight:900;letter-spacing:-.02em;color:#fff;white-space:nowrap;line-height:1;font-variant-numeric:tabular-nums;overflow:hidden}
-    .detail-live-score::before{content:"";position:absolute;inset:1px;border-radius:20px;border:1px solid rgba(255,255,255,.06);pointer-events:none}
+    .detail-live-score{display:flex;flex-direction:column;align-items:center;gap:4px;padding:0;font-size:2.28rem;font-weight:900;letter-spacing:-.02em;color:#fff;white-space:nowrap;line-height:1;font-variant-numeric:tabular-nums}
     .detail-live-score-live{color:#ff3322;text-shadow:0 0 24px rgba(255,51,34,.55),0 0 48px rgba(255,80,40,.25)}
     .detail-live-score .score-num{display:inline-block;font-family:"PB Moon Get","PB Tottenham Display",sans-serif;letter-spacing:.025em;line-height:.84}
     .detail-status-tag{display:block;font-size:.72rem;font-weight:700;background:rgba(255,255,255,.1);border:1px solid rgba(148,163,184,.2);border-radius:8px;padding:3px 10px;margin-top:5px;color:#a9bad3;text-align:center;letter-spacing:.05em}
-    .detail-vs-score{width:auto !important;min-width:136px;height:auto !important;padding:2px;font-size:inherit !important;background:linear-gradient(135deg,rgba(255,255,255,.42),rgba(154,166,184,.08) 32%,rgba(255,255,255,.58) 56%,rgba(131,144,165,.12) 84%,rgba(255,255,255,.28)) !important;border:1px solid rgba(220,229,243,.34) !important;border-radius:24px;box-shadow:0 14px 36px rgba(2,8,22,.28),inset 0 1px 0 rgba(255,255,255,.14) !important}
+    .detail-vs-score{width:auto !important;min-width:112px;height:auto !important;padding:0 !important;font-size:inherit !important;background:none !important;border:none !important;border-radius:0 !important;box-shadow:none !important}
     /* ── Score change animations ── */
     @keyframes scoreFlip{
       0%  {transform:perspective(400px) rotateX(0) scale(1);opacity:1}
@@ -3210,7 +3209,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3.js?v=20260329live7"></script>
+  <script src="/assets/match_center3.js?v=20260329live8"></script>
   <script>
     (function () {
       const ready = () => {

@@ -4684,8 +4684,9 @@
         }))
         .filter(group => group.markets.length);
       const summaryMeta = label => `<span class="detail-summary-meta">${escapeHtml(label)}</span>`;
+      const liveSections = renderDetailLiveSections(match, liveFeedScore || scoreModel, state.detailData);
       const loadingBlock = !state.detailData && state.detailDataId ? `<div class="empty-state" style="padding:10px">Caricamento dati live…</div>` : "";
-      const detailEvents = resolveDetailEventsFeed(state.detailData, liveFeedScore || scoreModel);
+      const detailEvents = liveSections.events;
       const detailStatistics = extractDetailStatistics(state.detailData);
       const eventsBlock = detailEvents.length ? renderDetailEventsPanel(detailEvents, match) : "";
       const statsBlock = state.detailData ? renderDetailStatsSafe(detailStatistics) : "";
@@ -4708,7 +4709,7 @@
           ${spotlightBlock}
         </article>
         <div class="detail-stack">
-          <div class="detail-live-sections">${detailEvents.length ? "" : loadingBlock}${eventsBlock}${statsBlock}</div>
+          <div class="detail-live-sections">${liveSections.html}</div>
           ${prematchBlock}
           <details class="detail-accordion" open>
             <summary class="detail-summary"><span>${TEXT.detailPrimary}</span>${match.primaryMarket ? summaryMeta(marketSummaryLabel(match.primaryMarket)) : ""}</summary>
