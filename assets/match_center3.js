@@ -4480,7 +4480,7 @@
     return `<span class="action-meta-inline">${parts.map((part, index) => `<span class="action-meta-fragment action-meta-${escapeHtml(part.kind)}">${escapeHtml(part.label)}</span>${index < parts.length - 1 ? `<span class="action-meta-sep">•</span>` : ""}`).join("")}</span>`;
   }
 
-  function renderDetailEventsSafe(events, match) {
+  function renderDetailEventsSafe(events, match, recentEventKeys = new Set()) {
     const source = Array.isArray(events) ? events : [];
     if (!match) return "";
     const relevant = source.filter(event => {
