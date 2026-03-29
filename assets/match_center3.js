@@ -273,6 +273,7 @@
     detailDataLive: null,
     detailPrevStats: null,
     detailPrevEvents: null,
+    detailLoading: false,
     detailTeamStats: null,
     detailTeamStatsId: null,
     detailTeamStatsStatus: "idle",
@@ -3018,7 +3019,7 @@
   function renderMatchScoreMarkup(match, options = {}) {
     const featured = options.featured === true;
     const fixtureStatus = String(match.status_short || "").toUpperCase();
-    const liveScore = state.liveScores[String(match.fixture_id)];
+    const liveScore = state.liveScores[String(match.fixture_id)] || buildDetailFallbackLiveScore(match);
     const scoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
     if (liveScore && FINAL_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
       return `<span class="live-score-final">${liveScore.home}-${liveScore.away}</span>`;
@@ -3079,7 +3080,7 @@
       odd: picked?.odd,
       tag: primary?.tag,
     });
-    const liveScore = state.liveScores[String(match.fixture_id)];
+    const liveScore = state.liveScores[String(match.fixture_id)] || buildDetailFallbackLiveScore(match);
     const effectiveStatus = liveScore ? String(liveScore.status || "").toUpperCase() : fixtureStatus;
     const rowScoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
     const scoreText = (() => {
@@ -4042,6 +4043,29 @@
     return Array.isArray(liveScore?.events) ? liveScore.events : [];
   }
 
+  function buildDetailFallbackLiveScore(match) {
+    if (!match) return null;
+    const status = String(match?.status_short || match?.status || "").toUpperCase();
+    const home = Number(match?.goals_home);
+    const away = Number(match?.goals_away);
+    if (!Number.isFinite(home) || !Number.isFinite(away)) return null;
+    if (!LIVE_STATUSES.has(status) && !FINAL_STATUSES.has(status) && (home + away) <= 0) return null;
+    return {
+      home,
+      away,
+      status: String(match?.status_short || match?.status || ""),
+      elapsed: null,
+      events: [],
+    };
+  }
+
+  function hasUsefulDetailPayload(detailData) {
+    if (!detailData || typeof detailData !== "object") return false;
+    return Boolean(extractDetailFixtureCore(detailData))
+      || extractDetailEvents(detailData).length > 0
+      || extractDetailStatistics(detailData).length > 0;
+  }
+
   function extractDetailFixtureBundle(detailData) {
     if (!detailData) return null;
     if (detailData.fixture && typeof detailData.fixture === "object" && !Array.isArray(detailData.fixture)) return detailData.fixture;
@@ -4570,7 +4594,7 @@
     const detailEvents = resolveDetailEventsFeed(detailData, liveScore);
     const detailStatistics = extractDetailStatistics(detailData);
     const parts = [];
-    if (!detailData && state.detailDataId && !detailEvents.length) {
+    if (state.detailLoading && state.detailDataId && !detailEvents.length && !detailStatistics.length) {
       parts.push(`<div class="empty-state" style="padding:10px">Caricamento dati live...</div>`);
     }
     if (detailEvents.length) {
@@ -4594,7 +4618,7 @@
       state.detailLiveKey = null;
       return;
     }
-    const liveScore = state.liveScores[String(match.fixture_id)];
+    const liveScore = state.liveScores[String(match.fixture_id)] || buildDetailFallbackLiveScore(match);
     const fixtureStatus = String((liveScore?.status || match.status_short || "")).toUpperCase();
     const isLive = LIVE_STATUSES.has(fixtureStatus);
     const isFinal = FINAL_STATUSES.has(fixtureStatus);
@@ -4621,7 +4645,7 @@
     };
 
     // Full re-render only when fixture changes or data loads/clears
-    const structureKey = `${state.detailFixtureId}|${state.detailData ? "d" : "nd"}|${state.detailTeamStatsStatus}|${state.detailTeamStats ? "ts" : "nts"}|${state.standingsRenderVersion}`;
+    const structureKey = `${state.detailFixtureId}|${state.detailData ? "d" : "nd"}|${state.detailLoading ? "dl" : "ndl"}|${state.detailTeamStatsStatus}|${state.detailTeamStats ? "ts" : "nts"}|${state.standingsRenderVersion}`;
     if (structureKey !== state.detailStructureKey) {
       state.detailStructureKey = structureKey;
       state.detailLiveKey = null;
@@ -5010,6 +5034,7 @@
     state.detailDataLive = null;
     state.detailPrevStats = null;
     state.detailPrevEvents = null;
+    state.detailLoading = true;
     state.detailDataId = String(fixtureId);
     renderDetail();
     try {
@@ -5023,7 +5048,7 @@
         if (LIVE_STATUSES.has(detailStatus.toUpperCase()) && Number.isFinite(detailElapsed) && detailElapsed > 0) {
           state.detailClockBase = { elapsed: detailElapsed, at: Date.now() };
         }
-        state.detailData = data;
+        state.detailData = hasUsefulDetailPayload(data) ? data : null;
         renderDetail();
       }
     } catch (e) {
@@ -5032,6 +5057,8 @@
     } finally {
       if (requestToken === state.detailRequestToken) {
         state.detailAbortController = null;
+        state.detailLoading = false;
+        renderDetail();
       }
     }
     syncAllCustomSelects();
@@ -5041,7 +5068,8 @@
   async function refreshDetailLive() {
     const fixtureId = state.detailFixtureId;
     if (!fixtureId) return;
-    const ls = state.liveScores[String(fixtureId)];
+    const openMatch = getDetailMatch();
+    const ls = state.liveScores[String(fixtureId)] || buildDetailFallbackLiveScore(openMatch);
     if (!ls || !LIVE_STATUSES.has(String(ls.status || "").toUpperCase())) return;
     try {
       const WORKER = "https://pronostici-bomba-push.pronosticibomba.workers.dev";
@@ -5054,11 +5082,15 @@
         if (LIVE_STATUSES.has(detailStatus.toUpperCase()) && Number.isFinite(detailElapsed) && detailElapsed > 0) {
           state.detailClockBase = { elapsed: detailElapsed, at: Date.now() };
         }
-        state.detailPrevStats = extractDetailStatistics(state.detailData || state.detailDataLive);
-        state.detailPrevEvents = extractDetailEvents(state.detailData || state.detailDataLive);
-        state.detailData = data;
-        state.detailDataLive = data;
-        renderDetail();
+        if (hasUsefulDetailPayload(data)) {
+          state.detailPrevStats = extractDetailStatistics(state.detailData || state.detailDataLive);
+          state.detailPrevEvents = resolveDetailEventsFeed(state.detailData || state.detailDataLive, ls);
+          state.detailData = data;
+          state.detailDataLive = data;
+          renderDetail();
+        } else {
+          renderDetail();
+        }
       }
     } catch (e) {
       console.warn("Detail live refresh failed:", e);
@@ -5282,6 +5314,7 @@
       state.detailFixtureId = null;
       state.detailData = null;
       state.detailDataLive = null;
+      state.detailLoading = false;
       state.detailPrevStats = null;
       state.detailPrevEvents = null;
       state.detailClockBase = null;
@@ -5581,6 +5614,7 @@
         state.detailStructureKey = null;
         state.detailLiveKey = null;
         state.detailDataLive = null;
+        state.detailLoading = false;
         state.detailPrevStats = null;
         state.detailPrevEvents = null;
         state.detailClockBase = null;
@@ -5604,6 +5638,7 @@
         state.detailFixtureId = null;
         state.detailData = null;
         state.detailDataLive = null;
+        state.detailLoading = false;
         state.detailPrevStats = null;
         state.detailPrevEvents = null;
         state.detailClockBase = null;
