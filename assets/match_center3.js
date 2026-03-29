@@ -3861,7 +3861,10 @@
     ];
     return `
       <div class="prematch-section">
-        <div class="prematch-label">${IS_EN ? "Standings" : "Classifica"}</div>
+        <div class="prematch-label-row">
+          <div class="prematch-label">${IS_EN ? "Standings" : "Classifica"}</div>
+          <div class="prematch-live-badge-shell">${renderStandingLiveBadge(table)}</div>
+        </div>
         <div class="standing-full-wrap">
           <table class="standing-full">
             <colgroup>
@@ -4254,6 +4257,71 @@
     `;
   }
 
+  function latestRelevantDetailEvent(events) {
+    const source = Array.isArray(events) ? events : [];
+    const relevant = source.filter(event => {
+      const type = String(event?.type || "");
+      const detail = String(event?.detail || "");
+      return type === "Goal"
+        || type === "Card"
+        || type === "Var"
+        || type === "subst"
+        || /Substitution/i.test(type)
+        || /Substitution/i.test(detail);
+    });
+    return relevant.length ? relevant[relevant.length - 1] : null;
+  }
+
+  function renderStandingLiveBadge(table) {
+    if (!table?.liveAdjusted) return "";
+    return `<span class="prematch-live-badge">${escapeHtml(IS_EN ? `Live table · ${table.liveCount} match` : `Classifica live · ${table.liveCount} gara`)}</span>`;
+  }
+
+  function renderDetailLiveSpotlight(match, liveScore, events, table) {
+    const cards = [];
+    if (liveScore && LIVE_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
+      cards.push(`
+        <article class="detail-live-spotlight-card detail-live-spotlight-status">
+          <span class="detail-live-spotlight-eyebrow">${escapeHtml(IS_EN ? "Live pulse" : "Momento live")}</span>
+          <strong class="detail-live-spotlight-primary">${escapeHtml(`${liveScore.home} - ${liveScore.away}`)}</strong>
+          <span class="detail-live-spotlight-secondary">${formatLiveMinuteHtml(liveScore.status, estimateLiveElapsed(liveScore.status, state.detailClockBase) ?? liveScore.elapsed) || escapeHtml(liveScore.status || "")}</span>
+        </article>
+      `);
+    }
+    const latestEvent = latestRelevantDetailEvent(events);
+    if (latestEvent) {
+      const side = resolveDetailEventSideSafe(latestEvent, match) || "home";
+      const chip = detailEventChipSafe(latestEvent);
+      const copy = renderDetailEventCopy(latestEvent, match, side);
+      const elapsed = latestEvent?.time?.elapsed || latestEvent?.elapsed;
+      const extra = latestEvent?.time?.extra || latestEvent?.extra;
+      const minute = elapsed ? `${elapsed}${extra ? `+${extra}` : ""}'` : "";
+      cards.push(`
+        <article class="detail-live-spotlight-card detail-live-spotlight-event">
+          <span class="detail-live-spotlight-eyebrow">${escapeHtml(IS_EN ? "Latest event" : "Ultimo evento")}</span>
+          <div class="detail-live-spotlight-row">
+            <span class="detail-live-spotlight-icon detail-event-chip-${escapeHtml(chip.kind)}">${renderEventGlyph(chip.kind, chip.title)}</span>
+            <div class="detail-live-spotlight-copy">
+              <strong class="detail-live-spotlight-primary">${escapeHtml(copy.primary)}</strong>
+              <span class="detail-live-spotlight-secondary">${escapeHtml(minute)}${minute ? " · " : ""}${escapeHtml(copy.secondary)}</span>
+            </div>
+          </div>
+        </article>
+      `);
+    }
+    if (table?.liveAdjusted) {
+      cards.push(`
+        <article class="detail-live-spotlight-card detail-live-spotlight-table">
+          <span class="detail-live-spotlight-eyebrow">${escapeHtml(IS_EN ? "Live standings" : "Classifica live")}</span>
+          <strong class="detail-live-spotlight-primary">${escapeHtml(IS_EN ? "Table updating now" : "Classifica in movimento")}</strong>
+          <span class="detail-live-spotlight-secondary">${escapeHtml(IS_EN ? `${table.liveCount} live league matches affecting ranks` : `${table.liveCount} gare live stanno muovendo posizioni e punti`)}</span>
+        </article>
+      `);
+    }
+    if (!cards.length) return "";
+    return `<div class="detail-live-spotlight-shell">${cards.join("")}</div>`;
+  }
+
   function detailEventStableKey(event) {
     const elapsed = event?.time?.elapsed ?? event?.elapsed ?? "";
     const extra = event?.time?.extra ?? event?.extra ?? "";
@@ -4519,6 +4587,7 @@
       const eventsBlock = state.detailData ? renderDetailEventsPanel(detailEvents, match) : "";
       const statsBlock = state.detailData ? renderDetailStatsPanel(detailStatistics) : "";
       const generalInfoBlock = state.detailData ? renderDetailGeneralInfo(state.detailData) : "";
+      const spotlightBlock = renderDetailLiveSpotlight(match, liveScore, detailEvents, standingTable);
       const prematchBlock = renderPrematchBlock(match);
       dom.detailBody.innerHTML = `
         <article class="detail-hero">
@@ -4533,6 +4602,7 @@
             <div class="detail-meta-card"><span>Stato</span><strong class="detail-status-strong">${buildStatusText()}</strong></div>
           </div>
           ${generalInfoBlock}
+          ${spotlightBlock}
         </article>
         <div class="detail-stack">
           <div class="detail-live-sections">${loadingBlock}${eventsBlock}${statsBlock}</div>
@@ -4584,6 +4654,20 @@
         { key: "goal_diff", format: value => value > 0 ? `+${value}` : String(value) },
         { key: "points", cellClass: "standing-pts" },
       ]);
+    }
+    const standingBadgeEl = dom.detailBody.querySelector(".prematch-live-badge-shell");
+    if (standingBadgeEl) standingBadgeEl.innerHTML = renderStandingLiveBadge(standingTable);
+    const spotlightHtml = renderDetailLiveSpotlight(
+      match,
+      liveScore,
+      hasNewLiveData ? extractDetailEvents(state.detailDataLive) : extractDetailEvents(state.detailData),
+      standingTable
+    );
+    const spotlightEl = dom.detailBody.querySelector(".detail-live-spotlight-shell");
+    if (spotlightEl) {
+      spotlightEl.outerHTML = spotlightHtml || `<div class="detail-live-spotlight-shell"></div>`;
+    } else if (spotlightHtml) {
+      dom.detailBody.querySelector(".detail-hero")?.insertAdjacentHTML("beforeend", spotlightHtml);
     }
 
     // Live sections patch (events + stats) when new data arrived from periodic re-fetch
