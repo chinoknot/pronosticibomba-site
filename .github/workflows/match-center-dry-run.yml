@@ -1,0 +1,81 @@
+name: Match Center Dry Run Filters
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "Data target YYYY-MM-DD (vuoto = domani Europe/Dublin)"
+        required: false
+        default: ""
+      cache_file:
+        description: "Cache JSON esplicito (opzionale)"
+        required: false
+        default: ""
+      max_picks:
+        description: "Numero massimo selezioni"
+        required: false
+        default: "40"
+  schedule:
+    - cron: '10 1 * * *'
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install openpyxl
+
+      - name: Resolve target date
+        id: target
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.target_date }}" ]; then
+            TARGET_DATE="${{ github.event.inputs.target_date }}"
+          else
+            TARGET_DATE=$(python -c "from datetime import datetime, timedelta; from zoneinfo import ZoneInfo; print((datetime.now(ZoneInfo('Europe/Dublin')) + timedelta(days=1)).strftime('%Y-%m-%d'))")
+          fi
+          echo "target_date=$TARGET_DATE" >> "$GITHUB_OUTPUT"
+          echo "Using target date: $TARGET_DATE"
+
+      - name: Resolve max picks
+        id: maxpicks
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.max_picks }}" ]; then
+            MAX_PICKS="${{ github.event.inputs.max_picks }}"
+          else
+            MAX_PICKS="40"
+          fi
+          echo "max_picks=$MAX_PICKS" >> "$GITHUB_OUTPUT"
+          echo "Using max picks: $MAX_PICKS"
+
+      - name: Run dry run selector
+        shell: bash
+        run: |
+          python match_center_filters_dry_run.py \
+            --repo-root . \
+            --cache-dir assets/data/match-predictor \
+            --date "${{ steps.target.outputs.target_date }}" \
+            --cache-file "${{ github.event.inputs.cache_file }}" \
+            --max-picks "${{ steps.maxpicks.outputs.max_picks }}" \
+            --output-dir _match_center_filter_dry_run
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: match-center-dry-run-${{ steps.target.outputs.target_date }}
+          path: _match_center_filter_dry_run/${{ steps.target.outputs.target_date }}
+          if-no-files-found: error
+          retention-days: 14
