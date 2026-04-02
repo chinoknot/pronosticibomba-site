@@ -291,6 +291,105 @@ def flatten_scalars(obj: Any, prefix: str = "") -> Dict[str, Any]:
     return out
 
 
+
+
+def key_matches_tokens(key: str, include_any: Iterable[str], include_all: Iterable[str] = (), exclude_any: Iterable[str] = ()) -> bool:
+    k = slug(key)
+    if include_any and not any(tok in k for tok in include_any):
+        return False
+    if include_all and not all(tok in k for tok in include_all):
+        return False
+    if exclude_any and any(tok in k for tok in exclude_any):
+        return False
+    return True
+
+
+GENERIC_KEY_PATTERNS: Dict[str, Dict[str, Dict[str, List[str]]]] = {
+    "OVER_2_5": {
+        "prob": {"any": ["prob", "probability", "confidence", "percent", "pct"], "all": ["over", "2", "5"], "exclude": ["ht", "1h", "corner", "card", "combo", "btts"]},
+        "odd":  {"any": ["odd", "odds", "price", "quote"], "all": ["over", "2", "5"], "exclude": ["ht", "1h", "corner", "card", "combo", "btts"]},
+    },
+    "OVER_1_5": {
+        "prob": {"any": ["prob", "probability", "confidence", "percent", "pct"], "all": ["over", "1", "5"], "exclude": ["ht", "1h", "corner", "card", "combo", "btts", "2", "3"]},
+        "odd":  {"any": ["odd", "odds", "price", "quote"], "all": ["over", "1", "5"], "exclude": ["ht", "1h", "corner", "card", "combo", "btts", "2", "3"]},
+    },
+    "OVER_3_5": {
+        "prob": {"any": ["prob", "probability", "confidence", "percent", "pct"], "all": ["over", "3", "5"], "exclude": ["ht", "1h", "corner", "card", "combo", "btts"]},
+        "odd":  {"any": ["odd", "odds", "price", "quote"], "all": ["over", "3", "5"], "exclude": ["ht", "1h", "corner", "card", "combo", "btts"]},
+    },
+    "OVER_1_5_HT": {
+        "prob": {"any": ["prob", "probability", "confidence", "percent", "pct"], "all": ["over", "1", "5"], "exclude": ["corner", "card", "combo", "btts" ]},
+        "odd":  {"any": ["odd", "odds", "price", "quote"], "all": ["over", "1", "5"], "exclude": ["corner", "card", "combo", "btts" ]},
+    },
+    "DOUBLE_CHANCE_1X": {
+        "prob": {"any": ["prob", "probability", "confidence", "percent", "pct"], "all": ["1x"], "exclude": []},
+        "odd":  {"any": ["odd", "odds", "price", "quote"], "all": ["1x"], "exclude": []},
+    },
+    "DOUBLE_CHANCE_X2": {
+        "prob": {"any": ["prob", "probability", "confidence", "percent", "pct"], "all": ["x2"], "exclude": []},
+        "odd":  {"any": ["odd", "odds", "price", "quote"], "all": ["x2"], "exclude": []},
+    },
+    "BTTS_YES": {
+        "prob": {"any": ["prob", "probability", "confidence", "percent", "pct"], "all": ["btts", "yes"], "exclude": ["combo"]},
+        "odd":  {"any": ["odd", "odds", "price", "quote"], "all": ["btts", "yes"], "exclude": ["combo"]},
+    },
+    "BTTS_NO": {
+        "prob": {"any": ["prob", "probability", "confidence", "percent", "pct"], "all": ["btts", "no"], "exclude": ["combo"]},
+        "odd":  {"any": ["odd", "odds", "price", "quote"], "all": ["btts", "no"], "exclude": ["combo"]},
+    },
+    "CORNERS_OVER_8_5": {
+        "prob": {"any": ["prob", "probability", "confidence", "percent", "pct"], "all": ["corner", "over", "8", "5"], "exclude": []},
+        "odd":  {"any": ["odd", "odds", "price", "quote"], "all": ["corner", "over", "8", "5"], "exclude": []},
+    },
+    "CORNERS_UNDER_10_5": {
+        "prob": {"any": ["prob", "probability", "confidence", "percent", "pct"], "all": ["corner", "under", "10", "5"], "exclude": []},
+        "odd":  {"any": ["odd", "odds", "price", "quote"], "all": ["corner", "under", "10", "5"], "exclude": []},
+    },
+    "CARDS_OVER_4": {
+        "prob": {"any": ["prob", "probability", "confidence", "percent", "pct"], "all": ["card", "over"], "exclude": ["corner"]},
+        "odd":  {"any": ["odd", "odds", "price", "quote"], "all": ["card", "over"], "exclude": ["corner"]},
+    },
+    "COMBO_O25_BTTS_YES": {
+        "prob": {"any": ["prob", "probability", "confidence", "percent", "pct"], "all": ["combo", "btts"], "exclude": []},
+        "odd":  {"any": ["odd", "odds", "price", "quote"], "all": ["combo", "btts"], "exclude": []},
+    },
+}
+
+
+def choose_generic_value(flat: Dict[str, Any], rule_code: str, probability: bool = False) -> Optional[float]:
+    patterns = GENERIC_KEY_PATTERNS.get(rule_code, {}).get("prob" if probability else "odd")
+    if not patterns:
+        return None
+    best: Optional[float] = None
+    for key, value in flat.items():
+        if not key_matches_tokens(key, patterns.get("any", []), patterns.get("all", []), patterns.get("exclude", [])):
+            continue
+        parsed = parse_probability(value) if probability else parse_float(value)
+        if parsed is None:
+            continue
+        if best is None or parsed > best:
+            best = parsed
+    return best
+
+
+def collect_debug_keys(flat: Dict[str, Any]) -> Dict[str, List[str]]:
+    buckets = {
+        "prob_keys": [],
+        "odd_keys": [],
+        "marketish_keys": [],
+    }
+    for key in flat.keys():
+        k = slug(key)
+        if any(tok in k for tok in ("prob", "probability", "confidence", "percent", "pct")):
+            buckets["prob_keys"].append(key)
+        if any(tok in k for tok in ("odd", "odds", "price", "quote")):
+            buckets["odd_keys"].append(key)
+        if any(tok in k for tok in ("market", "btts", "corner", "card", "combo", "over", "under", "1x", "x2", "ht", "1h")):
+            buckets["marketish_keys"].append(key)
+    for name in buckets:
+        buckets[name] = buckets[name][:120]
+    return buckets
+
 def choose_flat_value(flat: Dict[str, Any], aliases: Iterable[str], probability: bool = False) -> Optional[float]:
     alias_slugs = [slug(alias) for alias in aliases]
     best: Optional[float] = None
@@ -443,6 +542,10 @@ def extract_market_candidates(record: Dict[str, Any]) -> List[Dict[str, Any]]:
     for rule_code, aliases in FLAT_ALIASES.items():
         prob = choose_flat_value(flat, aliases.get("prob", []), probability=True)
         odd = choose_flat_value(flat, aliases.get("odd", []), probability=False)
+        if prob is None:
+            prob = choose_generic_value(flat, rule_code, probability=True)
+        if odd is None:
+            odd = choose_generic_value(flat, rule_code, probability=False)
         if prob is None or odd is None:
             continue
         rule = RULES[rule_code]
@@ -543,12 +646,22 @@ def resolve_cache_file(repo_root: Path, cache_dir: str, target_date: str, explic
     raise FileNotFoundError(f"Nessun cache file trovato in {base} per {target_date} (né latest.json)")
 
 
-def apply_rules(matches: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], Dict[str, int], Dict[str, int]]:
+def apply_rules(matches: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], Dict[str, int], Dict[str, int], List[Dict[str, Any]]]:
     all_candidates: List[Dict[str, Any]] = []
     pre_rule_counter: Counter[str] = Counter()
+    debug_samples: List[Dict[str, Any]] = []
 
-    for match in matches:
+    for idx, match in enumerate(matches):
         candidates = extract_market_candidates(match["raw"])
+        if idx < 5:
+            flat = flatten_scalars(match["raw"])
+            debug_samples.append({
+                "fixture_id": match["fixture_id"],
+                "match": f"{match['home']} vs {match['away']}",
+                "candidate_count": len(candidates),
+                "debug_keys": collect_debug_keys(flat),
+                "candidate_preview": candidates[:20],
+            })
         for cand in candidates:
             spec = RULES.get(cand["rule_code"])
             if spec is None:
@@ -603,7 +716,7 @@ def apply_rules(matches: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], Li
     selected.sort(key=lambda r: (float(r["probability"]), float(r["odd"]), -RULE_PRIORITY.get(r["rule_code"], 999)), reverse=True)
 
     post_rule_counter: Counter[str] = Counter(row["rule_code"] for row in selected)
-    return all_candidates, selected, dict(pre_rule_counter), dict(post_rule_counter)
+    return all_candidates, selected, dict(pre_rule_counter), dict(post_rule_counter), debug_samples
 
 
 def write_json(path: Path, payload: Any) -> None:
@@ -717,7 +830,7 @@ def main() -> int:
         seen_match_keys.add(match_key)
         matches.append(normalized)
 
-    all_candidates, selected_unique, pre_rule_counts, post_rule_counts = apply_rules(matches)
+    all_candidates, selected_unique, pre_rule_counts, post_rule_counts, debug_samples = apply_rules(matches)
     selected_capped = selected_unique[: max(0, args.max_picks)]
 
     summary = {
@@ -730,9 +843,11 @@ def main() -> int:
         "max_picks": int(args.max_picks),
         "pre_rule_counts": pre_rule_counts,
         "post_rule_counts": dict(Counter(row["rule_code"] for row in selected_capped)),
+        "debug_samples_count": len(debug_samples),
     }
 
     write_json(output_dir / f"match_center_dry_run_{target_date}_summary.json", summary)
+    write_json(output_dir / f"match_center_dry_run_{target_date}_debug_samples.json", debug_samples)
     write_json(output_dir / f"match_center_dry_run_{target_date}_all_candidates.json", all_candidates)
     write_json(output_dir / f"match_center_dry_run_{target_date}_selected.json", selected_capped)
     write_csv(output_dir / f"match_center_dry_run_{target_date}_all_candidates.csv", all_candidates)
