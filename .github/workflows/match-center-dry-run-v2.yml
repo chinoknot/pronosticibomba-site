@@ -1,0 +1,65 @@
+name: Match Center Dry Run V2
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "Data da analizzare (YYYY-MM-DD)"
+        required: false
+        default: ""
+      cache_file:
+        description: "Path cache file opzionale (relativo alla repo)"
+        required: false
+        default: ""
+      max_picks:
+        description: "Cap finale selezioni"
+        required: false
+        default: "40"
+  schedule:
+    - cron: "10 2 * * *"
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set target date
+        id: target
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.target_date }}" ]; then
+            echo "target_date=${{ github.event.inputs.target_date }}" >> "$GITHUB_OUTPUT"
+          else
+            python -c "from datetime import datetime; print(f'target_date={datetime.utcnow().strftime(\"%Y-%m-%d\")}')" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install openpyxl
+
+      - name: Run dry run v2
+        run: |
+          python match_center_filters_dry_run_v2.py \
+            --repo-root . \
+            --cache-dir assets/data/match-predictor \
+            --date "${{ steps.target.outputs.target_date }}" \
+            --cache-file "${{ github.event.inputs.cache_file || '' }}" \
+            --max-picks "${{ github.event.inputs.max_picks || '40' }}" \
+            --output-dir _match_center_filter_dry_run_v2
+
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: match-center-dry-run-v2-${{ steps.target.outputs.target_date }}
+          path: _match_center_filter_dry_run_v2/${{ steps.target.outputs.target_date }}/
+          if-no-files-found: warn
+          retention-days: 14
