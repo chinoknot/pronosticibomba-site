@@ -5,11 +5,11 @@ on:
     inputs:
       target_date:
         description: "Data cache da usare (YYYY-MM-DD)"
-        required: true
-        default: "2026-04-03"
+        required: false
+        default: ""
       max_picks:
         description: "Cap finale selezioni uniche"
-        required: true
+        required: false
         default: "40"
   schedule:
     - cron: "10 2 * * *"
@@ -34,30 +34,37 @@ jobs:
           pip install openpyxl playwright
           python -m playwright install --with-deps chromium
 
-      - name: Resolve target date
-        id: dates
+      - name: Resolve inputs
+        id: vars
+        shell: bash
         run: |
-          if [ -n "${{ github.event.inputs.target_date }}" ]; then
-            echo "target_date=${{ github.event.inputs.target_date }}" >> "$GITHUB_OUTPUT"
-          else
-            python - <<'PY'
-from datetime import datetime, timedelta, timezone
-print(f"target_date={(datetime.now(timezone.utc) + timedelta(days=1)).strftime('%Y-%m-%d')}")
-PY
+          TARGET_DATE="${{ github.event.inputs.target_date }}"
+          MAX_PICKS="${{ github.event.inputs.max_picks }}"
+
+          if [ -z "$TARGET_DATE" ]; then
+            TARGET_DATE=$(python -c "from datetime import datetime, timedelta, timezone; print((datetime.now(timezone.utc) + timedelta(days=1)).strftime('%Y-%m-%d'))")
           fi
 
+          if [ -z "$MAX_PICKS" ]; then
+            MAX_PICKS="40"
+          fi
+
+          echo "target_date=$TARGET_DATE" >> "$GITHUB_OUTPUT"
+          echo "max_picks=$MAX_PICKS" >> "$GITHUB_OUTPUT"
+
       - name: Run UI dry run
+        shell: bash
         run: |
           python match_center_ui_dry_run.py \
             --repo-root . \
-            --target-date "${{ steps.dates.outputs.target_date || github.event.inputs.target_date }}" \
-            --max-picks "${{ github.event.inputs.max_picks || '40' }}"
+            --target-date "${{ steps.vars.outputs.target_date }}" \
+            --max-picks "${{ steps.vars.outputs.max_picks }}"
 
       - name: Upload workbook artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: match-center-ui-dry-run-${{ steps.dates.outputs.target_date || github.event.inputs.target_date }}
-          path: _match_center_ui_dry_run/${{ steps.dates.outputs.target_date || github.event.inputs.target_date }}/*.xlsx
+          name: match-center-ui-dry-run-${{ steps.vars.outputs.target_date }}
+          path: _match_center_ui_dry_run/${{ steps.vars.outputs.target_date }}/*.xlsx
           if-no-files-found: ignore
           retention-days: 14
