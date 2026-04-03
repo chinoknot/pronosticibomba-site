@@ -1,0 +1,63 @@
+name: Match Center UI Dry Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: "Data cache da usare (YYYY-MM-DD)"
+        required: true
+        default: "2026-04-03"
+      max_picks:
+        description: "Cap finale selezioni uniche"
+        required: true
+        default: "40"
+  schedule:
+    - cron: "10 2 * * *"
+
+jobs:
+  dry-run-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install openpyxl playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Resolve target date
+        id: dates
+        run: |
+          if [ -n "${{ github.event.inputs.target_date }}" ]; then
+            echo "target_date=${{ github.event.inputs.target_date }}" >> "$GITHUB_OUTPUT"
+          else
+            python - <<'PY'
+from datetime import datetime, timedelta, timezone
+print(f"target_date={(datetime.now(timezone.utc) + timedelta(days=1)).strftime('%Y-%m-%d')}")
+PY
+          fi
+
+      - name: Run UI dry run
+        run: |
+          python match_center_ui_dry_run.py \
+            --repo-root . \
+            --target-date "${{ steps.dates.outputs.target_date || github.event.inputs.target_date }}" \
+            --max-picks "${{ github.event.inputs.max_picks || '40' }}"
+
+      - name: Upload workbook artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: match-center-ui-dry-run-${{ steps.dates.outputs.target_date || github.event.inputs.target_date }}
+          path: _match_center_ui_dry_run/${{ steps.dates.outputs.target_date || github.event.inputs.target_date }}/*.xlsx
+          if-no-files-found: ignore
+          retention-days: 14
