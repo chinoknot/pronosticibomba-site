@@ -208,7 +208,7 @@ def open_match_center(page, base_url: str) -> str:
     def is_match_center_page() -> bool:
         checks = [
             "() => /match\s*center/i.test(document.title || '')",
-            "() => !!document.querySelector("a[href='/match-center.html'].active, .mobile-page-link[href='/match-center.html']")",
+            "() => !!document.querySelector(\"a[href='/match-center.html'].active, .mobile-page-link[href='/match-center.html']\")",
             "() => !!document.querySelector('#feed-state-title')",
             "() => { const t = document.body ? document.body.innerText : ''; return /Pronostici\s*\(/i.test(t) || /PROBABILITA|PROBABILITÀ/i.test(t); }",
         ]
