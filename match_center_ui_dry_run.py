@@ -205,19 +205,62 @@ def prepare_workspace(repo_root: Path, target_date: str) -> Path:
 
 
 def open_match_center(page, base_url: str) -> str:
-    for candidate in PAGE_CANDIDATES:
+    def is_match_center_page() -> bool:
+        checks = [
+            "() => /match\s*center/i.test(document.title || '')",
+            "() => !!document.querySelector("a[href='/match-center.html'].active, .mobile-page-link[href='/match-center.html']")",
+            "() => !!document.querySelector('#feed-state-title')",
+            "() => { const t = document.body ? document.body.innerText : ''; return /Pronostici\s*\(/i.test(t) || /PROBABILITA|PROBABILITÀ/i.test(t); }",
+        ]
+        for js in checks:
+            try:
+                if page.evaluate(js):
+                    return True
+            except Exception:
+                pass
+        return False
+
+    last_error = None
+    for candidate in PAGE_CANDIDATES + ['/match-center']:
         url = f"{base_url}{candidate}"
         try:
-            page.goto(url, wait_until="networkidle", timeout=90000)
-            page.wait_for_timeout(1200)
-            body_text = page.locator("body").inner_text(timeout=15000)
-            if "Probabilità" in body_text and "Pronostici" in body_text:
+            page.goto(url, wait_until="domcontentloaded", timeout=90000)
+            page.wait_for_timeout(1800)
+            if is_match_center_page():
                 return url
-        except PlaywrightTimeoutError:
+        except PlaywrightTimeoutError as exc:
+            last_error = exc
             continue
-        except Exception:
+        except Exception as exc:
+            last_error = exc
             continue
-    raise RuntimeError("Match Center non trovato nelle pagine candidate")
+
+    # fallback: apri home e prova a cliccare il link Match Center se esiste
+    try:
+        home_url = f"{base_url}/index.html"
+        page.goto(home_url, wait_until="domcontentloaded", timeout=90000)
+        page.wait_for_timeout(1200)
+        for sel in ["a[href='/match-center.html']", ".mobile-page-link[href='/match-center.html']"]:
+            try:
+                if page.locator(sel).count():
+                    page.locator(sel).first.click(timeout=5000)
+                    page.wait_for_timeout(1800)
+                    if is_match_center_page():
+                        return page.url
+            except Exception:
+                continue
+    except Exception as exc:
+        last_error = exc
+
+    try:
+        debug_dir = Path('_match_center_ui_dry_run') / '_debug'
+        debug_dir.mkdir(parents=True, exist_ok=True)
+        page.screenshot(path=str(debug_dir / 'open_match_center_failed.png'), full_page=True)
+        (debug_dir / 'open_match_center_failed.html').write_text(page.content(), encoding='utf-8')
+    except Exception:
+        pass
+
+    raise RuntimeError(f"Match Center non trovato nelle pagine candidate. Ultimo errore: {last_error}")
 
 
 
