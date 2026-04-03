@@ -573,6 +573,19 @@ def write_json(path: Path, data: Any) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
+def _excel_safe(value: Any) -> Any:
+    if value is None:
+        return ""
+    if isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, (list, dict, tuple, set)):
+        try:
+            return json.dumps(value, ensure_ascii=False)
+        except Exception:
+            return str(value)
+    return str(value)
+
+
 def _append_sheet(ws, rows: List[dict]) -> None:
     if not rows:
         ws.append(["empty"])
@@ -586,7 +599,7 @@ def _append_sheet(ws, rows: List[dict]) -> None:
                 seen_set.add(k)
     ws.append(seen)
     for row in rows:
-        ws.append([row.get(h, "") for h in seen])
+        ws.append([_excel_safe(row.get(h, "")) for h in seen])
 
 
 def write_xlsx(path: Path, selected: List[dict], all_candidates: List[dict], summary: dict, by_market: Dict[str, List[dict]], debug_samples: List[dict]) -> None:
