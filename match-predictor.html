@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚽ Pronostici Bomba — Match Predictor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0e14;
+  --surface: #141820;
+  --surface2: #1a1f2e;
+  --surface3: #222838;
+  --border: #2a3040;
+  --text: #e4e8f1;
+  --text2: #8892a8;
+  --accent: #a3e635;
+  --accent2: #22d3ee;
+  --red: #f43f5e;
+  --amber: #f59e0b;
+  --orange: #fb923c;
+  --purple: #a78bfa;
+  --blue: #60a5fa;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(163,230,53,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(34,211,238,0.04) 0%, transparent 50%);
+  pointer-events: none; z-index: 0;
+}
+
+.container { max-width: 1100px; margin: 0 auto; padding: 20px 16px; position: relative; z-index: 1; }
+
+/* HEADER */
+.header {
+  text-align: center; padding: 40px 0 30px;
+}
+.header h1 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800; font-size: 2.4rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: -1px;
+}
+.header p { color: var(--text2); margin-top: 6px; font-size: 0.95rem; }
+
+/* CONTROLS */
+.controls {
+  display: flex; gap: 12px; justify-content: center; align-items: end;
+  flex-wrap: wrap; margin: 24px 0 32px; padding: 24px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-size: 0.75rem; font-weight: 600; color: var(--text2);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.field input {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text); padding: 10px 14px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.95rem;
+  outline: none; transition: border-color 0.2s;
+}
+.field input:focus { border-color: var(--accent); }
+
+.btn {
+  font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem;
+  padding: 11px 32px; border: none; border-radius: 10px; cursor: pointer;
+  transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;
+}
+.btn-go {
+  background: linear-gradient(135deg, var(--accent), #65a30d);
+  color: #0b0e14;
+}
+.btn-go:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(163,230,53,0.3); }
+.btn-go:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* PROGRESS */
+.progress-wrap {
+  margin: 20px 0; padding: 16px 20px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 12px;
+}
+.progress-bar-bg {
+  width: 100%; height: 6px; background: var(--surface3); border-radius: 3px;
+  overflow: hidden; margin-top: 8px;
+}
+.progress-bar-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 3px; transition: width 0.3s;
+}
+.progress-text { font-size: 0.85rem; color: var(--text2); }
+.progress-text span { color: var(--accent); font-weight: 600; }
+
+/* LEAGUE GROUP */
+.league-group { margin-bottom: 28px; }
+.league-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 0; margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.league-header img { width: 22px; height: 22px; border-radius: 4px; }
+.league-header h2 {
+  font-family: 'Outfit', sans-serif; font-weight: 700;
+  font-size: 1.1rem; color: var(--text);
+}
+.league-header .badge {
+  font-size: 0.7rem; background: var(--surface3);
+  padding: 2px 8px; border-radius: 6px; color: var(--text2);
+}
+
+/* MATCH CARD */
+.match-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; margin-bottom: 12px; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.match-card:hover { border-color: #3a4060; }
+
+.match-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; cursor: pointer; user-select: none;
+}
+.match-teams {
+  display: flex; align-items: center; gap: 8px; flex: 1;
+}
+.match-teams img { width: 22px; height: 22px; }
+.match-teams .vs { color: var(--text2); font-size: 0.8rem; margin: 0 4px; }
+.team-name { font-weight: 600; font-size: 0.95rem; }
+.match-time {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+  color: var(--accent2); background: rgba(34,211,238,0.1);
+  padding: 3px 8px; border-radius: 6px; margin-right: 12px;
+}
+
+.match-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+  padding: 3px 8px; border-radius: 6px; font-weight: 600;
+  white-space: nowrap;
+}
+.pill-over { background: rgba(163,230,53,0.15); color: var(--accent); }
+.pill-under { background: rgba(244,63,94,0.12); color: var(--red); }
+.pill-btts-y { background: rgba(34,211,238,0.12); color: var(--accent2); }
+.pill-btts-n { background: rgba(251,146,60,0.12); color: var(--orange); }
+.pill-combo { background: rgba(167,139,250,0.12); color: var(--purple); }
+.pill-neutral { background: rgba(136,146,168,0.1); color: var(--text2); }
+
+/* MATCH DETAILS */
+.match-details { padding: 0 18px 18px; display: none; }
+.match-details.open { display: block; }
+
+.market-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+.market-box {
+  background: var(--surface2); border-radius: 10px; padding: 14px;
+}
+.market-title {
+  font-family: 'Outfit', sans-serif; font-weight: 700;
+  font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+}
+.market-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 0; font-size: 0.88rem;
+}
+.market-row .label { color: var(--text2); }
+.market-row .value {
+  font-family: 'JetBrains Mono', monospace; font-weight: 600;
+}
+.bar-wrap { flex: 1; margin: 0 10px; height: 4px; background: var(--surface3); border-radius: 2px; }
+.bar-fill { height: 100%; border-radius: 2px; }
+.bar-green { background: var(--accent); }
+.bar-red { background: var(--red); }
+.bar-cyan { background: var(--accent2); }
+.bar-amber { background: var(--amber); }
+.bar-purple { background: var(--purple); }
+
+.scores-row {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;
+}
+.score-chip {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+  background: var(--surface3); padding: 3px 8px; border-radius: 6px;
+  color: var(--text2);
+}
+.score-chip strong { color: var(--text); }
+
+/* BEST PICKS */
+.best-section { margin-top: 36px; }
+.best-title {
+  font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.3rem;
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+.best-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+}
+.best-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.best-card .info { display: flex; flex-direction: column; gap: 2px; }
+.best-card .teams-text { font-weight: 600; font-size: 0.9rem; }
+.best-card .league-text { font-size: 0.75rem; color: var(--text2); }
+.best-card .pct {
+  font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 700;
+}
+
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text2); }
+.empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+
+.expand-arrow { color: var(--text2); transition: transform 0.2s; font-size: 0.8rem; }
+.expand-arrow.open { transform: rotate(180deg); }
+
+@media (max-width: 640px) {
+  .header h1 { font-size: 1.6rem; }
+  .controls { flex-direction: column; align-items: stretch; }
+  .match-header { flex-wrap: wrap; gap: 8px; }
+  .market-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="container" id="app"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.2/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useRef, useCallback } = React;
+
+// ======= CONFIG =======
+const API_KEY = "daaf29bc97d50f28aa64816c7cc203bc";
+const API_BASE = "https://v3.football.api-sports.io";
+const SB_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co/rest/v1";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NDAwOTQ5NywiZXhwIjoyMDc5NTg1NDk3fQ.S59NSuWyqT9QBh33YD8OxB0rnO8_6CjLXC2M5wwW120";
+
+const EXCLUDED_COUNTRIES = new Set(["algeria","angola","benin","botswana","burkina faso","burundi","cameroon","cape verde","chad","comoros","congo","congo dr","dr congo","cote d'ivoire","ivory coast","djibouti","egypt","equatorial guinea","eritrea","ethiopia","gabon","gambia","ghana","guinea","guinea-bissau","kenya","lesotho","liberia","libya","madagascar","malawi","mali","mauritania","mauritius","morocco","mozambique","namibia","niger","nigeria","rwanda","senegal","seychelles","sierra leone","somalia","south africa","south sudan","sudan","tanzania","togo","tunisia","uganda","zambia","zimbabwe","russia","serbia"]);
+const EXCLUDED_KW = ["friendly","friendlies","women","womens","femin","femmin","u19","u-19","u20","u-20","u21","u-21","u23","u-23","youth","junior","academy","reserve","reserves"];
+const BOOKMAKERS_365 = new Set(["Bet365","bet365","bet365.com","Bet 365"]);
+
+// ======= UTILS =======
+const tf = x => { if (x==null) return null; try { let s=String(x).trim().replace('%','').replace(',','.'); return s?parseFloat(s):null; } catch(e){return null;} };
+const sd = (a,b) => (b&&a!=null)?a/b:0;
+const today = () => new Date().toISOString().slice(0,10);
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+// ======= API =======
+let lastCall = 0;
+async function apiGet(path, params={}) {
+  const now = Date.now(); const wait = 500-(now-lastCall);
+  if(wait>0) await sleep(wait);
+  lastCall = Date.now();
+  const qs = new URLSearchParams(params).toString();
+  const url = `${API_BASE}${path}${qs?'?'+qs:''}`;
+  try {
+    const r = await fetch(url, {headers:{"x-apisports-key":API_KEY,"Accept":"application/json"}});
+    if(!r.ok) return [];
+    const d = await r.json();
+    return d?.response||[];
+  } catch(e){ return []; }
+}
+
+async function sbGet(table, params) {
+  const qs = Object.entries(params).map(([k,v])=>`${k}=${v}`).join('&');
+  try {
+    const r = await fetch(`${SB_URL}/${table}?${qs}`, {
+      headers:{"apikey":SB_KEY,"Authorization":`Bearer ${SB_KEY}`}
+    });
+    if(!r.ok) return [];
+    return await r.json();
+  } catch(e){ return []; }
+}
+
+// ======= DATA FETCH =======
+async function fetchFixtures(date, tmin, tmax) {
+  const all = await apiGet("/fixtures", {date, timezone:"Europe/Dublin"});
+  return all.filter(f => {
+    const fx=f.fixture||{}, lg=f.league||{};
+    const st=(fx.status||{}).short||"";
+    if(["PST","CANC","ABD","FT","AET","PEN"].includes(st)) return false;
+    const country=(lg.country||"").toLowerCase();
+    if(EXCLUDED_COUNTRIES.has(country)) return false;
+    const ln=(lg.name||"").toLowerCase(), lr=(lg.round||"").toLowerCase();
+    if(EXCLUDED_KW.some(k=>ln.includes(k)||lr.includes(k))) return false;
+    const t=(fx.date||"").slice(11,16);
+    if(!t||t<tmin||t>tmax) return false;
+    return true;
+  });
+}
+
+async function fetchPrediction(fid) {
+  const r = await apiGet("/predictions", {fixture:fid});
+  if(!r.length) return {};
+  const b=r[0].predictions||{};
+  return {
+    goals_home:(b.goals||{}).home, goals_away:(b.goals||{}).away,
+    under_over:b.under_over, advice:b.advice,
+  };
+}
+
+async function fetchOdds(fid) {
+  const d = await apiGet("/odds", {fixture:fid, page:1});
+  if(!d.length) return {};
+  let bms = d[0].bookmakers||[];
+  const chosen = bms.find(b=>BOOKMAKERS_365.has(b.name))||bms[0];
+  if(!chosen) return {};
+  const bets = chosen.bets||[];
+  const res = {bookmaker:chosen.name};
+  for(const b of bets) {
+    if(b.name==="Match Winner") for(const v of b.values||[]) {
+      if(v.value==="Home") res.odd_home=v.odd;
+      if(v.value==="Draw") res.odd_draw=v.odd;
+      if(v.value==="Away") res.odd_away=v.odd;
+    }
+    if(b.name==="Goals Over/Under") for(const v of b.values||[]) {
+      const l=String(v.value||"").trim();
+      if(l==="Over 2.5") res.odd_o25=v.odd;
+      if(l==="Under 2.5") res.odd_u25=v.odd;
+    }
+    const n=(b.name||"").toLowerCase();
+    if((n.includes("both")&&n.includes("team")&&n.includes("score"))||n.includes("btts"))
+      for(const v of b.values||[]) {
+        const val=(v.value||"").toLowerCase();
+        if(["yes","y","si"].includes(val)) res.odd_btts_y=v.odd;
+        if(["no","n"].includes(val)) res.odd_btts_n=v.odd;
+      }
+  }
+  return res;
+}
+
+async function fetchTeamStats(lid, season, tid) {
+  if(!lid||!season||!tid) return {};
+  const d = await apiGet("/teams/statistics", {league:lid, season, team:tid});
+  // apiGet returns response array but /teams/statistics returns object
+  // Need to handle this specially
+  return d; // it's actually the response object directly from the raw call
+}
+
+// Special handler for team stats (returns object not array)
+async function fetchTeamStatsRaw(lid, season, tid) {
+  if(!lid||!season||!tid) return {};
+  const now = Date.now(); const wait = 500-(now-lastCall);
+  if(wait>0) await sleep(wait);
+  lastCall = Date.now();
+  try {
+    const r = await fetch(`${API_BASE}/teams/statistics?league=${lid}&season=${season}&team=${tid}`, {
+      headers:{"x-apisports-key":API_KEY}
+    });
+    if(!r.ok) return {};
+    const d = await r.json();
+    return d?.response||{};
+  } catch(e){ return {}; }
+}
+
+async function fetchSbTeamStats(tid) {
+  const r = await sbGet("team_season_stats", {team_id:`eq.${tid}`, season:"eq.2025", select:"*"});
+  return r[0]||{};
+}
+
+async function fetchSbCorners(tid, lid) {
+  let p = {team_id:`eq.${tid}`, select:"*"};
+  if(lid) p.league_id = `eq.${lid}`;
+  let r = await sbGet("corner_team_stats", p);
+  if(r.length) return r[0];
+  r = await sbGet("corner_team_stats", {team_id:`eq.${tid}`, select:"*", order:"total_matches.desc", limit:"1"});
+  return r[0]||{};
+}
+
+// ======= PROFILE =======
+function extractProfile(ts, side) {
+  const o = {played:0, played_side:0, gf_side:0, ga_side:0, gf_total:0, ga_total:0, cs_rate:0, fts_rate:0, form:0};
+  if(!ts||typeof ts!=='object'||!ts.fixtures) return o;
+  const pl=ts.fixtures?.played||{};
+  const ph=tf(pl.home)||0, pa=tf(pl.away)||0;
+  o.played=ph+pa; o.played_side=side==='home'?ph:pa;
+  const g=ts.goals||{};
+  const gf=(g.for||{}).average||{}, ga=(g.against||{}).average||{};
+  o.gf_side=tf(gf[side])||0; o.ga_side=tf(ga[side])||0;
+  o.gf_total=tf(gf.total)||0; o.ga_total=tf(ga.total)||0;
+  const cs=ts.clean_sheet||{}, fts=ts.failed_to_score||{};
+  const sp=o.played_side||1;
+  o.cs_rate=sd(tf(cs[side])||0, sp);
+  o.fts_rate=sd(tf(fts[side])||0, sp);
+  const fm=(ts.form||"").toUpperCase().slice(-5);
+  o.form=[...fm].reduce((s,c)=>s+(c==='W'?3:c==='D'?1:0),0);
+  return o;
+}
+
+// ======= POISSON =======
+function poiPmf(k,lam) { if(!lam||lam<=0) return 0; let f=1; for(let i=1;i<=k;i++) f*=i; return Math.exp(-lam)*Math.pow(lam,k)/f; }
+function pOver(lam,thr) { if(lam<=0) return 0; let s=0; for(let k=0;k<thr;k++) s+=poiPmf(k,lam); return Math.max(0,1-s); }
+function scoreGrid(lh,la) {
+  const g={}; for(let h=0;h<=7;h++) for(let a=0;a<=7;a++) g[`${h}-${a}`]=poiPmf(h,lh)*poiPmf(a,la); return g;
+}
+
+// ======= PREDICTION ENGINE =======
+function predictAll(hp, ap, pred, odds, hn, an, hsb, asb, hcrn, acrn) {
+  hsb=hsb||{}; asb=asb||{}; hcrn=hcrn||{}; acrn=acrn||{};
+  const gh=tf(pred.goals_home)||0, ga=tf(pred.goals_away)||0;
+  let vh=[], va=[];
+  if(gh>0) vh.push(gh); if(ga>0) va.push(ga);
+  if(hp.gf_side>0) vh.push(hp.gf_side); if(ap.ga_side>0) vh.push(ap.ga_side);
+  if(ap.gf_side>0) va.push(ap.gf_side); if(hp.ga_side>0) va.push(hp.ga_side);
+  if(!vh.length&&hp.gf_total>0) vh.push(hp.gf_total);
+  if(!va.length&&ap.gf_total>0) va.push(ap.gf_total);
+  const lh=vh.length?vh.reduce((a,b)=>a+b)/vh.length:1.2;
+  const la=va.length?va.reduce((a,b)=>a+b)/va.length:1.0;
+  const lt=lh+la;
+  const pHsc=1-Math.exp(-lh), pAsc=1-Math.exp(-la);
+  const pHz=1-pHsc, pAz=1-pAsc;
+  const pO25poi=pOver(lt,3), pBttsPoi=pHsc*pAsc;
+  const oo25=tf(odds.odd_o25), ou25=tf(odds.odd_u25);
+  const oby=tf(odds.odd_btts_y), obn=tf(odds.odd_btts_n);
+  const oh=tf(odds.odd_home), oa=tf(odds.odd_away);
+  const vf=(a,b)=>{if(a&&b&&a>1&&b>1){const i1=1/a,i2=1/b,t=i1+i2;return t>0?[i1/t,i2/t]:[.5,.5];}return[null,null];};
+  const [mO,mU]=vf(oo25,ou25), [mBy,mBn]=vf(oby,obn);
+
+  // O/U 2.5
+  let ouS=[[pO25poi,.30]];
+  if(mO!=null) ouS.push([mO,.25]);
+  if(hp.played>=3&&ap.played>=3){
+    let ad=hp.gf_side+ap.ga_side+ap.gf_side+hp.ga_side;
+    let pp=Math.max(.05,Math.min(.95,(ad-1.5)/3));
+    pp-=(hp.cs_rate+ap.cs_rate)/2*.15+(hp.fts_rate+ap.fts_rate)/2*.10;
+    pp=Math.max(.05,Math.min(.95,pp));
+    ouS.push([pp,.20]);
+  }
+  let bProxy=pBttsPoi*.85; if(mBy!=null) bProxy=(pBttsPoi*.5+mBy*.5)*.85;
+  ouS.push([bProxy,.10]);
+  const adv=(pred.advice||"").toLowerCase(), uo=String(pred.under_over||"").trim();
+  let pAdv=.5;
+  if(uo){try{const v=parseFloat(uo.replace(/[+-]/g,''));if(v>=3.5)pAdv=.8;else if(v>=2.5)pAdv=.65;else if(v<=1.5)pAdv=.2;else if(uo.includes('-'))pAdv=.35;}catch(e){if(uo.toLowerCase().includes('over'))pAdv=.65;if(uo.toLowerCase().includes('under'))pAdv=.35;}}
+  if(adv.includes('over')&&!adv.includes('under'))pAdv=Math.max(pAdv,.62);
+  else if(adv.includes('under'))pAdv=Math.min(pAdv,.38);
+  ouS.push([pAdv,.08]);
+  const cf=(hp.form+ap.form)/2, ff=Math.max(0,Math.min(1,(cf-3)/9));
+  ouS.push([.35+ff*.35,.07]);
+  let twOU=ouS.reduce((s,[_,w])=>s+w,0);
+  let pO25=Math.max(.05,Math.min(.95,ouS.reduce((s,[p,w])=>s+p*w,0)/twOU));
+
+  // BTTS
+  let btS=[[pBttsPoi,.30]];
+  if(mBy!=null) btS.push([mBy,.25]);
+  if(hp.played>=3&&ap.played>=3){
+    let bp=(1-Math.min(hp.cs_rate,1))*(1-Math.min(ap.cs_rate,1))*(1-Math.min(hp.fts_rate,1))*(1-Math.min(ap.fts_rate,1));
+    btS.push([Math.max(.1,Math.min(.9,bp)),.20]);
+  }
+  if(gh>0&&ga>0){const mn=Math.min(gh,ga);btS.push([mn>=1.5?.75:mn>=1?.62:mn>=.7?.5:mn>=.4?.35:.22,.15]);}
+  const ha2=hp.gf_side||hp.gf_total, aa2=ap.gf_side||ap.gf_total;
+  if(ha2>0&&aa2>0){const bal=Math.min(ha2,aa2)/Math.max(ha2,aa2);btS.push([Math.max(.15,Math.min(.8,.3+bal*.25+Math.min(ha2,aa2)*.15)),.10]);}
+  let twBt=btS.reduce((s,[_,w])=>s+w,0);
+  let pBtts=Math.max(.08,Math.min(.92,btS.reduce((s,[p,w])=>s+p*w,0)/twBt));
+
+  // No Goal
+  let pHbl,pAbl;
+  if(hp.played>=3&&ap.played>=3){pHbl=pHz*.4+ap.cs_rate*.3+hp.fts_rate*.3;pAbl=pAz*.4+hp.cs_rate*.3+ap.fts_rate*.3;}
+  else{pHbl=pHz;pAbl=pAz;}
+  let pNogol;
+  if(mBn!=null){const m=1-(1-pHbl)*(1-pAbl);pNogol=m*.65+mBn*.35;}
+  else pNogol=1-(1-pHbl)*(1-pAbl);
+  if(oh&&oa&&oh>1&&oa>1){if(oh<1.4)pAbl=Math.min(.9,pAbl+.05);if(oa<1.4)pHbl=Math.min(.9,pHbl+.05);}
+  if(gh>0&&gh<.5)pHbl=Math.min(.9,pHbl+.08);
+  if(ga>0&&ga<.5)pAbl=Math.min(.9,pAbl+.08);
+  pHbl=Math.max(.05,Math.min(.9,pHbl));pAbl=Math.max(.05,Math.min(.9,pAbl));
+  pNogol=Math.max(.1,Math.min(.9,pNogol));
+
+  // O3.5
+  const pO35=pOver(lt,4);
+
+  // Combo O2.5+BTTS (exact from grid)
+  const g=scoreGrid(lh,la);
+  let pCombo=0;
+  for(const[k,p] of Object.entries(g)){const[h,a]=k.split('-').map(Number);if(h+a>=3&&h>=1&&a>=1)pCombo+=p;}
+
+  // Corners
+  const hcpg=tf(hcrn.avg_corners_for_home)||tf(hsb.corners_for_avg)||0;
+  const acpg=tf(acrn.avg_corners_for_away)||tf(asb.corners_for_avg)||0;
+  let expC=hcpg+acpg;
+  const cOvers={};
+  if(expC>0){for(const ln of[7.5,8.5,9.5,10.5]){const z=(ln-expC)/3;cOvers[ln]=Math.max(.02,Math.min(.98,1-.5*(1+erf(z/Math.sqrt(2)))));}}
+
+  // Yellows
+  const hYel=tf(hsb.yellow_avg)||0, aYel=tf(asb.yellow_avg)||0;
+  const expY=hYel+aYel;
+  const yOvers={};
+  if(expY>0){for(const li of[3,4,5]) yOvers[li-0.5]=pOver(expY,li);}
+
+  // Top scores
+  const topScores=Object.entries(g).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([s,p])=>({score:s,pct:(p*100).toFixed(1)}));
+
+  return {
+    pO25,pU25:1-pO25,pO35,pBtts,pBttsNo:1-pBtts,pCombo,
+    pNogol,pBothScore:1-pNogol,pHbl,pAbl,p00:g['0-0']||0,
+    expC:expC||null,cOvers,expY:expY||null,yOvers,
+    lamH:lh,lamA:la,lamT:lt,topScores,
+    oo25,ou25,oby,obn,
+  };
+}
+
+// erf approximation
+function erf(x){const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+const s=x<0?-1:1;x=Math.abs(x);const t=1/(1+p*x);const y=1-((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);return s*y;}
+
+// ======= COMPONENTS =======
+function PctBar({value, color, width=80}) {
+  return <div style={{width, height:4, background:'var(--surface3)', borderRadius:2, display:'inline-block', verticalAlign:'middle', marginLeft:6}}>
+    <div style={{width:`${Math.max(2,value*100)}%`, height:'100%', borderRadius:2, background:`var(--${color})`}}/>
+  </div>;
+}
+
+function MarketRow({label, value, color, odd}) {
+  const pct = (value*100).toFixed(1);
+  return <div className="market-row">
+    <span className="label">{label}</span>
+    <PctBar value={value} color={color}/>
+    <span className="value" style={{color:`var(--${color})`}}>{pct}%</span>
+    {odd && <span style={{fontSize:'.75rem',color:'var(--text2)',marginLeft:6}}>@{odd}</span>}
+  </div>;
+}
+
+function MatchCard({m, expanded, onToggle}) {
+  const r = m.result;
+  const pills = [];
+  if(r.pO25>=.5) pills.push({cls:'pill-over',text:`O2.5 ${(r.pO25*100).toFixed(0)}%`});
+  else pills.push({cls:'pill-under',text:`U2.5 ${(r.pU25*100).toFixed(0)}%`});
+  if(r.pBtts>=.5) pills.push({cls:'pill-btts-y',text:`GG ${(r.pBtts*100).toFixed(0)}%`});
+  else pills.push({cls:'pill-btts-n',text:`NG ${(r.pBttsNo*100).toFixed(0)}%`});
+  if(r.pCombo>=.35) pills.push({cls:'pill-combo',text:`O2.5+GG ${(r.pCombo*100).toFixed(0)}%`});
+
+  return <div className="match-card">
+    <div className="match-header" onClick={onToggle}>
+      <span className="match-time">{m.time}</span>
+      <div className="match-teams">
+        {m.homeLogo&&<img src={m.homeLogo} alt="" onError={e=>e.target.style.display='none'}/>}
+        <span className="team-name">{m.home}</span>
+        <span className="vs">vs</span>
+        <span className="team-name">{m.away}</span>
+        {m.awayLogo&&<img src={m.awayLogo} alt="" onError={e=>e.target.style.display='none'}/>}
+      </div>
+      <div className="match-badges">
+        {pills.map((p,i)=><span key={i} className={`pill ${p.cls}`}>{p.text}</span>)}
+      </div>
+      <span className={`expand-arrow ${expanded?'open':''}`}>▼</span>
+    </div>
+    <div className={`match-details ${expanded?'open':''}`}>
+      <div className="market-grid">
+        {/* GOL */}
+        <div className="market-box">
+          <div className="market-title">⚽ Gol</div>
+          <MarketRow label="Over 2.5" value={r.pO25} color="accent" odd={r.oo25}/>
+          <MarketRow label="Under 2.5" value={r.pU25} color="red"/>
+          <MarketRow label="Over 3.5" value={r.pO35} color="amber"/>
+          <MarketRow label="O2.5 + BTTS" value={r.pCombo} color="purple"/>
+          <div style={{marginTop:6,fontSize:'.78rem',color:'var(--text2)'}}>λ {r.lamH.toFixed(2)} — {r.lamA.toFixed(2)} (tot: {r.lamT.toFixed(2)})</div>
+        </div>
+
+        {/* BTTS */}
+        <div className="market-box">
+          <div className="market-title">✅ BTTS</div>
+          <MarketRow label="BTTS YES (GG)" value={r.pBtts} color="accent2" odd={r.oby}/>
+          <MarketRow label="BTTS NO (NG)" value={r.pBttsNo} color="orange" odd={r.obn}/>
+          <div style={{height:8}}/>
+          <div className="market-title">🚫 No Goal</div>
+          <MarketRow label={`${m.home} non segna`} value={r.pHbl} color="red"/>
+          <MarketRow label={`${m.away} non segna`} value={r.pAbl} color="red"/>
+          <MarketRow label="0-0" value={r.p00} color="text2"/>
+        </div>
+
+        {/* CORNERS + YELLOWS */}
+        <div className="market-box">
+          {r.expC!=null && <>
+            <div className="market-title">📐 Corner (exp: {r.expC.toFixed(1)})</div>
+            {Object.entries(r.cOvers).map(([ln,p])=>
+              <MarketRow key={ln} label={`Over ${ln}`} value={p} color="accent2"/>
+            )}
+          </>}
+          {r.expY!=null && <>
+            <div className="market-title" style={{marginTop:r.expC?10:0}}>🟨 Ammonizioni (exp: {r.expY.toFixed(1)})</div>
+            {Object.entries(r.yOvers).map(([ln,p])=>
+              <MarketRow key={ln} label={`Over ${ln}`} value={p} color="amber"/>
+            )}
+          </>}
+          {!r.expC&&!r.expY && <div style={{color:'var(--text2)',fontSize:'.85rem'}}>Dati corner/ammonizioni non disponibili</div>}
+        </div>
+      </div>
+
+      {/* SCORES */}
+      <div className="scores-row">
+        {r.topScores.map((s,i)=>
+          <span key={i} className="score-chip"><strong>{s.score}</strong> {s.pct}%</span>
+        )}
+      </div>
+    </div>
+  </div>;
+}
+
+function BestPicks({results}) {
+  const bestO25=results.filter(m=>m.result.pO25>=.58).sort((a,b)=>b.result.pO25-a.result.pO25).slice(0,6);
+  const bestU25=results.filter(m=>m.result.pU25>=.58).sort((a,b)=>b.result.pU25-a.result.pU25).slice(0,6);
+  const bestBtts=results.filter(m=>m.result.pBtts>=.58).sort((a,b)=>b.result.pBtts-a.result.pBtts).slice(0,6);
+  const bestCombo=results.filter(m=>m.result.pCombo>=.30).sort((a,b)=>b.result.pCombo-a.result.pCombo).slice(0,6);
+  const bestO35=results.filter(m=>m.result.pO35>=.30).sort((a,b)=>b.result.pO35-a.result.pO35).slice(0,6);
+  const bestCorners=results.filter(m=>m.result.expC&&m.result.expC>0).sort((a,b)=>(b.result.expC||0)-(a.result.expC||0)).slice(0,6);
+
+  const Section=({icon,title,items,getVal,color})=>{
+    if(!items.length) return null;
+    return <div className="best-section">
+      <div className="best-title">{icon} {title}</div>
+      <div className="best-grid">
+        {items.map((m,i)=><div key={i} className="best-card">
+          <div className="info">
+            <div className="teams-text">{m.home} vs {m.away}</div>
+            <div className="league-text">{m.country} / {m.league}</div>
+          </div>
+          <div className="pct" style={{color:`var(--${color})`}}>{getVal(m)}</div>
+        </div>)}
+      </div>
+    </div>;
+  };
+
+  return <>
+    <Section icon="🟢" title="OVER 2.5" items={bestO25} getVal={m=>`${(m.result.pO25*100).toFixed(0)}%`} color="accent"/>
+    <Section icon="🔴" title="UNDER 2.5" items={bestU25} getVal={m=>`${(m.result.pU25*100).toFixed(0)}%`} color="red"/>
+    <Section icon="✅" title="BTTS YES" items={bestBtts} getVal={m=>`${(m.result.pBtts*100).toFixed(0)}%`} color="accent2"/>
+    <Section icon="🔥" title="OVER 3.5" items={bestO35} getVal={m=>`${(m.result.pO35*100).toFixed(0)}%`} color="amber"/>
+    <Section icon="🔗" title="OVER 2.5 + BTTS" items={bestCombo} getVal={m=>`${(m.result.pCombo*100).toFixed(0)}%`} color="purple"/>
+    <Section icon="📐" title="TOP CORNER" items={bestCorners} getVal={m=>`${(m.result.expC||0).toFixed(1)}`} color="accent2"/>
+  </>;
+}
+
+// ======= MAIN APP =======
+function App() {
+  const [date, setDate] = useState(today());
+  const [tmin, setTmin] = useState("13:30");
+  const [tmax, setTmax] = useState("21:30");
+  const [status, setStatus] = useState('idle'); // idle|loading|done
+  const [progress, setProgress] = useState({current:0,total:0,text:''});
+  const [results, setResults] = useState([]);
+  const [expanded, setExpanded] = useState({});
+  const abortRef = useRef(false);
+
+  const toggle = id => setExpanded(prev=>({...prev,[id]:!prev[id]}));
+
+  const run = useCallback(async () => {
+    abortRef.current = false;
+    setStatus('loading');
+    setResults([]);
+    setExpanded({});
+    setProgress({current:0,total:0,text:'Caricamento fixtures...'});
+
+    const fixtures = await fetchFixtures(date, tmin, tmax);
+    if(!fixtures.length){setProgress({current:0,total:0,text:'Nessuna partita trovata.'});setStatus('done');return;}
+    setProgress({current:0,total:fixtures.length,text:`Trovate ${fixtures.length} partite. Analisi in corso...`});
+
+    const all = [];
+    for(let i=0;i<fixtures.length;i++){
+      if(abortRef.current) break;
+      const f=fixtures[i];
+      const fx=f.fixture||{}, lg=f.league||{}, teams=f.teams||{};
+      const fid=fx.id, lid=lg.id, season=lg.season;
+      const ht=teams.home||{}, at=teams.away||{};
+      const hn=ht.name||'?', an=at.name||'?';
+      const hid=ht.id, aid=at.id;
+      const mtime=(fx.date||'').slice(11,16);
+
+      setProgress({current:i+1, total:fixtures.length, text:`${hn} vs ${an}`});
+
+      const [pred, odds, hts, ats, hsb, asb, hcrn, acrn] = await Promise.all([
+        fetchPrediction(fid),
+        fetchOdds(fid),
+        fetchTeamStatsRaw(lid, season, hid),
+        fetchTeamStatsRaw(lid, season, aid),
+        fetchSbTeamStats(hid),
+        fetchSbTeamStats(aid),
+        fetchSbCorners(hid, lid),
+        fetchSbCorners(aid, lid),
+      ]);
+
+      const hp=extractProfile(hts,'home'), ap=extractProfile(ats,'away');
+      const result=predictAll(hp,ap,pred,odds,hn,an,hsb,asb,hcrn,acrn);
+
+      const match={
+        id:fid, home:hn, away:an, time:mtime,
+        league:lg.name||'', country:lg.country||'',
+        homeLogo:ht.logo, awayLogo:at.logo, leagueLogo:lg.logo,
+        result,
+      };
+      all.push(match);
+      setResults([...all]);
+    }
+    setStatus('done');
+    setProgress({current:fixtures.length, total:fixtures.length, text:'Completato!'});
+  },[date,tmin,tmax]);
+
+  // Group by league
+  const grouped={};
+  for(const m of results){
+    const k=`${m.country} — ${m.league}`;
+    if(!grouped[k]) grouped[k]={logo:m.leagueLogo, matches:[]};
+    grouped[k].matches.push(m);
+  }
+
+  return <div className="container">
+    <div className="header">
+      <h1>⚽ Pronostici Bomba</h1>
+      <p>Match Predictor — Goals • BTTS • Corners • Ammonizioni</p>
+    </div>
+
+    <div className="controls">
+      <div className="field">
+        <label>Data</label>
+        <input type="date" value={date} onChange={e=>setDate(e.target.value)}/>
+      </div>
+      <div className="field">
+        <label>Dalle</label>
+        <input type="time" value={tmin} onChange={e=>setTmin(e.target.value)}/>
+      </div>
+      <div className="field">
+        <label>Alle</label>
+        <input type="time" value={tmax} onChange={e=>setTmax(e.target.value)}/>
+      </div>
+      <button className="btn btn-go" onClick={run} disabled={status==='loading'}>
+        {status==='loading'?'Analisi...':'🚀 Analizza'}
+      </button>
+    </div>
+
+    {status!=='idle' && <div className="progress-wrap">
+      <div className="progress-text"><span>{progress.current}/{progress.total}</span> — {progress.text}</div>
+      <div className="progress-bar-bg">
+        <div className="progress-bar-fill" style={{width:`${progress.total?progress.current/progress.total*100:0}%`}}/>
+      </div>
+    </div>}
+
+    {Object.entries(grouped).sort(([a],[b])=>a.localeCompare(b)).map(([league,{logo,matches}])=>
+      <div key={league} className="league-group">
+        <div className="league-header">
+          {logo && <img src={logo} alt="" onError={e=>e.target.style.display='none'}/>}
+          <h2>{league}</h2>
+          <span className="badge">{matches.length} match</span>
+        </div>
+        {matches.sort((a,b)=>a.time.localeCompare(b.time)).map(m=>
+          <MatchCard key={m.id} m={m} expanded={!!expanded[m.id]} onToggle={()=>toggle(m.id)}/>
+        )}
+      </div>
+    )}
+
+    {status==='done' && results.length===0 && <div className="empty-state">
+      <div className="icon">🏟️</div>
+      <p>Nessuna partita trovata per {date} ({tmin}-{tmax})</p>
+    </div>}
+
+    {status==='done' && results.length>0 && <BestPicks results={results}/>}
+  </div>;
+}
+
+ReactDOM.render(<App/>, document.getElementById('app'));
+</script>
+</body>
+</html>
