@@ -2812,7 +2812,8 @@
     }
     if (dom.feedStateSubtitle) {
       const activeGroup = state.groups.size === 1 ? (marketGroup([...state.groups][0])?.label || "Focus") : "Tutti i mercati";
-      dom.feedStateSubtitle.textContent = `${activeGroup} | ${state.sortMode === "priority" ? "ordine prioritario" : "ordine orario"}`;
+      const base = `${activeGroup} | ${state.sortMode === "priority" ? "ordine prioritario" : "ordine orario"}`;
+      dom.feedStateSubtitle.textContent = base;
     }
     if (dom.sortToggleValue) dom.sortToggleValue.textContent = state.sortMode === "priority" ? "Priorita" : "Orario";
     if (dom.summaryTimeValue) dom.summaryTimeValue.textContent = `${state.timeFrom} - ${state.timeTo}`;
@@ -3132,7 +3133,7 @@
   renderMatchRow = function renderMatchRowOptimized(match, options = {}) {
     const showLeagueLine = options.showLeagueLine !== false;
     const actionState = matchActionState(match);
-    const scoreText = renderMatchScoreMarkup(match, { featured: true });
+    const scoreText = renderMatchScoreMarkup(match);
     return `
       <article class="match-row status-${actionState.displayStatus}" data-fixture-open="${match.fixture_id}">
         <div class="match-row-inner">
