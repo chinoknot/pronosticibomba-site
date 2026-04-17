@@ -4134,13 +4134,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/27382.png",
       "away_logo": "https://media.api-sports.io/football/teams/27383.png",
       "league_logo": "https://media.api-sports.io/football/leagues/1214.png",
-      "status_short": "1H",
-      "status_long": "First Half",
-      "goals_home": 0,
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 1,
       "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "0-0",
+      "final_score": "1-0",
       "home_team_id": 27382,
       "away_team_id": 27383,
       "league_id": 1214,
@@ -4271,7 +4271,7 @@
       ],
       "kickoff_at": "2026-04-17T09:00:00+02:00",
       "kickoff_ts": 1776409200,
-      "ht_goals_home": 0,
+      "ht_goals_home": 1,
       "ht_goals_away": 0
     },
     {
@@ -4285,13 +4285,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/2443.png",
       "away_logo": "https://media.api-sports.io/football/teams/4235.png",
       "league_logo": "https://media.api-sports.io/football/leagues/274.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "HT",
+      "status_long": "Halftime",
+      "goals_home": 0,
+      "goals_away": 1,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-1",
       "home_team_id": 2443,
       "away_team_id": 4235,
       "league_id": 274,
@@ -4422,8 +4422,8 @@
       ],
       "kickoff_at": "2026-04-17T10:30:00+02:00",
       "kickoff_ts": 1776414600,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 1
     },
     {
       "fixture_id": 1519031,
@@ -4436,13 +4436,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/19295.png",
       "away_logo": "https://media.api-sports.io/football/teams/17151.png",
       "league_logo": "https://media.api-sports.io/football/leagues/238.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "home_team_id": 19295,
       "away_team_id": 17151,
       "league_id": 238,
@@ -4573,8 +4573,8 @@
       ],
       "kickoff_at": "2026-04-17T11:00:00+02:00",
       "kickoff_ts": 1776416400,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1518128,
@@ -4587,13 +4587,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/26603.png",
       "away_logo": "https://media.api-sports.io/football/teams/3672.png",
       "league_logo": "https://media.api-sports.io/football/leagues/637.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "home_team_id": 26603,
       "away_team_id": 3672,
       "league_id": 637,
@@ -4733,8 +4733,8 @@
       ],
       "kickoff_at": "2026-04-17T11:00:00+02:00",
       "kickoff_ts": 1776416400,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1524011,
@@ -14411,8 +14411,8 @@
           7.1
         ]
       ],
-      "kickoff_at": "2026-04-17T14:00:00+02:00",
-      "kickoff_ts": 1776427200,
+      "kickoff_at": "2026-04-18T15:00:00+02:00",
+      "kickoff_ts": 1776517200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -70565,5 +70565,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-04-17T23:12:55.851958+00:00",
-  "refreshed_at": "2026-04-17T07:54:08.691564+00:00"
+  "refreshed_at": "2026-04-17T09:22:50.060767+00:00"
 }
