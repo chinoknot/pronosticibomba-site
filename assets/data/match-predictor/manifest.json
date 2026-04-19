@@ -12,7 +12,8 @@
       "matches": 1232,
       "final_matches": 7,
       "standings_file": "2026-04-19.standings.json",
-      "standings_stamp": "2026-04-19T00:06:16.476548+00:00"
+      "standings_stamp": "2026-04-19T00:06:16.476548+00:00",
+      "app_file": "2026-04-19.app.json"
     },
     {
       "date": "2026-04-18",
@@ -23,7 +24,8 @@
       "matches": 1721,
       "final_matches": 1641,
       "standings_file": "2026-04-18.standings.json",
-      "standings_stamp": "2026-04-19T00:05:45.346943+00:00"
+      "standings_stamp": "2026-04-19T00:05:45.346943+00:00",
+      "app_file": "2026-04-18.app.json"
     }
   ]
 }

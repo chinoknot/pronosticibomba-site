@@ -27,6 +27,7 @@ from pathlib import Path
 from urllib.parse import quote
 from zoneinfo import ZoneInfo
 import requests
+from match_center_app_payload import build_app_payload
 
 # ==========================
 # CONFIG
@@ -2076,6 +2077,14 @@ def standings_cache_file_path(cache_dir, date_str):
 def latest_standings_cache_file_path(cache_dir):
     return Path(cache_dir) / "latest.standings.json"
 
+
+def app_cache_file_path(cache_dir, date_str):
+    return Path(cache_dir) / f"{date_str}.app.json"
+
+
+def latest_app_cache_file_path(cache_dir):
+    return Path(cache_dir) / "latest.app.json"
+
 def load_cache(path):
     with open(path, "r", encoding="utf-8") as fh:
         return json.load(fh)
@@ -2105,8 +2114,10 @@ def write_cache_bundle(cache_dir, payload):
         else:
             standings_cache_file_path(cache_dir, date_str).unlink(missing_ok=True)
     payload.pop("standings", None)
+    app_payload = build_app_payload(payload)
     if date_str:
         write_cache(cache_file_path(cache_dir, date_str), payload)
+        write_cache(app_cache_file_path(cache_dir, date_str), app_payload)
     return payload
 
 
@@ -2243,6 +2254,7 @@ def cleanup_expired_caches(cache_dir):
         if expires_at and expires_at <= now_utc():
             path.unlink(missing_ok=True)
             standings_cache_file_path(cache_dir, path.stem).unlink(missing_ok=True)
+            app_cache_file_path(cache_dir, path.stem).unlink(missing_ok=True)
             removed.append(path.name)
     return removed
 
@@ -2262,10 +2274,14 @@ def rebuild_manifest(cache_dir):
             "final_matches": sum(1 for match in payload.get("matches", []) if str(match.get("status_short") or "").upper() in FINAL_STATUSES),
             "standings_file": "",
             "standings_stamp": payload.get("refreshed_at") or payload.get("generated_at"),
+            "app_file": "",
         }
         standings_path = standings_cache_file_path(cache_dir, payload.get("date"))
         if standings_path.exists():
             summary["standings_file"] = standings_path.name
+        app_path = app_cache_file_path(cache_dir, payload.get("date"))
+        if app_path.exists():
+            summary["app_file"] = app_path.name
         entries.append(summary)
         if latest is None or str(payload.get("date") or "") > str(latest.get("date") or ""):
             latest = payload
@@ -2277,6 +2293,11 @@ def rebuild_manifest(cache_dir):
     }
     write_cache(Path(cache_dir) / "manifest.json", manifest)
     write_cache(Path(cache_dir) / "latest.json", latest or {"generated_at": now_utc().isoformat(), "matches": []})
+    latest_app_path = app_cache_file_path(cache_dir, latest.get("date")) if latest and latest.get("date") else None
+    if latest_app_path and latest_app_path.exists():
+        write_cache(latest_app_cache_file_path(cache_dir), load_cache(latest_app_path))
+    else:
+        latest_app_cache_file_path(cache_dir).unlink(missing_ok=True)
     latest_date = latest.get("date") if latest else ""
     latest_standings_path = standings_cache_file_path(cache_dir, latest_date) if latest_date else None
     if latest_standings_path and latest_standings_path.exists():
