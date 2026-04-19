@@ -177,9 +177,14 @@
     [/^serie a$/i, 0],
     [/^premier league$/i, 1],
     [/^bundesliga$/i, 2],
-    [/^ligue 1$/i, 3],
-    [/^la liga/i, 4],
+    [/^la liga/i, 3],
+    [/^ligue 1$/i, 4],
     [/^primeira liga$/i, 5],
+    [/^super league$/i, 6],
+    [/^eredivisie$/i, 7],
+    [/^(?:jupiler )?pro league$/i, 8],
+    [/^eliteserien$/i, 9],
+    [/^allsvenskan$/i, 10],
   ];
   const TOP_COUNTRY_PRIORITY = new Map([
     ["Italy", 0],
@@ -428,6 +433,27 @@
     return /^\d+(?:\+\d+)?$/.test(label)
       ? `${escapeHtml(label)}<span class="tick-mark" aria-hidden="true">'</span>`
       : escapeHtml(label);
+  }
+
+  function normalizeFixtureStatusShort(status, kickoffTs, elapsed = null) {
+    const statusShort = String(status || "").toUpperCase();
+    if (!statusShort) return "";
+    if (FINAL_STATUSES.has(statusShort)) return statusShort;
+    if (!LIVE_STATUSES.has(statusShort)) return statusShort;
+    if (!Number.isFinite(kickoffTs)) return statusShort;
+    const ageMinutes = Math.floor((Date.now() - kickoffTs) / 60000);
+    if (ageMinutes >= 150) return "FT";
+    if ((statusShort === "1H" || statusShort === "HT" || statusShort === "INT") && Number.isFinite(elapsed) && elapsed > 60) {
+      return "2H";
+    }
+    return statusShort;
+  }
+
+  function effectiveFixtureStatusShort(match, scoreModel = null) {
+    const kickoffTs = matchKickoffTimestamp(match);
+    const statusSource = scoreModel ? scoreModel.status : (match?.status_short || match?.status || "");
+    const elapsedSource = scoreModel ? scoreModel.elapsed : null;
+    return normalizeFixtureStatusShort(statusSource, kickoffTs, elapsedSource);
   }
 
   function estimateLiveElapsed(status, clockBase) {
@@ -736,7 +762,7 @@
 
   function matchWithinMainTimeWindow(match) {
     if (state.quickFilter) return true;  // quickFilter bypasses time window
-    const fixtureStatus = String(match.status_short || "").toUpperCase();
+    const fixtureStatus = effectiveFixtureStatusShort(match);
     if (LIVE_STATUSES.has(fixtureStatus)) {
       // Supplementari/rigori: fino a 150 min dal calcio d'inizio
       if (match._liveOnly) return true;
@@ -1332,9 +1358,14 @@
     if (country === "Italy" && /^serie a$/i.test(leagueName)) return 0;
     if (country === "England" && /^premier league$/i.test(leagueName)) return 1;
     if (country === "Germany" && /^bundesliga$/i.test(leagueName)) return 2;
-    if (country === "France" && /^ligue 1$/i.test(leagueName)) return 3;
-    if (country === "Spain" && /la liga|laliga/i.test(leagueName)) return 4;
+    if (country === "Spain" && /la liga|laliga/i.test(leagueName)) return 3;
+    if (country === "France" && /^ligue 1$/i.test(leagueName)) return 4;
     if (country === "Portugal" && /^primeira liga$/i.test(leagueName)) return 5;
+    if (country === "Switzerland" && /^super league$/i.test(leagueName)) return 6;
+    if (country === "Netherlands" && /^eredivisie$/i.test(leagueName)) return 7;
+    if (country === "Belgium" && (/^jupiler pro league$/i.test(leagueName) || /^pro league$/i.test(leagueName))) return 8;
+    if (country === "Norway" && /^eliteserien$/i.test(leagueName)) return 9;
+    if (country === "Sweden" && /^allsvenskan$/i.test(leagueName)) return 10;
     return 999;
   }
 
@@ -1387,26 +1418,28 @@
   }
 
   function competitionTier(country, league) {
-    if (country === "World" && isWorldCupRelated(league)) return [-1, 0];
-    if (country === "World" && isEliteWorldCompetition(league)) return [0, 0];
+    if (country === "World" && isWorldCupRelated(league)) return [1, 0];
+    if (country === "World" && isEliteWorldCompetition(league)) return [2, 0];
     const majorRank = topLeaguePriority(country, league);
-    if (majorRank !== 999) return [1, majorRank];
-    if (FEATURED_COUNTRY_PRIORITY.has(country) && isFeaturedTopDivision(country, league)) return [2, FEATURED_COUNTRY_PRIORITY.get(country)];
-    if (TOP_COUNTRY_PRIORITY.has(country) && !isMinorLeagueName(league)) return [3, TOP_COUNTRY_PRIORITY.get(country)];
-    if (EUROPEAN_COUNTRIES.has(country) && !isMinorLeagueName(league)) return [4, COUNTRY_PRIORITY.get(country) ?? 999];
-    if (country === "World" && isSecondaryWorldCompetition(league)) return [5, 0];
+    if (majorRank !== 999) return [0, majorRank];
+    if (country === "World" && isSecondaryWorldCompetition(league)) return [3, 0];
+    if (FEATURED_COUNTRY_PRIORITY.has(country) && isFeaturedTopDivision(country, league)) return [4, FEATURED_COUNTRY_PRIORITY.get(country)];
+    if (EUROPEAN_COUNTRIES.has(country) && !isMinorLeagueName(league)) return [5, COUNTRY_PRIORITY.get(country) ?? 999];
+    if (isAmateurLeagueName(league)) return [8, 999];
     if (EUROPEAN_COUNTRIES.has(country)) return [6, (COUNTRY_PRIORITY.get(country) ?? 999) + 50];
-    return [7, 999];
+    if (/Brazil|Argentina|Uruguay|Chile|Colombia|Paraguay|Peru|Bolivia|Ecuador|Venezuela/i.test(country)) return [7, 100];
+    if (/Japan|China|Korea|Saudi-Arabia|Australia|India|Thailand|Indonesia|Malaysia|Vietnam/i.test(country)) return [7, 200];
+    if (/USA|Canada|Mexico|Costa-Rica|Honduras|Panama|El-Salvador|Guatemala|Jamaica/i.test(country)) return [7, 300];
+    if (/South-Africa|Egypt|Morocco|Tunisia|Algeria|Nigeria|Ghana|Kenya|Tanzania|Burkina-Faso|Ivory-Coast/i.test(country)) return [7, 400];
+    return [7, 900];
   }
 
   function isMajorLeagueGroup(group) {
-    return competitionTier(group.country, group.league)[0] <= 3;
+    return competitionTier(group.country, group.league)[0] <= 4;
   }
 
   function matchIsActuallyLive(match) {
-    if (!LIVE_STATUSES.has(String(match.status_short || "").toUpperCase())) return false;
-    const kickoff = kickoffDate(match);
-    return !kickoff || Date.now() - kickoff.getTime() <= 150 * 60 * 1000;
+    return LIVE_STATUSES.has(effectiveFixtureStatusShort(match));
   }
 
   function groupHasLiveMatches(group) {
@@ -1414,7 +1447,7 @@
   }
 
   function matchLifecycleRank(match) {
-    const fixtureStatus = String(match.status_short || "").toUpperCase();
+    const fixtureStatus = effectiveFixtureStatusShort(match);
     if (LIVE_STATUSES.has(fixtureStatus)) return 0;
     if (FINAL_STATUSES.has(fixtureStatus)) return 2;
     return 1;
@@ -1434,16 +1467,18 @@
   function groupSortKey(group) {
     const [tier, tierRank] = competitionTier(group.country, group.league);
     const amateurLeague = isAmateurLeagueName(group.league);
-    const leagueRank = amateurLeague ? 999 : leaguePriority(group.country, group.league);
     const countryLabel = leagueSortLabel(group.country);
     const leagueLabel = leagueSortLabel(group.league);
+    if (amateurLeague) {
+      return [99, leagueLabel, countryLabel];
+    }
+    const leagueRank = leaguePriority(group.country, group.league);
     return [
       tier,
       tierRank,
-      amateurLeague ? 1 : 0,
       leagueRank,
-      amateurLeague ? countryLabel : earliestOpenKickoff(group),
-      amateurLeague ? leagueLabel : (group.matches[0]?.localKickoffSort || group.matches[0]?.match_time || ""),
+      earliestOpenKickoff(group),
+      (group.matches[0]?.localKickoffSort || group.matches[0]?.match_time || ""),
       leagueLabel,
       countryLabel,
     ];
@@ -1491,20 +1526,8 @@
   }
 
   function stableLeagueOrder(groups, preserveLayout) {
-    if (!preserveLayout || !state.leagueOrderKeys.length) {
-      state.leagueOrderKeys = groups.map(leagueStateKey);
-      return groups;
-    }
-    const existing = new Map(state.leagueOrderKeys.map((key, index) => [key, index]));
-    const sorted = [...groups].sort((a, b) => {
-      const aRank = existing.has(leagueStateKey(a)) ? existing.get(leagueStateKey(a)) : Number.MAX_SAFE_INTEGER;
-      const bRank = existing.has(leagueStateKey(b)) ? existing.get(leagueStateKey(b)) : Number.MAX_SAFE_INTEGER;
-      if (aRank !== bRank) return aRank - bRank;
-      return compareCompositeKeys(groupSortKey(a), groupSortKey(b));
-    });
-    state.leagueOrderKeys = [
-      ...new Set([...state.leagueOrderKeys, ...sorted.map(leagueStateKey)]),
-    ].filter(key => sorted.some(group => leagueStateKey(group) === key));
+    const sorted = [...groups].sort((a, b) => compareCompositeKeys(groupSortKey(a), groupSortKey(b)));
+    state.leagueOrderKeys = sorted.map(leagueStateKey);
     return sorted;
   }
 
@@ -1580,8 +1603,9 @@
 
   function matchStartsWithinHours(match, hours = 2) {
     if (state.selectedDate !== todayIso(activeTimeZone())) return false;
-    if (LIVE_STATUSES.has(String(match.status_short || "").toUpperCase())) return false;
-    if (FINAL_STATUSES.has(String(match.status_short || "").toUpperCase())) return false;
+    const fixtureStatus = effectiveFixtureStatusShort(match);
+    if (LIVE_STATUSES.has(fixtureStatus)) return false;
+    if (FINAL_STATUSES.has(fixtureStatus)) return false;
     const kickoffTs = matchKickoffTimestamp(match);
     if (kickoffTs == null) return false;
     const nowTs = Date.now();
@@ -1988,11 +2012,11 @@
     const rawMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
     state.preparedMatches = rawMatches.map(rawMatch => {
       const live = state.liveScores[String(rawMatch.fixture_id)];
-      const liveStatus = live ? String(live.status || "").toUpperCase() : "";
+      const liveStatus = live ? normalizeFixtureStatusShort(live.status, matchKickoffTimestamp(rawMatch), Number(live.elapsed)) : "";
       const merged = live && (LIVE_STATUSES.has(liveStatus) || FINAL_STATUSES.has(liveStatus))
         ? {
             ...rawMatch,
-            status_short: live.status,
+            status_short: liveStatus,
             goals_home: live.home,
             goals_away: live.away,
             final_score: FINAL_STATUSES.has(liveStatus) ? `${live.home}-${live.away}` : rawMatch.final_score,
@@ -3014,8 +3038,8 @@
   function matchDisplayStatus(match) {
     const primary = match?.primaryMarket;
     const primaryStatus = String(primary?.status || "").toLowerCase();
-    const fixtureStatus = String(match?.status_short || "").toUpperCase();
-    if (primaryStatus === "win" || primaryStatus === "lose" || primaryStatus === "live") return primaryStatus;
+    const fixtureStatus = effectiveFixtureStatusShort(match);
+    if (primaryStatus === "win" || primaryStatus === "lose") return primaryStatus;
     if (FINAL_STATUSES.has(fixtureStatus)) return "unresolved";
     if (LIVE_STATUSES.has(fixtureStatus)) return "live";
     return matchStartsWithinHours(match, soonKickoffThresholdHours()) ? "soon" : "upcoming";
@@ -3043,17 +3067,17 @@
 
   function renderMatchScoreMarkup(match, options = {}) {
     const featured = options.featured === true;
-    const fixtureStatus = String(match.status_short || "").toUpperCase();
     const liveScore = state.liveScores[String(match.fixture_id)] || buildDetailFallbackLiveScore(match);
+    const effectiveStatus = effectiveFixtureStatusShort(match, liveScore);
     const scoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
-    if (liveScore && FINAL_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
+    if (liveScore && FINAL_STATUSES.has(effectiveStatus)) {
       return `<span class="live-score-final">${liveScore.home}-${liveScore.away}</span>`;
     }
-    if (FINAL_STATUSES.has(fixtureStatus) && !liveScore) {
+    if (FINAL_STATUSES.has(effectiveStatus) && !liveScore) {
       return `<span class="live-score-final">${escapeHtml(match.final_score || "-")}</span>`;
     }
-    if (liveScore && LIVE_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
-      const elapsedHtml = formatLiveMinuteHtml(liveScore.status, liveScore.elapsed);
+    if (liveScore && LIVE_STATUSES.has(effectiveStatus)) {
+      const elapsedHtml = formatLiveMinuteHtml(effectiveStatus, liveScore.elapsed);
       if (featured) {
         const redCards = (liveScore.events || []).filter(event => event.type === "Card" && /Red Card|Second Yellow/i.test(String(event.detail || "")));
         const redBadge = redCards.length ? `<span class="live-red-badge" title="${escapeHtml(IS_EN ? "Red card" : "Cartellino rosso")}">RC${redCards.length > 1 ? ` ${redCards.length}` : ""}</span>` : "";
@@ -3096,7 +3120,6 @@
   function renderMatchRow(match, options = {}) {
     const showLeagueLine = options.showLeagueLine !== false;
     const primary = match.primaryMarket;
-    const fixtureStatus = String(match.status_short || "").toUpperCase();
     const displayStatus = matchDisplayStatus(match);
     const picked = pickedOption(primary);
     const meta = buildActionMeta({
@@ -3106,17 +3129,17 @@
       tag: primary?.tag,
     });
     const liveScore = state.liveScores[String(match.fixture_id)] || buildDetailFallbackLiveScore(match);
-    const effectiveStatus = liveScore ? String(liveScore.status || "").toUpperCase() : fixtureStatus;
+    const effectiveStatus = effectiveFixtureStatusShort(match, liveScore);
     const rowScoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
     const scoreText = (() => {
-      if (liveScore && FINAL_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
+      if (liveScore && FINAL_STATUSES.has(effectiveStatus)) {
         return `<span class="live-score-final">${liveScore.home}-${liveScore.away}</span>`;
       }
-      if (FINAL_STATUSES.has(fixtureStatus) && !liveScore) {
+      if (FINAL_STATUSES.has(effectiveStatus) && !liveScore) {
         return `<span class="live-score-final">${escapeHtml(match.final_score || "-")}</span>`;
       }
-      if (liveScore && LIVE_STATUSES.has(String(liveScore.status || "").toUpperCase())) {
-        const elapsedHtml = formatLiveMinuteHtml(liveScore.status, liveScore.elapsed);
+      if (liveScore && LIVE_STATUSES.has(effectiveStatus)) {
+        const elapsedHtml = formatLiveMinuteHtml(effectiveStatus, liveScore.elapsed);
         const goals = (liveScore.events || []).filter(e => e.type === "Goal" && e.detail !== "Missed Penalty");
         const goalIcons = goals.map(e => `<span class="live-event-icon" title="${escapeHtml(e.playerName || "")} ${e.elapsed ? `(${e.elapsed}')` : ""}">⚽</span>`).join("");
         return `<span class="live-score-badge${rowScoreChanged ? " score-changed" : ""}">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${elapsedHtml}</span>${goalIcons}`;
@@ -3231,30 +3254,13 @@
           return 0;
         }),
     }));
-    const allMajorGroups = groups.filter(isMajorLeagueGroup);
-    // Live major leagues bubble to the top; within each subset sort by tier (WC/intl = -1 first)
-    const liveMajorGroups = allMajorGroups.filter(g => groupHasLiveMatches(g))
+    const majorGroups = groups
+      .filter(isMajorLeagueGroup)
       .sort((a, b) => compareCompositeKeys(groupSortKey(a), groupSortKey(b)));
-    const nonLiveMajorGroups = allMajorGroups.filter(g => !groupHasLiveMatches(g))
+    const regularGroups = groups
+      .filter(group => !isMajorLeagueGroup(group))
       .sort((a, b) => compareCompositeKeys(groupSortKey(a), groupSortKey(b)));
-    const majorGroups = [...liveMajorGroups, ...nonLiveMajorGroups];
-    const regularGroups = groups.filter(group => !isMajorLeagueGroup(group));
-    const liveRegularGroups = regularGroups
-      .filter(group => groupHasLiveMatches(group))
-      .sort((a, b) => compareCompositeKeys(groupSortKey(a), groupSortKey(b)));
-    const nonLiveRegularGroups = regularGroups.filter(group => !groupHasLiveMatches(group));
-    const soonGroups = nonLiveRegularGroups
-      .filter(group => groupStartsWithinHours(group, soonKickoffThresholdHours()))
-      .sort((a, b) => {
-        const kickoffDiff = earliestSoonKickoffTimestamp(a) - earliestSoonKickoffTimestamp(b);
-        if (Math.abs(kickoffDiff) > 0) return kickoffDiff;
-        return compareCompositeKeys(groupSortKey(a), groupSortKey(b));
-      });
-    const laterGroups = nonLiveRegularGroups.filter(group => !soonGroups.includes(group));
-    const orderedGroups = stableLeagueOrder(
-      [...majorGroups, ...liveRegularGroups, ...soonGroups, ...laterGroups],
-      preserveLayout,
-    );
+    const orderedGroups = stableLeagueOrder([...majorGroups, ...regularGroups], preserveLayout);
 
     // Partite live non nel JSON (coppe, ET, ecc.) — renderizzate in cima
     const liveOnlyHtml = (state.liveOnlyMatches || []).map(f => {
@@ -4070,7 +4076,7 @@
 
   function buildDetailFallbackLiveScore(match) {
     if (!match) return null;
-    const status = String(match?.status_short || match?.status || "").toUpperCase();
+    const status = effectiveFixtureStatusShort(match);
     const home = Number(match?.goals_home);
     const away = Number(match?.goals_away);
     if (!Number.isFinite(home) || !Number.isFinite(away)) return null;
@@ -4078,7 +4084,7 @@
     return {
       home,
       away,
-      status: String(match?.status_short || match?.status || ""),
+      status,
       elapsed: null,
       events: [],
     };
@@ -5142,7 +5148,11 @@
       const extraMatches = [];
       for (const f of data.fixtures) {
         const id = f.fixture?.id;
-        const status = f.fixture?.status?.short || "";
+        const status = normalizeFixtureStatusShort(
+          f.fixture?.status?.short || "",
+          Number.isFinite(Date.parse(f.fixture?.date || "")) ? Date.parse(f.fixture.date) : null,
+          Number(f.fixture?.status?.elapsed)
+        );
         if (!id) continue;
         scores[String(id)] = {
           home: f.goals?.home ?? 0,
