@@ -2282,6 +2282,7 @@
           league: match.league,
           country: match.country,
           matchTime: match.localMatchTime || match.match_time,
+          rowStatus: matchDisplayStatus(match),
           pickLabel: headline.pickLabel,
           pickProbability: headline.pickProbability,
           status: headline.status,
@@ -3010,7 +3011,7 @@
         tag: pick.tag,
       });
       return `
-        <article class="match-row match-row-featured status-${pick.status}" data-fixture-open="${pick.fixtureId}">
+        <article class="match-row match-row-featured status-${pick.rowStatus || pick.status}" data-fixture-open="${pick.fixtureId}">
           <div class="match-row-inner">
             <div class="match-time-block">
               <div class="match-time">${escapeHtml(pick.matchTime || "--:--")}</div>
