@@ -1370,7 +1370,7 @@
   }
 
   function isMinorLeagueName(league) {
-    return /\b2\b|segunda|serie b|serie c|serie d|league one|league two|championship|liga 2|ligue 2|superettan|obos|1st division|1\. division|eerste|tweede|derde|challenge league|challenger|amateur|1\. lig|2\. lig|3\. lig|super league 2|fnl|prva liga|persha|regionalliga|landesliga|lowland|highland|frauen|u\d{1,2}|women|femin|primavera|reserve|reserves|youth|cup/i.test(String(league || ""));
+    return /\b2\b|segunda|tercera|serie b|serie c|serie d|league one|league two|championship|liga 2|ligue 2|superettan|obos|1st division|1\. division|eerste|tweede|derde|challenge league|challenger|amateur|1\. lig|2\. lig|3\. lig|super league 2|fnl|prva liga|persha|primera federacion|segunda federacion|tercera federacion|primera rfef|segunda rfef|tercera rfef|regionalliga|landesliga|lowland|highland|frauen|u\d{1,2}|women|femin|primavera|reserve|reserves|youth|cup/i.test(String(league || ""));
   }
 
   function isAmateurLeagueName(league) {
@@ -3234,14 +3234,22 @@
   function renderLeagueFeed(matches, options = {}) {
     const preserveLayout = Boolean(options.preserveLayout);
     const scrollSnapshot = options.scrollSnapshot || null;
-    if (!matches.length && !(state.liveOnlyMatches || []).length) {
+    const renderMatches = [];
+    const seenFixtureIds = new Set();
+    [...matches, ...(state.liveOnlyMatches || [])].forEach(match => {
+      const fixtureId = String(match?.fixture_id || "");
+      if (!fixtureId || seenFixtureIds.has(fixtureId)) return;
+      seenFixtureIds.add(fixtureId);
+      renderMatches.push(match);
+    });
+    if (!renderMatches.length) {
       if (dom.leagueFeed) dom.leagueFeed.style.minHeight = "";
       dom.leagueFeed.innerHTML = `<div class="empty-state">${emptyStateMessage()}</div>`;
       return;
     }
     const renderToken = ++state.feedRenderToken;
     snapshotLeagueOpenState();
-    const groups = groupMatches(matches).map(group => ({
+    const groups = groupMatches(renderMatches).map(group => ({
       ...group,
       matches: state.sortMode === "time"
         ? [...group.matches].sort((a, b) => `${a.localKickoffSort || a.match_time || ""}-${a.home || ""}`.localeCompare(`${b.localKickoffSort || b.match_time || ""}-${b.home || ""}`))
@@ -3264,31 +3272,6 @@
     const orderedGroups = stableLeagueOrder([...majorGroups, ...regularGroups], preserveLayout);
 
     // Partite live non nel JSON (coppe, ET, ecc.) — renderizzate in cima
-    const liveOnlyHtml = (state.liveOnlyMatches || []).map(f => {
-      const liveScore = state.liveScores[String(f.fixture_id)];
-      const elapsedHtml = formatLiveMinuteHtml(liveScore?.status, liveScore?.elapsed) || escapeHtml(liveScore?.status || "LIVE");
-      const score = liveScore ? `${liveScore.home} - ${liveScore.away}` : "- -";
-      return `<section class="league-block league-block-major league-block-live" data-live-only-id="${escapeHtml(String(f.fixture_id))}">
-        <div class="league-header">
-          <div class="league-title"><span class="league-live-dot"></span><span>${escapeHtml(f.league)} | ${escapeHtml(f.country)}</span><span class="league-live-badge">LIVE</span></div>
-        </div>
-        <article class="match-row status-live" data-fixture-open="${f.fixture_id}">
-          <div class="match-row-inner">
-            <div class="match-time-block"><div class="match-time">${escapeHtml(f.match_time || "--:--")}</div></div>
-            <div class="match-teams">
-              <div class="clubs-inline">
-                <span class="club-line"><strong>${escapeHtml(f.home)}</strong></span>
-                <span class="match-vs">vs</span>
-                <span class="club-line"><strong>${escapeHtml(f.away)}</strong></span>
-              </div>
-              <div class="match-score"><span class="live-score-badge">${score}</span><span class="live-status-label">${elapsedHtml}</span></div>
-            </div>
-            <div class="match-action"><strong>${TEXT.viewMatch}</strong></div>
-          </div>
-        </article>
-      </section>`;
-    }).join("");
-
     const groupHtml = orderedGroups.map(group => {
       const isLive = groupHasLiveMatches(group);
       const header = renderLeagueHeaderMarkup(group, isLive, true);
@@ -3302,7 +3285,7 @@
     } else if (dom.leagueFeed) {
       dom.leagueFeed.style.minHeight = "";
     }
-    dom.leagueFeed.innerHTML = liveOnlyHtml;
+    dom.leagueFeed.innerHTML = "";
     const chunkSize = window.matchMedia("(max-width: 720px)").matches ? 3 : 6;
     let index = 0;
     function appendChunk() {
@@ -5180,6 +5163,7 @@
             home_logo: f.teams?.home?.logo || null,
             away_logo: f.teams?.away?.logo || null,
             league: f.league?.name || "",
+            league_logo: f.league?.logo || "",
             country: f.league?.country || "",
             league_id: f.league?.id || 0,
             league_season: f.league?.season || 0,
