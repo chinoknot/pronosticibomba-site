@@ -3216,7 +3216,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3.js?v=20260419orderfix4"></script>
+  <script src="/assets/match_center3.js?v=20260419orderfix5"></script>
   <script>
     (function () {
       const ready = () => {
@@ -4112,6 +4112,24 @@
       box-shadow:inset 0 1px 0 rgba(255,244,220,.08) !important;
     }
     .match-row.status-soon .match-action small{color:#ead7a0 !important}
+    .match-row.status-postponed::before{background:rgba(168,85,247,.88) !important}
+    .match-row.status-postponed{
+      border-top-color:rgba(168,85,247,.24) !important;
+      background:linear-gradient(180deg,rgba(25,17,40,.82),rgba(10,9,24,.94)) !important;
+      box-shadow:none !important;
+    }
+    .match-row.status-postponed .match-time,
+    .match-row.status-postponed .club-line strong{color:#f5e9ff !important}
+    .match-row.status-postponed .match-date,
+    .match-row.status-postponed .match-vs,
+    .match-row.status-postponed .match-score,
+    .match-row.status-postponed .match-league-line{color:#cbb8e8 !important}
+    .match-row.status-postponed .match-action{
+      border-color:rgba(168,85,247,.34) !important;
+      background:linear-gradient(135deg,rgba(42,26,66,.98),rgba(18,14,34,.98)) !important;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05) !important;
+    }
+    .match-row.status-postponed .match-action small{color:#dcc4ff !important}
   </style>
 </body>
 </html>

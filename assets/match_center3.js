@@ -197,6 +197,7 @@
   const TEXT = {
     noCache: "La cache predictor non e ancora stata generata dal workflow.",
     empty: "Nessun dato disponibile per i filtri selezionati.",
+    noSoonMatches: IS_EN ? "No valid matches in the current soon selection." : "Non ci sono match validi nella selezione soon.",
     noMarketSelected: "Seleziona almeno un mercato per vedere i risultati.",
     final: "Finale",
     odds: "Quota",
@@ -454,6 +455,13 @@
     const statusSource = scoreModel ? scoreModel.status : (match?.status_short || match?.status || "");
     const elapsedSource = scoreModel ? scoreModel.elapsed : null;
     return normalizeFixtureStatusShort(statusSource, kickoffTs, elapsedSource);
+  }
+
+  function matchIsPostponed(match) {
+    const short = String(match?.status_short || match?.status || "").toUpperCase();
+    const long = String(match?.status_long || "").toLowerCase();
+    return ["PST", "CANC", "SUSP", "ABD"].includes(short)
+      || /postpon|cancel|suspend|abandon/.test(long);
   }
 
   function estimateLiveElapsed(status, clockBase) {
@@ -2238,7 +2246,7 @@
     const timezone = activeTimeZone();
     const today = todayIso(timezone);
     const nowTs = Date.now();
-    let pool = matches.filter(match => !FINAL_STATUSES.has(String(match.status_short || "").toUpperCase()) && match.primaryMarket);
+    let pool = matches.filter(match => !FINAL_STATUSES.has(String(match.status_short || "").toUpperCase()) && !matchIsPostponed(match) && match.primaryMarket);
     if (state.selectedDate === today) {
       // No live matches — independent from live feed below.
       // Show upcoming non-live matches: imminent (60min) preferred, fallback to next batch.
@@ -3000,7 +3008,7 @@
 
   function renderTopPicks(topPicks) {
     if (!topPicks.length) {
-      dom.topPicks.innerHTML = `<div class="empty-state">${emptyStateMessage()}</div>`;
+      dom.topPicks.innerHTML = `<div class="empty-state">${escapeHtml(TEXT.noSoonMatches)}</div>`;
       return;
     }
     dom.topPicks.innerHTML = `<div class="match-list top-pick-list">${topPicks.map(pick => {
@@ -3040,6 +3048,7 @@
     const primary = match?.primaryMarket;
     const primaryStatus = String(primary?.status || "").toLowerCase();
     const fixtureStatus = effectiveFixtureStatusShort(match);
+    if (matchIsPostponed(match)) return "postponed";
     if (primaryStatus === "win" || primaryStatus === "lose") return primaryStatus;
     if (FINAL_STATUSES.has(fixtureStatus)) return "unresolved";
     if (LIVE_STATUSES.has(fixtureStatus)) return "live";
@@ -3338,6 +3347,7 @@
   function buildActionMeta({ status, probability, odd, tag }) {
     const parts = [];
     if (status === "live") parts.push({ label: "LIVE", kind: "live" });
+    else if (status === "postponed") parts.push({ label: "PST", kind: "tag" });
     else if (status === "win") parts.push({ label: TEXT.wonWord.toUpperCase(), kind: "win" });
     else if (status === "lose") parts.push({ label: TEXT.lostWord.toUpperCase(), kind: "lose" });
     if (probability != null) parts.push({ label: formatPercent(probability), kind: "prob" });
