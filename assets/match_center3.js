@@ -118,41 +118,32 @@
     ["Italy", 0],
     ["England", 10],
     ["Germany", 20],
-    ["France", 30],
-    ["Spain", 40],
+    ["Spain", 30],
+    ["France", 40],
     ["Portugal", 50],
-    ["Netherlands", 60],
-    ["Belgium", 70],
-    ["Turkey", 80],
-    ["Scotland", 90],
-    ["Austria", 100],
-    ["Switzerland", 110],
-    ["Denmark", 120],
-    ["Sweden", 130],
-    ["Norway", 140],
-    ["Czech-Republic", 150],
-    ["Greece", 160],
-    ["Poland", 170],
-    ["Croatia", 180],
-    ["Serbia", 190],
-    ["Ukraine", 200],
+    ["Switzerland", 60],
+    ["Netherlands", 70],
+    ["Belgium", 80],
+    ["Norway", 90],
+    ["Sweden", 100],
+    ["Scotland", 110],
+    ["Wales", 120],
+    ["Croatia", 130],
+    ["Poland", 140],
+    ["Austria", 150],
+    ["Denmark", 160],
+    ["Czech-Republic", 170],
+    ["Greece", 180],
+    ["Turkey", 190],
+    ["Serbia", 200],
+    ["Ukraine", 210],
   ]);
   const FEATURED_COUNTRY_PRIORITY = new Map([
-    ["Netherlands", 0],
-    ["Belgium", 10],
-    ["Turkey", 20],
-    ["Scotland", 30],
-    ["Austria", 40],
-    ["Switzerland", 50],
-    ["Denmark", 60],
-    ["Sweden", 70],
-    ["Norway", 80],
-    ["Greece", 90],
-    ["Czech-Republic", 100],
-    ["Poland", 110],
-    ["Ukraine", 120],
-    ["Croatia", 130],
-    ["Serbia", 140],
+    ["Switzerland", 0],
+    ["Netherlands", 10],
+    ["Belgium", 20],
+    ["Norway", 30],
+    ["Sweden", 40],
   ]);
   const EUROPEAN_COUNTRIES = new Set([
     "Italy", "England", "Spain", "Germany", "France", "Portugal", "Netherlands", "Belgium", "Scotland", "Turkey",
@@ -194,8 +185,8 @@
     ["Italy", 0],
     ["England", 10],
     ["Germany", 20],
-    ["France", 30],
-    ["Spain", 40],
+    ["Spain", 30],
+    ["France", 40],
     ["Portugal", 50],
   ]);
   const TEXT = {
@@ -1351,6 +1342,18 @@
     return /\b2\b|segunda|serie b|serie c|serie d|league one|league two|championship|liga 2|ligue 2|superettan|obos|1st division|1\. division|eerste|tweede|derde|challenge league|challenger|amateur|1\. lig|2\. lig|3\. lig|super league 2|fnl|prva liga|persha|regionalliga|landesliga|lowland|highland|frauen|u\d{1,2}|women|femin|primavera|reserve|reserves|youth|cup/i.test(String(league || ""));
   }
 
+  function isAmateurLeagueName(league) {
+    return /oberliga|regionalliga|landesliga|highland|lowland|amateur|non league|county|state league|division one south|division one north|npl|liga 3|3\. division/i.test(String(league || ""));
+  }
+
+  function leagueSortLabel(value) {
+    return String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  }
+
   function isWorldCupRelated(league) {
     return /\bworld cup\b|world cup qual|nations league|copa america|african cup|olympic games|euro 20\d\d/i.test(String(league || ""));
   }
@@ -1430,8 +1433,20 @@
 
   function groupSortKey(group) {
     const [tier, tierRank] = competitionTier(group.country, group.league);
-    const leagueRank = leaguePriority(group.country, group.league);
-    return [tier, tierRank, leagueRank, earliestOpenKickoff(group), group.matches[0]?.localKickoffSort || group.matches[0]?.match_time || "", group.league || "", group.country || ""];
+    const amateurLeague = isAmateurLeagueName(group.league);
+    const leagueRank = amateurLeague ? 999 : leaguePriority(group.country, group.league);
+    const countryLabel = leagueSortLabel(group.country);
+    const leagueLabel = leagueSortLabel(group.league);
+    return [
+      tier,
+      tierRank,
+      amateurLeague ? 1 : 0,
+      leagueRank,
+      amateurLeague ? countryLabel : earliestOpenKickoff(group),
+      amateurLeague ? leagueLabel : (group.matches[0]?.localKickoffSort || group.matches[0]?.match_time || ""),
+      leagueLabel,
+      countryLabel,
+    ];
   }
 
   function compareCompositeKeys(aKey, bKey) {
