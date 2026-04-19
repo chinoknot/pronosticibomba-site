@@ -4651,11 +4651,11 @@
     const liveFeedScore = state.liveScores[String(match.fixture_id)];
     const scoreModel = resolveDetailScoreModel(match, liveFeedScore, state.detailData);
     const liveScore = scoreModel;
-    const fixtureStatus = String((scoreModel?.status || match.status_short || "")).toUpperCase();
+    const fixtureStatus = effectiveFixtureStatusShort(match, scoreModel);
     const isLive = LIVE_STATUSES.has(fixtureStatus);
     const isFinal = FINAL_STATUSES.has(fixtureStatus);
-    const liveElapsed = scoreModel ? (estimateLiveElapsed(scoreModel.status, state.detailClockBase) ?? scoreModel.elapsed) : null;
-    const elapsedTagHtml = scoreModel ? formatLiveMinuteHtml(scoreModel.status, liveElapsed) : "";
+    const liveElapsed = scoreModel ? (estimateLiveElapsed(fixtureStatus, state.detailClockBase) ?? scoreModel.elapsed) : null;
+    const elapsedTagHtml = scoreModel ? formatLiveMinuteHtml(fixtureStatus, liveElapsed) : "";
     const standingBaseTable = collectLeagueStandingRows(match);
     const standingTable = buildDynamicStandingTable(match, standingBaseTable);
     const standingLiveKey = liveStandingSignature(match, standingBaseTable);
@@ -4667,7 +4667,7 @@
       : "";
     const buildStatusText = () => {
       if (liveScore) {
-        const liveStatusText = formatLiveStatusText(liveScore.status, liveElapsed);
+        const liveStatusText = formatLiveStatusText(fixtureStatus, liveElapsed);
         if (liveStatusText) return escapeHtml(liveStatusText);
       }
       if (isFinal) {
@@ -4732,7 +4732,7 @@
 
     // Partial live patch: update only score and status in-place (no innerHTML replacement = no blink)
     const currentDetailEvents = resolveDetailEventsFeed(state.detailData, liveFeedScore);
-    const liveKey = `${scoreModel ? `${scoreModel.home}-${scoreModel.away}-${liveElapsed || ""}-${scoreModel.status || ""}` : "ns"}|${standingLiveKey}|${detailEventFeedSignature(currentDetailEvents)}|${scoreChanged ? "c" : ""}`;
+    const liveKey = `${scoreModel ? `${scoreModel.home}-${scoreModel.away}-${liveElapsed || ""}-${fixtureStatus || ""}` : "ns"}|${standingLiveKey}|${detailEventFeedSignature(currentDetailEvents)}|${scoreChanged ? "c" : ""}`;
     const hasNewLiveData = Boolean(state.detailDataLive);
     if (liveKey === state.detailLiveKey && !hasNewLiveData) return;
     state.detailLiveKey = liveKey;
@@ -4747,9 +4747,9 @@
 
     // Clock ticker patch (estimated elapsed between API refreshes)
     if (isLive && state.detailClockBase) {
-      const estElapsed = estimateLiveElapsed(scoreModel?.status, state.detailClockBase);
+      const estElapsed = estimateLiveElapsed(fixtureStatus, state.detailClockBase);
       const tagEl = dom.detailBody.querySelector(".detail-status-tag");
-      if (tagEl) tagEl.innerHTML = formatLiveMinuteHtml(scoreModel?.status, estElapsed);
+      if (tagEl) tagEl.innerHTML = formatLiveMinuteHtml(fixtureStatus, estElapsed);
     }
 
     const standingBodyEl = dom.detailBody.querySelector(".standing-full-body");
