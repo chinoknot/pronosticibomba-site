@@ -1348,7 +1348,7 @@
   }
 
   function isMinorLeagueName(league) {
-    return /\b2\b|segunda|serie b|serie c|league one|league two|championship|liga 2|ligue 2|superettan|obos|1st division|1\. division|eerste|tweede|derde|challenge league|challenger|amateur|1\. lig|2\. lig|3\. lig|super league 2|fnl|prva liga|persha|regionalliga|landesliga|lowland|highland|frauen|u\d{1,2}|women|femin|primavera|reserve|reserves|youth|cup/i.test(String(league || ""));
+    return /\b2\b|segunda|serie b|serie c|serie d|league one|league two|championship|liga 2|ligue 2|superettan|obos|1st division|1\. division|eerste|tweede|derde|challenge league|challenger|amateur|1\. lig|2\. lig|3\. lig|super league 2|fnl|prva liga|persha|regionalliga|landesliga|lowland|highland|frauen|u\d{1,2}|women|femin|primavera|reserve|reserves|youth|cup/i.test(String(league || ""));
   }
 
   function isWorldCupRelated(league) {
@@ -1389,7 +1389,7 @@
     const majorRank = topLeaguePriority(country, league);
     if (majorRank !== 999) return [1, majorRank];
     if (FEATURED_COUNTRY_PRIORITY.has(country) && isFeaturedTopDivision(country, league)) return [2, FEATURED_COUNTRY_PRIORITY.get(country)];
-    if (TOP_COUNTRY_PRIORITY.has(country)) return [3, TOP_COUNTRY_PRIORITY.get(country)];
+    if (TOP_COUNTRY_PRIORITY.has(country) && !isMinorLeagueName(league)) return [3, TOP_COUNTRY_PRIORITY.get(country)];
     if (EUROPEAN_COUNTRIES.has(country) && !isMinorLeagueName(league)) return [4, COUNTRY_PRIORITY.get(country) ?? 999];
     if (country === "World" && isSecondaryWorldCompetition(league)) return [5, 0];
     if (EUROPEAN_COUNTRIES.has(country)) return [6, (COUNTRY_PRIORITY.get(country) ?? 999) + 50];
@@ -2998,8 +2998,12 @@
 
   function matchDisplayStatus(match) {
     const primary = match?.primaryMarket;
+    const primaryStatus = String(primary?.status || "").toLowerCase();
     const fixtureStatus = String(match?.status_short || "").toUpperCase();
-    return primary?.status || (FINAL_STATUSES.has(fixtureStatus) ? "unresolved" : (LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled"));
+    if (primaryStatus === "win" || primaryStatus === "lose" || primaryStatus === "live") return primaryStatus;
+    if (FINAL_STATUSES.has(fixtureStatus)) return "unresolved";
+    if (LIVE_STATUSES.has(fixtureStatus)) return "live";
+    return matchStartsWithinHours(match, soonKickoffThresholdHours()) ? "soon" : "upcoming";
   }
 
   function matchActionState(match) {
@@ -3078,7 +3082,7 @@
     const showLeagueLine = options.showLeagueLine !== false;
     const primary = match.primaryMarket;
     const fixtureStatus = String(match.status_short || "").toUpperCase();
-    const displayStatus = primary?.status || (FINAL_STATUSES.has(fixtureStatus) ? "unresolved" : (LIVE_STATUSES.has(fixtureStatus) ? "live" : "scheduled"));
+    const displayStatus = matchDisplayStatus(match);
     const picked = pickedOption(primary);
     const meta = buildActionMeta({
       status: displayStatus,

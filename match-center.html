@@ -3216,7 +3216,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3.js?v=20260329live12"></script>
+  <script src="/assets/match_center3.js?v=20260419soonfix1"></script>
   <script>
     (function () {
       const ready = () => {
@@ -4082,6 +4082,36 @@
       .club-line strong{font-size:.79rem !important}
       .match-time{font-size:.7rem !important}
     }
+    .match-row.status-scheduled::before,.match-row.status-upcoming::before{background:rgba(148,163,184,.42) !important}
+    .match-row.status-soon::before{background:rgba(250,204,21,.9) !important}
+    .match-row.status-scheduled,.match-row.status-upcoming{
+      color:var(--text) !important;
+      border-top-color:rgba(148,163,184,.08) !important;
+      background:linear-gradient(180deg,rgba(10,16,30,.72),rgba(4,9,20,.92)) !important;
+      box-shadow:none !important;
+    }
+    .match-row.status-scheduled .match-time,.match-row.status-upcoming .match-time,
+    .match-row.status-scheduled .club-line strong,.match-row.status-upcoming .club-line strong{
+      color:var(--text) !important;
+    }
+    .match-row.status-scheduled .match-date,.match-row.status-upcoming .match-date,
+    .match-row.status-scheduled .match-vs,.match-row.status-upcoming .match-vs,
+    .match-row.status-scheduled .match-score,.match-row.status-upcoming .match-score,
+    .match-row.status-scheduled .match-league-line,.match-row.status-upcoming .match-league-line{
+      color:var(--muted) !important;
+    }
+    .match-row.status-scheduled .match-action,.match-row.status-upcoming .match-action{
+      border-color:rgba(96,124,173,.34) !important;
+      background:linear-gradient(135deg,rgba(29,44,74,.98),rgba(12,20,38,.98)) !important;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05) !important;
+    }
+    .match-row.status-scheduled .match-action small,.match-row.status-upcoming .match-action small{color:#b6c4dc !important}
+    .match-row.status-soon .match-action{
+      border-color:rgba(255,177,81,.72) !important;
+      background:linear-gradient(135deg,rgba(44,60,92,.98),rgba(16,24,43,.98)) !important;
+      box-shadow:inset 0 1px 0 rgba(255,244,220,.08) !important;
+    }
+    .match-row.status-soon .match-action small{color:#ead7a0 !important}
   </style>
 </body>
 </html>
