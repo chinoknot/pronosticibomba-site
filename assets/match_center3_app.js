@@ -3075,6 +3075,14 @@
     return `<span class="app-team-red" aria-hidden="true"></span>${safeCount > 1 ? `<span class="app-team-red-count">${safeCount}</span>` : ""}`;
   }
 
+  function teamNameClass(name) {
+    const length = String(name || "").trim().length;
+    if (length >= 34) return " team-name-xlong";
+    if (length >= 26) return " team-name-long";
+    if (length >= 20) return " team-name-medium";
+    return "";
+  }
+
   function renderClubLineWithBadges(match, side, options = {}) {
     const compact = options.compact ? " compact" : "";
     const liveScore = options.liveScore || null;
@@ -3083,7 +3091,7 @@
     const logo = homeSide ? match.home_logo : match.away_logo;
     const name = homeSide ? match.home : match.away;
     const redBadge = renderTeamRedBadge(homeSide ? redCounts.home : redCounts.away);
-    return `<span class="club-line${compact}">${logo ? `<img class="team-logo" src="${logo}" alt="" loading="lazy" decoding="async" />` : ""}<strong>${escapeHtml(name)}</strong>${redBadge}</span>`;
+    return `<span class="club-line${compact}">${logo ? `<img class="team-logo" src="${logo}" alt="" loading="lazy" decoding="async" />` : ""}<strong class="team-name${teamNameClass(name)}">${escapeHtml(name)}</strong>${redBadge}</span>`;
   }
 
   function compactStatusLabel(status) {

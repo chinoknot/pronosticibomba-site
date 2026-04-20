@@ -3216,7 +3216,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3_app.js?v=20260420app2"></script>
+  <script src="/assets/match_center3_app.js?v=20260420app3"></script>
   <script>
     (function () {
       const ready = () => {
@@ -4171,8 +4171,8 @@
         linear-gradient(180deg,rgba(16,24,43,.78),rgba(9,14,26,.96)) !important;
     }
     .league-feed .match-row .match-row-inner{
-      grid-template-columns:44px minmax(0,1fr) 96px 102px !important;
-      gap:10px !important;
+      grid-template-columns:38px minmax(0,1fr) 84px 98px !important;
+      gap:8px !important;
       align-items:center !important;
     }
     .league-feed .match-row .match-time-block{
@@ -4203,7 +4203,7 @@
       line-height:1.1 !important;
     }
     .league-feed .match-row .match-teams{
-      gap:6px !important;
+      gap:5px !important;
       min-width:0 !important;
     }
     .league-feed .match-row .match-league-line{
@@ -4215,25 +4215,42 @@
     .league-feed .match-row .match-team-stack{
       display:flex;
       flex-direction:column;
-      gap:8px;
+      gap:6px;
       min-width:0;
     }
     .league-feed .match-row .club-line{
-      gap:6px !important;
+      gap:5px !important;
       min-width:0 !important;
+      align-items:flex-start !important;
     }
     .league-feed .match-row .team-logo{
-      width:20px !important;
-      height:20px !important;
+      width:18px !important;
+      height:18px !important;
       padding:1px !important;
+      margin-top:2px !important;
     }
-    .league-feed .match-row .club-line strong{
-      font-size:1.02rem !important;
+    .league-feed .match-row .club-line .team-name{
+      display:block !important;
+      font-size:.98rem !important;
       font-weight:700 !important;
       line-height:1.04 !important;
-      white-space:nowrap !important;
-      overflow:hidden !important;
-      text-overflow:ellipsis !important;
+      white-space:normal !important;
+      overflow:visible !important;
+      text-overflow:clip !important;
+      overflow-wrap:anywhere !important;
+      word-break:break-word !important;
+      max-width:100% !important;
+    }
+    .league-feed .match-row .club-line .team-name.team-name-medium{
+      font-size:.93rem !important;
+    }
+    .league-feed .match-row .club-line .team-name.team-name-long{
+      font-size:.87rem !important;
+      line-height:1.02 !important;
+    }
+    .league-feed .match-row .club-line .team-name.team-name-xlong{
+      font-size:.81rem !important;
+      line-height:1.01 !important;
     }
     .league-feed .match-row .match-center-zone{
       display:flex;
@@ -4267,7 +4284,7 @@
     .league-feed .match-row .live-score-final{
       display:inline-block !important;
       font-family:"PB Moon Get","PB Tottenham Display",sans-serif !important;
-      font-size:1.26rem !important;
+      font-size:1.18rem !important;
       line-height:.88 !important;
       letter-spacing:.035em !important;
       color:#f4f7ff !important;
@@ -4342,10 +4359,10 @@
       white-space:nowrap;
     }
     .league-feed .match-row .match-action{
-      max-width:102px !important;
-      min-height:60px !important;
+      max-width:98px !important;
+      min-height:58px !important;
       height:auto !important;
-      padding:8px 8px !important;
+      padding:7px 7px !important;
       gap:4px !important;
       border-radius:18px !important;
       justify-self:end !important;
@@ -4395,19 +4412,19 @@
     }
     @media (max-width:390px){
       .league-feed .match-row .match-row-inner{
-        grid-template-columns:42px minmax(0,1fr) 90px 98px !important;
+        grid-template-columns:36px minmax(0,1fr) 78px 94px !important;
         gap:8px !important;
       }
-      .league-feed .match-row .club-line strong{
-        font-size:.95rem !important;
+      .league-feed .match-row .club-line .team-name{
+        font-size:.91rem !important;
       }
       .league-feed .match-row .live-score-number,
       .league-feed .match-row .live-score-final{
-        font-size:1.14rem !important;
+        font-size:1.08rem !important;
       }
       .league-feed .match-row .match-action{
-        max-width:98px !important;
-        min-height:58px !important;
+        max-width:94px !important;
+        min-height:56px !important;
       }
       .league-feed .match-row .match-action strong{
         font-size:.79rem !important;
