@@ -3086,6 +3086,40 @@
     return `<span class="club-line${compact}">${logo ? `<img class="team-logo" src="${logo}" alt="" loading="lazy" decoding="async" />` : ""}<strong>${escapeHtml(name)}</strong>${redBadge}</span>`;
   }
 
+  function compactStatusLabel(status) {
+    const label = String(status || "").toUpperCase();
+    if (!label) return "--";
+    if (label === "AET" || label === "PEN") return label;
+    if (FINAL_STATUSES.has(label)) return "FT";
+    if (label === "PST" || label === "CANC") return "PST";
+    return label;
+  }
+
+  function renderMatchTimeBlockMarkup(match, liveScore = null) {
+    const effectiveStatus = effectiveFixtureStatusShort(match, liveScore);
+    const dateLabel = escapeHtml(match.localMatchDateLabel || formatDate(match.date, { day: "2-digit", month: "2-digit" }));
+    if (liveScore && LIVE_STATUSES.has(effectiveStatus)) {
+      return `<div class="match-time match-time-live">${formatLiveMinuteHtml(effectiveStatus, liveScore.elapsed)}</div><div class="match-date match-phase-label">LIVE</div>`;
+    }
+    if (matchIsPostponed(match)) {
+      return `<div class="match-time match-time-state">PST</div><div class="match-date">${dateLabel}</div>`;
+    }
+    if (FINAL_STATUSES.has(effectiveStatus)) {
+      return `<div class="match-time match-time-state">${escapeHtml(compactStatusLabel(effectiveStatus))}</div><div class="match-date">${dateLabel}</div>`;
+    }
+    return `<div class="match-time">${escapeHtml(match.localMatchTime || match.match_time || "--:--")}</div><div class="match-date">${dateLabel}</div>`;
+  }
+
+  function renderMatchTeamsMarkup(match, showLeagueLine = true, liveScore = null) {
+    return `
+      ${showLeagueLine ? `<div class="match-league-line">${escapeHtml(match.league)} | ${escapeHtml(match.country)}</div>` : ""}
+      <div class="match-team-stack">
+        ${renderClubLineWithBadges(match, "home", { liveScore })}
+        ${renderClubLineWithBadges(match, "away", { liveScore })}
+      </div>
+    `;
+  }
+
   function matchActionState(match) {
     const primary = match?.primaryMarket || null;
     const displayStatus = matchDisplayStatus(match);
@@ -3106,6 +3140,86 @@
     };
   }
 
+  function buildRowAlternativeEntries(match) {
+    const sourceMarkets = Array.isArray(match?.visibleMarkets) && match.visibleMarkets.length
+      ? match.visibleMarkets
+      : Array.isArray(match?.markets)
+        ? match.markets
+        : [];
+    const primaryKey = match?.primaryMarket ? marketVarietyKey(match.primaryMarket) : "";
+    const entries = [];
+    sourceMarkets.forEach(market => {
+      if (!market || !Array.isArray(market.options) || resolveMarketStatus(match, market) !== "scheduled") return;
+      const displayScore = marketDisplayScore(market, match);
+      market.options.forEach(option => {
+        const probability = Number(option?.probability || 0);
+        if (!Number.isFinite(probability) || probability <= 0) return;
+        const label = String(option?.label || "").trim();
+        if (!label) return;
+        const diversityKey = `${market.group}:${label.toUpperCase()}`;
+        if (diversityKey === primaryKey) return;
+        const rawOdd = Number(option?.odd);
+        const hasRealOdd = option?.odd != null && Number.isFinite(rawOdd) && rawOdd > 1;
+        const allowSyntheticOdd = canUseSyntheticOdd(market.group);
+        const odd = hasRealOdd ? rawOdd : (allowSyntheticOdd ? estimateFallbackOdd(probability) : null);
+        entries.push({
+          fixtureId: String(match.fixture_id),
+          probability,
+          odd,
+          group: market.group,
+          label,
+          title: market.title,
+          tag: market.tag,
+          impactLabel: market.impactLabel || "",
+          highImpact: Boolean(market.highImpact),
+          displayScore,
+          diversityKey,
+          syntheticOdd: !hasRealOdd && allowSyntheticOdd,
+          tier: 0,
+        });
+      });
+    });
+    return entries;
+  }
+
+  function rowAlternativeByProfile(entries, profileId, usedKeys = new Set()) {
+    const sorted = [...entries].sort((a, b) => {
+      const diff = betMasterProfileScore(b, profileId) - betMasterProfileScore(a, profileId);
+      if (Math.abs(diff) > 0.0001) return diff;
+      if (Boolean(a.syntheticOdd) !== Boolean(b.syntheticOdd)) return Number(a.syntheticOdd) - Number(b.syntheticOdd);
+      return String(a.label || "").localeCompare(String(b.label || ""));
+    });
+    return sorted.find(entry => !usedKeys.has(entry.diversityKey)) || null;
+  }
+
+  function renderPreMatchAlternatives(match) {
+    const entries = buildRowAlternativeEntries(match);
+    if (!entries.length) return "";
+    const usedKeys = new Set();
+    const selected = [];
+    [
+      { id: "balanced", label: "Balanced bet" },
+      { id: "value", label: "Value bet" },
+    ].forEach(profile => {
+      const entry = rowAlternativeByProfile(entries, profile.id, usedKeys);
+      if (!entry) return;
+      usedKeys.add(entry.diversityKey);
+      selected.push({ profile, entry });
+    });
+    if (!selected.length) return "";
+    return `
+      <div class="match-alt-bets">
+        ${selected.map(({ profile, entry }) => `
+          <span class="match-alt-bet match-alt-bet-${profile.id}">
+            <span class="match-alt-bet-kicker">${escapeHtml(profile.label)}</span>
+            <strong>${escapeHtml(entry.label)}</strong>
+            <small>${formatPercent(entry.probability)}${entry.odd ? ` | ${formatOdd(entry.odd)}` : ""}</small>
+          </span>
+        `).join("")}
+      </div>
+    `;
+  }
+
   function renderMatchScoreMarkup(match, options = {}) {
     const featured = options.featured === true;
     const liveScore = state.liveScores[String(match.fixture_id)] || buildDetailFallbackLiveScore(match);
@@ -3122,13 +3236,16 @@
       if (featured) {
         const redCards = (liveScore.events || []).filter(event => event.type === "Card" && /Red Card|Second Yellow/i.test(String(event.detail || "")));
         const redBadge = redCards.length ? `<span class="live-red-badge" title="${escapeHtml(IS_EN ? "Red card" : "Cartellino rosso")}">RC${redCards.length > 1 ? ` ${redCards.length}` : ""}</span>` : "";
-        return `<span class="live-score-badge${scoreChanged ? " score-changed" : ""}">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${elapsedHtml}</span>${redBadge}`;
+        return `<span class="live-score-badge${scoreChanged ? " score-changed" : ""}"><span class="live-score-number">${liveScore.home} - ${liveScore.away}</span></span><span class="live-status-label">${elapsedHtml}</span>${redBadge}`;
       }
       const goals = (liveScore.events || []).filter(event => event.type === "Goal" && event.detail !== "Missed Penalty");
       const goalIcons = goals.map(event => `<span class="live-event-icon" title="${escapeHtml(event.playerName || "")} ${event.elapsed ? `(${event.elapsed}')` : ""}">âš½</span>`).join("");
-      return `<span class="live-score-badge${scoreChanged ? " score-changed" : ""}">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${elapsedHtml}</span>${goalIcons}`;
+      return `<span class="live-score-badge${scoreChanged ? " score-changed" : ""}"><span class="live-score-number">${liveScore.home} - ${liveScore.away}</span></span>${goalIcons}`;
     }
-    return (match.most_likely_scores || []).slice(0, 2).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("") || escapeHtml(match.status_long || "");
+    if (matchIsPostponed(match)) {
+      return `<span class="mini-chip">${escapeHtml(IS_EN ? "Postponed" : "Postponed")}</span>`;
+    }
+    return renderPreMatchAlternatives(match) || escapeHtml(match.status_long || "");
   }
 
   function patchMatchRowElement(rowEl, match) {
@@ -3136,6 +3253,12 @@
     const featured = rowEl.classList.contains("match-row-featured");
     const actionState = matchActionState(match);
     rowEl.className = `match-row${featured ? " match-row-featured" : ""} status-${actionState.displayStatus}`;
+    const liveScore = state.liveScores[String(match.fixture_id)] || buildDetailFallbackLiveScore(match);
+    const showLeagueLine = rowEl.dataset.showLeagueLine !== "0";
+    const timeEl = rowEl.querySelector(".match-time-block");
+    if (timeEl) timeEl.innerHTML = renderMatchTimeBlockMarkup(match, liveScore);
+    const teamsEl = rowEl.querySelector(".match-teams");
+    if (teamsEl) teamsEl.innerHTML = renderMatchTeamsMarkup(match, showLeagueLine, liveScore);
     const scoreEl = rowEl.querySelector(".match-score");
     if (scoreEl) scoreEl.innerHTML = renderMatchScoreMarkup(match, { featured });
     const actionEl = rowEl.querySelector(".match-action");
@@ -3170,9 +3293,8 @@
       tag: primary?.tag,
     });
     const liveScore = state.liveScores[String(match.fixture_id)] || buildDetailFallbackLiveScore(match);
-    const effectiveStatus = effectiveFixtureStatusShort(match, liveScore);
-    const rowScoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
-    const scoreText = (() => {
+    const scoreText = renderMatchScoreMarkup(match);
+    if (false) {
       if (liveScore && FINAL_STATUSES.has(effectiveStatus)) {
         return `<span class="live-score-final">${liveScore.home}-${liveScore.away}</span>`;
       }
@@ -3186,23 +3308,13 @@
         return `<span class="live-score-badge${rowScoreChanged ? " score-changed" : ""}">${liveScore.home} - ${liveScore.away}</span><span class="live-status-label">${elapsedHtml}</span>${goalIcons}`;
       }
       return (match.most_likely_scores || []).slice(0, 2).map(score => `<span class="mini-chip">${escapeHtml(score[0])} | ${score[1]}%</span>`).join("") || escapeHtml(match.status_long || "");
-    })();
+    }
     return `
-      <article class="match-row status-${displayStatus}" data-fixture-open="${match.fixture_id}">
+      <article class="match-row status-${displayStatus}" data-fixture-open="${match.fixture_id}" data-show-league-line="${showLeagueLine ? "1" : "0"}">
         <div class="match-row-inner">
-          <div class="match-time-block">
-            <div class="match-time">${escapeHtml(match.localMatchTime || match.match_time || "--:--")}</div>
-            <div class="match-date">${escapeHtml(match.localMatchDateLabel || formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</div>
-          </div>
-          <div class="match-teams">
-            ${showLeagueLine ? `<div class="match-league-line">${escapeHtml(match.league)} | ${escapeHtml(match.country)}</div>` : ""}
-            <div class="clubs-inline">
-              ${renderClubLineWithBadges(match, "home", { liveScore })}
-              <span class="match-vs">vs</span>
-              ${renderClubLineWithBadges(match, "away", { liveScore })}
-            </div>
-            <div class="match-score">${scoreText}</div>
-          </div>
+          <div class="match-time-block">${renderMatchTimeBlockMarkup(match, liveScore)}</div>
+          <div class="match-teams">${renderMatchTeamsMarkup(match, showLeagueLine, liveScore)}</div>
+          <div class="match-center-zone"><div class="match-score">${scoreText}</div></div>
           <div class="match-action${primary?.highImpact ? " match-action-impact" : ""}${primary ? " match-action-labeled" : ""}">
             ${primary ? `<span class="match-action-type">${escapeHtml(marketTypeLabel(primary.group))}</span>` : ""}
             <strong>${escapeHtml(primary?.pickLabel || TEXT.viewMatch)}</strong>
@@ -3219,21 +3331,11 @@
     const scoreText = renderMatchScoreMarkup(match);
     const liveScore = state.liveScores[String(match.fixture_id)] || buildDetailFallbackLiveScore(match);
     return `
-      <article class="match-row status-${actionState.displayStatus}" data-fixture-open="${match.fixture_id}">
+      <article class="match-row status-${actionState.displayStatus}" data-fixture-open="${match.fixture_id}" data-show-league-line="${showLeagueLine ? "1" : "0"}">
         <div class="match-row-inner">
-          <div class="match-time-block">
-            <div class="match-time">${escapeHtml(match.localMatchTime || match.match_time || "--:--")}</div>
-            <div class="match-date">${escapeHtml(match.localMatchDateLabel || formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</div>
-          </div>
-          <div class="match-teams">
-            ${showLeagueLine ? `<div class="match-league-line">${escapeHtml(match.league)} | ${escapeHtml(match.country)}</div>` : ""}
-            <div class="clubs-inline">
-              ${renderClubLineWithBadges(match, "home", { liveScore })}
-              <span class="match-vs">vs</span>
-              ${renderClubLineWithBadges(match, "away", { liveScore })}
-            </div>
-            <div class="match-score">${scoreText}</div>
-          </div>
+          <div class="match-time-block">${renderMatchTimeBlockMarkup(match, liveScore)}</div>
+          <div class="match-teams">${renderMatchTeamsMarkup(match, showLeagueLine, liveScore)}</div>
+          <div class="match-center-zone"><div class="match-score">${scoreText}</div></div>
           <div class="${actionState.actionClass}">
             ${actionState.actionTypeLabel ? `<span class="match-action-type">${escapeHtml(actionState.actionTypeLabel)}</span>` : ""}
             <strong>${escapeHtml(actionState.actionLabel)}</strong>

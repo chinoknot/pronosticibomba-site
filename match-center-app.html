@@ -3216,7 +3216,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3_app.js?v=20260419app1"></script>
+  <script src="/assets/match_center3_app.js?v=20260420app2"></script>
   <script>
     (function () {
       const ready = () => {
@@ -4154,6 +4154,274 @@
     .detail-event-glyph-second-yellow svg{overflow:visible}
     .detail-event-glyph-second-yellow .app-card-yellow{fill:#ffd54f}
     .detail-event-glyph-second-yellow .app-card-red{fill:#ff5a6b}
+    .app-shell{
+      max-width:440px !important;
+      margin:0 auto !important;
+    }
+    .league-feed .league-block,
+    .league-feed .match-row{
+      content-visibility:auto;
+      contain:layout paint style;
+      contain-intrinsic-size:auto 104px;
+    }
+    .league-feed .match-row{
+      padding:10px 12px 10px 14px !important;
+      background:
+        radial-gradient(circle at 80% 50%,rgba(61,213,243,.045),transparent 30%),
+        linear-gradient(180deg,rgba(16,24,43,.78),rgba(9,14,26,.96)) !important;
+    }
+    .league-feed .match-row .match-row-inner{
+      grid-template-columns:44px minmax(0,1fr) 96px 102px !important;
+      gap:10px !important;
+      align-items:center !important;
+    }
+    .league-feed .match-row .match-time-block{
+      gap:4px !important;
+      align-items:flex-start !important;
+    }
+    .league-feed .match-row .match-time{
+      font-size:.92rem !important;
+      font-weight:800 !important;
+      line-height:1 !important;
+    }
+    .league-feed .match-row .match-time-live{
+      color:#f8fafc !important;
+    }
+    .league-feed .match-row .match-phase-label{
+      color:#9bb0cf !important;
+      font-size:.66rem !important;
+      letter-spacing:.08em !important;
+      text-transform:uppercase !important;
+    }
+    .league-feed .match-row .match-time-state{
+      color:#d7e4f7 !important;
+      letter-spacing:.06em !important;
+    }
+    .league-feed .match-row .match-date{
+      font-size:.62rem !important;
+      color:#8ea0bd !important;
+      line-height:1.1 !important;
+    }
+    .league-feed .match-row .match-teams{
+      gap:6px !important;
+      min-width:0 !important;
+    }
+    .league-feed .match-row .match-league-line{
+      font-size:.67rem !important;
+      line-height:1.1 !important;
+      color:#91a3c1 !important;
+      margin-bottom:1px !important;
+    }
+    .league-feed .match-row .match-team-stack{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-width:0;
+    }
+    .league-feed .match-row .club-line{
+      gap:6px !important;
+      min-width:0 !important;
+    }
+    .league-feed .match-row .team-logo{
+      width:20px !important;
+      height:20px !important;
+      padding:1px !important;
+    }
+    .league-feed .match-row .club-line strong{
+      font-size:1.02rem !important;
+      font-weight:700 !important;
+      line-height:1.04 !important;
+      white-space:nowrap !important;
+      overflow:hidden !important;
+      text-overflow:ellipsis !important;
+    }
+    .league-feed .match-row .match-center-zone{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-width:0;
+    }
+    .league-feed .match-row .match-score{
+      min-height:56px !important;
+      display:flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      gap:6px !important;
+      flex-wrap:nowrap !important;
+      line-height:1 !important;
+      color:#b8c7dd !important;
+      width:100%;
+    }
+    .league-feed .match-row .live-score-badge{
+      display:inline-flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      padding:0 !important;
+      min-height:0 !important;
+      background:none !important;
+      border:none !important;
+      border-radius:0 !important;
+      box-shadow:none !important;
+    }
+    .league-feed .match-row .live-score-number,
+    .league-feed .match-row .live-score-final{
+      display:inline-block !important;
+      font-family:"PB Moon Get","PB Tottenham Display",sans-serif !important;
+      font-size:1.26rem !important;
+      line-height:.88 !important;
+      letter-spacing:.035em !important;
+      color:#f4f7ff !important;
+      white-space:nowrap !important;
+    }
+    .league-feed .match-row .live-score-number{
+      color:#fff4f4 !important;
+      text-shadow:0 0 18px rgba(255,80,70,.18) !important;
+    }
+    .league-feed .match-row .live-status-label{
+      display:none !important;
+    }
+    .league-feed .match-row .live-event-icon{
+      display:inline-flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      font-size:.66rem !important;
+      margin-left:1px !important;
+      opacity:.86 !important;
+    }
+    .league-feed .match-row .match-alt-bets{
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      gap:5px;
+      align-items:stretch;
+    }
+    .league-feed .match-row .match-alt-bet{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:2px;
+      min-height:26px;
+      padding:4px 6px;
+      border-radius:12px;
+      border:1px solid rgba(148,163,184,.14);
+      background:linear-gradient(180deg,rgba(20,27,45,.95),rgba(12,18,33,.98));
+      text-align:center;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .league-feed .match-row .match-alt-bet-balanced{
+      border-color:rgba(96,165,250,.18);
+    }
+    .league-feed .match-row .match-alt-bet-value{
+      border-color:rgba(192,132,252,.24);
+      background:linear-gradient(180deg,rgba(28,22,42,.96),rgba(15,11,28,.98));
+    }
+    .league-feed .match-row .match-alt-bet-kicker{
+      display:block;
+      font-size:.5rem;
+      line-height:1;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:#a9bad3;
+    }
+    .league-feed .match-row .match-alt-bet strong{
+      display:block;
+      font-size:.68rem;
+      line-height:1.02;
+      color:#fff8f3;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      width:100%;
+    }
+    .league-feed .match-row .match-alt-bet small{
+      display:block;
+      font-size:.58rem;
+      line-height:1.05;
+      color:#d7e4f7;
+      white-space:nowrap;
+    }
+    .league-feed .match-row .match-action{
+      max-width:102px !important;
+      min-height:60px !important;
+      height:auto !important;
+      padding:8px 8px !important;
+      gap:4px !important;
+      border-radius:18px !important;
+      justify-self:end !important;
+      box-shadow:inset 0 1px 0 rgba(255,244,220,.06) !important;
+    }
+    .league-feed .match-row .match-action-type{
+      font-size:.47rem !important;
+      letter-spacing:.12em !important;
+      line-height:1 !important;
+      margin:0 !important;
+      color:#ffd27a !important;
+    }
+    .league-feed .match-row .match-action strong{
+      width:100% !important;
+      font-size:.84rem !important;
+      line-height:1.04 !important;
+      white-space:normal !important;
+      text-align:center !important;
+      overflow:visible !important;
+    }
+    .league-feed .match-row .match-action small{
+      width:100% !important;
+      font-size:.66rem !important;
+      line-height:1.08 !important;
+      white-space:normal !important;
+      text-align:center !important;
+      color:#f1deaa !important;
+    }
+    .league-feed .match-row .action-meta-inline{
+      display:inline-flex !important;
+      gap:2px 4px !important;
+      flex-wrap:wrap !important;
+      justify-content:center !important;
+    }
+    .league-feed .match-row .action-meta-fragment,
+    .league-feed .match-row .action-meta-crumb{
+      font-size:.63rem !important;
+    }
+    .league-feed .match-row .app-team-red{
+      margin-left:5px !important;
+      width:11px !important;
+      height:15px !important;
+    }
+    .league-feed .match-row .app-team-red-count{
+      font-size:.58rem !important;
+      margin-left:3px !important;
+    }
+    @media (max-width:390px){
+      .league-feed .match-row .match-row-inner{
+        grid-template-columns:42px minmax(0,1fr) 90px 98px !important;
+        gap:8px !important;
+      }
+      .league-feed .match-row .club-line strong{
+        font-size:.95rem !important;
+      }
+      .league-feed .match-row .live-score-number,
+      .league-feed .match-row .live-score-final{
+        font-size:1.14rem !important;
+      }
+      .league-feed .match-row .match-action{
+        max-width:98px !important;
+        min-height:58px !important;
+      }
+      .league-feed .match-row .match-action strong{
+        font-size:.79rem !important;
+      }
+      .league-feed .match-row .match-action small{
+        font-size:.62rem !important;
+      }
+      .league-feed .match-row .match-alt-bet strong{
+        font-size:.64rem !important;
+      }
+      .league-feed .match-row .match-alt-bet small{
+        font-size:.55rem !important;
+      }
+    }
   </style>
 </body>
 </html>
