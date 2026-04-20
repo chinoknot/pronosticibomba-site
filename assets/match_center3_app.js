@@ -223,6 +223,7 @@
     finalWord: "finali",
     wonWord: IS_EN ? "Won" : "Vinta",
     lostWord: IS_EN ? "Lost" : "Persa",
+    followedWord: IS_EN ? "Followed" : "Seguite",
     betMasterEmpty: IS_EN ? "Generate to see the playable slip in the selected window." : "Genera per vedere la schedina disponibile nella finestra selezionata.",
     betMasterNoCandidates: IS_EN ? "No bet365 picks available in this window with the filters you selected." : "Nessuna pick bet365 disponibile in questa finestra con i filtri scelti.",
     betMasterNeedMarkets: IS_EN ? "Enable at least one market to build a slip." : "Attiva almeno un mercato per creare la schedina.",
@@ -256,7 +257,8 @@
     filterOpen: false,
     outcomeFilters: new Set(),
     detailFixtureId: null,
-    quickFilter: null,  // null | 'live' | 'won' | 'lost'
+    quickFilter: null,  // null | 'live' | 'followed'
+    nativeFavorites: new Set(),
     preparedMatches: null,
     derivedMatches: null,
     derivedFilteredCacheKey: "",
@@ -389,11 +391,9 @@
     detailBody: document.getElementById("match-detail"),
     mcPicksVal: document.getElementById("mc-picks-val"),
     mcLiveVal: document.getElementById("mc-live-val"),
-    mcWonVal: document.getElementById("mc-won-val"),
-    mcLostVal: document.getElementById("mc-lost-val"),
+    mcFollowedVal: document.getElementById("mc-followed-val"),
     mcLivePill: document.getElementById("mc-live-pill"),
-    mcWonPill: document.getElementById("mc-won-pill"),
-    mcLostPill: document.getElementById("mc-lost-pill"),
+    mcFollowedPill: document.getElementById("mc-followed-pill"),
     mcCollapseAll: document.getElementById("mc-collapse-all"),
     mcExpandAll: document.getElementById("mc-expand-all"),
   };
@@ -405,6 +405,19 @@
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#39;");
+  }
+
+  function syncNativeFavorites(nextFavorites) {
+    state.nativeFavorites = new Set((Array.isArray(nextFavorites) ? nextFavorites : []).map(value => String(value || "")));
+  }
+
+  function bootstrapNativeState() {
+    try {
+      const nativeState = window.__PB_NATIVE_EXTERNAL_STATE || null;
+      if (nativeState && Array.isArray(nativeState.favorites)) {
+        syncNativeFavorites(nativeState.favorites);
+      }
+    } catch (_error) {}
   }
 
   // Returns "45<span class='tick-mark'>'</span>" — the tick blinks via CSS, no JS interval needed
@@ -2006,11 +2019,8 @@
         return kickoff && kickoff.getTime() >= nowTs - 10 * 60 * 1000 && kickoff.getTime() <= nowTs + 30 * 60 * 1000;
       });
     }
-    if (state.quickFilter === 'won') {
-      return result.filter(match => match.visibleMarkets.some(m => m.status === 'win'));
-    }
-    if (state.quickFilter === 'lost') {
-      return result.filter(match => match.visibleMarkets.some(m => m.status === 'lose'));
+    if (state.quickFilter === 'followed') {
+      return result.filter(match => state.nativeFavorites.has(String(match.fixture_id)));
     }
     return result;
   }
@@ -2897,11 +2907,13 @@
     const dayStats = getFullDayStats();
     if (dom.mcPicksVal) dom.mcPicksVal.textContent = String(matches.length);
     if (dom.mcLiveVal) dom.mcLiveVal.textContent = String(dayStats.liveCount);
-    if (dom.mcWonVal) dom.mcWonVal.textContent = String(dayStats.wonCount);
-    if (dom.mcLostVal) dom.mcLostVal.textContent = String(dayStats.lostCount);
+    if (dom.mcFollowedVal) dom.mcFollowedVal.textContent = String(getPreparedMatches().filter(match => state.nativeFavorites.has(String(match.fixture_id))).length);
+    if (dom.mcFollowedPill) {
+      const labelEl = dom.mcFollowedPill.querySelector("span");
+      if (labelEl) labelEl.textContent = String(TEXT.followedWord || "Seguite").toLowerCase();
+    }
     if (dom.mcLivePill) dom.mcLivePill.classList.toggle('active', state.quickFilter === 'live');
-    if (dom.mcWonPill) dom.mcWonPill.classList.toggle('active', state.quickFilter === 'won');
-    if (dom.mcLostPill) dom.mcLostPill.classList.toggle('active', state.quickFilter === 'lost');
+    if (dom.mcFollowedPill) dom.mcFollowedPill.classList.toggle('active', state.quickFilter === 'followed');
   }
 
   function renderBetMaster() {
@@ -5552,17 +5564,10 @@
       invalidateDerivedViewCaches({ prefilter: true });
       render();
     });
-    if (dom.mcWonPill) dom.mcWonPill.addEventListener("click", () => {
-      const wasActive = state.quickFilter === 'won';
+    if (dom.mcFollowedPill) dom.mcFollowedPill.addEventListener("click", () => {
+      const wasActive = state.quickFilter === 'followed';
       doResetFilters();
-      state.quickFilter = wasActive ? null : 'won';
-      invalidateDerivedViewCaches({ prefilter: true });
-      render();
-    });
-    if (dom.mcLostPill) dom.mcLostPill.addEventListener("click", () => {
-      const wasActive = state.quickFilter === 'lost';
-      doResetFilters();
-      state.quickFilter = wasActive ? null : 'lost';
+      state.quickFilter = wasActive ? null : 'followed';
       invalidateDerivedViewCaches({ prefilter: true });
       render();
     });
@@ -5843,6 +5848,12 @@
       state.lastUserScrollAt = Date.now();
     }, { passive: true });
     window.addEventListener("resize", () => closeAllCustomSelects());
+    window.addEventListener("pb-native-sync", event => {
+      const nextFavorites = event?.detail?.favorites;
+      syncNativeFavorites(nextFavorites);
+      invalidateDerivedViewCaches({ prefilter: true });
+      render();
+    });
   }
 
   function startAutoRefresh() {
@@ -5862,6 +5873,7 @@
   }
 
   async function init() {
+    bootstrapNativeState();
     seedBetMasterCustomWindow();
     seedMainTimeWindow(true);
     populateTimeSelects();
