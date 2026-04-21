@@ -257,7 +257,7 @@
     filterOpen: false,
     outcomeFilters: new Set(),
     detailFixtureId: null,
-    quickFilter: null,  // null | 'live' | 'followed'
+    quickFilter: null,  // null | 'live' | 'followed' | 'live_followed'
     nativeFavorites: new Set(),
     nativeMuted: new Set(),
     preparedMatches: null,
@@ -395,6 +395,8 @@
     mcFollowedVal: document.getElementById("mc-followed-val"),
     mcLivePill: document.getElementById("mc-live-pill"),
     mcFollowedPill: document.getElementById("mc-followed-pill"),
+    mcLiveFollowedVal: document.getElementById("mc-live-followed-val"),
+    mcLiveFollowedPill: document.getElementById("mc-live-followed-pill"),
     mcCollapseAll: document.getElementById("mc-collapse-all"),
     mcExpandAll: document.getElementById("mc-expand-all"),
   };
@@ -798,6 +800,7 @@
   }
 
   function matchWithinMainTimeWindow(match) {
+    if (state.search) return true;
     if (state.quickFilter) return true;  // quickFilter bypasses time window
     const fixtureStatus = effectiveFixtureStatusShort(match);
     if (LIVE_STATUSES.has(fixtureStatus)) {
@@ -2001,31 +2004,35 @@
 
   function decorateMatches(rawMatches, keepAll = false) {
     const search = state.search.trim().toLowerCase();
+    const hasSearch = Boolean(search);
     const oddFilterActive = state.oddActive;
     const decorated = rawMatches
       .map(match => {
         const baseMarkets = Array.isArray(match.markets) ? match.markets : buildMarkets(match);
         const markets = baseMarkets.map(market => remapMarketForOutcomeFilters(match, market)).filter(Boolean);
-        const visibleMarkets = markets
-          .filter(market => state.groups.has(market.group))
-          .filter(market => {
-            const probability = Number(market.pickProbability || 0) * 100;
-            return probability >= state.minProbability && probability <= state.maxProbability;
-          })
-          .filter(market => {
-            if (!oddFilterActive) return true;
-            const odd = pickedOdd(market);
-            return odd != null && odd >= state.oddFrom && odd <= state.oddTo;
-          })
-          .filter(market => state.status === "all" ? true : market.status === state.status);
+        const visibleMarkets = hasSearch
+          ? markets
+          : markets
+            .filter(market => state.groups.has(market.group))
+            .filter(market => {
+              const probability = Number(market.pickProbability || 0) * 100;
+              return probability >= state.minProbability && probability <= state.maxProbability;
+            })
+            .filter(market => {
+              if (!oddFilterActive) return true;
+              const odd = pickedOdd(market);
+              return odd != null && odd >= state.oddFrom && odd <= state.oddTo;
+            })
+            .filter(market => state.status === "all" ? true : market.status === state.status);
         const searchBlob = String(match.searchBlob || "");
         return { ...match, markets: baseMarkets, visibleMarkets, primaryMarket: selectHeadlineMarket(visibleMarkets, match), searchBlob };
       })
       .filter(match => matchWithinMainTimeWindow(match))
       .filter(match => !search || match.searchBlob.includes(search))
-      .filter(match => keepAll || match.visibleMarkets.length > 0 || match._liveOnly)
+      .filter(match => hasSearch || keepAll || match.visibleMarkets.length > 0 || match._liveOnly)
       .sort((a, b) => `${a.localKickoffSort || a.match_time}-${a.league}-${a.home}`.localeCompare(`${b.localKickoffSort || b.match_time}-${b.league}-${b.home}`));
     const result = diversifyMatchesByLeague(decorated);
+    if (hasSearch) return result;
     if (state.quickFilter === 'live') {
       const nowTs = Date.now();
       return result.filter(match => {
@@ -2037,6 +2044,16 @@
     }
     if (state.quickFilter === 'followed') {
       return result.filter(match => state.nativeFavorites.has(String(match.fixture_id)));
+    }
+    if (state.quickFilter === 'live_followed') {
+      const nowTs = Date.now();
+      return result.filter(match => {
+        if (state.nativeFavorites.has(String(match.fixture_id))) return true;
+        const st = String(match.status_short || "").toUpperCase();
+        if (LIVE_STATUSES.has(st)) return true;
+        const kickoff = kickoffDate(match);
+        return kickoff && kickoff.getTime() >= nowTs - 10 * 60 * 1000 && kickoff.getTime() <= nowTs + 30 * 60 * 1000;
+      });
     }
     return result;
   }
@@ -2158,6 +2175,11 @@
   async function computePrefilterIds() {
     const key = queryPrefilterKey();
     if (state.filteredIdsCacheKey === key) return state.filteredIdsCacheValue;
+    if (state.search || state.quickFilter === "live_followed") {
+      state.filteredIdsCacheKey = key;
+      state.filteredIdsCacheValue = null;
+      return null;
+    }
     if (!state.search && !state.quickFilter && !usesRollingCurrentWindow() && state.timeFrom === "00:00" && state.timeTo === "23:59") {
       state.filteredIdsCacheKey = key;
       state.filteredIdsCacheValue = null;
@@ -2924,12 +2946,25 @@
     if (dom.mcPicksVal) dom.mcPicksVal.textContent = String(matches.length);
     if (dom.mcLiveVal) dom.mcLiveVal.textContent = String(dayStats.liveCount);
     if (dom.mcFollowedVal) dom.mcFollowedVal.textContent = String(getPreparedMatches().filter(match => state.nativeFavorites.has(String(match.fixture_id))).length);
+    if (dom.mcLiveFollowedVal) {
+      const nowTs = Date.now();
+      const fullDay = getPreparedMatches();
+      const liveOrFollowed = fullDay.filter(match => {
+        if (state.nativeFavorites.has(String(match.fixture_id))) return true;
+        const st = String(match.status_short || "").toUpperCase();
+        if (LIVE_STATUSES.has(st)) return true;
+        const kickoff = kickoffDate(match);
+        return kickoff && kickoff.getTime() >= nowTs - 10 * 60 * 1000 && kickoff.getTime() <= nowTs + 30 * 60 * 1000;
+      });
+      dom.mcLiveFollowedVal.textContent = String(liveOrFollowed.length);
+    }
     if (dom.mcFollowedPill) {
       const labelEl = dom.mcFollowedPill.querySelector("span");
       if (labelEl) labelEl.textContent = String(TEXT.followedWord || "Seguite").toLowerCase();
     }
     if (dom.mcLivePill) dom.mcLivePill.classList.toggle('active', state.quickFilter === 'live');
     if (dom.mcFollowedPill) dom.mcFollowedPill.classList.toggle('active', state.quickFilter === 'followed');
+    if (dom.mcLiveFollowedPill) dom.mcLiveFollowedPill.classList.toggle('active', state.quickFilter === 'live_followed');
   }
 
   function renderBetMaster() {
@@ -5582,6 +5617,13 @@
       const wasActive = state.quickFilter === 'followed';
       doResetFilters();
       state.quickFilter = wasActive ? null : 'followed';
+      invalidateDerivedViewCaches({ prefilter: true });
+      render();
+    });
+    if (dom.mcLiveFollowedPill) dom.mcLiveFollowedPill.addEventListener("click", () => {
+      const wasActive = state.quickFilter === 'live_followed';
+      doResetFilters();
+      state.quickFilter = wasActive ? null : 'live_followed';
       invalidateDerivedViewCaches({ prefilter: true });
       render();
     });
