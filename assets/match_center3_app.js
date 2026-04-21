@@ -3186,12 +3186,15 @@
     const entries = [];
     sourceMarkets.forEach(market => {
       if (!market || !Array.isArray(market.options) || resolveMarketStatus(match, market) !== "scheduled") return;
+      const marketDescriptor = `${market.id || ""} ${market.group || ""} ${market.title || ""}`.toLowerCase();
+      if (/correct score|score esatto|risultato esatto|most likely|probable score/.test(marketDescriptor)) return;
       const displayScore = marketDisplayScore(market, match);
       market.options.forEach(option => {
         const probability = Number(option?.probability || 0);
         if (!Number.isFinite(probability) || probability <= 0) return;
         const label = String(option?.label || "").trim();
         if (!label) return;
+        if (/^\d+\s*[-:]\s*\d+$/.test(label)) return;
         const diversityKey = `${market.group}:${label.toUpperCase()}`;
         if (diversityKey === primaryKey) return;
         const rawOdd = Number(option?.odd);
@@ -4872,10 +4875,10 @@
             <div class="detail-meta-card"><span>Kickoff</span><strong>${escapeHtml(match.localMatchTime || match.match_time)} | ${escapeHtml(match.localMatchDateLabel || formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</strong></div>
             <div class="detail-meta-card"><span>Stato</span><strong class="detail-status-strong">${buildStatusText()}</strong></div>
           </div>
-          ${nativeActionBar}
           ${generalInfoBlock}
           ${spotlightBlock}
         </article>
+        ${nativeActionBar}
         <div class="detail-stack">
           <div class="detail-live-sections">${liveSections.html}</div>
           ${prematchBlock}

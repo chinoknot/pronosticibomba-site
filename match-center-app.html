@@ -3217,7 +3217,7 @@
       }
     })();
   </script>
-  <script src="/assets/match_center3_app.js?v=20260421app5"></script>
+  <script src="/assets/match_center3_app.js?v=20260421app6"></script>
   <script>
     (function () {
       const ready = () => {
@@ -4438,6 +4438,189 @@
       }
       .league-feed .match-row .match-alt-bet small{
         font-size:.55rem !important;
+      }
+    }
+    /* App clone final mobile row pass: reserve the native star lane and remove bulky frames. */
+    .league-feed .match-row{
+      padding:8px 46px 8px 10px !important;
+      min-height:76px !important;
+      overflow:visible !important;
+    }
+    .league-feed .match-row .match-row-inner{
+      grid-template-columns:34px minmax(0,1fr) 54px 70px !important;
+      gap:5px !important;
+      align-items:center !important;
+    }
+    .league-feed .match-row .match-time{
+      font-size:.82rem !important;
+      line-height:1 !important;
+    }
+    .league-feed .match-row .match-date,
+    .league-feed .match-row .match-phase-label{
+      font-size:.56rem !important;
+      line-height:1.05 !important;
+    }
+    .league-feed .match-row .match-teams{
+      gap:4px !important;
+      overflow:visible !important;
+    }
+    .league-feed .match-row .match-team-stack{
+      gap:4px !important;
+    }
+    .league-feed .match-row .club-line{
+      gap:4px !important;
+      align-items:center !important;
+      min-width:0 !important;
+    }
+    .league-feed .match-row .team-logo{
+      width:16px !important;
+      height:16px !important;
+      margin-top:0 !important;
+    }
+    .league-feed .match-row .club-line .team-name{
+      font-size:.82rem !important;
+      line-height:1.05 !important;
+      letter-spacing:-.035em !important;
+      white-space:normal !important;
+      overflow-wrap:normal !important;
+      word-break:normal !important;
+      hyphens:auto !important;
+    }
+    .league-feed .match-row .club-line .team-name.team-name-medium{
+      font-size:.78rem !important;
+    }
+    .league-feed .match-row .club-line .team-name.team-name-long,
+    .league-feed .match-row .club-line .team-name.team-name-xlong{
+      font-size:.72rem !important;
+      line-height:1.02 !important;
+    }
+    .league-feed .match-row .match-center-zone{
+      width:54px !important;
+      min-width:54px !important;
+      overflow:hidden !important;
+    }
+    .league-feed .match-row .match-score{
+      min-height:48px !important;
+      width:54px !important;
+      gap:2px !important;
+      overflow:hidden !important;
+    }
+    .league-feed .match-row .live-score-number,
+    .league-feed .match-row .live-score-final{
+      font-size:.82rem !important;
+      line-height:.9 !important;
+      letter-spacing:.01em !important;
+      white-space:nowrap !important;
+      max-width:54px !important;
+      overflow:hidden !important;
+    }
+    .league-feed .match-row .match-alt-bets{
+      width:54px !important;
+      gap:3px !important;
+    }
+    .league-feed .match-row .match-alt-bet{
+      min-height:22px !important;
+      padding:2px 3px !important;
+      border-radius:8px !important;
+      border:0 !important;
+      background:linear-gradient(180deg,rgba(18,25,41,.86),rgba(8,12,24,.92)) !important;
+      box-shadow:none !important;
+    }
+    .league-feed .match-row .match-alt-bet-balanced{
+      background:linear-gradient(180deg,rgba(16,33,54,.86),rgba(7,14,26,.94)) !important;
+    }
+    .league-feed .match-row .match-alt-bet-value{
+      background:linear-gradient(180deg,rgba(32,22,48,.84),rgba(14,10,25,.94)) !important;
+    }
+    .league-feed .match-row .match-alt-bet-kicker{
+      font-size:.35rem !important;
+      letter-spacing:.08em !important;
+    }
+    .league-feed .match-row .match-alt-bet strong{
+      font-size:.52rem !important;
+      line-height:1 !important;
+    }
+    .league-feed .match-row .match-alt-bet small{
+      font-size:.45rem !important;
+      line-height:1 !important;
+    }
+    .league-feed .match-row .match-action{
+      max-width:70px !important;
+      min-height:48px !important;
+      width:70px !important;
+      padding:0 !important;
+      gap:2px !important;
+      border:0 !important;
+      background:transparent !important;
+      box-shadow:none !important;
+      border-radius:0 !important;
+      justify-self:end !important;
+      margin-right:0 !important;
+    }
+    .league-feed .match-row .match-action-type{
+      font-size:.41rem !important;
+      letter-spacing:.08em !important;
+      line-height:1 !important;
+    }
+    .league-feed .match-row .match-action strong{
+      font-size:.70rem !important;
+      line-height:1.02 !important;
+      letter-spacing:-.02em !important;
+      text-wrap:balance !important;
+    }
+    .league-feed .match-row .match-action small{
+      font-size:.54rem !important;
+      line-height:1.05 !important;
+      color:#f6dc8f !important;
+    }
+    .league-feed .match-row .action-meta-fragment,
+    .league-feed .match-row .action-meta-crumb{
+      font-size:.52rem !important;
+    }
+    .detail-native-shell{
+      margin:10px 0 12px !important;
+      padding:0 2px !important;
+    }
+    .detail-native-actions{
+      gap:8px !important;
+    }
+    .detail-native-action{
+      min-height:50px !important;
+      border-radius:16px !important;
+      border-color:rgba(74,222,128,.18) !important;
+      background:linear-gradient(145deg,rgba(9,19,34,.94),rgba(4,10,20,.98)) !important;
+    }
+    .detail-native-action-icon{
+      background:rgba(255,255,255,.045) !important;
+    }
+    @media (max-width:390px){
+      .league-feed .match-row{
+        padding-right:42px !important;
+      }
+      .league-feed .match-row .match-row-inner{
+        grid-template-columns:32px minmax(0,1fr) 50px 66px !important;
+        gap:4px !important;
+      }
+      .league-feed .match-row .match-center-zone,
+      .league-feed .match-row .match-score,
+      .league-feed .match-row .match-alt-bets{
+        width:50px !important;
+        min-width:50px !important;
+      }
+      .league-feed .match-row .live-score-number,
+      .league-feed .match-row .live-score-final{
+        font-size:.76rem !important;
+        max-width:50px !important;
+      }
+      .league-feed .match-row .match-action{
+        width:66px !important;
+        max-width:66px !important;
+      }
+      .league-feed .match-row .match-action strong{
+        font-size:.66rem !important;
+      }
+      .league-feed .match-row .match-action small{
+        font-size:.50rem !important;
       }
     }
   </style>
