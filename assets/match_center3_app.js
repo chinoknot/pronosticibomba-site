@@ -259,6 +259,7 @@
     detailFixtureId: null,
     quickFilter: null,  // null | 'live' | 'followed'
     nativeFavorites: new Set(),
+    nativeMuted: new Set(),
     preparedMatches: null,
     derivedMatches: null,
     derivedFilteredCacheKey: "",
@@ -411,11 +412,26 @@
     state.nativeFavorites = new Set((Array.isArray(nextFavorites) ? nextFavorites : []).map(value => String(value || "")));
   }
 
+  function syncNativeMuted(nextMuted) {
+    state.nativeMuted = new Set((Array.isArray(nextMuted) ? nextMuted : []).map(value => String(value || "")));
+  }
+
+  function isNativeFavoriteFixture(fixtureId) {
+    return state.nativeFavorites.has(String(fixtureId || ""));
+  }
+
+  function isNativeMutedFixture(fixtureId) {
+    return state.nativeMuted.has(String(fixtureId || ""));
+  }
+
   function bootstrapNativeState() {
     try {
       const nativeState = window.__PB_NATIVE_EXTERNAL_STATE || null;
       if (nativeState && Array.isArray(nativeState.favorites)) {
         syncNativeFavorites(nativeState.favorites);
+      }
+      if (nativeState && Array.isArray(nativeState.mutedMatches)) {
+        syncNativeMuted(nativeState.mutedMatches);
       }
     } catch (_error) {}
   }
@@ -4134,14 +4150,7 @@
 
     const standingSection = hasStanding ? renderStandingFullTable(match) : "";
 
-    const coverageSection = statsMeta ? `
-      <div class="prematch-section">
-        <div class="prematch-label">${IS_EN ? "DB coverage" : "Copertura statistiche DB"}</div>
-        <div class="prematch-coverage-grid">
-          ${renderStatsCoverageCard(statsMeta.home, "home")}
-          ${renderStatsCoverageCard(statsMeta.away, "away")}
-        </div>
-      </div>` : "";
+    const coverageSection = "";
 
     const teamStatsSection = hasTeamStats ? (() => {
       const fmt = (v, dec = 1) => v != null ? Number(v).toFixed(dec) : "—";
@@ -4847,6 +4856,7 @@
       const summaryMeta = label => `<span class="detail-summary-meta">${escapeHtml(label)}</span>`;
       const liveSections = renderDetailLiveSections(match, liveFeedScore || scoreModel, state.detailData);
       const detailEvents = liveSections.events;
+      const nativeActionBar = renderDetailNativeActions(match);
       const generalInfoBlock = state.detailData ? renderDetailGeneralInfo(state.detailData) : "";
       const spotlightBlock = renderDetailLiveSpotlight(match, scoreModel, detailEvents, standingTable);
       const prematchBlock = renderPrematchBlock(match);
@@ -4862,6 +4872,7 @@
             <div class="detail-meta-card"><span>Kickoff</span><strong>${escapeHtml(match.localMatchTime || match.match_time)} | ${escapeHtml(match.localMatchDateLabel || formatDate(match.date, { day: "2-digit", month: "2-digit" }))}</strong></div>
             <div class="detail-meta-card"><span>Stato</span><strong class="detail-status-strong">${buildStatusText()}</strong></div>
           </div>
+          ${nativeActionBar}
           ${generalInfoBlock}
           ${spotlightBlock}
         </article>
@@ -5850,10 +5861,69 @@
     window.addEventListener("resize", () => closeAllCustomSelects());
     window.addEventListener("pb-native-sync", event => {
       const nextFavorites = event?.detail?.favorites;
+      const nextMuted = event?.detail?.mutedMatches;
       syncNativeFavorites(nextFavorites);
-      invalidateDerivedViewCaches({ prefilter: true });
-      render();
+      syncNativeMuted(nextMuted);
+      if (dom.mcFollowedVal) {
+        dom.mcFollowedVal.textContent = String(getPreparedMatches().filter(match => state.nativeFavorites.has(String(match.fixture_id))).length);
+      }
+      if (state.quickFilter === "followed") {
+        invalidateDerivedViewCaches({ prefilter: true });
+        render({ preserveLayout: true });
+        return;
+      }
+      renderDetail();
     });
+  }
+
+  function nativeDetailCopy(match) {
+    const favorite = isNativeFavoriteFixture(match?.fixture_id);
+    const muted = isNativeMutedFixture(match?.fixture_id);
+    return {
+      followTitle: favorite ? (IS_EN ? "Event selected" : "Evento selezionato") : (IS_EN ? "Select this event" : "Seleziona questo evento"),
+      followHint: favorite ? (IS_EN ? "Live alerts enabled" : "Alert live attivi") : (IS_EN ? "Follow with app alerts" : "Segui con gli alert app"),
+      notifyTitle: muted ? (IS_EN ? "Event muted" : "Evento silenziato") : (IS_EN ? "Mute this event" : "Silenzia questo evento"),
+      notifyHint: IS_EN ? "Open all notification options" : "Apri tutte le opzioni notifiche",
+    };
+  }
+
+  function renderDetailNativeActions(match) {
+    if (!match?.fixture_id) return "";
+    const copy = nativeDetailCopy(match);
+    const favorite = isNativeFavoriteFixture(match.fixture_id);
+    const muted = isNativeMutedFixture(match.fixture_id);
+    return `
+      <div class="detail-native-shell"
+           data-native-detail-fixture="${escapeHtml(String(match.fixture_id))}"
+           data-native-detail-home="${escapeHtml(match.home)}"
+           data-native-detail-away="${escapeHtml(match.away)}"
+           data-native-detail-home-logo="${escapeHtml(match.home_logo || "")}"
+           data-native-detail-away-logo="${escapeHtml(match.away_logo || "")}"
+           data-native-detail-league="${escapeHtml(match.league || "")}">
+        <div class="detail-native-actions" data-native-detail-actions>
+          <button type="button" class="detail-native-action detail-native-action-follow${favorite ? " is-active" : ""}" data-pb-detail-follow="1" data-fixture-id="${escapeHtml(String(match.fixture_id))}">
+            <span class="detail-native-action-icon">${favorite ? "★" : "☆"}</span>
+            <span class="detail-native-action-copy">
+              <strong>${escapeHtml(copy.followTitle)}</strong>
+              <small>${escapeHtml(copy.followHint)}</small>
+            </span>
+          </button>
+          <button type="button" class="detail-native-action detail-native-action-notify${muted ? " is-muted" : ""}"
+                  data-pb-detail-notify="1"
+                  data-fixture-id="${escapeHtml(String(match.fixture_id))}"
+                  data-home="${escapeHtml(match.home)}"
+                  data-away="${escapeHtml(match.away)}"
+                  data-home-logo="${escapeHtml(match.home_logo || "")}"
+                  data-away-logo="${escapeHtml(match.away_logo || "")}"
+                  data-league="${escapeHtml(match.league || "")}">
+            <span class="detail-native-action-icon">${muted ? "🔕" : "🔔"}</span>
+            <span class="detail-native-action-copy">
+              <strong>${escapeHtml(copy.notifyTitle)}</strong>
+              <small>${escapeHtml(copy.notifyHint)}</small>
+            </span>
+          </button>
+        </div>
+      </div>`;
   }
 
   function startAutoRefresh() {
