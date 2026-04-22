@@ -2,7 +2,7 @@
   "date": "2026-04-22",
   "time_range": "00:00-23:59",
   "generated_at": "2026-04-21T23:04:41.387903+00:00",
-  "refreshed_at": "2026-04-22T05:29:49.164844+00:00",
+  "refreshed_at": "2026-04-22T07:54:50.550902+00:00",
   "expires_at": "2026-04-22T23:04:41.387920+00:00",
   "timezone": "Europe/Rome",
   "total_matches": 360,
@@ -5855,7 +5855,7 @@
       "status_long": "Match Finished",
       "goals_home": 2,
       "goals_away": 1,
-      "total_corners": 6.0,
+      "total_corners": 7.0,
       "total_yellows": 4.0,
       "final_score": "2-1",
       "home_team_id": 2282,
@@ -16094,13 +16094,13 @@
           6.3
         ]
       ],
-      "kickoff_at": "2026-04-23T16:30:00+02:00",
-      "kickoff_ts": 1776954600,
+      "kickoff_at": "2026-04-22T14:30:00+02:00",
+      "kickoff_ts": 1776861000,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 900,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "16:30",
+      "kickoffTimeKey": "14:30",
       "candidates": [
         {
           "group": "goals",
@@ -32895,8 +32895,8 @@
           7.8
         ]
       ],
-      "kickoff_at": "2026-04-23T16:30:00+02:00",
-      "kickoff_ts": 1776954600,
+      "kickoff_at": "2026-04-22T16:30:00+02:00",
+      "kickoff_ts": 1776868200,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 900,
@@ -45769,13 +45769,13 @@
           7.5
         ]
       ],
-      "kickoff_at": "2026-04-22T18:00:00+02:00",
-      "kickoff_ts": 1776873600,
+      "kickoff_at": "2026-04-22T16:00:00+02:00",
+      "kickoff_ts": 1776866400,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 620,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "18:00",
+      "kickoffTimeKey": "16:00",
       "candidates": [
         {
           "group": "goals",
