@@ -3314,7 +3314,7 @@
       }
       const goals = (liveScore.events || []).filter(event => event.type === "Goal" && event.detail !== "Missed Penalty");
       const goalIcons = goals.map(event => `<span class="live-event-icon" title="${escapeHtml(event.playerName || "")} ${event.elapsed ? `(${event.elapsed}')` : ""}">âš½</span>`).join("");
-      return `<span class="live-score-badge${scoreChanged ? " score-changed" : ""}"><span class="live-score-number">${liveScore.home} - ${liveScore.away}</span></span>${goalIcons}`;
+      return `<span class="live-score-badge${scoreChanged ? " score-changed" : ""}"><span class="live-score-number">${liveScore.home} - ${liveScore.away}</span></span>`;
     }
     if (matchIsPostponed(match)) {
       return `<span class="mini-chip">${escapeHtml(IS_EN ? "Postponed" : "Postponed")}</span>`;
