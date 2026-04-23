@@ -10,7 +10,7 @@
   const LIVE_SCORES_URL = "https://pronostici-bomba-push.pronosticibomba.workers.dev/scores";
   const SB_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
   const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
-  const LIVE_SCORES_REFRESH_MS = 60 * 1000;
+  const LIVE_SCORES_REFRESH_MS = 30 * 1000;
   const JSON_MEMORY_CACHE = new Map();
   const TEAM_STATS_MEMORY_CACHE = new Map();
   const TEAM_STATS_PROMISE_CACHE = new Map();
@@ -240,6 +240,7 @@
     standingsLoadByDate: Object.create(null),
     standingsRenderVersion: 0,
     liveScores: {},
+    settledScores: {},
     liveOnlyMatches: [],
     detailData: null,
     detailDataId: null,
@@ -2202,10 +2203,11 @@
   }
 
   function currentFilterWorkerDataKey() {
+    const liveCount = Object.values(state.liveScores || {}).filter(score => LIVE_STATUSES.has(String(score?.status || "").toUpperCase())).length;
     return JSON.stringify({
       selectedDate: state.selectedDate,
       cacheStamp: state.cache?.refreshed_at || state.cache?.generated_at || "",
-      liveCount: Object.keys(state.liveScores || {}).length,
+      liveCount,
     });
   }
 
@@ -4347,6 +4349,112 @@
     };
   }
 
+  function lookupFixtureRecord(fixtureId) {
+    const key = String(fixtureId || "");
+    if (!key) return null;
+    return getPreparedMatches().find(match => String(match?.fixture_id || "") === key)
+      || (state.cache?.matches || []).find(match => String(match?.fixture_id || "") === key)
+      || (state.liveOnlyMatches || []).find(match => String(match?.fixture_id || "") === key)
+      || null;
+  }
+
+  function settlementPriority(fixtureId) {
+    const key = String(fixtureId || "");
+    if (!key) return -1;
+    let score = 0;
+    if (String(state.detailFixtureId || "") === key) score += 100;
+    if (state.nativeFavorites.has(key)) score += 70;
+    if (document.querySelector(`.match-row[data-fixture-open="${key}"]`)) score += 35;
+    const match = lookupFixtureRecord(key);
+    const kickoffTs = matchKickoffTimestamp(match);
+    if (Number.isFinite(kickoffTs)) {
+      const ageMinutes = Math.floor((Date.now() - kickoffTs) / 60000);
+      if (ageMinutes >= 115) score += 30;
+      else if (ageMinutes >= 90) score += 20;
+      else if (ageMinutes >= 45) score += 10;
+    }
+    const previous = state.liveScores[key];
+    const elapsed = Number(previous?.elapsed);
+    if (Number.isFinite(elapsed) && elapsed >= 45) score += 10;
+    return score;
+  }
+
+  function buildResolvedScoreModel(detailPayload) {
+    const bundle = detailPayload?.fixture || null;
+    const fixture = bundle?.fixture || null;
+    const goals = bundle?.goals || null;
+    if (!fixture || !goals) return null;
+    const kickoffTs = Number.isFinite(Date.parse(fixture?.date || "")) ? Date.parse(fixture.date) : null;
+    const status = normalizeFixtureStatusShort(fixture?.status?.short || "", kickoffTs, Number(fixture?.status?.elapsed));
+    const home = Number.isFinite(Number(goals?.home)) ? Math.max(0, Math.trunc(Number(goals?.home))) : 0;
+    const away = Number.isFinite(Number(goals?.away)) ? Math.max(0, Math.trunc(Number(goals?.away))) : 0;
+    if (!status) return null;
+    return {
+      home,
+      away,
+      status,
+      elapsed: Number(fixture?.status?.elapsed ?? null),
+      events: (detailPayload?.events || []).map(event => ({
+        type: event?.type,
+        detail: event?.detail,
+        elapsed: event?.time?.elapsed,
+        extra: event?.time?.extra,
+        teamName: event?.team?.name,
+        playerName: event?.player?.name,
+      })),
+      resolvedAt: Date.now(),
+    };
+  }
+
+  async function resolveSettledFixtures(fixtureIds) {
+    const orderedIds = [...new Set((fixtureIds || []).map(value => String(value || "")).filter(Boolean))]
+      .map(id => ({ id, priority: settlementPriority(id) }))
+      .filter(entry => entry.priority > 0)
+      .sort((a, b) => b.priority - a.priority)
+      .slice(0, 10)
+      .map(entry => entry.id);
+    if (!orderedIds.length) return {};
+
+    const WORKER = "https://pronostici-bomba-push.pronosticibomba.workers.dev";
+    const resolved = {};
+    for (let index = 0; index < orderedIds.length; index += 4) {
+      const chunk = orderedIds.slice(index, index + 4);
+      const results = await Promise.all(chunk.map(async fixtureId => {
+        try {
+          const response = await fetch(`${WORKER}/fixtures/detail?id=${fixtureId}`, { cache: "no-store" });
+          if (!response.ok) return null;
+          const data = await response.json();
+          if (!data?.ok) return null;
+          const score = buildResolvedScoreModel(data);
+          return score ? { fixtureId, score } : null;
+        } catch (_error) {
+          return null;
+        }
+      }));
+      results.forEach(entry => {
+        if (!entry) return;
+        resolved[entry.fixtureId] = entry.score;
+      });
+    }
+    return resolved;
+  }
+
+  function pruneSettledScores(nextSettled, currentLiveScores) {
+    const now = Date.now();
+    const liveIds = new Set(Object.keys(currentLiveScores || {}).map(String));
+    return Object.fromEntries(
+      Object.entries(nextSettled || {}).filter(([fixtureId, score]) => {
+        if (!fixtureId || !score) return false;
+        if (liveIds.has(String(fixtureId))) return false;
+        const match = lookupFixtureRecord(fixtureId);
+        const rawStatus = normalizeFixtureStatusShort(match?.status_short || match?.status || "", matchKickoffTimestamp(match), null);
+        if (FINAL_STATUSES.has(rawStatus) || matchIsPostponed(match)) return false;
+        const resolvedAt = Number(score?.resolvedAt || 0);
+        return !resolvedAt || (now - resolvedAt) <= 6 * 60 * 60 * 1000;
+      })
+    );
+  }
+
   function extractDetailScoreModel(detailData) {
     const bundle = extractDetailFixtureBundle(detailData);
     const fixture = extractDetailFixtureCore(detailData);
@@ -5270,6 +5378,7 @@
   async function loadCacheForDate(date) {
     if (!date) {
       state.cache = null;
+      state.settledScores = {};
       invalidateMatchCaches();
       return;
     }
@@ -5284,6 +5393,7 @@
 
   async function selectDate(date) {
     state.selectedDate = date;
+    state.settledScores = {};
     state.timeFrom = DEFAULTS.timeFrom;
     state.timeTo = DEFAULTS.timeTo;
     await loadCacheForDate(date);
@@ -5326,7 +5436,7 @@
     renderDetail();
     try {
       const WORKER = "https://pronostici-bomba-push.pronosticibomba.workers.dev";
-      const res = await fetch(`${WORKER}/fixtures/detail?id=${fixtureId}`, { signal: controller.signal });
+      const res = await fetch(`${WORKER}/fixtures/detail?id=${fixtureId}`, { signal: controller.signal, cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
       if (data.ok && requestToken === state.detailRequestToken && state.detailDataId === String(fixtureId)) {
@@ -5360,7 +5470,7 @@
     if (!ls || !LIVE_STATUSES.has(String(ls.status || "").toUpperCase())) return;
     try {
       const WORKER = "https://pronostici-bomba-push.pronosticibomba.workers.dev";
-      const res = await fetch(`${WORKER}/fixtures/detail?id=${fixtureId}`);
+      const res = await fetch(`${WORKER}/fixtures/detail?id=${fixtureId}`, { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
       if (data.ok && state.detailFixtureId === String(fixtureId)) {
@@ -5397,10 +5507,11 @@
   async function fetchLiveScores() {
     try {
       const WORKER = "https://pronostici-bomba-push.pronosticibomba.workers.dev";
-      const res = await fetch(`${WORKER}/fixtures/live`);
+      const res = await fetch(`${WORKER}/fixtures/live`, { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
       if (!data.ok || !Array.isArray(data.fixtures)) return;
+      const previousScores = state.liveScores || {};
       const scores = {};
       const knownIds = new Set((state.cache?.matches || []).map(m => String(m.fixture_id)));
       const extraMatches = [];
@@ -5454,16 +5565,24 @@
           });
         }
       }
+      const disappearedLiveIds = Object.entries(previousScores)
+        .filter(([fixtureId, score]) => LIVE_STATUSES.has(String(score?.status || "").toUpperCase()) && !scores[String(fixtureId)])
+        .map(([fixtureId]) => String(fixtureId));
+      const settledUpdates = disappearedLiveIds.length
+        ? await resolveSettledFixtures(disappearedLiveIds)
+        : {};
       // Detect which fixtures had a score change to trigger animations
       if (!state.scoreChangedIds) state.scoreChangedIds = new Set();
       state.scoreChangedIds.clear();
       for (const [id, newScore] of Object.entries(scores)) {
-        const old = state.liveScores[id];
+        const old = previousScores[id];
         if (old && (old.home !== newScore.home || old.away !== newScore.away)) {
           state.scoreChangedIds.add(id);
         }
       }
-      state.liveScores = scores;
+      const retainedSettled = pruneSettledScores({ ...(state.settledScores || {}), ...settledUpdates }, scores);
+      state.settledScores = retainedSettled;
+      state.liveScores = { ...retainedSettled, ...scores };
       state.liveOnlyMatches = extraMatches;
       syncPublicFixtureIndex(state.preparedMatches || []);
       // Update clock base for the open detail (if it's a live match)
