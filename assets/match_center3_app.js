@@ -483,9 +483,13 @@
 
   function effectiveFixtureStatusShort(match, scoreModel = null) {
     const kickoffTs = matchKickoffTimestamp(match);
-    const statusSource = scoreModel ? scoreModel.status : (match?.status_short || match?.status || "");
-    const elapsedSource = scoreModel ? scoreModel.elapsed : null;
-    return normalizeFixtureStatusShort(statusSource, kickoffTs, elapsedSource);
+    const rawStatus = normalizeFixtureStatusShort(match?.status_short || match?.status || "", kickoffTs, null);
+    if (FINAL_STATUSES.has(rawStatus) || matchIsPostponed(match)) return rawStatus;
+    if (scoreModel) {
+      const liveStatus = normalizeFixtureStatusShort(scoreModel.status, kickoffTs, scoreModel.elapsed);
+      if (liveStatus) return liveStatus;
+    }
+    return rawStatus;
   }
 
   function matchIsPostponed(match) {
@@ -694,7 +698,7 @@
   function rememberRenderedView(orderedMatches, topPicks) {
     state.renderedFeedIdsSignature = idsSignature((orderedMatches || []).map(match => match.fixture_id));
     state.renderedTopPickIdsSignature = idsSignature((topPicks || []).map(pick => pick.fixtureId));
-    state.renderedLiveOnlyIdsSignature = idsSignature((state.liveOnlyMatches || []).map(match => match.fixture_id));
+    state.renderedLiveOnlyIdsSignature = "";
   }
 
   function formatOddRange(fromValue, toValue) {
@@ -1418,10 +1422,25 @@
   }
 
   function leagueSortLabel(value) {
+    return normalizeSearchText(value);
+  }
+
+  function normalizeSearchText(value) {
     return String(value || "")
+      .replace(/[\u0131\u0130]/g, "i")
+      .replace(/\u00df/g, "ss")
+      .replace(/[\u00e6\u00c6]/g, "ae")
+      .replace(/[\u0153\u0152]/g, "oe")
+      .replace(/[\u00f8\u00d8]/g, "o")
+      .replace(/[\u0142\u0141]/g, "l")
+      .replace(/[\u0111\u0110\u00f0\u00d0]/g, "d")
+      .replace(/[\u00fe\u00de]/g, "th")
+      .replace(/[\u011f\u011e]/g, "g")
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .replace(/\s+/g, " ")
       .trim();
   }
 
@@ -2003,7 +2022,7 @@
   }
 
   function decorateMatches(rawMatches, keepAll = false) {
-    const search = state.search.trim().toLowerCase();
+    const search = normalizeSearchText(state.search);
     const hasSearch = Boolean(search);
     const oddFilterActive = state.oddActive;
     const decorated = rawMatches
@@ -2029,7 +2048,7 @@
       })
       .filter(match => matchWithinMainTimeWindow(match))
       .filter(match => !search || match.searchBlob.includes(search))
-      .filter(match => hasSearch || keepAll || match.visibleMarkets.length > 0 || match._liveOnly)
+      .filter(match => hasSearch || keepAll || Boolean(match.primaryMarket))
       .sort((a, b) => `${a.localKickoffSort || a.match_time}-${a.league}-${a.home}`.localeCompare(`${b.localKickoffSort || b.match_time}-${b.league}-${b.home}`));
     const result = diversifyMatchesByLeague(decorated);
     if (hasSearch) return result;
@@ -2059,25 +2078,73 @@
   }
 
   function getPreparedMatches() {
-    if (state.preparedMatches) return state.preparedMatches;
+    if (state.preparedMatches) {
+      syncPublicFixtureIndex(state.preparedMatches);
+      return state.preparedMatches;
+    }
     const rawMatches = Array.isArray(state.cache?.matches) ? state.cache.matches : [];
     state.preparedMatches = rawMatches.map(rawMatch => {
       const live = state.liveScores[String(rawMatch.fixture_id)];
+      const rawStatus = normalizeFixtureStatusShort(rawMatch.status_short || rawMatch.status || "", matchKickoffTimestamp(rawMatch), null);
       const liveStatus = live ? normalizeFixtureStatusShort(live.status, matchKickoffTimestamp(rawMatch), Number(live.elapsed)) : "";
-      const merged = live && (LIVE_STATUSES.has(liveStatus) || FINAL_STATUSES.has(liveStatus))
+      const merged = live && !FINAL_STATUSES.has(rawStatus) && !matchIsPostponed(rawMatch) && (LIVE_STATUSES.has(liveStatus) || FINAL_STATUSES.has(liveStatus))
         ? {
             ...rawMatch,
             status_short: liveStatus,
             goals_home: live.home,
             goals_away: live.away,
-            final_score: FINAL_STATUSES.has(liveStatus) ? `${live.home}-${live.away}` : rawMatch.final_score,
+            final_score: rawMatch.final_score || (FINAL_STATUSES.has(liveStatus) ? `${live.home}-${live.away}` : rawMatch.final_score),
           }
         : rawMatch;
       const markets = buildMarkets(merged);
-      const searchBlob = `${merged.home} ${merged.away} ${merged.league} ${merged.country} ${markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" ")}`.toLowerCase();
+      const searchBlob = normalizeSearchText([
+        merged.home,
+        merged.away,
+        merged.league,
+        merged.country,
+        merged.match_time,
+        merged.date,
+        merged.round || merged.stage || "",
+        markets.flatMap(market => [market.title, market.pickLabel, ...(market.options || []).map(option => option.label)]).join(" "),
+      ].join(" "));
       return withLocalKickoff({ ...merged, markets, searchBlob });
     });
+    syncPublicFixtureIndex(state.preparedMatches);
     return state.preparedMatches;
+  }
+
+  function syncPublicFixtureIndex(matches = null) {
+    const source = Array.isArray(matches) ? matches : [];
+    const seen = new Set();
+    const index = [...source, ...(state.liveOnlyMatches || [])]
+      .filter(match => {
+        const fixtureId = String(match?.fixture_id || "");
+        if (!fixtureId || seen.has(fixtureId)) return false;
+        seen.add(fixtureId);
+        return true;
+      })
+      .map(match => ({
+        fixtureId: String(match.fixture_id || ""),
+        home: String(match.home || ""),
+        away: String(match.away || ""),
+        league: String(match.league || ""),
+        country: String(match.country || ""),
+        matchTime: String(match.localMatchTime || match.match_time || ""),
+        date: String(match.localMatchDateLabel || match.date || ""),
+        round: String(match.round || match.stage || ""),
+        searchBlob: String(match.searchBlob || normalizeSearchText([
+          match.home,
+          match.away,
+          match.league,
+          match.country,
+          match.localMatchTime || match.match_time || "",
+          match.localMatchDateLabel || match.date || "",
+          match.round || match.stage || "",
+        ].join(" "))),
+      }));
+    try {
+      window.__PB_MATCHCENTER_FIXTURE_INDEX__ = index;
+    } catch (_error) {}
   }
 
   function preparedMatchesForWorker() {
@@ -3299,10 +3366,9 @@
     const liveScore = state.liveScores[String(match.fixture_id)] || buildDetailFallbackLiveScore(match);
     const effectiveStatus = effectiveFixtureStatusShort(match, liveScore);
     const scoreChanged = (state.scoreChangedIds || new Set()).has(String(match.fixture_id));
-    if (liveScore && FINAL_STATUSES.has(effectiveStatus)) {
-      return `<span class="live-score-final">${liveScore.home}-${liveScore.away}</span>`;
-    }
-    if (FINAL_STATUSES.has(effectiveStatus) && !liveScore) {
+    if (FINAL_STATUSES.has(effectiveStatus)) {
+      if (match.final_score) return `<span class="live-score-final">${escapeHtml(match.final_score || "-")}</span>`;
+      if (liveScore) return `<span class="live-score-final">${liveScore.home}-${liveScore.away}</span>`;
       return `<span class="live-score-final">${escapeHtml(match.final_score || "-")}</span>`;
     }
     if (liveScore && LIVE_STATUSES.has(effectiveStatus)) {
@@ -3453,7 +3519,7 @@
     const scrollSnapshot = options.scrollSnapshot || null;
     const renderMatches = [];
     const seenFixtureIds = new Set();
-    [...matches, ...(state.liveOnlyMatches || [])].forEach(match => {
+    matches.forEach(match => {
       const fixtureId = String(match?.fixture_id || "");
       if (!fixtureId || seenFixtureIds.has(fixtureId)) return;
       seenFixtureIds.add(fixtureId);
@@ -3570,11 +3636,7 @@
   }
 
   function normalizeTeamKey(value) {
-    return String(value || "")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "");
+    return normalizeSearchText(value).replace(/\s+/g, "");
   }
 
   function sbAuthHeaders(extra = {}) {
@@ -5055,11 +5117,9 @@
     const view = await buildVisibleView();
     if (patchToken !== state.livePatchToken) return;
     const feedIdsSignature = idsSignature(view.orderedMatches.map(match => match.fixture_id));
-    const liveOnlyIdsSignature = idsSignature((state.liveOnlyMatches || []).map(match => match.fixture_id));
     const topPickIdsSignature = idsSignature(view.topPicks.map(pick => pick.fixtureId));
     const feedNeedsStructureRender = !state.renderedFeedIdsSignature
-      || feedIdsSignature !== state.renderedFeedIdsSignature
-      || liveOnlyIdsSignature !== state.renderedLiveOnlyIdsSignature;
+      || feedIdsSignature !== state.renderedFeedIdsSignature;
     if (feedNeedsStructureRender) {
       await render();
       return;
@@ -5079,10 +5139,6 @@
     const matchMap = new Map();
     view.orderedMatches.forEach(match => {
       matchMap.set(String(match.fixture_id), match);
-    });
-    (state.liveOnlyMatches || []).forEach(match => {
-      const fixtureId = String(match.fixture_id);
-      if (!matchMap.has(fixtureId)) matchMap.set(fixtureId, match);
     });
     document.querySelectorAll(".match-row[data-fixture-open]").forEach(rowEl => {
       const fixtureId = String(rowEl.getAttribute("data-fixture-open") || "");
@@ -5409,6 +5465,7 @@
       }
       state.liveScores = scores;
       state.liveOnlyMatches = extraMatches;
+      syncPublicFixtureIndex(state.preparedMatches || []);
       // Update clock base for the open detail (if it's a live match)
       if (state.detailFixtureId) {
         const detailLs = scores[String(state.detailFixtureId)];
@@ -5509,7 +5566,7 @@
   function bindEvents() {
     let searchDebounceHandle = 0;
     dom.searchInput.addEventListener("input", () => {
-      const nextValue = dom.searchInput.value.trim().toLowerCase();
+      const nextValue = normalizeSearchText(dom.searchInput.value);
       window.clearTimeout(searchDebounceHandle);
       searchDebounceHandle = window.setTimeout(() => {
         state.search = nextValue;
