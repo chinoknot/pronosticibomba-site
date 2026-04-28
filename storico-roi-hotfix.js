@@ -1,7 +1,8 @@
 /*
-  PronosticiBomba - Storico ROI hotfix
-  Purpose: keep the current layout unchanged, but force the ROI board to include
-  the selected month up to today and merge picks + results correctly.
+  PronosticiBomba - Storico ROI hotfix v2
+  Non modifica la grafica: aggiorna solo il calcolo dati della sezione ROI.
+  Fix v2: match results più robusto. Prima cercava solo fixture_id + pick esatta;
+  se il testo pick cambia leggermente tra home/results, il giorno risultava tutto aperto.
 */
 (function () {
   const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
@@ -34,24 +35,17 @@
     DAILY_10PLUS: "Combo High Stakes"
   };
 
-  function pad2(n) {
-    return n < 10 ? "0" + n : String(n);
-  }
+  function pad2(n) { return n < 10 ? "0" + n : String(n); }
 
   function dublinToday() {
     const parts = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Europe/Dublin",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
+      timeZone: "Europe/Dublin", year: "numeric", month: "2-digit", day: "2-digit"
     }).formatToParts(new Date());
     const obj = Object.fromEntries(parts.map(p => [p.type, p.value]));
     return `${obj.year}-${obj.month}-${obj.day}`;
   }
 
-  function ymd(date) {
-    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-  }
+  function ymd(date) { return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`; }
 
   function parseYMD(str) {
     const [y, m, d] = String(str || "").split("-").map(Number);
@@ -79,14 +73,14 @@
     return EXCLUDED_PREFIXES.some(prefix => k.startsWith(prefix));
   }
 
-  function categoryKey(cat) {
-    return String(cat || "ALTRO").trim() || "ALTRO";
-  }
+  function categoryKey(cat) { return String(cat || "ALTRO").trim() || "ALTRO"; }
+
+  function normCategory(cat) { return categoryKey(cat).toUpperCase().replace(/\s+/g, "_"); }
 
   function categoryLabel(cat) {
     const raw = categoryKey(cat);
     const upper = raw.toUpperCase();
-    return CATEGORY_LABELS[raw] || CATEGORY_LABELS[upper] || raw.replace(/_/g, " ");
+    return CATEGORY_LABELS[raw] || CATEGORY_LABELS[upper] || CATEGORY_LABELS[normCategory(raw)] || raw.replace(/_/g, " ");
   }
 
   function safeOdd(value) {
@@ -99,15 +93,30 @@
     return Number.isFinite(n) ? n : 0;
   }
 
+  function resultValue(row) { return String(row?.result || "").trim().toUpperCase(); }
+
+  function isClosed(row) { return ["WIN", "LOSE"].includes(resultValue(row)); }
+
+  function normalizePick(pick) {
+    let p = String(pick || "").toUpperCase();
+    p = p.replace(/\([^)]*\)/g, " ");
+    p = p.replace(/\bGOALS?\b/g, "GOAL");
+    p = p.replace(/\bBOTH TEAMS TO SCORE\b/g, "BTTS");
+    p = p.replace(/\bBOTH TEAMS SCORE\b/g, "BTTS");
+    p = p.replace(/\bYES\b/g, "YES").replace(/\bNO\b/g, "NO");
+    p = p.replace(/\s+/g, " ").trim();
+    return p;
+  }
+
   function resultRank(row) {
-    const res = String(row?.result || "").toUpperCase();
+    const res = resultValue(row);
     const st = String(row?.status_short || "").toUpperCase();
     let score = 0;
-    if (res === "WIN" || res === "LOSE") score += 10;
-    else if (res === "PENDING" || res === "LIVE") score += 3;
-    else if (res === "UNKNOWN") score += 1;
-    if (["FT", "AET", "PEN", "AWD", "WO"].includes(st)) score += 5;
-    else if (["2H", "HT", "1H", "ET", "BT", "P"].includes(st)) score += 2;
+    if (res === "WIN" || res === "LOSE") score += 100;
+    else if (res === "PENDING" || res === "LIVE") score += 30;
+    else if (res === "UNKNOWN") score += 10;
+    if (["FT", "AET", "PEN", "AWD", "WO"].includes(st)) score += 15;
+    else if (["2H", "HT", "1H", "ET", "BT", "P"].includes(st)) score += 5;
     if (res === "WIN") score += 1;
     return score;
   }
@@ -115,36 +124,29 @@
   function betterResolved(a, b) {
     if (!a) return b;
     if (!b) return a;
-    const ar = resultRank(a);
-    const br = resultRank(b);
+    const ar = resultRank(a), br = resultRank(b);
     if (br !== ar) return br > ar ? b : a;
-    const bs = safeScore(b.score_model ?? b.score);
-    const as = safeScore(a.score_model ?? a.score);
-    return bs >= as ? b : a;
+    const bs = safeScore(b.score_model ?? b.score), as = safeScore(a.score_model ?? a.score);
+    if (bs !== as) return bs > as ? b : a;
+    return safeOdd(b.odd) >= safeOdd(a.odd) ? b : a;
   }
 
   function bestPickForEvent(current, candidate) {
     if (!current) return candidate;
-    const currentClosed = ["WIN", "LOSE"].includes(String(current.result || "").toUpperCase());
-    const candClosed = ["WIN", "LOSE"].includes(String(candidate.result || "").toUpperCase());
-
+    const currentClosed = isClosed(current);
+    const candClosed = isClosed(candidate);
     if (candClosed && !currentClosed) return candidate;
     if (!candClosed && currentClosed) return current;
-
     const cs = safeScore(current.score_model ?? current.score);
     const ns = safeScore(candidate.score_model ?? candidate.score);
     if (ns !== cs) return ns > cs ? candidate : current;
-
     return safeOdd(candidate.odd) >= safeOdd(current.odd) ? candidate : current;
   }
 
   async function sbFetch(table, query) {
     const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
     const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-      }
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
     });
     if (!res.ok) {
       const txt = await res.text();
@@ -170,14 +172,10 @@
     return dublinToday().slice(0, 7);
   }
 
-  function setText(id, value) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-  }
+  function setText(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; }
 
   function setBadgeClass(id, value) {
-    const el = document.getElementById(id);
-    if (!el) return;
+    const el = document.getElementById(id); if (!el) return;
     el.classList.remove("badge-pos", "badge-neg", "badge-neutral");
     if (value > 0) el.classList.add("badge-pos");
     else if (value < 0) el.classList.add("badge-neg");
@@ -205,68 +203,89 @@
     return "Negativa";
   }
 
-  function buildRows(picks, results) {
-    const resultMap = new Map();
+  function makeResultIndexes(results) {
+    const exact = new Map();
+    const norm = new Map();
+    const byDayFixture = new Map();
+    const byDayFixtureCat = new Map();
+    const byFixture = new Map();
+
     for (const r of results) {
       const fid = String(r.fixture_id || "").trim();
       const pick = String(r.pick || "").trim();
-      if (!fid || !pick) continue;
-      const key = `${fid}__${pick}`;
-      resultMap.set(key, betterResolved(resultMap.get(key), r));
+      const day = String(r.picks_date || r.match_date || "").trim();
+      if (!fid) continue;
+
+      if (pick) {
+        exact.set(`${fid}__${pick}`, betterResolved(exact.get(`${fid}__${pick}`), r));
+        norm.set(`${fid}__${normalizePick(pick)}`, betterResolved(norm.get(`${fid}__${normalizePick(pick)}`), r));
+      }
+      if (day) {
+        byDayFixture.set(`${day}__${fid}`, betterResolved(byDayFixture.get(`${day}__${fid}`), r));
+        byDayFixtureCat.set(`${day}__${fid}__${normCategory(r.category)}`, betterResolved(byDayFixtureCat.get(`${day}__${fid}__${normCategory(r.category)}`), r));
+      }
+      byFixture.set(fid, betterResolved(byFixture.get(fid), r));
     }
+
+    return { exact, norm, byDayFixture, byDayFixtureCat, byFixture };
+  }
+
+  function findResultForPick(p, indexes) {
+    const fid = String(p.fixture_id || "").trim();
+    const pick = String(p.pick || "").trim();
+    const day = String(p.match_date || p.picks_date || "").trim();
+    const cat = normCategory(p.category);
+
+    return indexes.exact.get(`${fid}__${pick}`)
+      || indexes.norm.get(`${fid}__${normalizePick(pick)}`)
+      || indexes.byDayFixtureCat.get(`${day}__${fid}__${cat}`)
+      || indexes.byDayFixture.get(`${day}__${fid}`)
+      || indexes.byFixture.get(fid)
+      || {};
+  }
+
+  function buildRows(picks, results) {
+    const indexes = makeResultIndexes(results);
 
     return picks.map(p => {
       const fid = String(p.fixture_id || "").trim();
       const pick = String(p.pick || "").trim();
-      const res = resultMap.get(`${fid}__${pick}`) || {};
+      const res = findResultForPick(p, indexes);
+      const matchDate = p.match_date || res.picks_date || res.match_date || "";
+      const rowResult = resultValue(res) || resultValue(p) || "OPEN";
+
       return {
         ...p,
         fixture_id: fid,
         pick,
-        match_date: p.match_date || res.picks_date || res.match_date || "",
+        match_date: matchDate,
         category: p.category || res.category || "ALTRO",
         model: p.model || res.model || "",
         odd: safeOdd(p.odd || res.odd),
         score: safeScore(p.score ?? res.score_model),
-        result: String(res.result || "OPEN").toUpperCase(),
-        status_short: String(res.status_short || "").toUpperCase(),
-        final_score: res.final_score || "",
-        goals_home: res.goals_home,
-        goals_away: res.goals_away
+        result: rowResult,
+        status_short: String(res.status_short || p.status_short || "").toUpperCase(),
+        final_score: res.final_score || p.final_score || "",
+        goals_home: res.goals_home ?? p.goals_home,
+        goals_away: res.goals_away ?? p.goals_away
       };
     }).filter(r => r.fixture_id && r.match_date);
   }
 
   function summarizeEventRows(rows) {
-    let wins = 0;
-    let loses = 0;
-    let profit = 0;
-    let oddsSum = 0;
-    let closed = 0;
-
+    let wins = 0, loses = 0, profit = 0, oddsSum = 0, closed = 0;
     for (const r of rows) {
-      const res = String(r.result || "").toUpperCase();
+      const res = resultValue(r);
       const odd = safeOdd(r.odd);
-      if (res === "WIN") {
-        wins += 1;
-        closed += 1;
-        profit += odd - 1;
-        oddsSum += odd;
-      } else if (res === "LOSE") {
-        loses += 1;
-        closed += 1;
-        profit -= 1;
-        oddsSum += odd;
-      }
+      if (res === "WIN") { wins++; closed++; profit += odd - 1; oddsSum += odd; }
+      else if (res === "LOSE") { loses++; closed++; profit -= 1; oddsSum += odd; }
     }
-
     const total = rows.length;
     const open = Math.max(0, total - closed);
     const roi = closed > 0 ? (profit / closed) * 100 : null;
     const winrate = closed > 0 ? (wins / closed) * 100 : null;
     const avgOdd = closed > 0 ? oddsSum / closed : null;
     const needed = avgOdd && avgOdd > 1 ? 100 / avgOdd : null;
-
     return { total, closed, open, wins, loses, profit, roi, winrate, avgOdd, needed };
   }
 
@@ -282,7 +301,6 @@
     const openAttr = isToday ? " open" : "";
     const todayClass = isToday ? " open-today" : "";
     const badge = isToday ? `<span class="day-badge">ultimo giorno</span>` : "";
-    const wlClass = s.closed ? "" : "";
     const valClass = classForNumber(s.profit);
     const roiClass = classForNumber(s.roi ?? 0);
 
@@ -295,7 +313,7 @@
               <div class="day-summary-sub">${s.total} eventi unici · ${s.closed} chiusi · ${s.open} ancora aperti</div>
             </div>
             <div class="day-summary-stats">
-              <span class="day-stat-pill ${wlClass}">${s.wins}W / ${s.loses}L</span>
+              <span class="day-stat-pill">${s.wins}W / ${s.loses}L</span>
               <span class="day-stat-pill ${valClass}">${profitTxt}</span>
               <span class="day-stat-pill ${roiClass}">${roiTxt}</span>
               <span class="day-summary-toggle" aria-hidden="true"></span>
@@ -363,11 +381,7 @@
       <div class="table-wrapper">
         <h2 class="section-title">Rendimento per categoria</h2>
         <table>
-          <thead>
-            <tr>
-              <th>Categoria</th><th>Eventi</th><th>Win</th><th>Lose</th><th>Winrate</th><th>ROI</th><th>Quota media</th><th>Break-even</th><th>Reliability</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Categoria</th><th>Eventi</th><th>Win</th><th>Lose</th><th>Winrate</th><th>ROI</th><th>Quota media</th><th>Break-even</th><th>Reliability</th></tr></thead>
           <tbody>${rowsHtml}</tbody>
         </table>
       </div>`;
@@ -417,8 +431,8 @@
       container.dataset.hotfixLoading = "1";
 
       const [picks, results] = await Promise.all([
-        sbFetch("picks", `?match_date=gte.${first}&match_date=lte.${last}&select=*`),
-        sbFetch("results", `?picks_date=gte.${first}&picks_date=lte.${last}&select=*`)
+        sbFetch("picks", `?match_date=gte.${first}&match_date=lte.${last}&select=*&limit=5000`),
+        sbFetch("results", `?picks_date=gte.${first}&picks_date=lte.${last}&select=*&limit=5000`)
       ]);
 
       const merged = buildRows(picks, results);
@@ -460,7 +474,6 @@
       select.dataset.hotfixWired = "1";
       select.addEventListener("change", () => setTimeout(loadROIHotfix, 250));
     }
-
     const buttons = document.getElementById("month-buttons");
     if (buttons && !buttons.dataset.hotfixWired) {
       buttons.dataset.hotfixWired = "1";
