@@ -1,5 +1,18 @@
 /* Storico ROI hotfix v3 - no layout changes */
-(function(){
+  const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
+  const SUPABASE_ANON_KEY = (function () {
+    const src = document.documentElement.innerHTML;
+    const tokens = src.match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g) || [];
+    for (const token of tokens) {
+      try {
+        let payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+        while (payload.length % 4) payload += "=";
+        const decoded = JSON.parse(atob(payload));
+        if (decoded && decoded.role === "anon") return token;
+      } catch (e) {}
+    }
+    return "";
+  })();
   const labels={BEST_TIPS_OF_DAY:"Scelte d’Élite",SAFE_PICKS:"Safe Picks",SAFE_GOALS:"Safe Goals",VALUE_PICKS:"Quote di Valore",OVER_UNDER_TIPS:"Tendenze Goal",OVER25_PATTERNS:"Over 2.5 Patterns",BTTS_NO_VALUE:"BTTS NO Value",HT_GOAL_ENGINE:"HT Goal Engine",HOME_WIN_ELITE:"Forti 1",GG_SPECIAL:"GG Special",TOP_5_TIPS:"Top 5 Esclusive"};
   const t=v=>String(v??"").trim();
   const n=v=>{const x=Number(String(v??"").replace(",","."));return Number.isFinite(x)?x:null};
