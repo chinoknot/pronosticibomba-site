@@ -1,5 +1,6 @@
 /* Storico ROI hotfix v3 - no layout changes */
-  const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
+(function(){
+    const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
   const SUPABASE_ANON_KEY = (function () {
     const src = document.documentElement.innerHTML;
     const tokens = src.match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g) || [];
