@@ -15,13 +15,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/27711.png",
       "away_logo": "https://media.api-sports.io/football/teams/2225.png",
       "league_logo": "https://media.api-sports.io/football/leagues/1097.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 1,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "1-0",
       "home_team_id": 27711,
       "away_team_id": 2225,
       "league_id": 1097,
@@ -632,7 +632,7 @@
       "status_long": "Match Finished",
       "goals_home": 3,
       "goals_away": 0,
-      "total_corners": 14.0,
+      "total_corners": 15.0,
       "total_yellows": 4.0,
       "final_score": "3-0",
       "home_team_id": 120,
@@ -857,7 +857,7 @@
       "status_long": "Match Finished",
       "goals_home": 1,
       "goals_away": 1,
-      "total_corners": 7.0,
+      "total_corners": 8.0,
       "total_yellows": 3.0,
       "final_score": "1-1",
       "home_team_id": 460,
@@ -1078,8 +1078,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/470.png",
       "away_logo": "https://media.api-sports.io/football/teams/8375.png",
       "league_logo": "https://media.api-sports.io/football/leagues/129.png",
-      "status_short": "2H",
-      "status_long": "Second Half",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 0,
       "goals_away": 1,
       "total_corners": null,
@@ -1286,13 +1286,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/7828.png",
       "away_logo": "https://media.api-sports.io/football/teams/25117.png",
       "league_logo": "https://media.api-sports.io/football/leagues/936.png",
-      "status_short": "2H",
-      "status_long": "Second Half",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 4,
-      "goals_away": 0,
+      "goals_away": 1,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "4-0",
+      "final_score": "4-1",
       "home_team_id": 7828,
       "away_team_id": 25117,
       "league_id": 936,
@@ -1437,8 +1437,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/2230.png",
       "away_logo": "https://media.api-sports.io/football/teams/10019.png",
       "league_logo": "https://media.api-sports.io/football/leagues/476.png",
-      "status_short": "HT",
-      "status_long": "Halftime",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 0,
       "goals_away": 0,
       "total_corners": null,
@@ -1597,13 +1597,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/18310.png",
       "away_logo": "https://media.api-sports.io/football/teams/1608.png",
       "league_logo": "https://media.api-sports.io/football/leagues/257.png",
-      "status_short": "HT",
-      "status_long": "Halftime",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 0,
-      "goals_away": 1,
+      "goals_away": 2,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "0-1",
+      "final_score": "0-2",
       "home_team_id": 18310,
       "away_team_id": 1608,
       "league_id": 257,
@@ -1779,13 +1779,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/23310.png",
       "away_logo": "https://media.api-sports.io/football/teams/27548.png",
       "league_logo": "https://media.api-sports.io/football/leagues/243.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 1,
+      "goals_away": 1,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "1-1",
       "home_team_id": 23310,
       "away_team_id": 27548,
       "league_id": 243,
@@ -1925,8 +1925,8 @@
       ],
       "kickoff_at": "2026-04-29T02:00:00+02:00",
       "kickoff_ts": 1777420800,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 1,
+      "ht_goals_away": 1
     },
     {
       "fixture_id": 1535281,
@@ -1939,13 +1939,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/2840.png",
       "away_logo": "https://media.api-sports.io/football/teams/437.png",
       "league_logo": "https://media.api-sports.io/football/leagues/13.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
-      "total_corners": null,
-      "total_yellows": null,
-      "final_score": "",
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 0,
+      "goals_away": 3,
+      "total_corners": 9.0,
+      "total_yellows": 6.0,
+      "final_score": "0-3",
       "home_team_id": 2840,
       "away_team_id": 437,
       "league_id": 13,
@@ -2146,8 +2146,8 @@
       ],
       "kickoff_at": "2026-04-29T02:00:00+02:00",
       "kickoff_ts": 1777420800,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 1
     },
     {
       "fixture_id": 1535171,
@@ -2160,13 +2160,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/2432.png",
       "away_logo": "https://media.api-sports.io/football/teams/2329.png",
       "league_logo": "https://media.api-sports.io/football/leagues/11.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
-      "total_corners": null,
-      "total_yellows": null,
-      "final_score": "",
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 1,
+      "goals_away": 1,
+      "total_corners": 10.0,
+      "total_yellows": 5.0,
+      "final_score": "1-1",
       "home_team_id": 2432,
       "away_team_id": 2329,
       "league_id": 11,
@@ -2363,8 +2363,8 @@
       ],
       "kickoff_at": "2026-04-29T02:00:00+02:00",
       "kickoff_ts": 1777420800,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 1,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1540252,
@@ -2377,13 +2377,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/25131.png",
       "away_logo": "https://media.api-sports.io/football/teams/8243.png",
       "league_logo": "https://media.api-sports.io/football/leagues/421.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 0,
+      "goals_away": 6,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-6",
       "home_team_id": 25131,
       "away_team_id": 8243,
       "league_id": 421,
@@ -2514,8 +2514,8 @@
       ],
       "kickoff_at": "2026-04-29T02:30:00+02:00",
       "kickoff_ts": 1777422600,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 1
     },
     {
       "fixture_id": 1540846,
@@ -2528,13 +2528,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/9569.png",
       "away_logo": "https://media.api-sports.io/football/teams/2279.png",
       "league_logo": "https://media.api-sports.io/football/leagues/16.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
-      "total_corners": null,
-      "total_yellows": null,
-      "final_score": "",
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 0,
+      "goals_away": 1,
+      "total_corners": 11.0,
+      "total_yellows": 4.0,
+      "final_score": "0-1",
       "home_team_id": 9569,
       "away_team_id": 2279,
       "league_id": 16,
@@ -2692,8 +2692,8 @@
       ],
       "kickoff_at": "2026-04-29T02:30:00+02:00",
       "kickoff_ts": 1777422600,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 1
     },
     {
       "fixture_id": 1535270,
@@ -2706,13 +2706,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/135.png",
       "away_logo": "https://media.api-sports.io/football/teams/451.png",
       "league_logo": "https://media.api-sports.io/football/leagues/13.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
-      "total_corners": null,
-      "total_yellows": null,
-      "final_score": "",
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 1,
+      "goals_away": 0,
+      "total_corners": 6.0,
+      "total_yellows": 9.0,
+      "final_score": "1-0",
       "home_team_id": 135,
       "away_team_id": 451,
       "league_id": 13,
@@ -2917,8 +2917,8 @@
       ],
       "kickoff_at": "2026-04-29T02:30:00+02:00",
       "kickoff_ts": 1777422600,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1535182,
@@ -2931,13 +2931,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/10476.png",
       "away_logo": "https://media.api-sports.io/football/teams/1154.png",
       "league_logo": "https://media.api-sports.io/football/leagues/11.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
-      "total_corners": null,
-      "total_yellows": null,
-      "final_score": "",
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 0,
+      "goals_away": 0,
+      "total_corners": 7.0,
+      "total_yellows": 4.0,
+      "final_score": "0-0",
       "home_team_id": 10476,
       "away_team_id": 1154,
       "league_id": 11,
@@ -3125,8 +3125,8 @@
       ],
       "kickoff_at": "2026-04-29T02:30:00+02:00",
       "kickoff_ts": 1777422600,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1535179,
@@ -3139,13 +3139,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/1125.png",
       "away_logo": "https://media.api-sports.io/football/teams/126.png",
       "league_logo": "https://media.api-sports.io/football/leagues/11.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
-      "total_corners": null,
-      "total_yellows": null,
-      "final_score": "",
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 0,
+      "goals_away": 0,
+      "total_corners": 15.0,
+      "total_yellows": 3.0,
+      "final_score": "0-0",
       "home_team_id": 1125,
       "away_team_id": 126,
       "league_id": 11,
@@ -3362,8 +3362,8 @@
       ],
       "kickoff_at": "2026-04-29T02:30:00+02:00",
       "kickoff_ts": 1777422600,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1540855,
@@ -3376,13 +3376,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/1596.png",
       "away_logo": "https://media.api-sports.io/football/teams/1612.png",
       "league_logo": "https://media.api-sports.io/football/leagues/257.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "2H",
+      "status_long": "Second Half",
+      "goals_home": 1,
+      "goals_away": 2,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "1-2",
       "home_team_id": 1596,
       "away_team_id": 1612,
       "league_id": 257,
@@ -3548,8 +3548,8 @@
       ],
       "kickoff_at": "2026-04-29T04:00:00+02:00",
       "kickoff_ts": 1777428000,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 1,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1535271,
@@ -3562,13 +3562,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/1142.png",
       "away_logo": "https://media.api-sports.io/football/teams/2330.png",
       "league_logo": "https://media.api-sports.io/football/leagues/13.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "2H",
+      "status_long": "Second Half",
+      "goals_home": 2,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "2-0",
       "home_team_id": 1142,
       "away_team_id": 2330,
       "league_id": 13,
@@ -3765,8 +3765,8 @@
       ],
       "kickoff_at": "2026-04-29T04:00:00+02:00",
       "kickoff_ts": 1777428000,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1535279,
@@ -3779,13 +3779,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/2546.png",
       "away_logo": "https://media.api-sports.io/football/teams/1135.png",
       "league_logo": "https://media.api-sports.io/football/leagues/13.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "2H",
+      "status_long": "Second Half",
+      "goals_home": 1,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "1-0",
       "home_team_id": 2546,
       "away_team_id": 1135,
       "league_id": 13,
@@ -3990,8 +3990,8 @@
       ],
       "kickoff_at": "2026-04-29T04:00:00+02:00",
       "kickoff_ts": 1777428000,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1535180,
@@ -4004,13 +4004,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/2320.png",
       "away_logo": "https://media.api-sports.io/football/teams/2361.png",
       "league_logo": "https://media.api-sports.io/football/leagues/11.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "2H",
+      "status_long": "Second Half",
+      "goals_home": 2,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "2-0",
       "home_team_id": 2320,
       "away_team_id": 2361,
       "league_id": 11,
@@ -4202,8 +4202,8 @@
       ],
       "kickoff_at": "2026-04-29T04:00:00+02:00",
       "kickoff_ts": 1777428000,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 1,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1504769,
@@ -17252,8 +17252,8 @@
           4.5
         ]
       ],
-      "kickoff_at": "2026-04-29T14:00:00+02:00",
-      "kickoff_ts": 1777464000,
+      "kickoff_at": "2026-04-29T13:45:00+02:00",
+      "kickoff_ts": 1777463100,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -18215,8 +18215,8 @@
           8.0
         ]
       ],
-      "kickoff_at": "2026-04-29T15:00:00+02:00",
-      "kickoff_ts": 1777467600,
+      "kickoff_at": "2026-04-29T16:30:00+02:00",
+      "kickoff_ts": 1777473000,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -25293,8 +25293,8 @@
           7.8
         ]
       ],
-      "kickoff_at": "2026-04-29T16:30:00+02:00",
-      "kickoff_ts": 1777473000,
+      "kickoff_at": "2026-04-29T19:00:00+02:00",
+      "kickoff_ts": 1777482000,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -25444,8 +25444,8 @@
           7.8
         ]
       ],
-      "kickoff_at": "2026-04-29T16:30:00+02:00",
-      "kickoff_ts": 1777473000,
+      "kickoff_at": "2026-04-29T15:00:00+02:00",
+      "kickoff_ts": 1777467600,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -25604,8 +25604,8 @@
           9.5
         ]
       ],
-      "kickoff_at": "2026-04-29T16:30:00+02:00",
-      "kickoff_ts": 1777473000,
+      "kickoff_at": "2026-04-29T21:00:00+02:00",
+      "kickoff_ts": 1777489200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -36242,8 +36242,8 @@
           6.9
         ]
       ],
-      "kickoff_at": "2026-04-29T19:00:00+02:00",
-      "kickoff_ts": 1777482000,
+      "kickoff_at": "2026-05-01T17:00:00+02:00",
+      "kickoff_ts": 1777647600,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -42861,8 +42861,8 @@
       ],
       "kickoff_at": "2026-04-29T20:00:00+02:00",
       "kickoff_ts": 1777485600,
-      "ht_goals_home": 0,
-      "ht_goals_away": 0
+      "ht_goals_home": null,
+      "ht_goals_away": null
     },
     {
       "fixture_id": 1417274,
@@ -43338,8 +43338,8 @@
           5.5
         ]
       ],
-      "kickoff_at": "2026-04-29T20:00:00+02:00",
-      "kickoff_ts": 1777485600,
+      "kickoff_at": "2026-04-29T18:30:00+02:00",
+      "kickoff_ts": 1777480200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -46636,8 +46636,8 @@
           7.9
         ]
       ],
-      "kickoff_at": "2026-04-29T22:00:00+02:00",
-      "kickoff_ts": 1777492800,
+      "kickoff_at": "2026-05-03T22:30:00+02:00",
+      "kickoff_ts": 1777840200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -46787,8 +46787,8 @@
           8.6
         ]
       ],
-      "kickoff_at": "2026-04-29T22:00:00+02:00",
-      "kickoff_ts": 1777492800,
+      "kickoff_at": "2026-05-04T00:45:00+02:00",
+      "kickoff_ts": 1777848300,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -46938,8 +46938,8 @@
           10.0
         ]
       ],
-      "kickoff_at": "2026-04-29T22:00:00+02:00",
-      "kickoff_ts": 1777492800,
+      "kickoff_at": "2026-05-02T21:00:00+02:00",
+      "kickoff_ts": 1777748400,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -47089,8 +47089,8 @@
           9.2
         ]
       ],
-      "kickoff_at": "2026-04-29T22:00:00+02:00",
-      "kickoff_ts": 1777492800,
+      "kickoff_at": "2026-05-03T22:30:00+02:00",
+      "kickoff_ts": 1777840200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -47240,8 +47240,8 @@
           9.8
         ]
       ],
-      "kickoff_at": "2026-04-29T22:00:00+02:00",
-      "kickoff_ts": 1777492800,
+      "kickoff_at": "2026-05-03T22:30:00+02:00",
+      "kickoff_ts": 1777840200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -47391,8 +47391,8 @@
           8.6
         ]
       ],
-      "kickoff_at": "2026-04-29T22:00:00+02:00",
-      "kickoff_ts": 1777492800,
+      "kickoff_at": "2026-05-03T22:30:00+02:00",
+      "kickoff_ts": 1777840200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -47542,8 +47542,8 @@
           6.6
         ]
       ],
-      "kickoff_at": "2026-04-29T22:00:00+02:00",
-      "kickoff_ts": 1777492800,
+      "kickoff_at": "2026-05-02T23:00:00+02:00",
+      "kickoff_ts": 1777755600,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -47693,8 +47693,8 @@
           7.8
         ]
       ],
-      "kickoff_at": "2026-04-29T22:00:00+02:00",
-      "kickoff_ts": 1777492800,
+      "kickoff_at": "2026-05-04T00:45:00+02:00",
+      "kickoff_ts": 1777848300,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -47844,8 +47844,8 @@
           6.7
         ]
       ],
-      "kickoff_at": "2026-04-29T22:00:00+02:00",
-      "kickoff_ts": 1777492800,
+      "kickoff_at": "2026-05-03T22:30:00+02:00",
+      "kickoff_ts": 1777840200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -47995,8 +47995,8 @@
           8.5
         ]
       ],
-      "kickoff_at": "2026-04-29T22:00:00+02:00",
-      "kickoff_ts": 1777492800,
+      "kickoff_at": "2026-05-01T03:00:00+02:00",
+      "kickoff_ts": 1777597200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -48146,8 +48146,8 @@
           8.2
         ]
       ],
-      "kickoff_at": "2026-04-29T22:00:00+02:00",
-      "kickoff_ts": 1777492800,
+      "kickoff_at": "2026-05-01T03:00:00+02:00",
+      "kickoff_ts": 1777597200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -48297,8 +48297,8 @@
           6.4
         ]
       ],
-      "kickoff_at": "2026-04-29T22:00:00+02:00",
-      "kickoff_ts": 1777492800,
+      "kickoff_at": "2026-05-01T03:00:00+02:00",
+      "kickoff_ts": 1777597200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -48448,8 +48448,8 @@
           6.6
         ]
       ],
-      "kickoff_at": "2026-04-29T22:00:00+02:00",
-      "kickoff_ts": 1777492800,
+      "kickoff_at": "2026-05-01T03:00:00+02:00",
+      "kickoff_ts": 1777597200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -49376,5 +49376,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-04-29T22:22:37.596210+00:00",
-  "refreshed_at": "2026-04-28T23:59:32.035581+00:00"
+  "refreshed_at": "2026-04-29T03:31:44.652982+00:00"
 }
