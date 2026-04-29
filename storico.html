@@ -862,7 +862,7 @@
         </div>
       </div>
       <p class="info-note">
-        Nessun trucco nel conteggio: una sola pick valida per partita, stake fisso 1 e giornate rosse comprese.
+        PB ROI CLEAN V3: nessun risultato orfano contato. Una sola pick valida per partita, stake fisso 1 e giornate rosse comprese.
       </p>
       <div class="info-title">Come leggere ROI, winrate e reliability</div>
       <ul class="info-list">
@@ -903,47 +903,9 @@
 
   
 
-<script>
-  // ROI fetch filter: exclude CORNER* / PATTERN_OVER* / Burn Clown Burn from ROI
-  (function () {
-    const EXCLUDED_PREFIXES = ["CORNER", "PATTERN_OVER"];
-    const EXCLUDED_SET = new Set(["BURN_CLOWN_BURN"]);
 
-    function isExcludedCategory(cat) {
-      const k = String(cat || "").trim().toUpperCase();
-      if (!k) return false;
-      if (EXCLUDED_SET.has(k)) return true;
-      return EXCLUDED_PREFIXES.some(p => k.startsWith(p));
-    }
 
-    const _fetch = window.fetch.bind(window);
-    window.fetch = async function (input, init) {
-      const resp = await _fetch(input, init);
-      try {
-        const url = (typeof input === "string") ? input : (input && input.url) ? input.url : "";
-        if (url.includes("/rest/v1/picks") || url.includes("/rest/v1/results")) {
-          const clone = resp.clone();
-          const data = await clone.json();
-          if (Array.isArray(data)) {
-            const filtered = data.filter(r => !isExcludedCategory(r && r.category));
-            const body = JSON.stringify(filtered);
-            const headers = new Headers(resp.headers);
-            // keep JSON content type
-            if (!headers.get("content-type")) headers.set("content-type", "application/json");
-            return new Response(body, {
-              status: resp.status,
-              statusText: resp.statusText,
-              headers
-            });
-          }
-        }
-      } catch (e) {
-        // ignore and return original response
-      }
-      return resp;
-    };
-  })();
-</script>
+
 
 
 <script>
@@ -974,6 +936,9 @@
   const debugLogEl = document.getElementById('debug-log');
   const debugClose = document.getElementById('debug-close');
   if (debugClose) debugClose.addEventListener('click', () => debugPanel.style.display = 'none');
+  if (debugEnabled) {
+    setTimeout(() => logDebug('PB ROI CLEAN V3 ACTIVE - exact join only, no orphan results, no fixture/category fallback', { version: 'pb-roi-clean-v3' }), 0);
+  }
   function logDebug(msg, obj){
     try {
       if (!debugEnabled && !obj?.force) return;
@@ -1061,52 +1026,65 @@
     if (diff >= -3) return 'Debole';
     return 'Negativa';
   }
-  async function sbFetch(table, query){
-    const url = `/rest/v1/`;
-    const res = await fetch(url, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ` } });
-    if (!res.ok){
-      const text = await res.text();
-      throw new Error(`Supabase  : `);
-    }
-    return await res.json();
+  // PB ROI CLEAN V3
+  // Regola importante: lo storico ROI parte SEMPRE dalle picks ufficiali.
+  // I results servono solo per agganciare l'esito tramite chiave ESATTA fixture_id + pick.
+  // Niente recovery da results orfani, niente fallback per fixture/categoria/modello.
+  const ROI_EXCLUDED_PREFIXES = ["CORNER", "PATTERN_OVER"];
+  const ROI_EXCLUDED_SET = new Set(["BURN_CLOWN_BURN"]);
+
+  function isRoiExcludedCategory(cat) {
+    const k = normalizeCategory(cat);
+    if (!k) return false;
+    if (ROI_EXCLUDED_SET.has(k)) return true;
+    return ROI_EXCLUDED_PREFIXES.some(p => k.startsWith(p));
   }
 
-  const PAGE_SIZE = 1000;
-
-  async function sbFetchAll(table, query){
-    const baseUrl = `/rest/v1/`;
-    let out = [];
+  async function sbFetch(table, query){
+    const pageSize = 1000;
     let from = 0;
+    const all = [];
 
-    for (let page = 0; page < 100; page++) {
-      const to = from + PAGE_SIZE - 1;
-      const res = await fetch(baseUrl, {
+    while (true) {
+      const to = from + pageSize - 1;
+      const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+      const res = await fetch(url, {
         headers: {
           apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer `,
-          Range: `-`,
-          Prefer: "count=exact"
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          Range: `${from}-${to}`
         }
       });
       if (!res.ok){
         const text = await res.text();
-        throw new Error(`Supabase  : `);
+        throw new Error(`Supabase ${res.status} ${table}: ${text}`);
       }
-      const data = await res.json();
-      if (!Array.isArray(data) || data.length === 0) break;
-      out = out.concat(data);
-      logDebug(`Fetched  page `, { returned: data.length, from, to, totalSoFar: out.length });
-      if (data.length < PAGE_SIZE) break;
-      from += PAGE_SIZE;
+
+      const raw = await res.json();
+      const page = Array.isArray(raw) ? raw : [];
+      const filtered = page.filter(r => !isRoiExcludedCategory(r && r.category));
+      all.push(...filtered);
+
+      logDebug(`PB ROI CLEAN V3 fetched ${table} page`, {
+        rawReturned: page.length,
+        keptAfterRoiFilter: filtered.length,
+        from,
+        to,
+        totalKeptSoFar: all.length
+      });
+
+      if (page.length < pageSize) break;
+      from += pageSize;
     }
-    return out;
+
+    return all;
   }
 
   let currentMonth = null;
   let availableMonths = [];
 
   async function loadAvailableMonths(){
-    const rows = await sbFetchAll('picks', '?select=match_date&order=match_date.desc');
+    const rows = await sbFetch('picks', '?select=match_date&order=match_date.desc&limit=5000');
     const seen = new Set();
     const out = [];
     for (const r of rows || []) {
@@ -1318,7 +1296,7 @@
             <div class="day-detail-card ${s.profit>=0?'pos':'neg'}"><span>Profitto</span><strong>${s.profit>=0?'+':''}${s.profit.toFixed(2)} u</strong></div>
             <div class="day-detail-card ${roiDay!=null && roiDay>=0?'pos':(roiDay!=null?'neg':'')}"><span>ROI</span><strong>${roiDay==null?'-':roiDay.toFixed(1)+'%'}</strong></div>
           </div>
-          <div class="day-detail-note">Calcolo per evento: una sola pick valida per fixture, scelta in base allo score più alto tra quelle già risolte.</div>
+          <div class="day-detail-note">PB ROI CLEAN V3: una sola pick valida per fixture, risultati agganciati SOLO con match esatto fixture_id + pick.</div>
         </div>
       </details>`;
     }
@@ -1369,8 +1347,8 @@
       const {start, end} = monthRange(month);
       logDebug('Loading month', { month, start, end });
       const [picks, results] = await Promise.all([
-        sbFetchAll('picks', `?match_date=gte.${start}&match_date=lte.${end}&select=*`),
-        sbFetchAll('results', `?picks_date=gte.${start}&picks_date=lte.${end}&select=*`)
+        sbFetch('picks', `?match_date=gte.${start}&match_date=lte.${end}&select=*`),
+        sbFetch('results', `?picks_date=gte.${start}&picks_date=lte.${end}&select=*`)
       ]);
       logDebug('Loaded rows', { picks: picks.length, results: results.length });
       const resultMap = buildResultMap(results);
