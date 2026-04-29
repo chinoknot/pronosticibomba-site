@@ -904,10 +904,52 @@
   
 
 <script>
+  // ROI fetch filter: exclude CORNER* / PATTERN_OVER* / Burn Clown Burn from ROI
+  (function () {
+    const EXCLUDED_PREFIXES = ["CORNER", "PATTERN_OVER"];
+    const EXCLUDED_SET = new Set(["BURN_CLOWN_BURN"]);
+
+    function isExcludedCategory(cat) {
+      const k = String(cat || "").trim().toUpperCase();
+      if (!k) return false;
+      if (EXCLUDED_SET.has(k)) return true;
+      return EXCLUDED_PREFIXES.some(p => k.startsWith(p));
+    }
+
+    const _fetch = window.fetch.bind(window);
+    window.fetch = async function (input, init) {
+      const resp = await _fetch(input, init);
+      try {
+        const url = (typeof input === "string") ? input : (input && input.url) ? input.url : "";
+        if (url.includes("/rest/v1/picks") || url.includes("/rest/v1/results")) {
+          const clone = resp.clone();
+          const data = await clone.json();
+          if (Array.isArray(data)) {
+            const filtered = data.filter(r => !isExcludedCategory(r && r.category));
+            const body = JSON.stringify(filtered);
+            const headers = new Headers(resp.headers);
+            // keep JSON content type
+            if (!headers.get("content-type")) headers.set("content-type", "application/json");
+            return new Response(body, {
+              status: resp.status,
+              statusText: resp.statusText,
+              headers
+            });
+          }
+        }
+      } catch (e) {
+        // ignore and return original response
+      }
+      return resp;
+    };
+  })();
+</script>
+
+
+<script>
 (function(){
   const SUPABASE_URL = "https://oiudaxsyvhjpjjhglejd.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdWRheHN5dmhqcGpqaGdsZWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDk0OTcsImV4cCI6MjA3OTU4NTQ5N30.r7kz3FdijAhsJLz1DcEtobJLaPCqygrQGgCPpSc-05A";
-  const PAGE_SIZE = 1000;
 
   const CATEGORY_LABELS = {
     BEST_TIPS_OF_DAY: "Scelte d’Élite",
@@ -927,25 +969,20 @@
     DAILY_10PLUS: "Combo High Stakes"
   };
 
-  const EXCLUDED_PREFIXES = ["CORNER", "PATTERN_OVER"];
-  const EXCLUDED_SET = new Set(["BURN_CLOWN_BURN"]);
-
   const debugEnabled = new URLSearchParams(location.search).get('debug') === '1';
   const debugPanel = document.getElementById('debug-panel');
   const debugLogEl = document.getElementById('debug-log');
   const debugClose = document.getElementById('debug-close');
   if (debugClose) debugClose.addEventListener('click', () => debugPanel.style.display = 'none');
-
   function logDebug(msg, obj){
     try {
-      if (!debugEnabled && !(obj && obj.force)) return;
+      if (!debugEnabled && !obj?.force) return;
       if (debugPanel) debugPanel.style.display = 'block';
       const line = `[${new Date().toLocaleTimeString('it-IT')}] ${msg}` + (obj && !obj.force ? `\n${JSON.stringify(obj, null, 2)}` : '') + "\n";
       if (debugLogEl) debugLogEl.textContent += line;
       console.log(msg, obj || '');
     } catch(e) {}
   }
-
   function showError(msg, err){
     if (debugPanel) debugPanel.style.display = 'block';
     if (debugLogEl) debugLogEl.textContent += `[ERROR] ${msg}\n${err && (err.stack || err.message || String(err))}\n`;
@@ -954,14 +991,14 @@
 
   function pad2(n){ return n < 10 ? '0' + n : '' + n; }
   function monthLabel(month){
-    const [y,m] = String(month || '').split('-').map(Number);
-    const dt = new Date(y || 1970, (m || 1) - 1, 1);
+    const [y,m] = String(month).split('-').map(Number);
+    const dt = new Date(y, (m||1)-1, 1);
     return dt.toLocaleDateString('it-IT', { month:'long', year:'numeric'});
   }
   function formatDateIT(str){
     if (!str) return '';
     const [y,m,d] = String(str).split('-').map(Number);
-    const dt = new Date(y || 1970, (m || 1)-1, d || 1);
+    const dt = new Date(y, (m||1)-1, d||1);
     return dt.toLocaleDateString('it-IT', { weekday:'short', day:'2-digit', month:'short' });
   }
   function monthRange(month){
@@ -973,50 +1010,35 @@
   function normalizeCategory(cat){
     let k = String(cat || '').trim().toUpperCase();
     if (!k) return 'ALTRO';
-    k = k.replace(/[\s-]+/g, '_');
-    if (k === 'GG_SPECIAL' || k === 'GG_SPECIAL_LEGACY' || k === 'GG_SPECIAL_ALT') return 'GG_SPECIAL';
-    if (k === 'BTTS_NO_VALUE') return 'BTTS_NO_VALUE';
-    return k;
-  }
-  function isExcludedCategory(cat){
-    const k = normalizeCategory(cat);
-    if (!k || k === 'ALTRO') return false;
-    if (EXCLUDED_SET.has(k)) return true;
-    return EXCLUDED_PREFIXES.some(p => k.startsWith(p));
+    if (k === 'GG SPECIAL') return 'GG_SPECIAL';
+    if (k === 'GG_SPECIAL') return 'GG_SPECIAL';
+    if (k === 'BTTS NO VALUE' || k === 'BTTS_NO_VALUE') return 'BTTS_NO_VALUE';
+    return k.replace(/\s+/g, '_');
   }
   function getCategoryLabel(cat){
     const key = normalizeCategory(cat);
-    return CATEGORY_LABELS[key] || String(cat || key || 'Altro').replace(/_/g, ' ');
+    return CATEGORY_LABELS[key] || String(cat || 'Altro').replace(/_/g, ' ');
   }
   function safeOdd(o){
     const n = Number(o);
     return Number.isFinite(n) && n > 1 ? n : 0;
   }
-  function normText(v){
-    return String(v || '').trim().replace(/\s+/g, ' ').toUpperCase();
-  }
-  function rowDate(row){
-    const raw = String(row && (row.match_date || row.picks_date || row.run_date) || '').trim();
-    return raw.slice(0, 10);
-  }
   function resultRank(r){
     let score = 0;
-    const res = String(r && r.result || '').toUpperCase();
-    const st = String(r && r.status_short || '').toUpperCase();
-    if (res === 'WIN' || res === 'LOSE') score += 10000;
-    else if (res === 'LIVE') score += 100;
-    else if (res === 'WAITING' || res === 'PENDING') score += 20;
-    if (['FT','AET','PEN','AWD','WO'].includes(st)) score += 100;
-    else if (['2H','HT','1H'].includes(st)) score += 20;
-    score += (Number(r && (r.score || r.score_model) || 0) * 100) || 0;
-    score += safeOdd(r && r.odd || 0);
+    const res = String(r?.result || '').toUpperCase();
+    const st = String(r?.status_short || '').toUpperCase();
+    if (res === 'WIN' || res === 'LOSE') score += 6;
+    else if (res === 'PENDING') score += 2;
+    if (['FT','AET','PEN','AWD','WO'].includes(st)) score += 4;
+    else if (['2H','HT','1H'].includes(st)) score += 2;
+    if (res === 'WIN') score += 2;
+    if (res === 'LOSE') score += 1;
     return score;
   }
   function pickPriority(p){
-    const res = String(p && p.result || '').toUpperCase();
-    const resolved = ['WIN','LOSE'].includes(res) ? 100000 : 0;
-    const score = Number(p && p.score || 0);
-    const odd = safeOdd(p && p.odd);
+    const resolved = ['WIN','LOSE'].includes(String(p.result||'').toUpperCase()) ? 1000 : 0;
+    const score = Number(p.score || 0);
+    const odd = safeOdd(p.odd);
     return resolved + score * 100 + odd;
   }
   function reliabilityLabel(totalPicks, winrate, neededWinrate) {
@@ -1039,36 +1061,43 @@
     if (diff >= -3) return 'Debole';
     return 'Negativa';
   }
+  async function sbFetch(table, query){
+    const url = `/rest/v1/`;
+    const res = await fetch(url, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ` } });
+    if (!res.ok){
+      const text = await res.text();
+      throw new Error(`Supabase  : `);
+    }
+    return await res.json();
+  }
 
-  async function sbFetchAll(table, query, opts){
-    const pageSize = (opts && opts.pageSize) || PAGE_SIZE;
-    const filterCategories = !(opts && opts.keepExcluded);
-    const baseUrl = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+  const PAGE_SIZE = 1000;
+
+  async function sbFetchAll(table, query){
+    const baseUrl = `/rest/v1/`;
     let out = [];
     let from = 0;
+
     for (let page = 0; page < 100; page++) {
-      const to = from + pageSize - 1;
+      const to = from + PAGE_SIZE - 1;
       const res = await fetch(baseUrl, {
         headers: {
           apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          Range: `${from}-${to}`,
-          Prefer: 'count=exact'
+          Authorization: `Bearer `,
+          Range: `-`,
+          Prefer: "count=exact"
         }
       });
-      if (!res.ok) {
+      if (!res.ok){
         const text = await res.text();
-        throw new Error(`Supabase ${res.status} ${table}: ${text}`);
+        throw new Error(`Supabase  : `);
       }
-      let data = await res.json();
-      if (!Array.isArray(data)) data = [];
-      if (filterCategories && (table === 'picks' || table === 'results')) {
-        data = data.filter(r => !isExcludedCategory(r && r.category));
-      }
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) break;
       out = out.concat(data);
-      logDebug(`Fetched ${table} page ${page + 1}`, { returned: data.length, from, to, totalSoFar: out.length });
-      if (data.length < pageSize) break;
-      from += pageSize;
+      logDebug(`Fetched  page `, { returned: data.length, from, to, totalSoFar: out.length });
+      if (data.length < PAGE_SIZE) break;
+      from += PAGE_SIZE;
     }
     return out;
   }
@@ -1077,7 +1106,7 @@
   let availableMonths = [];
 
   async function loadAvailableMonths(){
-    const rows = await sbFetchAll('picks', '?select=match_date&order=match_date.desc', { keepExcluded: true });
+    const rows = await sbFetchAll('picks', '?select=match_date&order=match_date.desc');
     const seen = new Set();
     const out = [];
     for (const r of rows || []) {
@@ -1129,96 +1158,40 @@
     }
   }
 
-  function keepBest(map, key, row){
-    const current = map.get(key);
-    if (!current || resultRank(row) >= resultRank(current)) map.set(key, row);
-  }
-
-  function buildResultIndex(results){
-    const idx = { exact: new Map(), byCatModel: new Map(), byCat: new Map(), byFixture: new Map(), allKeys: new Set() };
+  function buildResultMap(results){
+    const map = new Map();
     for (const r of results || []) {
-      if (isExcludedCategory(r.category)) continue;
-      const day = rowDate(r);
       const fid = String(r.fixture_id || '').trim();
-      const pick = normText(r.pick);
-      if (!day || !fid) continue;
-      const cat = normalizeCategory(r.category);
-      const model = normText(r.model);
-      keepBest(idx.exact, `${day}__${fid}__${pick}`, r);
-      keepBest(idx.byCatModel, `${day}__${fid}__${cat}__${model}`, r);
-      keepBest(idx.byCat, `${day}__${fid}__${cat}`, r);
-      if (!idx.byFixture.has(`${day}__${fid}`)) idx.byFixture.set(`${day}__${fid}`, []);
-      idx.byFixture.get(`${day}__${fid}`).push(r);
-      idx.allKeys.add(`${day}__${fid}__${pick}`);
+      const pickText = String(r.pick || '').trim();
+      if (!fid && !pickText) continue;
+      const key = fid + '__' + pickText;
+      const current = map.get(key);
+      if (!current || resultRank(r) >= resultRank(current)) map.set(key, r);
     }
-    return idx;
+    return map;
   }
 
-  function findResultForPick(p, idx){
-    const day = rowDate(p);
-    const fid = String(p.fixture_id || '').trim();
-    const pick = normText(p.pick);
-    const cat = normalizeCategory(p.category);
-    const model = normText(p.model);
-    if (!day || !fid) return {};
-
-    return idx.exact.get(`${day}__${fid}__${pick}`) ||
-           idx.byCatModel.get(`${day}__${fid}__${cat}__${model}`) ||
-           idx.byCat.get(`${day}__${fid}__${cat}`) ||
-           (() => {
-             const arr = idx.byFixture.get(`${day}__${fid}`) || [];
-             return arr.length === 1 ? arr[0] : {};
-           })() || {};
-  }
-
-  function toMergedRow(p, res){
-    return {
-      match_date: rowDate(p) || rowDate(res),
-      fixture_id: String((p && p.fixture_id) || (res && res.fixture_id) || '').trim(),
-      league: (p && p.league) || (res && res.league) || '',
-      home: (p && p.home) || (res && res.home) || '',
-      away: (p && p.away) || (res && res.away) || '',
-      category: (p && p.category) || (res && res.category) || '',
-      model: (p && p.model) || (res && res.model) || '',
-      pick: String((p && p.pick) || (res && res.pick) || '').trim(),
-      odd: safeOdd((p && p.odd) || (res && res.odd) || 0),
-      score: Number((p && p.score) || (res && res.score_model) || (res && res.score) || 0),
-      result: String((res && res.result) || '').toUpperCase(),
-      final_score: (res && res.final_score) || '',
-      status_short: (res && res.status_short) || ''
-    };
-  }
-
-  function mergePicksWithResults(picks, results, resultIndex){
-    const merged = [];
-    const usedResultKeys = new Set();
-
-    for (const p of picks || []) {
-      if (isExcludedCategory(p.category)) continue;
-      const day = rowDate(p);
+  function mergePicksWithResults(picks, resultMap){
+    return (picks || []).map(p => {
       const fid = String(p.fixture_id || '').trim();
-      const pick = normText(p.pick);
-      if (!day || !fid) continue;
-      const res = findResultForPick(p, resultIndex);
-      if (res && res.fixture_id) usedResultKeys.add(`${rowDate(res)}__${String(res.fixture_id || '').trim()}__${normText(res.pick)}`);
-      merged.push(toMergedRow(p, res));
-    }
-
-    // Recovery: count resolved result rows even when the pick text changed or was suffixed in results.
-    for (const r of results || []) {
-      if (isExcludedCategory(r.category)) continue;
-      const day = rowDate(r);
-      const fid = String(r.fixture_id || '').trim();
-      const pick = normText(r.pick);
-      const key = `${day}__${fid}__${pick}`;
-      const res = String(r.result || '').toUpperCase();
-      if (!day || !fid || usedResultKeys.has(key)) continue;
-      if (['WIN','LOSE','LIVE','WAITING','PENDING'].includes(res)) {
-        merged.push(toMergedRow({}, r));
-      }
-    }
-
-    return merged;
+      const pickText = String(p.pick || '').trim();
+      const res = resultMap.get(fid + '__' + pickText) || {};
+      return {
+        match_date: p.match_date || res.picks_date || '',
+        fixture_id: fid,
+        league: p.league || res.league || '',
+        home: p.home || res.home || '',
+        away: p.away || res.away || '',
+        category: p.category || res.category || '',
+        model: p.model || res.model || '',
+        pick: pickText,
+        odd: safeOdd(p.odd || res.odd || 0),
+        score: Number(p.score || res.score_model || 0),
+        result: String(res.result || '').toUpperCase(),
+        final_score: res.final_score || '',
+        status_short: res.status_short || ''
+      };
+    });
   }
 
   function dedupePerEvent(rows){
@@ -1226,7 +1199,7 @@
     for (const row of rows) {
       const day = row.match_date || '';
       const fid = row.fixture_id || '';
-      if (!day || !fid || isExcludedCategory(row.category)) continue;
+      if (!day || !fid) continue;
       const key = day + '__' + fid;
       const current = byDayFixture.get(key);
       if (!current || pickPriority(row) > pickPriority(current)) byDayFixture.set(key, row);
@@ -1240,7 +1213,6 @@
     let totalWins=0,totalLoses=0,totalStake=0,totalProfit=0,totalOddsSum=0,totalOddsCount=0;
 
     for (const r of dedupedRows) {
-      if (isExcludedCategory(r.category)) continue;
       const day = r.match_date;
       if (!byDay.has(day)) byDay.set(day, { total:0,wins:0,loses:0,pending:0,profit:0,stake:0 });
       const d = byDay.get(day);
@@ -1301,7 +1273,7 @@
     document.getElementById('summary-days').textContent = `${days.length} giorni con eventi`;
     document.getElementById('summary-winrate').textContent = winrate == null ? '-' : `${winrate.toFixed(1)}%`;
     document.getElementById('summary-wl').textContent = `${stats.totalWins} win / ${stats.totalLoses} lose`;
-    document.getElementById('summary-winrate-needed').textContent = needed == null ? 'Break-even: -' : `Break-even: ${needed.toFixed(1)}% · quota media ${avgOdd.toFixed(2)}`;
+    document.getElementById('summary-winrate-needed').textContent = needed == null ? 'Winrate necessaria: -' : `Break-even: ${needed.toFixed(1)}% · quota media ${avgOdd.toFixed(2)}`;
     document.getElementById('summary-reliability').textContent = `Reliability: ${reliability}`;
     document.getElementById('summary-reliability').className = 'summary-value-small ' + (reliability.startsWith('Buona') || reliability.startsWith('Molto') ? 'badge-pos' : (reliability.startsWith('Debole') || reliability.startsWith('Negativa') ? 'badge-neg' : 'badge-neutral'));
   }
@@ -1314,19 +1286,19 @@
       return;
     }
     let html = `<div class="day-accordion-list">`;
-    const latestDay = dayKeys[0];
+    const today = dayKeys[0];
     for (const day of dayKeys) {
       const s = stats.byDay.get(day);
       const played = s.wins + s.loses;
       const roiDay = s.stake > 0 ? ((s.profit / s.stake) * 100) : null;
       html += `
-      <details class="day-accordion ${day===latestDay?'open-today':''}" ${day===latestDay?'open':''}>
+      <details class="day-accordion ${day===today?'open-today':''}" ${day===today?'open':''}>
         <summary>
           <div class="day-summary-row">
             <div class="day-summary-main">
               <div class="day-summary-date">
                 <strong>${formatDateIT(day)}</strong>
-                ${day===latestDay?'<span class="day-badge">ultimo giorno</span>':''}
+                ${day===today?'<span class="day-badge">ultimo giorno</span>':''}
               </div>
               <div class="day-summary-sub">${s.total} eventi unici · ${played} chiusi · ${s.pending} ancora aperti</div>
             </div>
@@ -1346,7 +1318,7 @@
             <div class="day-detail-card ${s.profit>=0?'pos':'neg'}"><span>Profitto</span><strong>${s.profit>=0?'+':''}${s.profit.toFixed(2)} u</strong></div>
             <div class="day-detail-card ${roiDay!=null && roiDay>=0?'pos':(roiDay!=null?'neg':'')}"><span>ROI</span><strong>${roiDay==null?'-':roiDay.toFixed(1)+'%'}</strong></div>
           </div>
-          <div class="day-detail-note">Calcolo per evento: una sola pick valida per fixture. Se il testo della pick non combacia, il recupero usa categoria/modello o risultato della fixture.</div>
+          <div class="day-detail-note">Calcolo per evento: una sola pick valida per fixture, scelta in base allo score più alto tra quelle già risolte.</div>
         </div>
       </details>`;
     }
@@ -1400,20 +1372,25 @@
         sbFetchAll('picks', `?match_date=gte.${start}&match_date=lte.${end}&select=*`),
         sbFetchAll('results', `?picks_date=gte.${start}&picks_date=lte.${end}&select=*`)
       ]);
-      const resultIndex = buildResultIndex(results);
-      const merged = mergePicksWithResults(picks, results, resultIndex);
+      logDebug('Loaded rows', { picks: picks.length, results: results.length });
+      const resultMap = buildResultMap(results);
+      const merged = mergePicksWithResults(picks, resultMap);
       const deduped = dedupePerEvent(merged);
-      logDebug('Loaded and merged rows', { picks: picks.length, results: results.length, merged: merged.length, deduped: deduped.length });
+      logDebug('After per-event dedupe', { deduped: deduped.length });
       const stats = computeStats(deduped);
       updateSummary(month, stats);
       renderTimeline(month, stats);
     } catch (err) {
       showError('Errore caricamento storico ROI', err);
       container.innerHTML = `<div class="table-wrapper"><div class="empty">Errore nel caricamento dei dati. Controlla la console o apri ?debug=1.</div></div>`;
-      ['summary-roi','summary-profit','summary-period','summary-days','summary-winrate','summary-wl','summary-winrate-needed','summary-reliability'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = '-';
-      });
+      document.getElementById('summary-roi').textContent = '-';
+      document.getElementById('summary-profit').textContent = '-';
+      document.getElementById('summary-period').textContent = '-';
+      document.getElementById('summary-days').textContent = '-';
+      document.getElementById('summary-winrate').textContent = '-';
+      document.getElementById('summary-wl').textContent = '-';
+      document.getElementById('summary-winrate-needed').textContent = '-';
+      document.getElementById('summary-reliability').textContent = '-';
     }
   }
 
