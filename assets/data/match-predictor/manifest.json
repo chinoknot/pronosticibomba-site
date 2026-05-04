@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-04T22:21:43.190197+00:00",
+  "generated_at": "2026-05-04T23:05:50.898919+00:00",
   "timezone": "Europe/Rome",
   "latest_date": "2026-05-05",
   "dates": [
@@ -7,25 +7,13 @@
       "date": "2026-05-05",
       "file": "2026-05-05.json",
       "generated_at": "2026-05-04T22:20:09.751099+00:00",
-      "refreshed_at": "2026-05-04T22:21:43.047797+00:00",
+      "refreshed_at": "2026-05-04T23:05:50.763017+00:00",
       "expires_at": "2026-05-05T22:20:09.751121+00:00",
       "matches": 220,
       "final_matches": 0,
       "standings_file": "2026-05-05.standings.json",
-      "standings_stamp": "2026-05-04T22:21:43.047797+00:00",
+      "standings_stamp": "2026-05-04T23:05:50.763017+00:00",
       "app_file": "2026-05-05.app.json"
-    },
-    {
-      "date": "2026-05-04",
-      "file": "2026-05-04.json",
-      "generated_at": "2026-05-03T23:01:55.334140+00:00",
-      "refreshed_at": "2026-05-04T22:21:38.083221+00:00",
-      "expires_at": "2026-05-04T23:01:55.334161+00:00",
-      "matches": 190,
-      "final_matches": 186,
-      "standings_file": "2026-05-04.standings.json",
-      "standings_stamp": "2026-05-04T22:21:38.083221+00:00",
-      "app_file": "2026-05-04.app.json"
     }
   ]
 }
