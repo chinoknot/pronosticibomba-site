@@ -5439,42 +5439,34 @@
       });
     });
     if (dom.mcExportBtn) dom.mcExportBtn.addEventListener("click", () => {
-      const matches = state.lastVisibleMatches || [];
+      const raw = getDerivedMatches();
+      const matches = sortMatchesForFeed(raw);
       if (!matches.length) return;
-      const csvEscape = (v) => {
-        const s = String(v ?? "");
-        return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s;
-      };
-      const header = ["Data", "Ora", "Campionato", "Paese", "Casa", "Ospite", "Pronostico", "Probabilità%", "Quota", "Stato", "Esito"];
-      const rows = matches.map(match => {
+      const data = matches.map(match => {
         const pm = match.primaryMarket || null;
         const odd = pm ? pickedOdd(pm) : null;
-        const prob = pm ? (Number(pm.pickProbability || 0) || "") : "";
-        const pick = pm ? (pm.pickLabel || "") : "";
-        const mStatus = pm ? (pm.status === "win" ? "Vinta" : pm.status === "lose" ? "Persa" : "") : "";
         const fixtureStatus = String(match.status_short || "").toUpperCase();
-        const statusLabel = LIVE_STATUSES.has(fixtureStatus) ? "Live" : FINAL_STATUSES.has(fixtureStatus) ? "Finita" : "Da giocare";
-        return [
-          csvEscape(match.localMatchIsoDate || match.date || ""),
-          csvEscape(match.localMatchTime || match.match_time || ""),
-          csvEscape(match.league || ""),
-          csvEscape(match.country || ""),
-          csvEscape(match.home || ""),
-          csvEscape(match.away || ""),
-          csvEscape(pick),
-          csvEscape(prob),
-          csvEscape(odd != null ? odd.toFixed(2) : ""),
-          csvEscape(statusLabel),
-          csvEscape(mStatus),
-        ].join(",");
+        const statusLabel = LIVE_STATUSES.has(fixtureStatus) ? "live" : FINAL_STATUSES.has(fixtureStatus) ? "finita" : "da giocare";
+        return {
+          data: match.localMatchIsoDate || match.date || "",
+          ora: match.localMatchTime || match.match_time || "",
+          campionato: match.league || "",
+          paese: match.country || "",
+          casa: match.home || "",
+          ospite: match.away || "",
+          pronostico: pm?.pickLabel || "",
+          probabilita: pm ? (Number(pm.pickProbability || 0) || null) : null,
+          quota: odd != null ? Number(odd.toFixed(2)) : null,
+          stato: statusLabel,
+          esito: pm?.status === "win" ? "vinta" : pm?.status === "lose" ? "persa" : "",
+        };
       });
-      const csv = [header.join(","), ...rows].join("\r\n");
-      const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const dateLabel = state.selectedDate || (matches[0] && (matches[0].localMatchIsoDate || matches[0].date)) || "export";
-      a.download = `pronostici-${dateLabel}.csv`;
+      const dateLabel = state.selectedDate || (data[0]?.data) || "export";
+      a.download = `pronostici-${dateLabel}.json`;
       document.body.appendChild(a);
       a.click();
       setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
