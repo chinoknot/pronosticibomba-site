@@ -5439,9 +5439,10 @@
       });
     });
     if (dom.mcExportBtn) dom.mcExportBtn.addEventListener("click", () => {
-      const raw = getDerivedMatches();
-      const matches = sortMatchesForFeed(raw);
-      if (!matches.length) return;
+      const matches = state.lastVisibleMatches && state.lastVisibleMatches.length
+        ? state.lastVisibleMatches
+        : sortMatchesForFeed(getDerivedMatches());
+      if (!matches.length) { alert("Nessuna partita visibile da esportare."); return; }
       const data = matches.map(match => {
         const pm = match.primaryMarket || null;
         const odd = pm ? pickedOdd(pm) : null;
@@ -5454,22 +5455,35 @@
           paese: match.country || "",
           casa: match.home || "",
           ospite: match.away || "",
-          pronostico: pm?.pickLabel || "",
+          pronostico: pm ? (pm.pickLabel || "") : "",
           probabilita: pm ? (Number(pm.pickProbability || 0) || null) : null,
           quota: odd != null ? Number(odd.toFixed(2)) : null,
           stato: statusLabel,
-          esito: pm?.status === "win" ? "vinta" : pm?.status === "lose" ? "persa" : "",
+          esito: pm ? (pm.status === "win" ? "vinta" : pm.status === "lose" ? "persa" : "") : "",
         };
       });
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      const dateLabel = state.selectedDate || (data[0]?.data) || "export";
-      a.download = `pronostici-${dateLabel}.json`;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+      const json = JSON.stringify(data, null, 2);
+      const dateLabel = state.selectedDate || (data[0] && data[0].data) || "export";
+      const filename = "pronostici-" + dateLabel + ".json";
+      try {
+        const blob = new Blob([json], { type: "application/json;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
+      } catch (e) {
+        const a = document.createElement("a");
+        a.href = "data:application/json;charset=utf-8," + encodeURIComponent(json);
+        a.download = filename;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() { document.body.removeChild(a); }, 300);
+      }
     });
     dom.marketsAll.addEventListener("click", () => {
       state.groups = new Set(GROUPS.map(group => group.id));
