@@ -290,6 +290,7 @@
     renderedFeedIdsSignature: "",
     renderedTopPickIdsSignature: "",
     renderedLiveOnlyIdsSignature: "",
+    lastVisibleMatches: [],
     dataRefreshSignature: "",
     livePatchToken: 0,
     betMaster: {
@@ -396,6 +397,7 @@
     mcLostPill: document.getElementById("mc-lost-pill"),
     mcCollapseAll: document.getElementById("mc-collapse-all"),
     mcExpandAll: document.getElementById("mc-expand-all"),
+    mcExportBtn: document.getElementById("mc-export-btn"),
   };
 
   function escapeHtml(value) {
@@ -664,6 +666,7 @@
     state.renderedFeedIdsSignature = idsSignature((orderedMatches || []).map(match => match.fixture_id));
     state.renderedTopPickIdsSignature = idsSignature((topPicks || []).map(pick => pick.fixtureId));
     state.renderedLiveOnlyIdsSignature = idsSignature((state.liveOnlyMatches || []).map(match => match.fixture_id));
+    state.lastVisibleMatches = orderedMatches || [];
   }
 
   function formatOddRange(fromValue, toValue) {
@@ -5434,6 +5437,47 @@
         if (key) state.leagueOpenState[key] = true;
         el.open = true;
       });
+    });
+    if (dom.mcExportBtn) dom.mcExportBtn.addEventListener("click", () => {
+      const matches = state.lastVisibleMatches || [];
+      if (!matches.length) return;
+      const csvEscape = (v) => {
+        const s = String(v ?? "");
+        return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const header = ["Data", "Ora", "Campionato", "Paese", "Casa", "Ospite", "Pronostico", "Probabilità%", "Quota", "Stato", "Esito"];
+      const rows = matches.map(match => {
+        const pm = match.primaryMarket || null;
+        const odd = pm ? pickedOdd(pm) : null;
+        const prob = pm ? (Number(pm.pickProbability || 0) || "") : "";
+        const pick = pm ? (pm.pickLabel || "") : "";
+        const mStatus = pm ? (pm.status === "win" ? "Vinta" : pm.status === "lose" ? "Persa" : "") : "";
+        const fixtureStatus = String(match.status_short || "").toUpperCase();
+        const statusLabel = LIVE_STATUSES.has(fixtureStatus) ? "Live" : FINAL_STATUSES.has(fixtureStatus) ? "Finita" : "Da giocare";
+        return [
+          csvEscape(match.localMatchIsoDate || match.date || ""),
+          csvEscape(match.localMatchTime || match.match_time || ""),
+          csvEscape(match.league || ""),
+          csvEscape(match.country || ""),
+          csvEscape(match.home || ""),
+          csvEscape(match.away || ""),
+          csvEscape(pick),
+          csvEscape(prob),
+          csvEscape(odd != null ? odd.toFixed(2) : ""),
+          csvEscape(statusLabel),
+          csvEscape(mStatus),
+        ].join(",");
+      });
+      const csv = [header.join(","), ...rows].join("\r\n");
+      const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const dateLabel = state.selectedDate || (matches[0] && (matches[0].localMatchIsoDate || matches[0].date)) || "export";
+      a.download = `pronostici-${dateLabel}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
     });
     dom.marketsAll.addEventListener("click", () => {
       state.groups = new Set(GROUPS.map(group => group.id));
