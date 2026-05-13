@@ -1430,13 +1430,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/4060.png",
       "away_logo": "https://media.api-sports.io/football/teams/9037.png",
       "league_logo": "https://media.api-sports.io/football/leagues/256.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "home_team_id": 4060,
       "away_team_id": 9037,
       "league_id": 256,
@@ -1541,8 +1541,8 @@
       ],
       "kickoff_at": "2026-05-13T01:00:00+02:00",
       "kickoff_ts": 1778626800,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 3,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1544227,
@@ -2782,11 +2782,11 @@
       "league_logo": "https://media.api-sports.io/football/leagues/421.png",
       "status_short": "FT",
       "status_long": "Match Finished",
-      "goals_home": 2,
-      "goals_away": 2,
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "2-2",
+      "final_score": "0-0",
       "home_team_id": 8233,
       "away_team_id": 8238,
       "league_id": 421,
@@ -2917,8 +2917,8 @@
       ],
       "kickoff_at": "2026-05-13T02:30:00+02:00",
       "kickoff_ts": 1778632200,
-      "ht_goals_home": 1,
-      "ht_goals_away": 2
+      "ht_goals_home": null,
+      "ht_goals_away": null
     },
     {
       "fixture_id": 1537016,
@@ -3848,13 +3848,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/27380.png",
       "away_logo": "https://media.api-sports.io/football/teams/8141.png",
       "league_logo": "https://media.api-sports.io/football/leagues/1214.png",
-      "status_short": "2H",
-      "status_long": "Second Half",
-      "goals_home": 2,
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 3,
       "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "2-0",
+      "final_score": "3-0",
       "home_team_id": 27380,
       "away_team_id": 8141,
       "league_id": 1214,
@@ -3999,13 +3999,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/27382.png",
       "away_logo": "https://media.api-sports.io/football/teams/27383.png",
       "league_logo": "https://media.api-sports.io/football/leagues/1214.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 0,
+      "goals_away": 1,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-1",
       "home_team_id": 27382,
       "away_team_id": 27383,
       "league_id": 1214,
@@ -4136,8 +4136,8 @@
       ],
       "kickoff_at": "2026-05-13T09:00:00+02:00",
       "kickoff_ts": 1778655600,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 1
     },
     {
       "fixture_id": 1516689,
@@ -32204,8 +32204,8 @@
           7.8
         ]
       ],
-      "kickoff_at": "2026-05-13T18:30:00+02:00",
-      "kickoff_ts": 1778689800,
+      "kickoff_at": "2026-05-13T19:00:00+02:00",
+      "kickoff_ts": 1778691600,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -46352,8 +46352,8 @@
           7.8
         ]
       ],
-      "kickoff_at": "2026-05-13T20:30:00+02:00",
-      "kickoff_ts": 1778697000,
+      "kickoff_at": "2026-05-13T20:00:00+02:00",
+      "kickoff_ts": 1778695200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -51511,5 +51511,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-05-13T23:24:47.258595+00:00",
-  "refreshed_at": "2026-05-13T04:50:29.478300+00:00"
+  "refreshed_at": "2026-05-13T07:51:59.173196+00:00"
 }
