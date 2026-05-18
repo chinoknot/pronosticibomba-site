@@ -7925,8 +7925,8 @@
           8.5
         ]
       ],
-      "kickoff_at": "2026-05-18T13:00:00+02:00",
-      "kickoff_ts": 1779102000,
+      "kickoff_at": "2026-05-18T21:00:00+02:00",
+      "kickoff_ts": 1779130800,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -20286,8 +20286,8 @@
           7.5
         ]
       ],
-      "kickoff_at": "2026-05-18T21:00:00+02:00",
-      "kickoff_ts": 1779130800,
+      "kickoff_at": "2026-05-18T14:00:00+02:00",
+      "kickoff_ts": 1779105600,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -21373,5 +21373,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-05-18T23:05:03.483579+00:00",
-  "refreshed_at": "2026-05-18T04:00:31.444872+00:00"
+  "refreshed_at": "2026-05-18T08:09:01.916276+00:00"
 }
