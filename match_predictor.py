@@ -1281,6 +1281,20 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     o_u15_sh = to_float(odds.get("odd_u15_sh"))
     o_by = to_float(odds.get("odd_btts_y"))
     o_bn = to_float(odds.get("odd_btts_n"))
+    # Usa le quote BTTS solo se vengono da un bookmaker affidabile (Bet365).
+    # Quote da bookmaker di nicchia (es. lokali polacchi/turchi) possono essere
+    # molto distanti dal mercato reale: YES@3.00 quando Bet365 ha YES@1.70
+    # inquina il segnale Market e trascina la stima nella direzione sbagliata.
+    _btts_source = (odds.get("market_sources") or {}).get("odd_btts_y") or {}
+    _btts_bookmaker = str((_btts_source.get("bookmaker") or "")).strip()
+    if o_by and o_bn and _btts_bookmaker and not is_preferred_bookmaker(_btts_bookmaker):
+        o_by = None
+        o_bn = None
+    # Scarta anche se vig > 12% (bookmaker con margine enorme = dato sporco)
+    if o_by and o_bn and o_by > 1 and o_bn > 1:
+        if (1.0/o_by + 1.0/o_bn) > 1.12:
+            o_by = None
+            o_bn = None
     o_h = to_float(odds.get("odd_home"))
     o_d = to_float(odds.get("odd_draw"))
     o_a = to_float(odds.get("odd_away"))
@@ -1431,21 +1445,26 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     # ============================================================
     btts_signals = []
 
-    # Poisson (0.30)
-    btts_signals.append(("Poisson", p_btts_poi, 0.30))
+    # Poisson (0.50) — peso dominante: con lam_h e lam_a entrambi > 0
+    # la Poisson è la stima più onesta. CS/FTS stagionale non può
+    # sovrascrivere matematica di base (es. lam=1.0+1.1 → 42% BTTS YES).
+    btts_signals.append(("Poisson", p_btts_poi, 0.50))
 
-    # Market (0.25)
+    # Market (0.28) — quote bookmaker vig-free, molto informative
     if mkt_btts_y is not None:
-        btts_signals.append(("Market", mkt_btts_y, 0.25))
+        btts_signals.append(("Market", mkt_btts_y, 0.28))
 
-    # CS/FTS profile (0.20)
-    if hp["played"] >= 3 and ap["played"] >= 3:
+    # CS/FTS profile (0.10, solo se lam_total < 2.0)
+    # Con attese alte di gol i clean sheet rate storici non sono informativi:
+    # una squadra che segna 1.5 gol/partita in media non terrà clean sheet
+    # solo perché lo ha fatto qualche volta in stagione.
+    if hp["played"] >= 3 and ap["played"] >= 3 and lam_t < 2.0:
         bp = ((1.0 - min(hp["cs_rate"], 1.0)) * (1.0 - min(ap["cs_rate"], 1.0)) *
               (1.0 - min(hp["fts_rate"], 1.0)) * (1.0 - min(ap["fts_rate"], 1.0)))
         bp = max(0.10, min(0.90, bp))
-        btts_signals.append(("CS/FTS", bp, 0.20))
+        btts_signals.append(("CS/FTS", bp, 0.10))
 
-    # API predicted goals (0.15)
+    # API predicted goals (0.12)
     if gh > 0 and ga > 0:
         mn = min(gh, ga)
         if mn >= 1.5: p_api_b = 0.75
@@ -1453,7 +1472,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
         elif mn >= 0.7: p_api_b = 0.50
         elif mn >= 0.4: p_api_b = 0.35
         else: p_api_b = 0.22
-        btts_signals.append(("API goals", p_api_b, 0.15))
+        btts_signals.append(("API goals", p_api_b, 0.12))
 
     # Attack balance (0.10)
     ha = hp["gf_side"] if hp["gf_side"] > 0 else hp["gf_total"]
@@ -1466,7 +1485,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
 
     tw2 = sum(w for _, _, w in btts_signals)
     p_btts = sum(p * w for _, p, w in btts_signals) / tw2 if tw2 > 0 else 0.50
-    p_btts = nudge_prob(p_btts, factor=1.045, low=0.08, high=0.925)
+    p_btts = nudge_prob(p_btts, factor=1.03, low=0.08, high=0.925)
     p_btts_no = 1.0 - p_btts
 
     # ============================================================
