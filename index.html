@@ -3351,6 +3351,9 @@
         picksWord: "picks",
         noPicksDay: "Nessuna pick disponibile per questa giornata.",
         noPicksNow: "Nessuna pick disponibile al momento.",
+        picksComingSoon: "I pronostici di oggi saranno disponibili intorno alle 12/13. Torna tra poco: non mostriamo piu le picks di ieri.",
+        comboComingSoon: "Le schedine di oggi saranno disponibili insieme alle picks.",
+        todayKicker: "Picks di oggi",
         fetchNote: "Recupero picks e stati live...",
         updatedRun: "Run {runDate} | live refresh ogni minuto",
         dateKicker: "Picks {date}",
@@ -3460,6 +3463,9 @@
         picksWord: "picks",
         noPicksDay: "No picks available for this day.",
         noPicksNow: "No picks available right now.",
+        picksComingSoon: "Today's picks will be available around 12/13. Check back shortly: we no longer show yesterday's picks.",
+        comboComingSoon: "Today's combo tickets will be available together with the picks.",
+        todayKicker: "Today's picks",
         fetchNote: "Loading picks and live states...",
         updatedRun: "Run {runDate} | live refresh every minute",
         dateKicker: "Picks {date}",
@@ -4201,10 +4207,19 @@
       return CATEGORY_NOTES[normalizeCategory(category)] || t("categoryDefault");
     }
 
+    function todayLocalDateString() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
     async function resolveLatestDate() {
+      const today = todayLocalDateString();
       const rows = await sbFetch(
         "picks",
-        "?select=run_date,match_date&order=match_date.desc,run_date.desc&limit=1"
+        `?select=run_date,match_date&match_date=eq.${today}&order=run_date.desc&limit=1`
       );
       if (!Array.isArray(rows) || !rows.length) return null;
       const row = rows[0] || {};
@@ -4831,7 +4846,35 @@
           loadCurrentMonthRoiSummary(),
         ]);
         if (!latest || !latest.matchDate) {
-          throw new Error("No picks date available");
+          const fallback = `<div class="empty-board">${t("picksComingSoon")}</div>`;
+          const comboFallback = `<div class="empty-board">${t("comboComingSoon")}</div>`;
+          const stageFeed = document.getElementById("index2-stage-feed");
+          const categories = document.getElementById("index2-categories");
+          const stageSummary = document.getElementById("index2-stage-summary");
+          const comboList = document.getElementById("index2-combo-list");
+          const comboSummary = document.getElementById("index2-combo-summary");
+          if (dateKicker) dateKicker.textContent = t("todayKicker");
+          if (updatedNote) updatedNote.textContent = t("picksComingSoon");
+          if (stageFeed) stageFeed.innerHTML = fallback;
+          if (categories) categories.innerHTML = fallback;
+          if (comboList) comboList.innerHTML = comboFallback;
+          if (comboSummary) comboSummary.innerHTML = `<span class="summary-pill"><strong>0</strong> ${escapeHtml(t("comboTickets"))}</span>`;
+          if (stageSummary) {
+            stageSummary.innerHTML = `
+              <div class="hero-score-card"><span>Status</span><strong>${escapeHtml(t("todayKicker"))}</strong><em>${escapeHtml(t("picksComingSoon"))}</em></div>
+            `;
+          }
+          latestBoardSummaryState = null;
+          latestRoiSummaryState = roiSummary;
+          latestPicksState = null;
+          latestResultMapState = null;
+          latestResultsRowsState = null;
+          latestLiveMapState = null;
+          latestRunState = null;
+          latestComboTicketsState = null;
+          renderServiceCardsSummary(null, roiSummary);
+          renderRoiSummary(roiSummary);
+          return;
         }
 
         let picks = await sbFetch(
