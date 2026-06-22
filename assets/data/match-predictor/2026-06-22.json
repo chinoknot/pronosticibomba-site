@@ -4060,13 +4060,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/24722.png",
       "away_logo": "https://media.api-sports.io/football/teams/17273.png",
       "league_logo": "https://media.api-sports.io/football/leagues/764.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 9,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "9-0",
       "home_team_id": 24722,
       "away_team_id": 17273,
       "league_id": 764,
@@ -4197,8 +4197,8 @@
       ],
       "kickoff_at": "2026-06-22T10:00:00+02:00",
       "kickoff_ts": 1782115200,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 3,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1549303,
@@ -4362,13 +4362,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/22823.png",
       "away_logo": "https://media.api-sports.io/football/teams/16780.png",
       "league_logo": "https://media.api-sports.io/football/leagues/836.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 0,
+      "goals_away": 1,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-1",
       "home_team_id": 22823,
       "away_team_id": 16780,
       "league_id": 836,
@@ -4508,8 +4508,8 @@
       ],
       "kickoff_at": "2026-06-22T12:15:00+02:00",
       "kickoff_ts": 1782123300,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 1
     },
     {
       "fixture_id": 1559535,
@@ -5402,8 +5402,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/2599.png",
       "away_logo": "https://media.api-sports.io/football/teams/4197.png",
       "league_logo": "https://media.api-sports.io/football/leagues/667.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
+      "status_short": "CANC",
+      "status_long": "Match Cancelled",
       "goals_home": null,
       "goals_away": null,
       "total_corners": null,
@@ -13937,5 +13937,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-06-22T23:24:14.801166+00:00",
-  "refreshed_at": "2026-06-22T04:47:31.079437+00:00"
+  "refreshed_at": "2026-06-22T10:42:30.879050+00:00"
 }
