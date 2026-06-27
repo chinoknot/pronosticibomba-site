@@ -160,16 +160,25 @@ jobs:
 
       - name: Commit cache changes
         run: |
-          if git diff --quiet -- assets/data/match-predictor; then
+          BRANCH="${GITHUB_REF_NAME:-main}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # The cache build can outlive another commit to main. Rebase would try to
+          # merge two generated versions of the same cache files and can conflict.
+          # Keep the freshly generated working tree and commit it on the latest main.
+          git fetch origin "$BRANCH"
+          git reset --mixed "origin/$BRANCH"
+
+          git add -A assets/data/match-predictor
+          if git diff --cached --quiet; then
             echo "No cache changes."
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/data/match-predictor
+
           git commit -m "chore: refresh match predictor cache"
-          git pull --rebase origin "${GITHUB_REF_NAME:-main}"
-          git push origin "HEAD:${GITHUB_REF_NAME:-main}"
+          git push origin "HEAD:$BRANCH"
 
   build_shard_01:
     needs: prepare
@@ -418,16 +427,25 @@ jobs:
 
       - name: Commit cache changes
         run: |
-          if git diff --quiet -- assets/data/match-predictor; then
+          BRANCH="${GITHUB_REF_NAME:-main}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # The cache build can outlive another commit to main. Rebase would try to
+          # merge two generated versions of the same cache files and can conflict.
+          # Keep the freshly generated working tree and commit it on the latest main.
+          git fetch origin "$BRANCH"
+          git reset --mixed "origin/$BRANCH"
+
+          git add -A assets/data/match-predictor
+          if git diff --cached --quiet; then
             echo "No cache changes."
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/data/match-predictor
+
           git commit -m "chore: refresh match predictor cache"
-          git pull --rebase origin "${GITHUB_REF_NAME:-main}"
-          git push origin "HEAD:${GITHUB_REF_NAME:-main}"
+          git push origin "HEAD:$BRANCH"
 
       - name: Summary
         if: ${{ always() }}
