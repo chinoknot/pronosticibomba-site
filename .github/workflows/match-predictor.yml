@@ -78,7 +78,6 @@ jobs:
 
           SHOULD_BUILD=false
           SHOULD_REFRESH=false
-
           if [ "$MODE" = "build" ]; then
             SHOULD_BUILD=true
             SHOULD_REFRESH=true
@@ -142,6 +141,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Sync cache base
+        run: |
+          BRANCH="${GITHUB_REF_NAME:-main}"
+          git fetch origin "$BRANCH"
+          git reset --hard "origin/$BRANCH"
+          git rev-parse HEAD > "$RUNNER_TEMP/match-predictor-cache-base-sha"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -161,17 +167,24 @@ jobs:
       - name: Commit cache changes
         run: |
           BRANCH="${GITHUB_REF_NAME:-main}"
+          BASE_SHA="$(cat "$RUNNER_TEMP/match-predictor-cache-base-sha")"
+          SNAPSHOT="$RUNNER_TEMP/match-predictor-cache.tar.gz"
 
+          tar -czf "$SNAPSHOT" assets/data/match-predictor
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          # The cache build can outlive another commit to main. Rebase would try to
-          # merge two generated versions of the same cache files and can conflict.
-          # Keep the freshly generated working tree and commit it on the latest main.
           git fetch origin "$BRANCH"
-          git reset --mixed "origin/$BRANCH"
 
+          if [ "$(git rev-parse "origin/$BRANCH")" != "$BASE_SHA" ]; then
+            echo "Remote changed while this refresh was running; skip stale cache publish."
+            exit 0
+          fi
+
+          git reset --hard "origin/$BRANCH"
+          rm -rf assets/data/match-predictor
+          tar -xzf "$SNAPSHOT"
           git add -A assets/data/match-predictor
+
           if git diff --cached --quiet; then
             echo "No cache changes."
             exit 0
@@ -428,17 +441,17 @@ jobs:
       - name: Commit cache changes
         run: |
           BRANCH="${GITHUB_REF_NAME:-main}"
+          SNAPSHOT="$RUNNER_TEMP/match-predictor-cache.tar.gz"
 
+          tar -czf "$SNAPSHOT" assets/data/match-predictor
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          # The cache build can outlive another commit to main. Rebase would try to
-          # merge two generated versions of the same cache files and can conflict.
-          # Keep the freshly generated working tree and commit it on the latest main.
           git fetch origin "$BRANCH"
-          git reset --mixed "origin/$BRANCH"
-
+          git reset --hard "origin/$BRANCH"
+          rm -rf assets/data/match-predictor
+          tar -xzf "$SNAPSHOT"
           git add -A assets/data/match-predictor
+
           if git diff --cached --quiet; then
             echo "No cache changes."
             exit 0
