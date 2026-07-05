@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-05T16:13:23.554722+00:00",
+  "generated_at": "2026-07-05T18:07:50.450391+00:00",
   "timezone": "Europe/Rome",
   "latest_date": "2026-07-05",
   "dates": [
@@ -7,12 +7,12 @@
       "date": "2026-07-05",
       "file": "2026-07-05.json",
       "generated_at": "2026-07-04T22:17:20.464183+00:00",
-      "refreshed_at": "2026-07-05T16:13:23.393242+00:00",
+      "refreshed_at": "2026-07-05T18:07:50.286708+00:00",
       "expires_at": "2026-07-05T22:17:20.464211+00:00",
       "matches": 273,
-      "final_matches": 143,
+      "final_matches": 181,
       "standings_file": "2026-07-05.standings.json",
-      "standings_stamp": "2026-07-05T16:13:23.393242+00:00",
+      "standings_stamp": "2026-07-05T18:07:50.286708+00:00",
       "app_file": "2026-07-05.app.json"
     }
   ]
