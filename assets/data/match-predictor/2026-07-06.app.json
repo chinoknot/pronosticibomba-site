@@ -2,7 +2,7 @@
   "date": "2026-07-06",
   "time_range": "00:00-23:59",
   "generated_at": "2026-07-05T22:09:03.709516+00:00",
-  "refreshed_at": "2026-07-06T08:24:44.340427+00:00",
+  "refreshed_at": "2026-07-06T12:51:57.728509+00:00",
   "expires_at": "2026-07-06T22:09:03.709536+00:00",
   "timezone": "Europe/Rome",
   "total_matches": 54,
@@ -7263,8 +7263,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/16187.png",
       "away_logo": "https://media.api-sports.io/football/teams/22067.png",
       "league_logo": "https://media.api-sports.io/football/leagues/764.png",
-      "status_short": "2H",
-      "status_long": "Second Half",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 0,
       "goals_away": 1,
       "total_corners": null,
@@ -7592,13 +7592,13 @@
           6.8
         ]
       ],
-      "kickoff_at": "2026-07-06T14:00:00+02:00",
-      "kickoff_ts": 1783339200,
+      "kickoff_at": "2026-07-06T17:30:00+02:00",
+      "kickoff_ts": 1783351800,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 5000,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "14:00",
+      "kickoffTimeKey": "17:30",
       "candidates": [
         {
           "group": "goals",
