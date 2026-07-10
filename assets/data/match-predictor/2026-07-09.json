@@ -892,8 +892,8 @@
       ],
       "kickoff_at": "2026-07-09T00:30:00+02:00",
       "kickoff_ts": 1783549800,
-      "ht_goals_home": 1,
-      "ht_goals_away": 2
+      "ht_goals_home": 2,
+      "ht_goals_away": 1
     },
     {
       "fixture_id": 1520767,
@@ -2970,11 +2970,11 @@
       "league_logo": "https://media.api-sports.io/football/leagues/256.png",
       "status_short": "FT",
       "status_long": "Match Finished",
-      "goals_home": 1,
-      "goals_away": 2,
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "1-2",
+      "final_score": "0-0",
       "home_team_id": 18907,
       "away_team_id": 9041,
       "league_id": 256,
@@ -3080,7 +3080,7 @@
       "kickoff_at": "2026-07-09T01:00:00+02:00",
       "kickoff_ts": 1783551600,
       "ht_goals_home": 0,
-      "ht_goals_away": 2
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1525299,
@@ -17124,5 +17124,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-07-10T10:35:05.905613+00:00",
-  "refreshed_at": "2026-07-10T00:09:09.147646+00:00"
+  "refreshed_at": "2026-07-10T04:55:57.126848+00:00"
 }
