@@ -4705,17 +4705,59 @@
       }
       .mobile-page-nav,
       .hero-shell,
-      .bet-master-shell,
       .mc-stat-bar{
         display:none !important;
       }
+      .bet-master-shell{
+        display:flex !important;
+        margin-top:8px !important;
+        padding:12px !important;
+        gap:10px !important;
+      }
+      .bet-master-head{
+        align-items:flex-start !important;
+      }
+      .bet-master-head p{
+        font-size:.68rem !important;
+        line-height:1.28 !important;
+      }
+      .bet-master-grid{
+        grid-template-columns:1fr !important;
+        gap:8px !important;
+      }
+      .bet-master-grid.is-collapsed{
+        display:none !important;
+      }
+      .bet-master-card{
+        padding:10px !important;
+        border-radius:15px !important;
+      }
+      .bet-master-actions{
+        max-width:none !important;
+        width:100% !important;
+      }
+      .bet-master-generate{
+        min-height:48px !important;
+        border-radius:16px !important;
+        font-size:.84rem !important;
+      }
       .match-row{
-        padding:8px 42px 8px 10px !important;
+        padding:10px 42px 10px 12px !important;
       }
       .match-row-inner{
-        grid-template-columns:44px minmax(0,1fr) !important;
+        grid-template-columns:48px minmax(0,1fr) 104px !important;
         gap:8px !important;
         align-items:center !important;
+      }
+      .match-time-block{
+        gap:2px !important;
+      }
+      .match-time{
+        font-size:.82rem !important;
+        line-height:1.05 !important;
+      }
+      .match-date{
+        font-size:.58rem !important;
       }
       .match-teams{
         min-width:0 !important;
@@ -4726,27 +4768,48 @@
         gap:7px !important;
       }
       .club-line strong{
-        display:-webkit-box !important;
-        -webkit-line-clamp:2 !important;
-        -webkit-box-orient:vertical !important;
-        white-space:normal !important;
+        display:block !important;
+        white-space:nowrap !important;
         overflow:hidden !important;
-        text-overflow:clip !important;
-        font-size:.9rem !important;
-        line-height:1.12 !important;
+        text-overflow:ellipsis !important;
+        font-size:.87rem !important;
+        line-height:1.14 !important;
       }
       .team-logo{
-        width:22px !important;
-        height:22px !important;
+        width:21px !important;
+        height:21px !important;
       }
       .match-action{
-        grid-column:1 / -1 !important;
+        grid-column:auto !important;
+        justify-self:end !important;
+        width:auto !important;
+        max-width:104px !important;
+        min-height:42px !important;
+        margin:0 !important;
+        padding:7px 8px !important;
+        border-radius:12px !important;
+        gap:2px !important;
+      }
+      .match-action strong{
         width:100% !important;
-        max-width:none !important;
-        min-height:34px !important;
-        margin:4px 0 0 !important;
-        padding:4px 8px !important;
-        border-radius:11px !important;
+        font-size:.73rem !important;
+        line-height:1.05 !important;
+        white-space:nowrap !important;
+        overflow:hidden !important;
+        text-overflow:ellipsis !important;
+        text-align:center !important;
+      }
+      .match-action small{
+        width:100% !important;
+        font-size:.56rem !important;
+        line-height:1.08 !important;
+        white-space:nowrap !important;
+        overflow:hidden !important;
+        text-overflow:ellipsis !important;
+        text-align:center !important;
+      }
+      .action-meta-fragment{
+        font-size:.54rem !important;
       }
     }
     @media (max-width:360px){
