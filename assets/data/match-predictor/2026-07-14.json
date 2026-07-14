@@ -3074,8 +3074,8 @@
       ],
       "kickoff_at": "2026-07-14T11:00:00+02:00",
       "kickoff_ts": 1784019600,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 1
     },
     {
       "fixture_id": 1547961,
@@ -16119,11 +16119,11 @@
       "league_logo": "https://media.api-sports.io/football/leagues/667.png",
       "status_short": "FT",
       "status_long": "Match Finished",
-      "goals_home": 0,
-      "goals_away": 1,
+      "goals_home": 1,
+      "goals_away": 2,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "0-1",
+      "final_score": "1-2",
       "home_team_id": 1334,
       "away_team_id": 46,
       "league_id": 667,
@@ -16228,8 +16228,8 @@
       ],
       "kickoff_at": "2026-07-14T20:00:00+02:00",
       "kickoff_ts": 1784052000,
-      "ht_goals_home": 0,
-      "ht_goals_away": 1
+      "ht_goals_home": null,
+      "ht_goals_away": null
     },
     {
       "fixture_id": 1547963,
@@ -17558,8 +17558,8 @@
       ],
       "kickoff_at": "2026-07-14T20:30:00+02:00",
       "kickoff_ts": 1784053800,
-      "ht_goals_home": 0,
-      "ht_goals_away": 0
+      "ht_goals_home": null,
+      "ht_goals_away": null
     },
     {
       "fixture_id": 1548845,
@@ -18058,8 +18058,8 @@
       ],
       "kickoff_at": "2026-07-14T20:30:00+02:00",
       "kickoff_ts": 1784053800,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 2,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1546669,
@@ -18683,8 +18683,8 @@
       ],
       "kickoff_at": "2026-07-14T20:30:00+02:00",
       "kickoff_ts": 1784053800,
-      "ht_goals_home": 1,
-      "ht_goals_away": 1
+      "ht_goals_home": null,
+      "ht_goals_away": null
     },
     {
       "fixture_id": 1554945,
@@ -25252,8 +25252,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/1155.png",
       "away_logo": "https://media.api-sports.io/football/teams/1162.png",
       "league_logo": "https://media.api-sports.io/football/leagues/242.png",
-      "status_short": "1H",
-      "status_long": "First Half",
+      "status_short": "2H",
+      "status_long": "Second Half",
       "goals_home": 1,
       "goals_away": 1,
       "total_corners": null,
@@ -25492,5 +25492,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-07-14T23:08:32.699439+00:00",
-  "refreshed_at": "2026-07-14T22:11:35.313967+00:00"
+  "refreshed_at": "2026-07-14T23:00:32.546581+00:00"
 }
