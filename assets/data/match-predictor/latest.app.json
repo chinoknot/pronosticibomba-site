@@ -2,7 +2,7 @@
   "date": "2026-07-15",
   "time_range": "00:00-23:59",
   "generated_at": "2026-07-14T22:10:21.433865+00:00",
-  "refreshed_at": "2026-07-15T05:35:26.906806+00:00",
+  "refreshed_at": "2026-07-15T08:19:13.491734+00:00",
   "expires_at": "2026-07-15T22:10:21.433882+00:00",
   "timezone": "Europe/Rome",
   "total_matches": 157,
@@ -3046,13 +3046,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/7466.png",
       "away_logo": "https://media.api-sports.io/football/teams/6908.png",
       "league_logo": "https://media.api-sports.io/football/leagues/667.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 1,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "1-0",
       "home_team_id": 7466,
       "away_team_id": 6908,
       "league_id": 667,
@@ -3157,8 +3157,8 @@
       ],
       "kickoff_at": "2026-07-15T10:00:00+02:00",
       "kickoff_ts": 1784102400,
-      "ht_goals_home": null,
-      "ht_goals_away": null,
+      "ht_goals_home": 1,
+      "ht_goals_away": 0,
       "rank": 5000,
       "pinnedCompetition": false,
       "kickoffTimeKey": "10:00",
@@ -10227,13 +10227,13 @@
           10.7
         ]
       ],
-      "kickoff_at": "2026-07-15T13:00:00+02:00",
-      "kickoff_ts": 1784113200,
+      "kickoff_at": "2026-07-15T17:00:00+02:00",
+      "kickoff_ts": 1784127600,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 5000,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "13:00",
+      "kickoffTimeKey": "17:00",
       "candidates": [
         {
           "group": "goals",
@@ -11400,13 +11400,13 @@
           6.6
         ]
       ],
-      "kickoff_at": "2026-07-15T14:00:00+02:00",
-      "kickoff_ts": 1784116800,
+      "kickoff_at": "2026-07-15T17:00:00+02:00",
+      "kickoff_ts": 1784127600,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 5000,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "14:00",
+      "kickoffTimeKey": "17:00",
       "candidates": [
         {
           "group": "goals",
@@ -12061,13 +12061,13 @@
           4.9
         ]
       ],
-      "kickoff_at": "2026-07-15T14:00:00+02:00",
-      "kickoff_ts": 1784116800,
+      "kickoff_at": "2026-07-15T13:00:00+02:00",
+      "kickoff_ts": 1784113200,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 5000,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "14:00",
+      "kickoffTimeKey": "13:00",
       "candidates": [
         {
           "group": "goals",
@@ -12507,13 +12507,13 @@
           5.3
         ]
       ],
-      "kickoff_at": "2026-07-15T14:00:00+02:00",
-      "kickoff_ts": 1784116800,
+      "kickoff_at": "2026-07-15T17:00:00+02:00",
+      "kickoff_ts": 1784127600,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 5000,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "14:00",
+      "kickoffTimeKey": "17:00",
       "candidates": [
         {
           "group": "goals",
@@ -13790,13 +13790,13 @@
           6.0
         ]
       ],
-      "kickoff_at": "2026-07-15T14:00:00+02:00",
-      "kickoff_ts": 1784116800,
+      "kickoff_at": "2026-07-15T11:00:00+02:00",
+      "kickoff_ts": 1784106000,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 5000,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "14:00",
+      "kickoffTimeKey": "11:00",
       "candidates": [
         {
           "group": "goals",
@@ -14178,13 +14178,13 @@
           8.2
         ]
       ],
-      "kickoff_at": "2026-07-15T14:00:00+02:00",
-      "kickoff_ts": 1784116800,
+      "kickoff_at": "2026-07-15T15:00:00+02:00",
+      "kickoff_ts": 1784120400,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 5000,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "14:00",
+      "kickoffTimeKey": "15:00",
       "candidates": [
         {
           "group": "goals",
@@ -14372,13 +14372,13 @@
           5.4
         ]
       ],
-      "kickoff_at": "2026-07-15T14:00:00+02:00",
-      "kickoff_ts": 1784116800,
+      "kickoff_at": "2026-07-15T18:00:00+02:00",
+      "kickoff_ts": 1784131200,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 5000,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "14:00",
+      "kickoffTimeKey": "18:00",
       "candidates": [
         {
           "group": "goals",
@@ -15391,13 +15391,13 @@
           8.2
         ]
       ],
-      "kickoff_at": "2026-07-15T14:00:00+02:00",
-      "kickoff_ts": 1784116800,
+      "kickoff_at": "2026-07-15T19:30:00+02:00",
+      "kickoff_ts": 1784136600,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 5000,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "14:00",
+      "kickoffTimeKey": "19:30",
       "candidates": [
         {
           "group": "goals",
@@ -16564,13 +16564,13 @@
           3.5
         ]
       ],
-      "kickoff_at": "2026-07-15T15:00:00+02:00",
-      "kickoff_ts": 1784120400,
+      "kickoff_at": "2026-07-15T11:00:00+02:00",
+      "kickoff_ts": 1784106000,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 5000,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "15:00",
+      "kickoffTimeKey": "11:00",
       "candidates": [
         {
           "group": "goals",
