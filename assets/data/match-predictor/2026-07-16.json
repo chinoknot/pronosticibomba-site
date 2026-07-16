@@ -7043,8 +7043,8 @@
           8.9
         ]
       ],
-      "kickoff_at": "2026-07-16T17:00:00+02:00",
-      "kickoff_ts": 1784214000,
+      "kickoff_at": "2026-07-16T18:00:00+02:00",
+      "kickoff_ts": 1784217600,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -18915,5 +18915,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-07-16T22:12:13.918844+00:00",
-  "refreshed_at": "2026-07-16T05:43:38.718751+00:00"
+  "refreshed_at": "2026-07-16T08:19:09.282174+00:00"
 }
