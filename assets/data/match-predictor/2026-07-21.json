@@ -15,8 +15,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/7814.png",
       "away_logo": "https://media.api-sports.io/football/teams/13118.png",
       "league_logo": "https://media.api-sports.io/football/leagues/1035.png",
-      "status_short": "1H",
-      "status_long": "First Half",
+      "status_short": "HT",
+      "status_long": "Halftime",
       "goals_home": 0,
       "goals_away": 0,
       "total_corners": null,
@@ -149,8 +149,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/1189.png",
       "away_logo": "https://media.api-sports.io/football/teams/2130.png",
       "league_logo": "https://media.api-sports.io/football/leagues/251.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
+      "status_short": "PST",
+      "status_long": "Match Postponed",
       "goals_home": null,
       "goals_away": null,
       "total_corners": null,
@@ -300,13 +300,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/3706.png",
       "away_logo": "https://media.api-sports.io/football/teams/20252.png",
       "league_logo": "https://media.api-sports.io/football/leagues/344.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "home_team_id": 3706,
       "away_team_id": 20252,
       "league_id": 344,
@@ -530,8 +530,8 @@
       ],
       "kickoff_at": "2026-07-21T01:00:00+02:00",
       "kickoff_ts": 1784588400,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1591889,
@@ -24509,5 +24509,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-07-21T22:13:44.426528+00:00",
-  "refreshed_at": "2026-07-20T22:14:09.229131+00:00"
+  "refreshed_at": "2026-07-20T23:07:22.098086+00:00"
 }
