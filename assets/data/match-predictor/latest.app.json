@@ -2,7 +2,7 @@
   "date": "2026-07-21",
   "time_range": "00:00-23:59",
   "generated_at": "2026-07-20T22:13:44.426508+00:00",
-  "refreshed_at": "2026-07-20T23:07:22.098086+00:00",
+  "refreshed_at": "2026-07-21T02:54:38.006726+00:00",
   "expires_at": "2026-07-21T22:13:44.426528+00:00",
   "timezone": "Europe/Rome",
   "total_matches": 163,
@@ -18,12 +18,12 @@
       "home_logo": "https://media.api-sports.io/football/teams/7814.png",
       "away_logo": "https://media.api-sports.io/football/teams/13118.png",
       "league_logo": "https://media.api-sports.io/football/leagues/1035.png",
-      "status_short": "HT",
-      "status_long": "Halftime",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 0,
       "goals_away": 0,
-      "total_corners": null,
-      "total_yellows": null,
+      "total_corners": 19.0,
+      "total_yellows": 5.0,
       "final_score": "0-0",
       "home_team_id": 7814,
       "away_team_id": 13118,
@@ -221,13 +221,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/1189.png",
       "away_logo": "https://media.api-sports.io/football/teams/2130.png",
       "league_logo": "https://media.api-sports.io/football/leagues/251.png",
-      "status_short": "PST",
-      "status_long": "Match Postponed",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 2,
+      "goals_away": 3,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "2-3",
       "home_team_id": 1189,
       "away_team_id": 2130,
       "league_id": 251,
@@ -358,8 +358,8 @@
       ],
       "kickoff_at": "2026-07-21T00:30:00+02:00",
       "kickoff_ts": 1784586600,
-      "ht_goals_home": null,
-      "ht_goals_away": null,
+      "ht_goals_home": 0,
+      "ht_goals_away": 1,
       "rank": 600,
       "pinnedCompetition": false,
       "kickoffTimeKey": "00:30",
@@ -441,13 +441,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/3706.png",
       "away_logo": "https://media.api-sports.io/football/teams/20252.png",
       "league_logo": "https://media.api-sports.io/football/leagues/344.png",
-      "status_short": "1H",
-      "status_long": "First Half",
-      "goals_home": 0,
-      "goals_away": 0,
-      "total_corners": null,
-      "total_yellows": null,
-      "final_score": "0-0",
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 1,
+      "goals_away": 4,
+      "total_corners": 6.0,
+      "total_yellows": 1.0,
+      "final_score": "1-4",
       "home_team_id": 3706,
       "away_team_id": 20252,
       "league_id": 344,
@@ -672,7 +672,7 @@
       "kickoff_at": "2026-07-21T01:00:00+02:00",
       "kickoff_ts": 1784588400,
       "ht_goals_home": 0,
-      "ht_goals_away": 0,
+      "ht_goals_away": 2,
       "rank": 600,
       "pinnedCompetition": false,
       "kickoffTimeKey": "01:00",
@@ -1106,13 +1106,13 @@
           8.2
         ]
       ],
-      "kickoff_at": "2026-07-21T09:00:00+02:00",
-      "kickoff_ts": 1784617200,
+      "kickoff_at": "2026-07-21T10:00:00+02:00",
+      "kickoff_ts": 1784620800,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 760,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "09:00",
+      "kickoffTimeKey": "10:00",
       "candidates": [
         {
           "group": "goals",
@@ -1309,13 +1309,13 @@
           6.6
         ]
       ],
-      "kickoff_at": "2026-07-21T09:00:00+02:00",
-      "kickoff_ts": 1784617200,
+      "kickoff_at": "2026-07-21T14:00:00+02:00",
+      "kickoff_ts": 1784635200,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 760,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "09:00",
+      "kickoffTimeKey": "14:00",
       "candidates": [
         {
           "group": "goals",
@@ -1755,13 +1755,13 @@
           6.2
         ]
       ],
-      "kickoff_at": "2026-07-21T09:00:00+02:00",
-      "kickoff_ts": 1784617200,
+      "kickoff_at": "2026-07-21T13:00:00+02:00",
+      "kickoff_ts": 1784631600,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 760,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "09:00",
+      "kickoffTimeKey": "13:00",
       "candidates": [
         {
           "group": "goals",
@@ -1998,13 +1998,13 @@
           4.5
         ]
       ],
-      "kickoff_at": "2026-07-21T09:00:00+02:00",
-      "kickoff_ts": 1784617200,
+      "kickoff_at": "2026-07-21T13:35:00+02:00",
+      "kickoff_ts": 1784633700,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 760,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "09:00",
+      "kickoffTimeKey": "13:35",
       "candidates": [
         {
           "group": "goals",
@@ -2250,13 +2250,13 @@
           5.4
         ]
       ],
-      "kickoff_at": "2026-07-21T09:00:00+02:00",
-      "kickoff_ts": 1784617200,
+      "kickoff_at": "2026-07-21T13:35:00+02:00",
+      "kickoff_ts": 1784633700,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 760,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "09:00",
+      "kickoffTimeKey": "13:35",
       "candidates": [
         {
           "group": "goals",
@@ -2502,13 +2502,13 @@
           3.1
         ]
       ],
-      "kickoff_at": "2026-07-21T09:00:00+02:00",
-      "kickoff_ts": 1784617200,
+      "kickoff_at": "2026-07-21T14:00:00+02:00",
+      "kickoff_ts": 1784635200,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 760,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "09:00",
+      "kickoffTimeKey": "14:00",
       "candidates": [
         {
           "group": "goals",
@@ -17080,8 +17080,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/14304.png",
       "away_logo": "https://media.api-sports.io/football/teams/14298.png",
       "league_logo": "https://media.api-sports.io/football/leagues/657.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
+      "status_short": "PST",
+      "status_long": "Match Postponed",
       "goals_home": null,
       "goals_away": null,
       "total_corners": null,
@@ -17741,8 +17741,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/8391.png",
       "away_logo": "https://media.api-sports.io/football/teams/486.png",
       "league_logo": "https://media.api-sports.io/football/leagues/132.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
+      "status_short": "PST",
+      "status_long": "Match Postponed",
       "goals_home": null,
       "goals_away": null,
       "total_corners": null,
@@ -31656,13 +31656,13 @@
           4.5
         ]
       ],
-      "kickoff_at": "2026-07-21T20:45:00+02:00",
-      "kickoff_ts": 1784659500,
+      "kickoff_at": "2026-07-21T20:30:00+02:00",
+      "kickoff_ts": 1784658600,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 5000,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "20:45",
+      "kickoffTimeKey": "20:30",
       "candidates": [
         {
           "group": "goals",
@@ -33111,13 +33111,13 @@
           6.8
         ]
       ],
-      "kickoff_at": "2026-07-21T20:45:00+02:00",
-      "kickoff_ts": 1784659500,
+      "kickoff_at": "2026-07-21T20:30:00+02:00",
+      "kickoff_ts": 1784658600,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 5000,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "20:45",
+      "kickoffTimeKey": "20:30",
       "candidates": [
         {
           "group": "goals",
