@@ -4154,13 +4154,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/16839.png",
       "away_logo": "https://media.api-sports.io/football/teams/15548.png",
       "league_logo": "https://media.api-sports.io/football/leagues/525.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "home_team_id": 16839,
       "away_team_id": 15548,
       "league_id": 525,
@@ -4265,8 +4265,8 @@
       ],
       "kickoff_at": "2026-08-04T09:00:00+02:00",
       "kickoff_ts": 1785826800,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1610286,
@@ -5020,8 +5020,8 @@
           10.7
         ]
       ],
-      "kickoff_at": "2026-08-04T13:30:00+02:00",
-      "kickoff_ts": 1785843000,
+      "kickoff_at": "2026-08-04T14:30:00+02:00",
+      "kickoff_ts": 1785846600,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -5546,8 +5546,8 @@
           7.0
         ]
       ],
-      "kickoff_at": "2026-08-04T14:00:00+02:00",
-      "kickoff_ts": 1785844800,
+      "kickoff_at": "2026-08-04T18:00:00+02:00",
+      "kickoff_ts": 1785859200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -5671,8 +5671,8 @@
           5.6
         ]
       ],
-      "kickoff_at": "2026-08-04T14:00:00+02:00",
-      "kickoff_ts": 1785844800,
+      "kickoff_at": "2026-08-04T19:30:00+02:00",
+      "kickoff_ts": 1785864600,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -12280,8 +12280,8 @@
           6.8
         ]
       ],
-      "kickoff_at": "2026-08-04T18:30:00+02:00",
-      "kickoff_ts": 1785861000,
+      "kickoff_at": "2026-08-04T19:00:00+02:00",
+      "kickoff_ts": 1785862800,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -15627,8 +15627,8 @@
           6.0
         ]
       ],
-      "kickoff_at": "2026-08-04T19:00:00+02:00",
-      "kickoff_ts": 1785862800,
+      "kickoff_at": "2026-08-04T19:30:00+02:00",
+      "kickoff_ts": 1785864600,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -19473,8 +19473,8 @@
           6.2
         ]
       ],
-      "kickoff_at": "2026-08-04T20:00:00+02:00",
-      "kickoff_ts": 1785866400,
+      "kickoff_at": "2026-08-04T21:00:00+02:00",
+      "kickoff_ts": 1785870000,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -24086,5 +24086,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-08-04T23:14:12.143071+00:00",
-  "refreshed_at": "2026-08-04T04:16:49.943591+00:00"
+  "refreshed_at": "2026-08-04T07:42:15.657321+00:00"
 }
