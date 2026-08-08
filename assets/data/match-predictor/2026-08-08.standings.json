@@ -1,7 +1,7 @@
 {
   "date": "2026-08-08",
-  "generated_at": "2026-08-07T23:45:57.375213+00:00",
-  "refreshed_at": "2026-08-07T23:48:52.232349+00:00",
+  "generated_at": "2026-08-08T01:00:33.979158+00:00",
+  "refreshed_at": "2026-08-08T01:03:36.453589+00:00",
   "standings": {
     "131:2026": {
       "league_id": 131,
@@ -922,9 +922,22 @@
               "goal_diff": 15
             },
             {
+              "team_id": 2327,
+              "team_name": "Antofagasta",
+              "rank": 3,
+              "points": 29,
+              "played": 18,
+              "won": 8,
+              "draw": 5,
+              "lost": 5,
+              "goals_for": 32,
+              "goals_against": 20,
+              "goal_diff": 12
+            },
+            {
               "team_id": 2345,
               "team_name": "San Marcos de Arica",
-              "rank": 3,
+              "rank": 4,
               "points": 29,
               "played": 17,
               "won": 7,
@@ -937,7 +950,7 @@
             {
               "team_id": 2342,
               "team_name": "D. Puerto Montt",
-              "rank": 4,
+              "rank": 5,
               "points": 29,
               "played": 17,
               "won": 9,
@@ -950,7 +963,7 @@
             {
               "team_id": 2322,
               "team_name": "San Luis",
-              "rank": 5,
+              "rank": 6,
               "points": 27,
               "played": 17,
               "won": 7,
@@ -959,19 +972,6 @@
               "goals_for": 27,
               "goals_against": 23,
               "goal_diff": 4
-            },
-            {
-              "team_id": 2327,
-              "team_name": "Antofagasta",
-              "rank": 6,
-              "points": 26,
-              "played": 17,
-              "won": 7,
-              "draw": 5,
-              "lost": 5,
-              "goals_for": 29,
-              "goals_against": 20,
-              "goal_diff": 9
             },
             {
               "team_id": 2343,
@@ -987,22 +987,9 @@
               "goal_diff": 1
             },
             {
-              "team_id": 2321,
-              "team_name": "Union Espanola",
-              "rank": 8,
-              "points": 25,
-              "played": 17,
-              "won": 7,
-              "draw": 4,
-              "lost": 6,
-              "goals_for": 25,
-              "goals_against": 23,
-              "goal_diff": 2
-            },
-            {
               "team_id": 2336,
               "team_name": "Magallanes",
-              "rank": 9,
+              "rank": 8,
               "points": 25,
               "played": 17,
               "won": 7,
@@ -1010,6 +997,19 @@
               "lost": 6,
               "goals_for": 27,
               "goals_against": 28,
+              "goal_diff": -1
+            },
+            {
+              "team_id": 2321,
+              "team_name": "Union Espanola",
+              "rank": 9,
+              "points": 25,
+              "played": 18,
+              "won": 7,
+              "draw": 4,
+              "lost": 7,
+              "goals_for": 25,
+              "goals_against": 26,
               "goal_diff": -1
             },
             {
@@ -5284,9 +5284,22 @@
               "goal_diff": 6
             },
             {
+              "team_id": 3704,
+              "team_name": "Guabirá",
+              "rank": 5,
+              "points": 21,
+              "played": 14,
+              "won": 6,
+              "draw": 3,
+              "lost": 5,
+              "goals_for": 23,
+              "goals_against": 26,
+              "goal_diff": -3
+            },
+            {
               "team_id": 3708,
               "team_name": "Real Potosí",
-              "rank": 5,
+              "rank": 6,
               "points": 20,
               "played": 13,
               "won": 5,
@@ -5299,7 +5312,7 @@
             {
               "team_id": 3701,
               "team_name": "Blooming",
-              "rank": 6,
+              "rank": 7,
               "points": 18,
               "played": 13,
               "won": 4,
@@ -5308,19 +5321,6 @@
               "goals_for": 17,
               "goals_against": 14,
               "goal_diff": 3
-            },
-            {
-              "team_id": 3704,
-              "team_name": "Guabirá",
-              "rank": 7,
-              "points": 18,
-              "played": 13,
-              "won": 5,
-              "draw": 3,
-              "lost": 5,
-              "goals_for": 22,
-              "goals_against": 26,
-              "goal_diff": -4
             },
             {
               "team_id": 3707,
@@ -5353,13 +5353,13 @@
               "team_name": "ABB",
               "rank": 10,
               "points": 16,
-              "played": 13,
+              "played": 14,
               "won": 5,
               "draw": 1,
-              "lost": 7,
+              "lost": 8,
               "goals_for": 24,
-              "goals_against": 28,
-              "goal_diff": -4
+              "goals_against": 29,
+              "goal_diff": -5
             },
             {
               "team_id": 3706,
@@ -8601,13 +8601,13 @@
               "team_name": "Cusco",
               "rank": 5,
               "points": 6,
-              "played": 3,
+              "played": 4,
               "won": 2,
               "draw": 0,
-              "lost": 1,
-              "goals_for": 9,
-              "goals_against": 4,
-              "goal_diff": 5
+              "lost": 2,
+              "goals_for": 10,
+              "goals_against": 7,
+              "goal_diff": 3
             },
             {
               "team_id": 2546,
@@ -8675,9 +8675,22 @@
               "goal_diff": -2
             },
             {
+              "team_id": 2558,
+              "team_name": "Comerciantes Unidos",
+              "rank": 11,
+              "points": 5,
+              "played": 4,
+              "won": 1,
+              "draw": 2,
+              "lost": 1,
+              "goals_for": 9,
+              "goals_against": 8,
+              "goal_diff": 1
+            },
+            {
               "team_id": 22479,
               "team_name": "Juan Pablo II College",
-              "rank": 11,
+              "rank": 12,
               "points": 4,
               "played": 3,
               "won": 1,
@@ -8690,7 +8703,7 @@
             {
               "team_id": 22489,
               "team_name": "UCV Moquegua",
-              "rank": 12,
+              "rank": 13,
               "points": 3,
               "played": 3,
               "won": 0,
@@ -8703,7 +8716,7 @@
             {
               "team_id": 2564,
               "team_name": "Atletico Grau",
-              "rank": 13,
+              "rank": 14,
               "points": 3,
               "played": 3,
               "won": 1,
@@ -8716,7 +8729,7 @@
             {
               "team_id": 2562,
               "team_name": "Cienciano",
-              "rank": 14,
+              "rank": 15,
               "points": 3,
               "played": 4,
               "won": 1,
@@ -8725,19 +8738,6 @@
               "goals_for": 3,
               "goals_against": 6,
               "goal_diff": -3
-            },
-            {
-              "team_id": 2558,
-              "team_name": "Comerciantes Unidos",
-              "rank": 15,
-              "points": 2,
-              "played": 3,
-              "won": 0,
-              "draw": 2,
-              "lost": 1,
-              "goals_for": 6,
-              "goals_against": 7,
-              "goal_diff": -1
             },
             {
               "team_id": 22543,
@@ -28176,6 +28176,175 @@
         }
       ]
     },
+    "1114:2026": {
+      "league_id": 1114,
+      "season": 2026,
+      "total_teams": 12,
+      "groups": [
+        {
+          "group": "Regular Season",
+          "total_teams": 12,
+          "rows": [
+            {
+              "team_id": 13032,
+              "team_name": "Nova Iguaçu U20",
+              "rank": 1,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 13008,
+              "team_name": "Fluminense U20",
+              "rank": 2,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 22842,
+              "team_name": "Portuguesa RJ U20",
+              "rank": 3,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 11054,
+              "team_name": "Flamengo U20",
+              "rank": 4,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 25595,
+              "team_name": "Maricá U20",
+              "rank": 5,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 12979,
+              "team_name": "Vasco da Gama U20",
+              "rank": 6,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 23386,
+              "team_name": "Boavista U20",
+              "rank": 7,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 22875,
+              "team_name": "Botafogo U20",
+              "rank": 8,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 20762,
+              "team_name": "Madureira U20",
+              "rank": 9,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 13074,
+              "team_name": "Volta Redonda U20",
+              "rank": 10,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 22831,
+              "team_name": "Bangu U20",
+              "rank": 11,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 23387,
+              "team_name": "Sampaio Correa FE U20",
+              "rank": 12,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            }
+          ]
+        }
+      ]
+    },
     "248:2026": {
       "league_id": 248,
       "season": 2026,
@@ -29921,22 +30090,9 @@
               "goal_diff": 4
             },
             {
-              "team_id": 2351,
-              "team_name": "CA River Plate",
-              "rank": 4,
-              "points": 18,
-              "played": 11,
-              "won": 5,
-              "draw": 3,
-              "lost": 3,
-              "goals_for": 18,
-              "goals_against": 17,
-              "goal_diff": 1
-            },
-            {
               "team_id": 2371,
               "team_name": "Rentistas",
-              "rank": 5,
+              "rank": 4,
               "points": 18,
               "played": 12,
               "won": 5,
@@ -29945,6 +30101,19 @@
               "goals_for": 16,
               "goals_against": 15,
               "goal_diff": 1
+            },
+            {
+              "team_id": 2351,
+              "team_name": "CA River Plate",
+              "rank": 5,
+              "points": 18,
+              "played": 12,
+              "won": 5,
+              "draw": 3,
+              "lost": 4,
+              "goals_for": 18,
+              "goals_against": 18,
+              "goal_diff": 0
             },
             {
               "team_id": 2357,
@@ -29960,9 +30129,22 @@
               "goal_diff": 3
             },
             {
+              "team_id": 2374,
+              "team_name": "Tacuarembo",
+              "rank": 7,
+              "points": 17,
+              "played": 12,
+              "won": 5,
+              "draw": 2,
+              "lost": 5,
+              "goals_for": 9,
+              "goals_against": 12,
+              "goal_diff": -3
+            },
+            {
               "team_id": 19410,
               "team_name": "Paysandu",
-              "rank": 7,
+              "rank": 8,
               "points": 16,
               "played": 12,
               "won": 5,
@@ -29975,7 +30157,7 @@
             {
               "team_id": 18295,
               "team_name": "La Luz",
-              "rank": 8,
+              "rank": 9,
               "points": 16,
               "played": 12,
               "won": 4,
@@ -29988,7 +30170,7 @@
             {
               "team_id": 2376,
               "team_name": "Oriental",
-              "rank": 9,
+              "rank": 10,
               "points": 15,
               "played": 12,
               "won": 3,
@@ -30001,7 +30183,7 @@
             {
               "team_id": 15628,
               "team_name": "Colón",
-              "rank": 10,
+              "rank": 11,
               "points": 15,
               "played": 12,
               "won": 4,
@@ -30010,19 +30192,6 @@
               "goals_for": 13,
               "goals_against": 16,
               "goal_diff": -3
-            },
-            {
-              "team_id": 2374,
-              "team_name": "Tacuarembo",
-              "rank": 11,
-              "points": 14,
-              "played": 11,
-              "won": 4,
-              "draw": 2,
-              "lost": 5,
-              "goals_for": 8,
-              "goals_against": 12,
-              "goal_diff": -4
             },
             {
               "team_id": 2373,
@@ -33873,8 +34042,8 @@
               "goal_diff": 0
             },
             {
-              "team_id": 9010,
-              "team_name": "Worcester City",
+              "team_id": 7750,
+              "team_name": "Stratford Town",
               "rank": 21,
               "points": 0,
               "played": 0,
@@ -33886,8 +34055,8 @@
               "goal_diff": 0
             },
             {
-              "team_id": 7750,
-              "team_name": "Stratford Town",
+              "team_id": 9010,
+              "team_name": "Worcester City",
               "rank": 22,
               "points": 0,
               "played": 0,
@@ -38004,6 +38173,227 @@
               "goals_for": 2,
               "goals_against": 6,
               "goal_diff": -4
+            }
+          ]
+        }
+      ]
+    },
+    "354:2026": {
+      "league_id": 354,
+      "season": 2026,
+      "total_teams": 16,
+      "groups": [
+        {
+          "group": "Division E",
+          "total_teams": 16,
+          "rows": [
+            {
+              "team_id": 16876,
+              "team_name": "Holešov",
+              "rank": 1,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 26230,
+              "team_name": "Kroměříž II",
+              "rank": 2,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 26992,
+              "team_name": "Hluk",
+              "rank": 3,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 7363,
+              "team_name": "Strání",
+              "rank": 4,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 27929,
+              "team_name": "SK Krumvir",
+              "rank": 5,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 19420,
+              "team_name": "Baťov",
+              "rank": 6,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 8631,
+              "team_name": "Břeclav",
+              "rank": 7,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 19440,
+              "team_name": "Šternberk",
+              "rank": 8,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 7322,
+              "team_name": "Nové Sady",
+              "rank": 9,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 7343,
+              "team_name": "Slavičín",
+              "rank": 10,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 7279,
+              "team_name": "Brumov",
+              "rank": 11,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 27928,
+              "team_name": "Prostejov B",
+              "rank": 12,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 7311,
+              "team_name": "Kozlovice",
+              "rank": 13,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 7280,
+              "team_name": "Bzenec",
+              "rank": 14,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 7351,
+              "team_name": "Sokol Lanžhot",
+              "rank": 15,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 7366,
+              "team_name": "Tatran Všechovice",
+              "rank": 16,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
             }
           ]
         }
