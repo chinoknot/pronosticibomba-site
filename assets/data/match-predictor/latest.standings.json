@@ -1,7 +1,7 @@
 {
   "date": "2026-08-15",
-  "generated_at": "2026-08-14T23:37:57.131293+00:00",
-  "refreshed_at": "2026-08-14T23:38:25.331410+00:00",
+  "generated_at": "2026-08-15T00:52:14.461241+00:00",
+  "refreshed_at": "2026-08-15T00:52:44.899941+00:00",
   "standings": {
     "1147:2027": {
       "league_id": 1147,
@@ -3116,9 +3116,22 @@
               "goal_diff": 0
             },
             {
+              "team_id": 2564,
+              "team_name": "Atletico Grau",
+              "rank": 9,
+              "points": 7,
+              "played": 5,
+              "won": 2,
+              "draw": 1,
+              "lost": 2,
+              "goals_for": 4,
+              "goals_against": 4,
+              "goal_diff": 0
+            },
+            {
               "team_id": 10013,
               "team_name": "Cusco",
-              "rank": 9,
+              "rank": 10,
               "points": 6,
               "played": 4,
               "won": 2,
@@ -3131,7 +3144,7 @@
             {
               "team_id": 2560,
               "team_name": "Alianza Atletico",
-              "rank": 10,
+              "rank": 11,
               "points": 6,
               "played": 4,
               "won": 2,
@@ -3144,20 +3157,20 @@
             {
               "team_id": 2558,
               "team_name": "Comerciantes Unidos",
-              "rank": 11,
+              "rank": 12,
               "points": 5,
-              "played": 4,
+              "played": 5,
               "won": 1,
               "draw": 2,
-              "lost": 1,
+              "lost": 2,
               "goals_for": 9,
-              "goals_against": 8,
-              "goal_diff": 1
+              "goals_against": 9,
+              "goal_diff": 0
             },
             {
               "team_id": 22479,
               "team_name": "Juan Pablo II College",
-              "rank": 12,
+              "rank": 13,
               "points": 5,
               "played": 4,
               "won": 1,
@@ -3170,7 +3183,7 @@
             {
               "team_id": 22543,
               "team_name": "FC Cajamarca",
-              "rank": 13,
+              "rank": 14,
               "points": 4,
               "played": 4,
               "won": 1,
@@ -3178,19 +3191,6 @@
               "lost": 2,
               "goals_for": 7,
               "goals_against": 8,
-              "goal_diff": -1
-            },
-            {
-              "team_id": 2564,
-              "team_name": "Atletico Grau",
-              "rank": 14,
-              "points": 4,
-              "played": 4,
-              "won": 1,
-              "draw": 1,
-              "lost": 2,
-              "goals_for": 3,
-              "goals_against": 4,
               "goal_diff": -1
             },
             {
@@ -41166,9 +41166,35 @@
           "total_teams": 16,
           "rows": [
             {
+              "team_id": 12699,
+              "team_name": "Baden",
+              "rank": 1,
+              "points": 4,
+              "played": 2,
+              "won": 1,
+              "draw": 1,
+              "lost": 0,
+              "goals_for": 4,
+              "goals_against": 3,
+              "goal_diff": 1
+            },
+            {
+              "team_id": 12714,
+              "team_name": "Gossau",
+              "rank": 2,
+              "points": 4,
+              "played": 2,
+              "won": 1,
+              "draw": 1,
+              "lost": 0,
+              "goals_for": 2,
+              "goals_against": 1,
+              "goal_diff": 1
+            },
+            {
               "team_id": 12720,
               "team_name": "Tuggen",
-              "rank": 1,
+              "rank": 3,
               "points": 3,
               "played": 1,
               "won": 1,
@@ -41181,7 +41207,7 @@
             {
               "team_id": 12718,
               "team_name": "St. Gallen II",
-              "rank": 2,
+              "rank": 4,
               "points": 3,
               "played": 1,
               "won": 1,
@@ -41189,32 +41215,6 @@
               "lost": 0,
               "goals_for": 3,
               "goals_against": 2,
-              "goal_diff": 1
-            },
-            {
-              "team_id": 12699,
-              "team_name": "Baden",
-              "rank": 3,
-              "points": 3,
-              "played": 1,
-              "won": 1,
-              "draw": 0,
-              "lost": 0,
-              "goals_for": 2,
-              "goals_against": 1,
-              "goal_diff": 1
-            },
-            {
-              "team_id": 12713,
-              "team_name": "Eschen / Mauren",
-              "rank": 4,
-              "points": 3,
-              "played": 1,
-              "won": 1,
-              "draw": 0,
-              "lost": 0,
-              "goals_for": 2,
-              "goals_against": 1,
               "goal_diff": 1
             },
             {
@@ -41244,29 +41244,29 @@
               "goal_diff": 1
             },
             {
-              "team_id": 6625,
-              "team_name": "Freienbach",
+              "team_id": 12713,
+              "team_name": "Eschen / Mauren",
               "rank": 7,
-              "points": 1,
-              "played": 1,
-              "won": 0,
-              "draw": 1,
-              "lost": 0,
-              "goals_for": 0,
-              "goals_against": 0,
+              "points": 3,
+              "played": 2,
+              "won": 1,
+              "draw": 0,
+              "lost": 1,
+              "goals_for": 3,
+              "goals_against": 3,
               "goal_diff": 0
             },
             {
-              "team_id": 12714,
-              "team_name": "Gossau",
+              "team_id": 6625,
+              "team_name": "Freienbach",
               "rank": 8,
-              "points": 1,
-              "played": 1,
+              "points": 2,
+              "played": 2,
               "won": 0,
-              "draw": 1,
+              "draw": 2,
               "lost": 0,
-              "goals_for": 0,
-              "goals_against": 0,
+              "goals_for": 2,
+              "goals_against": 2,
               "goal_diff": 0
             },
             {
@@ -49471,8 +49471,8 @@
           "total_teams": 14,
           "rows": [
             {
-              "team_id": 16303,
-              "team_name": "Korotan Prevalje",
+              "team_id": 12904,
+              "team_name": "Šmartno",
               "rank": 1,
               "points": 0,
               "played": 0,
@@ -49484,8 +49484,8 @@
               "goal_diff": 0
             },
             {
-              "team_id": 6725,
-              "team_name": "Videm",
+              "team_id": 27991,
+              "team_name": "NK Ormoz",
               "rank": 2,
               "points": 0,
               "played": 0,
@@ -49523,8 +49523,8 @@
               "goal_diff": 0
             },
             {
-              "team_id": 14454,
-              "team_name": "Čarda Martjanci",
+              "team_id": 20161,
+              "team_name": "Limbuš Pekre",
               "rank": 5,
               "points": 0,
               "played": 0,
@@ -49536,8 +49536,8 @@
               "goal_diff": 0
             },
             {
-              "team_id": 6726,
-              "team_name": "Šampion Celje",
+              "team_id": 4373,
+              "team_name": "Fužinar",
               "rank": 6,
               "points": 0,
               "played": 0,
@@ -49601,8 +49601,8 @@
               "goal_diff": 0
             },
             {
-              "team_id": 19732,
-              "team_name": "Zavrč",
+              "team_id": 16303,
+              "team_name": "Korotan Prevalje",
               "rank": 11,
               "points": 0,
               "played": 0,
@@ -49614,8 +49614,8 @@
               "goal_diff": 0
             },
             {
-              "team_id": 4373,
-              "team_name": "Fužinar",
+              "team_id": 6725,
+              "team_name": "Videm",
               "rank": 12,
               "points": 0,
               "played": 0,
@@ -49627,8 +49627,8 @@
               "goal_diff": 0
             },
             {
-              "team_id": 12904,
-              "team_name": "Šmartno",
+              "team_id": 14454,
+              "team_name": "Čarda Martjanci",
               "rank": 13,
               "points": 0,
               "played": 0,
@@ -49640,8 +49640,8 @@
               "goal_diff": 0
             },
             {
-              "team_id": 27991,
-              "team_name": "NK Ormoz",
+              "team_id": 6726,
+              "team_name": "Šampion Celje",
               "rank": 14,
               "points": 0,
               "played": 0,
@@ -52466,9 +52466,35 @@
           "total_teams": 20,
           "rows": [
             {
-              "team_id": 531,
-              "team_name": "Athletic Club",
+              "team_id": 529,
+              "team_name": "Barcelona",
               "rank": 1,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 541,
+              "team_name": "Real Madrid",
+              "rank": 2,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 533,
+              "team_name": "Villarreal",
+              "rank": 3,
               "points": 0,
               "played": 0,
               "won": 0,
@@ -52481,32 +52507,6 @@
             {
               "team_id": 530,
               "team_name": "Atletico Madrid",
-              "rank": 2,
-              "points": 0,
-              "played": 0,
-              "won": 0,
-              "draw": 0,
-              "lost": 0,
-              "goals_for": 0,
-              "goals_against": 0,
-              "goal_diff": 0
-            },
-            {
-              "team_id": 727,
-              "team_name": "Osasuna",
-              "rank": 3,
-              "points": 0,
-              "played": 0,
-              "won": 0,
-              "draw": 0,
-              "lost": 0,
-              "goals_for": 0,
-              "goals_against": 0,
-              "goal_diff": 0
-            },
-            {
-              "team_id": 542,
-              "team_name": "Alaves",
               "rank": 4,
               "points": 0,
               "played": 0,
@@ -52518,8 +52518,8 @@
               "goal_diff": 0
             },
             {
-              "team_id": 797,
-              "team_name": "Elche",
+              "team_id": 543,
+              "team_name": "Real Betis",
               "rank": 5,
               "points": 0,
               "played": 0,
@@ -52531,8 +52531,8 @@
               "goal_diff": 0
             },
             {
-              "team_id": 529,
-              "team_name": "Barcelona",
+              "team_id": 538,
+              "team_name": "Celta Vigo",
               "rank": 6,
               "points": 0,
               "played": 0,
@@ -52557,139 +52557,9 @@
               "goal_diff": 0
             },
             {
-              "team_id": 539,
-              "team_name": "Levante",
-              "rank": 8,
-              "points": 0,
-              "played": 0,
-              "won": 0,
-              "draw": 0,
-              "lost": 0,
-              "goals_for": 0,
-              "goals_against": 0,
-              "goal_diff": 0
-            },
-            {
-              "team_id": 535,
-              "team_name": "Malaga",
-              "rank": 9,
-              "points": 0,
-              "played": 0,
-              "won": 0,
-              "draw": 0,
-              "lost": 0,
-              "goals_for": 0,
-              "goals_against": 0,
-              "goal_diff": 0
-            },
-            {
-              "team_id": 4665,
-              "team_name": "Racing Santander",
-              "rank": 10,
-              "points": 0,
-              "played": 0,
-              "won": 0,
-              "draw": 0,
-              "lost": 0,
-              "goals_for": 0,
-              "goals_against": 0,
-              "goal_diff": 0
-            },
-            {
-              "team_id": 538,
-              "team_name": "Celta Vigo",
-              "rank": 11,
-              "points": 0,
-              "played": 0,
-              "won": 0,
-              "draw": 0,
-              "lost": 0,
-              "goals_for": 0,
-              "goals_against": 0,
-              "goal_diff": 0
-            },
-            {
-              "team_id": 544,
-              "team_name": "Deportivo La Coruna",
-              "rank": 12,
-              "points": 0,
-              "played": 0,
-              "won": 0,
-              "draw": 0,
-              "lost": 0,
-              "goals_for": 0,
-              "goals_against": 0,
-              "goal_diff": 0
-            },
-            {
-              "team_id": 540,
-              "team_name": "Espanyol",
-              "rank": 13,
-              "points": 0,
-              "played": 0,
-              "won": 0,
-              "draw": 0,
-              "lost": 0,
-              "goals_for": 0,
-              "goals_against": 0,
-              "goal_diff": 0
-            },
-            {
               "team_id": 728,
               "team_name": "Rayo Vallecano",
-              "rank": 14,
-              "points": 0,
-              "played": 0,
-              "won": 0,
-              "draw": 0,
-              "lost": 0,
-              "goals_for": 0,
-              "goals_against": 0,
-              "goal_diff": 0
-            },
-            {
-              "team_id": 543,
-              "team_name": "Real Betis",
-              "rank": 15,
-              "points": 0,
-              "played": 0,
-              "won": 0,
-              "draw": 0,
-              "lost": 0,
-              "goals_for": 0,
-              "goals_against": 0,
-              "goal_diff": 0
-            },
-            {
-              "team_id": 541,
-              "team_name": "Real Madrid",
-              "rank": 16,
-              "points": 0,
-              "played": 0,
-              "won": 0,
-              "draw": 0,
-              "lost": 0,
-              "goals_for": 0,
-              "goals_against": 0,
-              "goal_diff": 0
-            },
-            {
-              "team_id": 548,
-              "team_name": "Real Sociedad",
-              "rank": 17,
-              "points": 0,
-              "played": 0,
-              "won": 0,
-              "draw": 0,
-              "lost": 0,
-              "goals_for": 0,
-              "goals_against": 0,
-              "goal_diff": 0
-            },
-            {
-              "team_id": 536,
-              "team_name": "Sevilla",
-              "rank": 18,
+              "rank": 8,
               "points": 0,
               "played": 0,
               "won": 0,
@@ -52702,6 +52572,136 @@
             {
               "team_id": 532,
               "team_name": "Valencia",
+              "rank": 9,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 548,
+              "team_name": "Real Sociedad",
+              "rank": 10,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 540,
+              "team_name": "Espanyol",
+              "rank": 11,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 531,
+              "team_name": "Athletic Club",
+              "rank": 12,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 536,
+              "team_name": "Sevilla",
+              "rank": 13,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 542,
+              "team_name": "Alaves",
+              "rank": 14,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 797,
+              "team_name": "Elche",
+              "rank": 15,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 539,
+              "team_name": "Levante",
+              "rank": 16,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 727,
+              "team_name": "Osasuna",
+              "rank": 17,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 4665,
+              "team_name": "Racing Santander",
+              "rank": 18,
+              "points": 0,
+              "played": 0,
+              "won": 0,
+              "draw": 0,
+              "lost": 0,
+              "goals_for": 0,
+              "goals_against": 0,
+              "goal_diff": 0
+            },
+            {
+              "team_id": 544,
+              "team_name": "Deportivo La Coruna",
               "rank": 19,
               "points": 0,
               "played": 0,
@@ -52713,8 +52713,8 @@
               "goal_diff": 0
             },
             {
-              "team_id": 533,
-              "team_name": "Villarreal",
+              "team_id": 535,
+              "team_name": "Malaga",
               "rank": 20,
               "points": 0,
               "played": 0,
@@ -54512,8 +54512,8 @@
               "goal_diff": -3
             },
             {
-              "team_id": 27851,
-              "team_name": "Sport Club PR",
+              "team_id": 24824,
+              "team_name": "Campo Mourão",
               "rank": 10,
               "points": 1,
               "played": 2,
@@ -59059,9 +59059,22 @@
               "goal_diff": -2
             },
             {
+              "team_id": 814,
+              "team_name": "AD Carmelita",
+              "rank": 9,
+              "points": 2,
+              "played": 3,
+              "won": 0,
+              "draw": 2,
+              "lost": 1,
+              "goals_for": 5,
+              "goals_against": 6,
+              "goal_diff": -1
+            },
+            {
               "team_id": 26343,
               "team_name": "Pitbulls Santa Barbara FC",
-              "rank": 9,
+              "rank": 10,
               "points": 1,
               "played": 1,
               "won": 0,
@@ -59070,19 +59083,6 @@
               "goals_for": 2,
               "goals_against": 2,
               "goal_diff": 0
-            },
-            {
-              "team_id": 814,
-              "team_name": "AD Carmelita",
-              "rank": 10,
-              "points": 1,
-              "played": 2,
-              "won": 0,
-              "draw": 1,
-              "lost": 1,
-              "goals_for": 4,
-              "goals_against": 5,
-              "goal_diff": -1
             },
             {
               "team_id": 2058,
@@ -59101,13 +59101,13 @@
               "team_id": 2054,
               "team_name": "Futbol Consultants Moravia",
               "rank": 12,
-              "points": 0,
-              "played": 1,
+              "points": 1,
+              "played": 2,
               "won": 0,
-              "draw": 0,
+              "draw": 1,
               "lost": 1,
-              "goals_for": 1,
-              "goals_against": 2,
+              "goals_for": 2,
+              "goals_against": 3,
               "goal_diff": -1
             },
             {
