@@ -2,7 +2,7 @@
   "date": "2026-08-18",
   "time_range": "00:00-23:59",
   "generated_at": "2026-08-17T22:42:03.788136+00:00",
-  "refreshed_at": "2026-08-18T05:32:52.781142+00:00",
+  "refreshed_at": "2026-08-18T06:48:35.902743+00:00",
   "expires_at": "2026-08-18T22:42:03.788153+00:00",
   "timezone": "Europe/Rome",
   "total_matches": 198,
@@ -25478,13 +25478,13 @@
           8.0
         ]
       ],
-      "kickoff_at": "2026-08-18T19:30:00+02:00",
-      "kickoff_ts": 1787074200,
+      "kickoff_at": "2026-08-18T19:00:00+02:00",
+      "kickoff_ts": 1787072400,
       "ht_goals_home": null,
       "ht_goals_away": null,
       "rank": 5000,
       "pinnedCompetition": false,
-      "kickoffTimeKey": "19:30",
+      "kickoffTimeKey": "19:00",
       "candidates": [
         {
           "group": "goals",
