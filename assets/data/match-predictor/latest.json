@@ -10497,7 +10497,7 @@
       "goals_home": 1,
       "goals_away": 0,
       "total_corners": 7.0,
-      "total_yellows": 6.0,
+      "total_yellows": 7.0,
       "final_score": "1-0",
       "home_team_id": 1605,
       "away_team_id": 1596,
@@ -10750,7 +10750,7 @@
       "goals_home": 3,
       "goals_away": 1,
       "total_corners": 7.0,
-      "total_yellows": 2.0,
+      "total_yellows": 3.0,
       "final_score": "3-1",
       "home_team_id": 1617,
       "away_team_id": 25484,
@@ -11247,8 +11247,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/4302.png",
       "away_logo": "https://media.api-sports.io/football/teams/3665.png",
       "league_logo": "https://media.api-sports.io/football/leagues/1028.png",
-      "status_short": "2H",
-      "status_long": "Second Half",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 1,
       "goals_away": 1,
       "total_corners": null,
@@ -13181,8 +13181,8 @@
           7.0
         ]
       ],
-      "kickoff_at": "2026-08-20T14:00:00+02:00",
-      "kickoff_ts": 1787227200,
+      "kickoff_at": "2026-08-21T14:00:00+02:00",
+      "kickoff_ts": 1787313600,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -36165,5 +36165,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-08-20T22:39:38.968159+00:00",
-  "refreshed_at": "2026-08-20T04:40:27.961686+00:00"
+  "refreshed_at": "2026-08-20T05:34:30.193677+00:00"
 }
