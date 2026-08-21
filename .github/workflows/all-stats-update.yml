@@ -40,7 +40,7 @@ jobs:
           CMD="${{ github.event.inputs.command || 'daily' }}"
           DATE="${{ github.event.inputs.date }}"
           if [ -n "$DATE" ]; then
-            python all_stats_db.py $CMD --date $DATE
+            python all_stats_safe_runner.py $CMD --date $DATE
           else
-            python all_stats_db.py $CMD
+            python all_stats_safe_runner.py $CMD
           fi
