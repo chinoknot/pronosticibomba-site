@@ -1,7 +1,7 @@
 {
   "date": "2026-08-22",
   "time_range": "00:00-23:59",
-  "generated_at": "2026-08-21T23:45:38.053935+00:00",
+  "generated_at": "2026-08-22T01:08:20.075674+00:00",
   "total_matches": 1289,
   "matches": [
     {
@@ -15,8 +15,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/468.png",
       "away_logo": "https://media.api-sports.io/football/teams/1956.png",
       "league_logo": "https://media.api-sports.io/football/leagues/131.png",
-      "status_short": "2H",
-      "status_long": "Second Half",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 1,
       "goals_away": 1,
       "total_corners": null,
@@ -255,8 +255,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/1924.png",
       "away_logo": "https://media.api-sports.io/football/teams/481.png",
       "league_logo": "https://media.api-sports.io/football/leagues/131.png",
-      "status_short": "2H",
-      "status_long": "Second Half",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 0,
       "goals_away": 2,
       "total_corners": null,
@@ -487,8 +487,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/1929.png",
       "away_logo": "https://media.api-sports.io/football/teams/466.png",
       "league_logo": "https://media.api-sports.io/football/leagues/129.png",
-      "status_short": "2H",
-      "status_long": "Second Half",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 4,
       "goals_away": 0,
       "total_corners": null,
@@ -723,8 +723,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/16617.png",
       "away_logo": "https://media.api-sports.io/football/teams/16142.png",
       "league_logo": "https://media.api-sports.io/football/leagues/759.png",
-      "status_short": "2H",
-      "status_long": "Second Half",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 0,
       "goals_away": 0,
       "total_corners": null,
@@ -874,8 +874,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/2358.png",
       "away_logo": "https://media.api-sports.io/football/teams/2362.png",
       "league_logo": "https://media.api-sports.io/football/leagues/268.png",
-      "status_short": "2H",
-      "status_long": "Second Half",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 4,
       "goals_away": 0,
       "total_corners": null,
@@ -1118,8 +1118,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/2355.png",
       "away_logo": "https://media.api-sports.io/football/teams/15628.png",
       "league_logo": "https://media.api-sports.io/football/leagues/269.png",
-      "status_short": "2H",
-      "status_long": "Second Half",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 1,
       "goals_away": 1,
       "total_corners": null,
@@ -1280,11 +1280,11 @@
       "league_logo": "https://media.api-sports.io/football/leagues/344.png",
       "status_short": "FT",
       "status_long": "Match Finished",
-      "goals_home": 2,
-      "goals_away": 2,
+      "goals_home": 4,
+      "goals_away": 3,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "2-2",
+      "final_score": "4-3",
       "home_team_id": 3711,
       "away_team_id": 17762,
       "league_id": 344,
@@ -1518,8 +1518,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/2424.png",
       "away_logo": "https://media.api-sports.io/football/teams/460.png",
       "league_logo": "https://media.api-sports.io/football/leagues/128.png",
-      "status_short": "1H",
-      "status_long": "First Half",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 0,
       "goals_away": 0,
       "total_corners": null,
@@ -1763,8 +1763,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/14870.png",
       "away_logo": "https://media.api-sports.io/football/teams/14871.png",
       "league_logo": "https://media.api-sports.io/football/leagues/673.png",
-      "status_short": "1H",
-      "status_long": "First Half",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 5,
       "goals_away": 0,
       "total_corners": null,
@@ -2003,8 +2003,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/2808.png",
       "away_logo": "https://media.api-sports.io/football/teams/2810.png",
       "league_logo": "https://media.api-sports.io/football/leagues/299.png",
-      "status_short": "1H",
-      "status_long": "First Half",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 1,
       "goals_away": 1,
       "total_corners": null,
@@ -2106,8 +2106,8 @@
       },
       "corner_odds": {
         "8.5": {
-          "over": 1.85,
-          "under": 1.95
+          "over": 1.83,
+          "under": 1.83
         },
         "1.0": {
           "over": 1.0,
@@ -2239,8 +2239,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/24657.png",
       "away_logo": "https://media.api-sports.io/football/teams/24659.png",
       "league_logo": "https://media.api-sports.io/football/leagues/1130.png",
-      "status_short": "1H",
-      "status_long": "First Half",
+      "status_short": "FT",
+      "status_long": "Match Finished",
       "goals_home": 0,
       "goals_away": 2,
       "total_corners": null,
@@ -2390,13 +2390,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/1961.png",
       "away_logo": "https://media.api-sports.io/football/teams/1938.png",
       "league_logo": "https://media.api-sports.io/football/leagues/134.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "2H",
+      "status_long": "Second Half",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "home_team_id": 1961,
       "away_team_id": 1938,
       "league_id": 134,
@@ -2527,8 +2527,8 @@
       ],
       "kickoff_at": "2026-08-22T02:00:00+02:00",
       "kickoff_ts": 1787356800,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1519458,
@@ -2541,13 +2541,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/1154.png",
       "away_logo": "https://media.api-sports.io/football/teams/1162.png",
       "league_logo": "https://media.api-sports.io/football/leagues/242.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "home_team_id": 1154,
       "away_team_id": 1162,
       "league_id": 242,
@@ -2783,8 +2783,8 @@
       ],
       "kickoff_at": "2026-08-22T02:00:00+02:00",
       "kickoff_ts": 1787356800,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1519460,
@@ -2797,13 +2797,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/19034.png",
       "away_logo": "https://media.api-sports.io/football/teams/1153.png",
       "league_logo": "https://media.api-sports.io/football/leagues/242.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "HT",
+      "status_long": "Halftime",
+      "goals_home": 1,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "1-0",
       "home_team_id": 19034,
       "away_team_id": 1153,
       "league_id": 242,
@@ -3031,8 +3031,8 @@
       ],
       "kickoff_at": "2026-08-22T02:00:00+02:00",
       "kickoff_ts": 1787356800,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 1,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1526606,
@@ -3196,13 +3196,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/3707.png",
       "away_logo": "https://media.api-sports.io/football/teams/17760.png",
       "league_logo": "https://media.api-sports.io/football/leagues/344.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 1,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "1-0",
       "home_team_id": 3707,
       "away_team_id": 17760,
       "league_id": 344,
@@ -3426,8 +3426,8 @@
       ],
       "kickoff_at": "2026-08-22T02:30:00+02:00",
       "kickoff_ts": 1787358600,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 1,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1511664,
@@ -3440,13 +3440,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/2345.png",
       "away_logo": "https://media.api-sports.io/football/teams/2344.png",
       "league_logo": "https://media.api-sports.io/football/leagues/266.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 1,
+      "goals_away": 1,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "1-1",
       "home_team_id": 2345,
       "away_team_id": 2344,
       "league_id": 266,
@@ -3586,8 +3586,8 @@
       ],
       "kickoff_at": "2026-08-22T02:30:00+02:00",
       "kickoff_ts": 1787358600,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 1,
+      "ht_goals_away": 1
     },
     {
       "fixture_id": 1505499,
@@ -3600,13 +3600,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/2329.png",
       "away_logo": "https://media.api-sports.io/football/teams/2326.png",
       "league_logo": "https://media.api-sports.io/football/leagues/265.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "home_team_id": 2329,
       "away_team_id": 2326,
       "league_id": 265,
@@ -3838,8 +3838,8 @@
       ],
       "kickoff_at": "2026-08-22T02:30:00+02:00",
       "kickoff_ts": 1787358600,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1549734,
@@ -3852,13 +3852,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/1141.png",
       "away_logo": "https://media.api-sports.io/football/teams/1462.png",
       "league_logo": "https://media.api-sports.io/football/leagues/239.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "home_team_id": 1141,
       "away_team_id": 1462,
       "league_id": 239,
@@ -3911,24 +3911,24 @@
       "sh15_conf": 0.6447,
       "odd_o15_sh": 2.25,
       "odd_u15_sh": 1.57,
-      "p_over25": 0.5177,
-      "p_under25": 0.4823,
+      "p_over25": 0.5169,
+      "p_under25": 0.4831,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.5177,
+      "ou_conf": 0.5169,
       "odd_o25": 2.15,
       "odd_u25": 1.68,
-      "p_over35": 0.1907,
-      "p_under35": 0.8093,
+      "p_over35": 0.1906,
+      "p_under35": 0.8094,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.8093,
+      "ou35_conf": 0.8094,
       "odd_o35": 3.8,
       "odd_u35": 1.25,
-      "p_btts_yes": 0.3744,
-      "p_btts_no": 0.6256,
+      "p_btts_yes": 0.3689,
+      "p_btts_no": 0.6311,
       "btts_pick": "BTTS NO",
-      "btts_conf": 0.6256,
-      "odd_btts_y": 4.0,
-      "odd_btts_n": 1.22,
+      "btts_conf": 0.6311,
+      "odd_btts_y": 4.33,
+      "odd_btts_n": 1.2,
       "p_1x": 0.8036,
       "p_x2": 0.5009,
       "dc_pick": "1X",
@@ -3936,8 +3936,8 @@
       "odd_1x": 1.11,
       "odd_x2": 1.62,
       "p_o25_btts": 0.302,
-      "p_nogol": 0.6342,
-      "p_both_score": 0.3658,
+      "p_nogol": 0.6403,
+      "p_both_score": 0.3597,
       "p_home_blanked": 0.209,
       "p_away_blanked": 0.4376,
       "nogol_team": "Deportivo Pereira",
@@ -4082,8 +4082,8 @@
       ],
       "kickoff_at": "2026-08-22T02:30:00+02:00",
       "kickoff_ts": 1787358600,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1551671,
@@ -4096,13 +4096,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/2045.png",
       "away_logo": "https://media.api-sports.io/football/teams/819.png",
       "league_logo": "https://media.api-sports.io/football/leagues/162.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "home_team_id": 2045,
       "away_team_id": 819,
       "league_id": 162,
@@ -4137,51 +4137,51 @@
         "description": "",
         "form": "LDWL"
       },
-      "p_over15": 0.7581,
-      "p_under15": 0.2419,
+      "p_over15": 0.7618,
+      "p_under15": 0.2382,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.7581,
-      "odd_o15": 1.22,
-      "odd_u15": 4.15,
-      "p_over15_ht": 0.3402,
-      "p_under15_ht": 0.6598,
+      "ou15_conf": 0.7618,
+      "odd_o15": 1.2,
+      "odd_u15": 4.4,
+      "p_over15_ht": 0.3405,
+      "p_under15_ht": 0.6595,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.6598,
+      "ht15_conf": 0.6595,
       "odd_o15_ht": 2.42,
       "odd_u15_ht": 1.52,
-      "p_over15_sh": 0.4129,
-      "p_under15_sh": 0.5871,
+      "p_over15_sh": 0.4134,
+      "p_under15_sh": 0.5866,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.5871,
+      "sh15_conf": 0.5866,
       "odd_o15_sh": 2.1,
       "odd_u15_sh": 1.67,
-      "p_over25": 0.5736,
-      "p_under25": 0.4264,
+      "p_over25": 0.575,
+      "p_under25": 0.425,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.5736,
-      "odd_o25": 1.7,
-      "odd_u25": 2.1,
-      "p_over35": 0.268,
-      "p_under35": 0.732,
+      "ou_conf": 0.575,
+      "odd_o25": 1.68,
+      "odd_u25": 2.15,
+      "p_over35": 0.2715,
+      "p_under35": 0.7285,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.732,
-      "odd_o35": 2.68,
-      "odd_u35": 1.45,
-      "p_btts_yes": 0.4478,
-      "p_btts_no": 0.5522,
+      "ou35_conf": 0.7285,
+      "odd_o35": 2.6,
+      "odd_u35": 1.48,
+      "p_btts_yes": 0.4407,
+      "p_btts_no": 0.5593,
       "btts_pick": "BTTS NO",
-      "btts_conf": 0.5522,
-      "odd_btts_y": 3.0,
-      "odd_btts_n": 1.36,
-      "p_1x": 0.7773,
-      "p_x2": 0.5168,
+      "btts_conf": 0.5593,
+      "odd_btts_y": 3.25,
+      "odd_btts_n": 1.33,
+      "p_1x": 0.7738,
+      "p_x2": 0.5218,
       "dc_pick": "1X",
-      "dc_conf": 0.7773,
+      "dc_conf": 0.7738,
       "odd_1x": 1.2,
       "odd_x2": 1.53,
       "p_o25_btts": 0.3678,
-      "p_nogol": 0.6163,
-      "p_both_score": 0.3837,
+      "p_nogol": 0.6241,
+      "p_both_score": 0.3759,
       "p_home_blanked": 0.3893,
       "p_away_blanked": 0.2972,
       "nogol_team": "Puntarenas FC",
@@ -4199,8 +4199,8 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.83,
-          "under": 1.83
+          "over": 1.9,
+          "under": 1.9
         },
         "2.0": {
           "over": 1.0,
@@ -4322,8 +4322,8 @@
       ],
       "kickoff_at": "2026-08-22T03:00:00+02:00",
       "kickoff_ts": 1787360400,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1600570,
@@ -4336,13 +4336,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/26154.png",
       "away_logo": "https://media.api-sports.io/football/teams/28019.png",
       "league_logo": "https://media.api-sports.io/football/leagues/370.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "home_team_id": 26154,
       "away_team_id": 28019,
       "league_id": 370,
@@ -4473,8 +4473,8 @@
       ],
       "kickoff_at": "2026-08-22T03:00:00+02:00",
       "kickoff_ts": 1787360400,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1592950,
@@ -4487,13 +4487,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/1055.png",
       "away_logo": "https://media.api-sports.io/football/teams/1059.png",
       "league_logo": "https://media.api-sports.io/football/leagues/234.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "home_team_id": 1055,
       "away_team_id": 1059,
       "league_id": 234,
@@ -4633,8 +4633,8 @@
       ],
       "kickoff_at": "2026-08-22T03:00:00+02:00",
       "kickoff_ts": 1787360400,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1550934,
@@ -4647,13 +4647,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/2289.png",
       "away_logo": "https://media.api-sports.io/football/teams/2282.png",
       "league_logo": "https://media.api-sports.io/football/leagues/262.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "home_team_id": 2289,
       "away_team_id": 2282,
       "league_id": 262,
@@ -4886,8 +4886,8 @@
       ],
       "kickoff_at": "2026-08-22T03:00:00+02:00",
       "kickoff_ts": 1787360400,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1550936,
@@ -4900,13 +4900,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/2279.png",
       "away_logo": "https://media.api-sports.io/football/teams/2312.png",
       "league_logo": "https://media.api-sports.io/football/leagues/262.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "1H",
+      "status_long": "First Half",
+      "goals_home": 0,
+      "goals_away": 0,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "0-0",
       "home_team_id": 2279,
       "away_team_id": 2312,
       "league_id": 262,
@@ -5135,8 +5135,8 @@
       ],
       "kickoff_at": "2026-08-22T03:00:00+02:00",
       "kickoff_ts": 1787360400,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 0,
+      "ht_goals_away": 0
     },
     {
       "fixture_id": 1583741,
@@ -6359,46 +6359,46 @@
         "description": "Promotion - Liga MX (Apertura - Play Offs: Quarter-finals)",
         "form": "WWDW"
       },
-      "p_over15": 0.7617,
-      "p_under15": 0.2383,
+      "p_over15": 0.7604,
+      "p_under15": 0.2396,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.7617,
+      "ou15_conf": 0.7604,
       "odd_o15": 1.23,
-      "odd_u15": 4.1,
-      "p_over15_ht": 0.3368,
-      "p_under15_ht": 0.6632,
+      "odd_u15": 4.0,
+      "p_over15_ht": 0.3328,
+      "p_under15_ht": 0.6672,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.6632,
-      "odd_o15_ht": 2.5,
-      "odd_u15_ht": 1.5,
-      "p_over15_sh": 0.4231,
-      "p_under15_sh": 0.5769,
+      "ht15_conf": 0.6672,
+      "odd_o15_ht": 2.6,
+      "odd_u15_ht": 1.48,
+      "p_over15_sh": 0.4221,
+      "p_under15_sh": 0.5779,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.5769,
+      "sh15_conf": 0.5779,
       "odd_o15_sh": 1.91,
       "odd_u15_sh": 1.8,
-      "p_over25": 0.5483,
-      "p_under25": 0.4517,
+      "p_over25": 0.5434,
+      "p_under25": 0.4566,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.5483,
-      "odd_o25": 1.75,
-      "odd_u25": 2.05,
-      "p_over35": 0.2622,
-      "p_under35": 0.7378,
+      "ou_conf": 0.5434,
+      "odd_o25": 1.82,
+      "odd_u25": 1.98,
+      "p_over35": 0.2585,
+      "p_under35": 0.7415,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.7378,
-      "odd_o35": 2.75,
-      "odd_u35": 1.42,
+      "ou35_conf": 0.7415,
+      "odd_o35": 2.85,
+      "odd_u35": 1.4,
       "p_btts_yes": 0.3378,
       "p_btts_no": 0.6622,
       "btts_pick": "BTTS NO",
       "btts_conf": 0.6622,
       "odd_btts_y": 3.25,
       "odd_btts_n": 1.33,
-      "p_1x": 0.3636,
-      "p_x2": 0.8982,
+      "p_1x": 0.36,
+      "p_x2": 0.9014,
       "dc_pick": "X2",
-      "dc_conf": 0.8982,
+      "dc_conf": 0.9014,
       "odd_1x": 1.57,
       "odd_x2": 1.17,
       "p_o25_btts": 0.2577,
@@ -7995,10 +7995,10 @@
       "btts_conf": 0.6342,
       "odd_btts_y": null,
       "odd_btts_n": null,
-      "p_1x": 0.3022,
-      "p_x2": 0.9027,
+      "p_1x": 0.2951,
+      "p_x2": 0.9073,
       "dc_pick": "X2",
-      "dc_conf": 0.9027,
+      "dc_conf": 0.9073,
       "odd_1x": 2.38,
       "odd_x2": 1.1,
       "p_o25_btts": 0.6017,
@@ -12318,33 +12318,33 @@
       "sh15_conf": 0.7252,
       "odd_o15_sh": 1.4,
       "odd_u15_sh": 2.75,
-      "p_over25": 0.7855,
-      "p_under25": 0.2145,
+      "p_over25": 0.7864,
+      "p_under25": 0.2136,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.7855,
+      "ou_conf": 0.7864,
       "odd_o25": 1.25,
       "odd_u25": 3.8,
-      "p_over35": 0.6599,
-      "p_under35": 0.3401,
+      "p_over35": 0.66,
+      "p_under35": 0.34,
       "ou35_pick": "Over 3.5",
-      "ou35_conf": 0.6599,
+      "ou35_conf": 0.66,
       "odd_o35": 1.65,
       "odd_u35": 2.2,
-      "p_btts_yes": 0.6611,
-      "p_btts_no": 0.3389,
+      "p_btts_yes": 0.6673,
+      "p_btts_no": 0.3327,
       "btts_pick": "BTTS YES",
-      "btts_conf": 0.6611,
-      "odd_btts_y": 2.2,
-      "odd_btts_n": 1.62,
+      "btts_conf": 0.6673,
+      "odd_btts_y": 2.1,
+      "odd_btts_n": 1.67,
       "p_1x": 0.8095,
       "p_x2": 0.4231,
       "dc_pick": "1X",
       "dc_conf": 0.8095,
-      "odd_1x": 1.25,
-      "odd_x2": 1.73,
+      "odd_1x": 1.3,
+      "odd_x2": 1.62,
       "p_o25_btts": 0.7155,
-      "p_nogol": 0.3488,
-      "p_both_score": 0.6512,
+      "p_nogol": 0.3419,
+      "p_both_score": 0.6581,
       "p_home_blanked": 0.05,
       "p_away_blanked": 0.1968,
       "nogol_team": "Perth Glory II",
@@ -18456,8 +18456,8 @@
           5.6
         ]
       ],
-      "kickoff_at": "2026-08-22T10:15:00+02:00",
-      "kickoff_ts": 1787386500,
+      "kickoff_at": "2026-08-22T14:00:00+02:00",
+      "kickoff_ts": 1787400000,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -23087,13 +23087,13 @@
           "over": 1.67,
           "under": 2.1
         },
-        "10.5": {
-          "over": 2.1,
-          "under": 1.67
-        },
         "10.0": {
           "over": 2.1,
           "under": 2.1
+        },
+        "10.5": {
+          "over": 2.1,
+          "under": 1.67
         }
       },
       "exp_yellows": null,
@@ -23226,8 +23226,8 @@
       "p_x2": 0.7871,
       "dc_pick": "X2",
       "dc_conf": 0.7871,
-      "odd_1x": 1.4,
-      "odd_x2": 1.33,
+      "odd_1x": 1.5,
+      "odd_x2": 1.25,
       "p_o25_btts": 0.5382,
       "p_nogol": 0.3953,
       "p_both_score": 0.6047,
@@ -28122,53 +28122,53 @@
         "description": "",
         "form": ""
       },
-      "p_over15": 0.6527,
-      "p_under15": 0.3473,
+      "p_over15": 0.7218,
+      "p_under15": 0.2782,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.6527,
-      "odd_o15": null,
-      "odd_u15": null,
-      "p_over15_ht": 0.2652,
-      "p_under15_ht": 0.7348,
+      "ou15_conf": 0.7218,
+      "odd_o15": 1.11,
+      "odd_u15": 6.6,
+      "p_over15_ht": 0.3306,
+      "p_under15_ht": 0.6694,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7348,
-      "odd_o15_ht": null,
-      "odd_u15_ht": null,
-      "p_over15_sh": 0.3334,
-      "p_under15_sh": 0.6666,
+      "ht15_conf": 0.6694,
+      "odd_o15_ht": 2.0,
+      "odd_u15_ht": 1.8,
+      "p_over15_sh": 0.3558,
+      "p_under15_sh": 0.6442,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6666,
+      "sh15_conf": 0.6442,
       "odd_o15_sh": null,
       "odd_u15_sh": null,
-      "p_over25": 0.3649,
-      "p_under25": 0.6351,
+      "p_over25": 0.475,
+      "p_under25": 0.525,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.6351,
-      "odd_o25": null,
-      "odd_u25": null,
-      "p_over35": 0.1566,
-      "p_under35": 0.8434,
+      "ou_conf": 0.525,
+      "odd_o25": 1.38,
+      "odd_u25": 3.0,
+      "p_over35": 0.2552,
+      "p_under35": 0.7448,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.8434,
-      "odd_o35": null,
-      "odd_u35": null,
-      "p_btts_yes": 0.3443,
-      "p_btts_no": 0.6557,
+      "ou35_conf": 0.7448,
+      "odd_o35": 1.95,
+      "odd_u35": 1.85,
+      "p_btts_yes": 0.392,
+      "p_btts_no": 0.608,
       "btts_pick": "BTTS NO",
-      "btts_conf": 0.6557,
-      "odd_btts_y": 5.0,
-      "odd_btts_n": 1.12,
-      "p_1x": 0.7946,
-      "p_x2": 0.4952,
+      "btts_conf": 0.608,
+      "odd_btts_y": 3.0,
+      "odd_btts_n": 1.36,
+      "p_1x": 0.8008,
+      "p_x2": 0.4786,
       "dc_pick": "1X",
-      "dc_conf": 0.7946,
-      "odd_1x": 1.11,
-      "odd_x2": 2.7,
+      "dc_conf": 0.8008,
+      "odd_1x": 1.1,
+      "odd_x2": 2.1,
       "p_o25_btts": 0.3087,
-      "p_nogol": 0.6548,
-      "p_both_score": 0.3452,
+      "p_nogol": 0.6078,
+      "p_both_score": 0.3922,
       "p_home_blanked": 0.3012,
-      "p_away_blanked": 0.3679,
+      "p_away_blanked": 0.4179,
       "nogol_team": "FC Koln W",
       "nogol_side": "away",
       "p_00": 0.1108,
@@ -28182,7 +28182,43 @@
         "12.5": null,
         "13.5": null
       },
-      "corner_odds": {},
+      "corner_odds": {
+        "9.5": {
+          "over": 1.8,
+          "under": 1.91
+        },
+        "2.0": {
+          "over": 1.0,
+          "under": 67.0
+        },
+        "3.0": {
+          "over": 1.01,
+          "under": 51.0
+        },
+        "4.0": {
+          "over": 1.02,
+          "under": 29.0
+        },
+        "5.0": {
+          "over": 1.06,
+          "under": 19.0
+        },
+        "10.0": {
+          "over": 2.25,
+          "under": 1.91
+        },
+        "7.0": {
+          "over": 1.25,
+          "under": 6.0
+        },
+        "6.0": {
+          "over": 1.12,
+          "under": 10.0
+        },
+        "14.0": {
+          "over": 9.0
+        }
+      },
       "exp_yellows": null,
       "yellow_overs": {
         "1.5": null,
@@ -34347,28 +34383,28 @@
       "ou15_conf": 0.7233,
       "odd_o15": null,
       "odd_u15": null,
-      "p_over15_ht": 0.3398,
-      "p_under15_ht": 0.6602,
+      "p_over15_ht": 0.3723,
+      "p_under15_ht": 0.6277,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.6602,
-      "odd_o15_ht": null,
-      "odd_u15_ht": null,
-      "p_over15_sh": 0.4204,
-      "p_under15_sh": 0.5796,
+      "ht15_conf": 0.6277,
+      "odd_o15_ht": 1.95,
+      "odd_u15_ht": 1.85,
+      "p_over15_sh": 0.4135,
+      "p_under15_sh": 0.5865,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.5796,
+      "sh15_conf": 0.5865,
       "odd_o15_sh": null,
       "odd_u15_sh": null,
-      "p_over25": 0.5563,
-      "p_under25": 0.4437,
+      "p_over25": 0.5252,
+      "p_under25": 0.4748,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.5563,
-      "odd_o25": 1.2,
-      "odd_u25": 4.33,
-      "p_over35": 0.3092,
-      "p_under35": 0.6908,
+      "ou_conf": 0.5252,
+      "odd_o25": 1.36,
+      "odd_u25": 3.0,
+      "p_over35": 0.3058,
+      "p_under35": 0.6942,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.6908,
+      "ou35_conf": 0.6942,
       "odd_o35": 1.9,
       "odd_u35": 1.9,
       "p_btts_yes": 0.5267,
@@ -34381,8 +34417,8 @@
       "p_x2": 0.8385,
       "dc_pick": "X2",
       "dc_conf": 0.8385,
-      "odd_1x": 3.75,
-      "odd_x2": 1.0,
+      "odd_1x": 3.5,
+      "odd_x2": 1.01,
       "p_o25_btts": 0.3678,
       "p_nogol": 0.5093,
       "p_both_score": 0.4907,
@@ -34403,8 +34439,8 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.98,
-          "under": 1.82
+          "over": 1.91,
+          "under": 1.8
         },
         "9.0": {
           "over": 1.91,
@@ -44176,8 +44212,8 @@
           6.3
         ]
       ],
-      "kickoff_at": "2026-08-22T13:00:00+02:00",
-      "kickoff_ts": 1787396400,
+      "kickoff_at": "2026-08-22T13:30:00+02:00",
+      "kickoff_ts": 1787398200,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -44768,33 +44804,33 @@
       "sh15_conf": 0.5205,
       "odd_o15_sh": 1.83,
       "odd_u15_sh": 1.83,
-      "p_over25": 0.6337,
-      "p_under25": 0.3663,
+      "p_over25": 0.6333,
+      "p_under25": 0.3667,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.6337,
+      "ou_conf": 0.6333,
       "odd_o25": 1.68,
       "odd_u25": 2.15,
-      "p_over35": 0.3818,
-      "p_under35": 0.6182,
+      "p_over35": 0.3817,
+      "p_under35": 0.6183,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.6182,
+      "ou35_conf": 0.6183,
       "odd_o35": 2.6,
       "odd_u35": 1.48,
-      "p_btts_yes": 0.502,
-      "p_btts_no": 0.498,
-      "btts_pick": "BTTS YES",
-      "btts_conf": 0.502,
-      "odd_btts_y": 3.4,
-      "odd_btts_n": 1.3,
-      "p_1x": 0.4189,
-      "p_x2": 0.8473,
+      "p_btts_yes": 0.4992,
+      "p_btts_no": 0.5008,
+      "btts_pick": "BTTS NO",
+      "btts_conf": 0.5008,
+      "odd_btts_y": 3.5,
+      "odd_btts_n": 1.28,
+      "p_1x": 0.4087,
+      "p_x2": 0.8543,
       "dc_pick": "X2",
-      "dc_conf": 0.8473,
-      "odd_1x": 1.73,
-      "odd_x2": 1.12,
+      "dc_conf": 0.8543,
+      "odd_1x": 1.8,
+      "odd_x2": 1.11,
       "p_o25_btts": 0.4984,
-      "p_nogol": 0.4782,
-      "p_both_score": 0.5218,
+      "p_nogol": 0.4814,
+      "p_both_score": 0.5186,
       "p_home_blanked": 0.26,
       "p_away_blanked": 0.1182,
       "nogol_team": "Meizhou Kejia",
@@ -45058,28 +45094,28 @@
       "ou15_conf": 0.6857,
       "odd_o15": 1.26,
       "odd_u15": 3.7,
-      "p_over15_ht": 0.2913,
-      "p_under15_ht": 0.7087,
+      "p_over15_ht": 0.2908,
+      "p_under15_ht": 0.7092,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7087,
+      "ht15_conf": 0.7092,
       "odd_o15_ht": 2.68,
       "odd_u15_ht": 1.45,
-      "p_over15_sh": 0.3731,
-      "p_under15_sh": 0.6269,
+      "p_over15_sh": 0.3724,
+      "p_under15_sh": 0.6276,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6269,
+      "sh15_conf": 0.6276,
       "odd_o15_sh": 2.0,
       "odd_u15_sh": 1.73,
-      "p_over25": 0.4481,
-      "p_under25": 0.5519,
+      "p_over25": 0.4438,
+      "p_under25": 0.5562,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.5519,
-      "odd_o25": 1.88,
-      "odd_u25": 1.98,
-      "p_over35": 0.2027,
-      "p_under35": 0.7973,
+      "ou_conf": 0.5562,
+      "odd_o25": 1.92,
+      "odd_u25": 1.92,
+      "p_over35": 0.2022,
+      "p_under35": 0.7978,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.7973,
+      "ou35_conf": 0.7978,
       "odd_o35": 3.0,
       "odd_u35": 1.38,
       "p_btts_yes": 0.3789,
@@ -45088,10 +45124,10 @@
       "btts_conf": 0.6211,
       "odd_btts_y": 3.4,
       "odd_btts_n": 1.3,
-      "p_1x": 0.769,
-      "p_x2": 0.5366,
+      "p_1x": 0.7694,
+      "p_x2": 0.5377,
       "dc_pick": "1X",
-      "dc_conf": 0.769,
+      "dc_conf": 0.7694,
       "odd_1x": 1.17,
       "odd_x2": 1.53,
       "p_o25_btts": 0.3087,
@@ -46051,12 +46087,12 @@
         "description": "",
         "form": "D"
       },
-      "p_over15": 0.9186,
-      "p_under15": 0.0814,
+      "p_over15": 0.9213,
+      "p_under15": 0.0787,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.9186,
-      "odd_o15": 1.23,
-      "odd_u15": 4.0,
+      "ou15_conf": 0.9213,
+      "odd_o15": 1.22,
+      "odd_u15": 4.15,
       "p_over15_ht": 0.5918,
       "p_under15_ht": 0.4082,
       "ht15_pick": "Over 1.5 HT",
@@ -46362,7 +46398,7 @@
       "corner_odds": {
         "9.5": {
           "over": 1.8,
-          "under": 2.0
+          "under": 1.91
         },
         "2.0": {
           "over": 1.0,
@@ -48067,10 +48103,10 @@
       "btts_conf": 0.6177,
       "odd_btts_y": 3.25,
       "odd_btts_n": 1.33,
-      "p_1x": 0.7979,
-      "p_x2": 0.4408,
+      "p_1x": 0.801,
+      "p_x2": 0.4352,
       "dc_pick": "1X",
-      "dc_conf": 0.7979,
+      "dc_conf": 0.801,
       "odd_1x": 1.25,
       "odd_x2": 1.4,
       "p_o25_btts": 0.7858,
@@ -48092,6 +48128,10 @@
         "13.5": 0.07
       },
       "corner_odds": {
+        "10.0": {
+          "over": 2.1,
+          "under": 2.1
+        },
         "10.5": {
           "over": 2.1,
           "under": 1.67
@@ -48119,10 +48159,6 @@
         "9.0": {
           "over": 1.67,
           "under": 2.75
-        },
-        "10.0": {
-          "over": 2.1,
-          "under": 2.1
         },
         "11.0": {
           "over": 2.75,
@@ -50528,28 +50564,28 @@
       "ou15_conf": 0.8676,
       "odd_o15": 1.16,
       "odd_u15": 5.25,
-      "p_over15_ht": 0.4581,
-      "p_under15_ht": 0.5419,
+      "p_over15_ht": 0.4585,
+      "p_under15_ht": 0.5415,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.5419,
+      "ht15_conf": 0.5415,
       "odd_o15_ht": 2.25,
       "odd_u15_ht": 1.62,
-      "p_over15_sh": 0.5561,
-      "p_under15_sh": 0.4439,
+      "p_over15_sh": 0.5566,
+      "p_under15_sh": 0.4434,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.5561,
+      "sh15_conf": 0.5566,
       "odd_o15_sh": 1.73,
       "odd_u15_sh": 2.0,
-      "p_over25": 0.6279,
-      "p_under25": 0.3721,
+      "p_over25": 0.6302,
+      "p_under25": 0.3698,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.6279,
-      "odd_o25": 1.55,
-      "odd_u25": 2.38,
-      "p_over35": 0.4245,
-      "p_under35": 0.5755,
+      "ou_conf": 0.6302,
+      "odd_o25": 1.52,
+      "odd_u25": 2.42,
+      "p_over35": 0.4247,
+      "p_under35": 0.5753,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.5755,
+      "ou35_conf": 0.5753,
       "odd_o35": 2.3,
       "odd_u35": 1.6,
       "p_btts_yes": 0.5627,
@@ -50939,33 +50975,33 @@
       "sh15_conf": 0.6083,
       "odd_o15_sh": 1.5,
       "odd_u15_sh": 2.5,
-      "p_over25": 0.6929,
-      "p_under25": 0.3071,
+      "p_over25": 0.6921,
+      "p_under25": 0.3079,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.6929,
+      "ou_conf": 0.6921,
       "odd_o25": 1.3,
       "odd_u25": 3.45,
-      "p_over35": 0.5,
-      "p_under35": 0.5,
-      "ou35_pick": "Over 3.5",
-      "ou35_conf": 0.5,
+      "p_over35": 0.4999,
+      "p_under35": 0.5001,
+      "ou35_pick": "Under 3.5",
+      "ou35_conf": 0.5001,
       "odd_o35": 1.72,
       "odd_u35": 2.08,
-      "p_btts_yes": 0.6144,
-      "p_btts_no": 0.3856,
+      "p_btts_yes": 0.608,
+      "p_btts_no": 0.392,
       "btts_pick": "BTTS YES",
-      "btts_conf": 0.6144,
-      "odd_btts_y": 2.25,
-      "odd_btts_n": 1.57,
-      "p_1x": 0.7928,
-      "p_x2": 0.4652,
+      "btts_conf": 0.608,
+      "odd_btts_y": 2.38,
+      "odd_btts_n": 1.53,
+      "p_1x": 0.7947,
+      "p_x2": 0.4635,
       "dc_pick": "1X",
-      "dc_conf": 0.7928,
+      "dc_conf": 0.7947,
       "odd_1x": 1.14,
       "odd_x2": 1.83,
       "p_o25_btts": 0.5983,
-      "p_nogol": 0.3798,
-      "p_both_score": 0.6202,
+      "p_nogol": 0.3869,
+      "p_both_score": 0.6131,
       "p_home_blanked": 0.0788,
       "p_away_blanked": 0.2122,
       "nogol_team": "Yunnan Yukun",
@@ -51235,12 +51271,12 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.85,
-          "under": 1.95
+          "over": 2.0,
+          "under": 1.73
         },
         "10.0": {
-          "over": 2.38,
-          "under": 1.83
+          "over": 2.62,
+          "under": 1.73
         },
         "1.0": {
           "over": 1.0,
@@ -51263,35 +51299,35 @@
           "under": 15.0
         },
         "8.0": {
-          "over": 1.4,
-          "under": 4.0
+          "over": 1.57,
+          "under": 3.25
         },
         "9.0": {
           "over": 2.0,
           "under": 2.25
         },
         "11.0": {
-          "over": 2.75,
-          "under": 1.67
+          "over": 3.5,
+          "under": 1.44
         },
         "7.0": {
-          "over": 1.28,
-          "under": 5.5
+          "over": 1.33,
+          "under": 5.0
         },
         "12.0": {
-          "over": 3.75,
-          "under": 1.4
+          "over": 5.0,
+          "under": 1.28
         },
         "6.0": {
           "over": 1.17,
           "under": 8.0
         },
         "13.0": {
-          "over": 5.5,
-          "under": 1.25
+          "over": 8.0,
+          "under": 1.17
         },
         "21.0": {
-          "over": 67.0,
+          "over": 101.0,
           "under": 1.0
         },
         "22.0": {
@@ -51300,31 +51336,31 @@
         },
         "14.0": {
           "over": 11.0,
-          "under": 1.14
+          "under": 1.08
         },
         "19.0": {
-          "over": 41.0,
-          "under": 1.01
-        },
-        "20.0": {
           "over": 51.0,
           "under": 1.0
         },
-        "17.0": {
-          "over": 21.0,
-          "under": 1.02
+        "20.0": {
+          "over": 67.0,
+          "under": 1.0
         },
-        "18.0": {
+        "17.0": {
           "over": 29.0,
           "under": 1.01
         },
+        "18.0": {
+          "over": 41.0,
+          "under": 1.01
+        },
         "16.0": {
-          "over": 15.0,
-          "under": 1.04
+          "over": 21.0,
+          "under": 1.02
         },
         "15.0": {
-          "over": 12.0,
-          "under": 1.08
+          "over": 15.0,
+          "under": 1.05
         },
         "21.5": {
           "over": 1.83,
@@ -54645,45 +54681,45 @@
       "ou15_conf": 0.938,
       "odd_o15": null,
       "odd_u15": null,
-      "p_over15_ht": 0.5912,
-      "p_under15_ht": 0.4088,
+      "p_over15_ht": 0.5077,
+      "p_under15_ht": 0.4923,
       "ht15_pick": "Over 1.5 HT",
-      "ht15_conf": 0.5912,
-      "odd_o15_ht": null,
-      "odd_u15_ht": null,
-      "p_over15_sh": 0.6858,
-      "p_under15_sh": 0.3142,
+      "ht15_conf": 0.5077,
+      "odd_o15_ht": 3.48,
+      "odd_u15_ht": 1.24,
+      "p_over15_sh": 0.6039,
+      "p_under15_sh": 0.3961,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.6858,
-      "odd_o15_sh": null,
-      "odd_u15_sh": null,
-      "p_over25": 0.7218,
-      "p_under25": 0.2782,
+      "sh15_conf": 0.6039,
+      "odd_o15_sh": 2.54,
+      "odd_u15_sh": 1.43,
+      "p_over25": 0.7226,
+      "p_under25": 0.2774,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.7218,
-      "odd_o25": null,
-      "odd_u25": null,
-      "p_over35": 0.6157,
-      "p_under35": 0.3843,
+      "ou_conf": 0.7226,
+      "odd_o25": 1.12,
+      "odd_u25": 4.65,
+      "p_over35": 0.6122,
+      "p_under35": 0.3878,
       "ou35_pick": "Over 3.5",
-      "ou35_conf": 0.6157,
-      "odd_o35": 1.36,
-      "odd_u35": 2.63,
-      "p_btts_yes": 0.7767,
-      "p_btts_no": 0.2233,
+      "ou35_conf": 0.6122,
+      "odd_o35": 1.4,
+      "odd_u35": 2.56,
+      "p_btts_yes": 0.598,
+      "p_btts_no": 0.402,
       "btts_pick": "BTTS YES",
-      "btts_conf": 0.7767,
-      "odd_btts_y": null,
-      "odd_btts_n": null,
-      "p_1x": 0.7274,
-      "p_x2": 0.5311,
+      "btts_conf": 0.598,
+      "odd_btts_y": 4.1,
+      "odd_btts_n": 1.18,
+      "p_1x": 0.7194,
+      "p_x2": 0.5372,
       "dc_pick": "1X",
-      "dc_conf": 0.7274,
-      "odd_1x": 1.36,
-      "odd_x2": 1.56,
+      "dc_conf": 0.7194,
+      "odd_1x": 1.38,
+      "odd_x2": 1.44,
       "p_o25_btts": 0.6941,
-      "p_nogol": 0.3861,
-      "p_both_score": 0.6139,
+      "p_nogol": 0.5266,
+      "p_both_score": 0.4734,
       "p_home_blanked": 0.2256,
       "p_away_blanked": 0.2129,
       "nogol_team": "GBK",
@@ -54965,24 +55001,24 @@
       "ou_conf": 0.7575,
       "odd_o25": null,
       "odd_u25": null,
-      "p_over35": 0.7163,
-      "p_under35": 0.2837,
+      "p_over35": 0.7044,
+      "p_under35": 0.2956,
       "ou35_pick": "Over 3.5",
-      "ou35_conf": 0.7163,
-      "odd_o35": null,
-      "odd_u35": null,
+      "ou35_conf": 0.7044,
+      "odd_o35": 1.35,
+      "odd_u35": 2.7,
       "p_btts_yes": 0.7983,
       "p_btts_no": 0.2017,
       "btts_pick": "BTTS YES",
       "btts_conf": 0.7983,
       "odd_btts_y": null,
       "odd_btts_n": null,
-      "p_1x": 0.8186,
-      "p_x2": 0.4225,
+      "p_1x": 0.7624,
+      "p_x2": 0.4776,
       "dc_pick": "1X",
-      "dc_conf": 0.8186,
-      "odd_1x": null,
-      "odd_x2": null,
+      "dc_conf": 0.7624,
+      "odd_1x": 1.48,
+      "odd_x2": 1.44,
       "p_o25_btts": 0.7516,
       "p_nogol": 0.2422,
       "p_both_score": 0.7578,
@@ -55750,7 +55786,7 @@
         "goals_for": 26,
         "goals_against": 30,
         "goal_diff": -4,
-        "group": "Ykkosliiga",
+        "group": "Ykkösliiga",
         "description": "",
         "form": "WWWDL"
       },
@@ -55764,7 +55800,7 @@
         "goals_for": 33,
         "goals_against": 20,
         "goal_diff": 13,
-        "group": "Ykkosliiga",
+        "group": "Ykkösliiga",
         "description": "Promotion - Veikkausliiga",
         "form": "WWWDL"
       },
@@ -60541,8 +60577,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/4558.png",
       "away_logo": "https://media.api-sports.io/football/teams/4554.png",
       "league_logo": "https://media.api-sports.io/football/leagues/389.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
+      "status_short": "PST",
+      "status_long": "Match Postponed",
       "goals_home": null,
       "goals_away": null,
       "total_corners": null,
@@ -65561,10 +65597,10 @@
       "btts_conf": 0.7287,
       "odd_btts_y": null,
       "odd_btts_n": null,
-      "p_1x": 0.4921,
-      "p_x2": 0.7604,
+      "p_1x": 0.4847,
+      "p_x2": 0.7675,
       "dc_pick": "X2",
-      "dc_conf": 0.7604,
+      "dc_conf": 0.7675,
       "odd_1x": 1.44,
       "odd_x2": 1.44,
       "p_o25_btts": 0.641,
@@ -65586,13 +65622,13 @@
         "13.5": null
       },
       "corner_odds": {
-        "11.5": {
-          "over": 2.0,
-          "under": 1.73
-        },
         "11.0": {
           "over": 2.0,
           "under": 2.2
+        },
+        "11.5": {
+          "over": 2.0,
+          "under": 1.73
         }
       },
       "exp_yellows": null,
@@ -66100,8 +66136,8 @@
       "p_x2": 0.6487,
       "dc_pick": "X2",
       "dc_conf": 0.6487,
-      "odd_1x": 1.4,
-      "odd_x2": 1.36,
+      "odd_1x": 1.36,
+      "odd_x2": 1.4,
       "p_o25_btts": 0.7335,
       "p_nogol": 0.1,
       "p_both_score": 0.9,
@@ -69565,45 +69601,45 @@
       "ou15_conf": 0.6942,
       "odd_o15": null,
       "odd_u15": null,
-      "p_over15_ht": 0.2748,
-      "p_under15_ht": 0.7252,
+      "p_over15_ht": 0.2652,
+      "p_under15_ht": 0.7348,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7252,
-      "odd_o15_ht": 3.0,
-      "odd_u15_ht": 1.35,
-      "p_over15_sh": 0.3489,
-      "p_under15_sh": 0.6511,
+      "ht15_conf": 0.7348,
+      "odd_o15_ht": null,
+      "odd_u15_ht": null,
+      "p_over15_sh": 0.3334,
+      "p_under15_sh": 0.6666,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6511,
-      "odd_o15_sh": 2.3,
-      "odd_u15_sh": 1.53,
-      "p_over25": 0.5232,
-      "p_under25": 0.4768,
+      "sh15_conf": 0.6666,
+      "odd_o15_sh": null,
+      "odd_u15_sh": null,
+      "p_over25": 0.5358,
+      "p_under25": 0.4642,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.5232,
+      "ou_conf": 0.5358,
       "odd_o25": null,
       "odd_u25": null,
-      "p_over35": 0.1735,
-      "p_under35": 0.8265,
+      "p_over35": 0.1754,
+      "p_under35": 0.8246,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.8265,
+      "ou35_conf": 0.8246,
       "odd_o35": null,
       "odd_u35": null,
-      "p_btts_yes": 0.3962,
-      "p_btts_no": 0.6038,
+      "p_btts_yes": 0.4772,
+      "p_btts_no": 0.5228,
       "btts_pick": "BTTS NO",
-      "btts_conf": 0.6038,
-      "odd_btts_y": 4.0,
-      "odd_btts_n": 1.2,
-      "p_1x": 0.5849,
-      "p_x2": 0.7361,
+      "btts_conf": 0.5228,
+      "odd_btts_y": null,
+      "odd_btts_n": null,
+      "p_1x": 0.5667,
+      "p_x2": 0.7532,
       "dc_pick": "X2",
-      "dc_conf": 0.7361,
-      "odd_1x": 1.44,
-      "odd_x2": 1.4,
+      "dc_conf": 0.7532,
+      "odd_1x": null,
+      "odd_x2": null,
       "p_o25_btts": 0.3087,
-      "p_nogol": 0.6187,
-      "p_both_score": 0.3813,
+      "p_nogol": 0.5318,
+      "p_both_score": 0.4682,
       "p_home_blanked": 0.3638,
       "p_away_blanked": 0.2621,
       "nogol_team": "Slavia Mozyr",
@@ -72605,8 +72641,8 @@
           8.0
         ]
       ],
-      "kickoff_at": "2026-08-22T15:00:00+02:00",
-      "kickoff_ts": 1787403600,
+      "kickoff_at": "2026-08-22T15:30:00+02:00",
+      "kickoff_ts": 1787405400,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -72756,8 +72792,8 @@
           8.0
         ]
       ],
-      "kickoff_at": "2026-08-22T15:00:00+02:00",
-      "kickoff_ts": 1787403600,
+      "kickoff_at": "2026-08-22T13:00:00+02:00",
+      "kickoff_ts": 1787396400,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -75611,7 +75647,7 @@
           "under": 1.03
         },
         "19.0": {
-          "over": 67.0,
+          "over": 101.0,
           "under": 1.0
         },
         "17.0": {
@@ -75917,12 +75953,12 @@
         "description": "",
         "form": "LWWWL"
       },
-      "p_over15": 0.6632,
-      "p_under15": 0.3368,
+      "p_over15": 0.665,
+      "p_under15": 0.335,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.6632,
-      "odd_o15": 1.43,
-      "odd_u15": 2.6,
+      "ou15_conf": 0.665,
+      "odd_o15": 1.42,
+      "odd_u15": 2.65,
       "p_over15_ht": 0.2572,
       "p_under15_ht": 0.7428,
       "ht15_pick": "Under 1.5 HT",
@@ -77810,45 +77846,45 @@
       "ou15_conf": 0.8173,
       "odd_o15": null,
       "odd_u15": null,
-      "p_over15_ht": 0.3919,
-      "p_under15_ht": 0.6081,
+      "p_over15_ht": 0.3922,
+      "p_under15_ht": 0.6078,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.6081,
-      "odd_o15_ht": 2.3,
-      "odd_u15_ht": 1.5,
-      "p_over15_sh": 0.4815,
-      "p_under15_sh": 0.5185,
+      "ht15_conf": 0.6078,
+      "odd_o15_ht": null,
+      "odd_u15_ht": null,
+      "p_over15_sh": 0.4762,
+      "p_under15_sh": 0.5238,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.5185,
-      "odd_o15_sh": 1.85,
-      "odd_u15_sh": 1.83,
-      "p_over25": 0.6077,
-      "p_under25": 0.3923,
+      "sh15_conf": 0.5238,
+      "odd_o15_sh": null,
+      "odd_u15_sh": null,
+      "p_over25": 0.6275,
+      "p_under25": 0.3725,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.6077,
+      "ou_conf": 0.6275,
       "odd_o25": null,
       "odd_u25": null,
-      "p_over35": 0.3251,
-      "p_under35": 0.6749,
+      "p_over35": 0.328,
+      "p_under35": 0.672,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.6749,
+      "ou35_conf": 0.672,
       "odd_o35": null,
       "odd_u35": null,
-      "p_btts_yes": 0.4591,
-      "p_btts_no": 0.5409,
-      "btts_pick": "BTTS NO",
-      "btts_conf": 0.5409,
-      "odd_btts_y": 4.0,
-      "odd_btts_n": 1.2,
-      "p_1x": 0.7847,
-      "p_x2": 0.5041,
+      "p_btts_yes": 0.5695,
+      "p_btts_no": 0.4305,
+      "btts_pick": "BTTS YES",
+      "btts_conf": 0.5695,
+      "odd_btts_y": null,
+      "odd_btts_n": null,
+      "p_1x": 0.7996,
+      "p_x2": 0.4908,
       "dc_pick": "1X",
-      "dc_conf": 0.7847,
-      "odd_1x": 1.25,
-      "odd_x2": 1.75,
+      "dc_conf": 0.7996,
+      "odd_1x": null,
+      "odd_x2": null,
       "p_o25_btts": 0.4535,
-      "p_nogol": 0.5555,
-      "p_both_score": 0.4445,
+      "p_nogol": 0.4346,
+      "p_both_score": 0.5654,
       "p_home_blanked": 0.1981,
       "p_away_blanked": 0.2981,
       "nogol_team": "Rosengård W",
@@ -78627,8 +78663,8 @@
           8.0
         ]
       ],
-      "kickoff_at": "2026-08-22T15:00:00+02:00",
-      "kickoff_ts": 1787403600,
+      "kickoff_at": "2026-08-22T14:45:00+02:00",
+      "kickoff_ts": 1787402700,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -80862,43 +80898,43 @@
           "under": 21.0
         },
         "8.0": {
-          "over": 1.33,
-          "under": 4.5
+          "over": 1.44,
+          "under": 4.0
         },
         "9.0": {
-          "over": 1.57,
-          "under": 3.25
+          "over": 1.73,
+          "under": 2.62
         },
         "10.0": {
           "over": 2.2,
           "under": 2.0
         },
         "11.0": {
-          "over": 2.5,
-          "under": 1.8
+          "over": 2.75,
+          "under": 1.62
         },
         "7.0": {
           "over": 1.22,
           "under": 6.0
         },
         "12.0": {
-          "over": 3.4,
-          "under": 1.5
+          "over": 4.0,
+          "under": 1.4
         },
         "6.0": {
           "over": 1.12,
           "under": 11.0
         },
         "13.0": {
-          "over": 4.5,
-          "under": 1.3
+          "over": 5.5,
+          "under": 1.22
         },
         "21.0": {
-          "over": 51.0,
+          "over": 67.0,
           "under": 1.0
         },
         "22.0": {
-          "over": 67.0,
+          "over": 101.0,
           "under": 1.0
         },
         "23.0": {
@@ -80907,31 +80943,31 @@
         },
         "14.0": {
           "over": 9.0,
-          "under": 1.18
+          "under": 1.14
         },
         "19.0": {
-          "over": 34.0,
+          "over": 41.0,
           "under": 1.01
         },
         "20.0": {
-          "over": 41.0,
+          "over": 51.0,
           "under": 1.0
         },
         "17.0": {
-          "over": 19.0,
-          "under": 1.03
+          "over": 23.0,
+          "under": 1.02
         },
         "18.0": {
-          "over": 26.0,
+          "over": 29.0,
           "under": 1.01
         },
         "16.0": {
-          "over": 13.0,
-          "under": 1.05
+          "over": 17.0,
+          "under": 1.04
         },
         "15.0": {
-          "over": 11.0,
-          "under": 1.1
+          "over": 13.0,
+          "under": 1.07
         },
         "23.5": {
           "over": 1.73,
@@ -83040,20 +83076,73 @@
           "over": 1.04,
           "under": 19.0
         },
+        "8.0": {
+          "over": 1.36,
+          "under": 4.33
+        },
+        "9.0": {
+          "over": 1.67,
+          "under": 3.0
+        },
         "10.0": {
           "over": 2.0,
           "under": 2.1
+        },
+        "11.0": {
+          "over": 2.62,
+          "under": 1.73
         },
         "7.0": {
           "over": 1.2,
           "under": 7.0
         },
+        "12.0": {
+          "over": 3.75,
+          "under": 1.44
+        },
         "6.0": {
           "over": 1.1,
           "under": 13.0
         },
+        "13.0": {
+          "over": 5.5,
+          "under": 1.25
+        },
+        "21.0": {
+          "over": 67.0,
+          "under": 1.0
+        },
+        "22.0": {
+          "over": 101.0,
+          "under": 1.0
+        },
         "14.0": {
-          "over": 8.0
+          "over": 8.0,
+          "under": 1.14
+        },
+        "19.0": {
+          "over": 41.0,
+          "under": 1.01
+        },
+        "20.0": {
+          "over": 51.0,
+          "under": 1.0
+        },
+        "17.0": {
+          "over": 21.0,
+          "under": 1.02
+        },
+        "18.0": {
+          "over": 29.0,
+          "under": 1.01
+        },
+        "16.0": {
+          "over": 15.0,
+          "under": 1.05
+        },
+        "15.0": {
+          "over": 11.0,
+          "under": 1.08
         }
       },
       "exp_yellows": null,
@@ -83146,12 +83235,12 @@
         "description": "Promotion",
         "form": "DWWW"
       },
-      "p_over15": 0.9379,
-      "p_under15": 0.0621,
+      "p_over15": 0.936,
+      "p_under15": 0.064,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.9379,
-      "odd_o15": 1.18,
-      "odd_u15": 4.65,
+      "ou15_conf": 0.936,
+      "odd_o15": 1.19,
+      "odd_u15": 4.5,
       "p_over15_ht": 0.6185,
       "p_under15_ht": 0.3815,
       "ht15_pick": "Over 1.5 HT",
@@ -83170,12 +83259,12 @@
       "ou_conf": 0.7276,
       "odd_o25": 1.6,
       "odd_u25": 2.3,
-      "p_over35": 0.6471,
-      "p_under35": 0.3529,
+      "p_over35": 0.644,
+      "p_under35": 0.356,
       "ou35_pick": "Over 3.5",
-      "ou35_conf": 0.6471,
-      "odd_o35": 2.42,
-      "odd_u35": 1.52,
+      "ou35_conf": 0.644,
+      "odd_o35": 2.5,
+      "odd_u35": 1.5,
       "p_btts_yes": 0.6828,
       "p_btts_no": 0.3172,
       "btts_pick": "BTTS YES",
@@ -86414,51 +86503,51 @@
         "description": "",
         "form": "L"
       },
-      "p_over15": 0.6878,
-      "p_under15": 0.3122,
+      "p_over15": 0.6527,
+      "p_under15": 0.3473,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.6878,
-      "odd_o15": 1.25,
-      "odd_u15": 3.8,
-      "p_over15_ht": 0.2919,
-      "p_under15_ht": 0.7081,
+      "ou15_conf": 0.6527,
+      "odd_o15": null,
+      "odd_u15": null,
+      "p_over15_ht": 0.2652,
+      "p_under15_ht": 0.7348,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7081,
-      "odd_o15_ht": 2.68,
-      "odd_u15_ht": 1.45,
-      "p_over15_sh": 0.3738,
-      "p_under15_sh": 0.6262,
+      "ht15_conf": 0.7348,
+      "odd_o15_ht": null,
+      "odd_u15_ht": null,
+      "p_over15_sh": 0.3334,
+      "p_under15_sh": 0.6666,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6262,
-      "odd_o15_sh": 2.0,
-      "odd_u15_sh": 1.73,
-      "p_over25": 0.4532,
-      "p_under25": 0.5468,
+      "sh15_conf": 0.6666,
+      "odd_o15_sh": null,
+      "odd_u15_sh": null,
+      "p_over25": 0.4317,
+      "p_under25": 0.5683,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.5468,
-      "odd_o25": 1.8,
-      "odd_u25": 2.0,
-      "p_over35": 0.2032,
-      "p_under35": 0.7968,
+      "ou_conf": 0.5683,
+      "odd_o25": null,
+      "odd_u25": null,
+      "p_over35": 0.1598,
+      "p_under35": 0.8402,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.7968,
-      "odd_o35": 3.0,
-      "odd_u35": 1.38,
-      "p_btts_yes": 0.384,
-      "p_btts_no": 0.616,
+      "ou35_conf": 0.8402,
+      "odd_o35": null,
+      "odd_u35": null,
+      "p_btts_yes": 0.44,
+      "p_btts_no": 0.56,
       "btts_pick": "BTTS NO",
-      "btts_conf": 0.616,
-      "odd_btts_y": 3.25,
-      "odd_btts_n": 1.33,
-      "p_1x": 0.7366,
-      "p_x2": 0.5733,
+      "btts_conf": 0.56,
+      "odd_btts_y": null,
+      "odd_btts_n": null,
+      "p_1x": 0.7532,
+      "p_x2": 0.5667,
       "dc_pick": "1X",
-      "dc_conf": 0.7366,
-      "odd_1x": 1.28,
-      "odd_x2": 1.4,
+      "dc_conf": 0.7532,
+      "odd_1x": null,
+      "odd_x2": null,
       "p_o25_btts": 0.3087,
-      "p_nogol": 0.6157,
-      "p_both_score": 0.3843,
+      "p_nogol": 0.5606,
+      "p_both_score": 0.4394,
       "p_home_blanked": 0.3012,
       "p_away_blanked": 0.3679,
       "nogol_team": "Seraing United",
@@ -86474,96 +86563,7 @@
         "12.5": 0.057,
         "13.5": 0.0278
       },
-      "corner_odds": {
-        "9.0": {
-          "over": 2.1,
-          "under": 2.1
-        },
-        "9.5": {
-          "over": 2.1,
-          "under": 1.67
-        },
-        "1.0": {
-          "over": 1.0,
-          "under": 101.0
-        },
-        "2.0": {
-          "over": 1.0,
-          "under": 67.0
-        },
-        "3.0": {
-          "over": 1.01,
-          "under": 41.0
-        },
-        "4.0": {
-          "over": 1.03,
-          "under": 23.0
-        },
-        "5.0": {
-          "over": 1.08,
-          "under": 15.0
-        },
-        "8.0": {
-          "over": 1.67,
-          "under": 3.0
-        },
-        "10.0": {
-          "over": 2.75,
-          "under": 1.67
-        },
-        "11.0": {
-          "over": 3.75,
-          "under": 1.4
-        },
-        "7.0": {
-          "over": 1.36,
-          "under": 4.33
-        },
-        "12.0": {
-          "over": 5.5,
-          "under": 1.25
-        },
-        "6.0": {
-          "over": 1.2,
-          "under": 8.0
-        },
-        "13.0": {
-          "over": 9.0,
-          "under": 1.14
-        },
-        "21.0": {
-          "over": 101.0,
-          "under": 1.0
-        },
-        "14.0": {
-          "over": 13.0,
-          "under": 1.07
-        },
-        "19.0": {
-          "over": 51.0,
-          "under": 1.0
-        },
-        "20.0": {
-          "over": 67.0,
-          "under": 1.0
-        },
-        "17.0": {
-          "over": 34.0,
-          "under": 1.01
-        },
-        "18.0": {
-          "over": 41.0,
-          "under": 1.01
-        },
-        "16.0": {
-          "over": 23.0,
-          "under": 1.02
-        },
-        "15.0": {
-          "over": 17.0,
-          "under": 1.04
-        }
-      },
+      "corner_odds": {},
       "exp_yellows": null,
       "yellow_overs": {
         "1.5": null,
@@ -87625,28 +87625,28 @@
       "ou15_conf": 0.8691,
       "odd_o15": 1.3,
       "odd_u15": 3.45,
-      "p_over15_ht": 0.4918,
-      "p_under15_ht": 0.5082,
+      "p_over15_ht": 0.492,
+      "p_under15_ht": 0.508,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.5082,
+      "ht15_conf": 0.508,
       "odd_o15_ht": 2.85,
       "odd_u15_ht": 1.4,
-      "p_over15_sh": 0.5889,
-      "p_under15_sh": 0.4111,
+      "p_over15_sh": 0.5892,
+      "p_under15_sh": 0.4108,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.5889,
+      "sh15_conf": 0.5892,
       "odd_o15_sh": 2.1,
       "odd_u15_sh": 1.67,
-      "p_over25": 0.5745,
-      "p_under25": 0.4255,
+      "p_over25": 0.5766,
+      "p_under25": 0.4234,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.5745,
-      "odd_o25": 2.0,
-      "odd_u25": 1.85,
-      "p_over35": 0.4664,
-      "p_under35": 0.5336,
+      "ou_conf": 0.5766,
+      "odd_o25": 1.98,
+      "odd_u25": 1.88,
+      "p_over35": 0.4667,
+      "p_under35": 0.5333,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.5336,
+      "ou35_conf": 0.5333,
       "odd_o35": 3.3,
       "odd_u35": 1.32,
       "p_btts_yes": 0.6068,
@@ -88288,8 +88288,8 @@
       },
       "yellow_odds": {
         "3.5": {
-          "over": 1.91,
-          "under": 1.8
+          "over": 1.8,
+          "under": 1.91
         }
       },
       "lam_home": 1.0,
@@ -88635,12 +88635,12 @@
       "ht15_conf": 0.7235,
       "odd_o15_ht": 2.42,
       "odd_u15_ht": 1.52,
-      "p_over15_sh": 0.3514,
-      "p_under15_sh": 0.6486,
+      "p_over15_sh": 0.3553,
+      "p_under15_sh": 0.6447,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6486,
-      "odd_o15_sh": 1.91,
-      "odd_u15_sh": 1.8,
+      "sh15_conf": 0.6447,
+      "odd_o15_sh": 1.83,
+      "odd_u15_sh": 1.83,
       "p_over25": 0.4068,
       "p_under25": 0.5932,
       "ou_pick": "Under 2.5",
@@ -88659,11 +88659,11 @@
       "btts_conf": 0.6041,
       "odd_btts_y": 3.25,
       "odd_btts_n": 1.33,
-      "p_1x": 0.7552,
-      "p_x2": 0.5525,
+      "p_1x": 0.7582,
+      "p_x2": 0.5488,
       "dc_pick": "1X",
-      "dc_conf": 0.7552,
-      "odd_1x": 1.14,
+      "dc_conf": 0.7582,
+      "odd_1x": 1.12,
       "odd_x2": 1.67,
       "p_o25_btts": 0.2642,
       "p_nogol": 0.6442,
@@ -89045,6 +89045,10 @@
         "3.5": {
           "over": 1.62,
           "under": 2.2
+        },
+        "4.5": {
+          "over": 2.1,
+          "under": 1.67
         }
       },
       "lam_home": 2.0,
@@ -89697,8 +89701,8 @@
           "under": 2.5
         },
         "9.5": {
-          "over": 1.8,
-          "under": 1.91
+          "over": 1.82,
+          "under": 1.98
         },
         "1.0": {
           "over": 1.0,
@@ -90401,28 +90405,28 @@
       "ou15_conf": 0.9094,
       "odd_o15": 1.27,
       "odd_u15": 3.55,
-      "p_over15_ht": 0.581,
-      "p_under15_ht": 0.419,
+      "p_over15_ht": 0.5841,
+      "p_under15_ht": 0.4159,
       "ht15_pick": "Over 1.5 HT",
-      "ht15_conf": 0.581,
-      "odd_o15_ht": 2.75,
-      "odd_u15_ht": 1.42,
-      "p_over15_sh": 0.6781,
-      "p_under15_sh": 0.3219,
+      "ht15_conf": 0.5841,
+      "odd_o15_ht": 2.68,
+      "odd_u15_ht": 1.45,
+      "p_over15_sh": 0.6784,
+      "p_under15_sh": 0.3216,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.6781,
+      "sh15_conf": 0.6784,
       "odd_o15_sh": 2.0,
       "odd_u15_sh": 1.73,
-      "p_over25": 0.6325,
-      "p_under25": 0.3675,
+      "p_over25": 0.6347,
+      "p_under25": 0.3653,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.6325,
-      "odd_o25": 1.9,
-      "odd_u25": 1.95,
-      "p_over35": 0.5907,
-      "p_under35": 0.4093,
+      "ou_conf": 0.6347,
+      "odd_o25": 1.88,
+      "odd_u25": 1.98,
+      "p_over35": 0.5909,
+      "p_under35": 0.4091,
       "ou35_pick": "Over 3.5",
-      "ou35_conf": 0.5907,
+      "ou35_conf": 0.5909,
       "odd_o35": 3.1,
       "odd_u35": 1.35,
       "p_btts_yes": 0.6507,
@@ -91139,51 +91143,51 @@
         "description": "",
         "form": "D"
       },
-      "p_over15": 0.8777,
-      "p_under15": 0.1223,
+      "p_over15": 0.9288,
+      "p_under15": 0.0712,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.8777,
-      "odd_o15": 1.25,
-      "odd_u15": 3.8,
-      "p_over15_ht": 0.5024,
-      "p_under15_ht": 0.4976,
+      "ou15_conf": 0.9288,
+      "odd_o15": null,
+      "odd_u15": null,
+      "p_over15_ht": 0.5644,
+      "p_under15_ht": 0.4356,
       "ht15_pick": "Over 1.5 HT",
-      "ht15_conf": 0.5024,
-      "odd_o15_ht": 2.6,
-      "odd_u15_ht": 1.48,
-      "p_over15_sh": 0.5968,
-      "p_under15_sh": 0.4032,
+      "ht15_conf": 0.5644,
+      "odd_o15_ht": null,
+      "odd_u15_ht": null,
+      "p_over15_sh": 0.6588,
+      "p_under15_sh": 0.3412,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.5968,
-      "odd_o15_sh": 2.0,
-      "odd_u15_sh": 1.73,
-      "p_over25": 0.5807,
-      "p_under25": 0.4193,
+      "sh15_conf": 0.6588,
+      "odd_o15_sh": null,
+      "odd_u15_sh": null,
+      "p_over25": 0.632,
+      "p_under25": 0.368,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.5807,
-      "odd_o25": 1.82,
-      "odd_u25": 2.02,
-      "p_over35": 0.4756,
-      "p_under35": 0.5244,
-      "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.5244,
-      "odd_o35": 3.0,
-      "odd_u35": 1.38,
-      "p_btts_yes": 0.4867,
-      "p_btts_no": 0.5133,
-      "btts_pick": "BTTS NO",
-      "btts_conf": 0.5133,
-      "odd_btts_y": 3.5,
-      "odd_btts_n": 1.28,
-      "p_1x": 0.8803,
-      "p_x2": 0.3565,
+      "ou_conf": 0.632,
+      "odd_o25": null,
+      "odd_u25": null,
+      "p_over35": 0.5478,
+      "p_under35": 0.4522,
+      "ou35_pick": "Over 3.5",
+      "ou35_conf": 0.5478,
+      "odd_o35": null,
+      "odd_u35": null,
+      "p_btts_yes": 0.5921,
+      "p_btts_no": 0.4079,
+      "btts_pick": "BTTS YES",
+      "btts_conf": 0.5921,
+      "odd_btts_y": null,
+      "odd_btts_n": null,
+      "p_1x": 0.8924,
+      "p_x2": 0.3346,
       "dc_pick": "1X",
-      "dc_conf": 0.8803,
-      "odd_1x": 1.12,
-      "odd_x2": 1.67,
+      "dc_conf": 0.8924,
+      "odd_1x": null,
+      "odd_x2": null,
       "p_o25_btts": 0.5382,
-      "p_nogol": 0.5165,
-      "p_both_score": 0.4835,
+      "p_nogol": 0.3953,
+      "p_both_score": 0.6047,
       "p_home_blanked": 0.05,
       "p_away_blanked": 0.3679,
       "nogol_team": "Blackpool",
@@ -91199,100 +91203,7 @@
         "12.5": 0.1945,
         "13.5": 0.1161
       },
-      "corner_odds": {
-        "9.5": {
-          "over": 1.73,
-          "under": 2.0
-        },
-        "10.0": {
-          "over": 2.1,
-          "under": 2.0
-        },
-        "2.0": {
-          "over": 1.0,
-          "under": 67.0
-        },
-        "3.0": {
-          "over": 1.01,
-          "under": 51.0
-        },
-        "4.0": {
-          "over": 1.01,
-          "under": 34.0
-        },
-        "5.0": {
-          "over": 1.05,
-          "under": 21.0
-        },
-        "8.0": {
-          "over": 1.4,
-          "under": 4.0
-        },
-        "9.0": {
-          "over": 1.73,
-          "under": 2.75
-        },
-        "11.0": {
-          "over": 2.75,
-          "under": 1.67
-        },
-        "7.0": {
-          "over": 1.22,
-          "under": 6.5
-        },
-        "12.0": {
-          "over": 3.75,
-          "under": 1.4
-        },
-        "6.0": {
-          "over": 1.11,
-          "under": 11.0
-        },
-        "13.0": {
-          "over": 5.5,
-          "under": 1.25
-        },
-        "21.0": {
-          "over": 67.0,
-          "under": 1.0
-        },
-        "22.0": {
-          "over": 101.0,
-          "under": 1.0
-        },
-        "14.0": {
-          "over": 8.0,
-          "under": 1.14
-        },
-        "19.0": {
-          "over": 41.0,
-          "under": 1.01
-        },
-        "20.0": {
-          "over": 51.0,
-          "under": 1.0
-        },
-        "17.0": {
-          "over": 21.0,
-          "under": 1.02
-        },
-        "18.0": {
-          "over": 29.0,
-          "under": 1.01
-        },
-        "16.0": {
-          "over": 15.0,
-          "under": 1.04
-        },
-        "15.0": {
-          "over": 12.0,
-          "under": 1.08
-        },
-        "21.5": {
-          "over": 1.83,
-          "under": 1.83
-        }
-      },
+      "corner_odds": {},
       "exp_yellows": 3.9,
       "yellow_overs": {
         "1.5": 0.9039,
@@ -91887,12 +91798,12 @@
       "ht15_conf": 0.5045,
       "odd_o15_ht": 2.75,
       "odd_u15_ht": 1.42,
-      "p_over15_sh": 0.5954,
-      "p_under15_sh": 0.4046,
+      "p_over15_sh": 0.59,
+      "p_under15_sh": 0.41,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.5954,
-      "odd_o15_sh": 2.0,
-      "odd_u15_sh": 1.73,
+      "sh15_conf": 0.59,
+      "odd_o15_sh": 2.1,
+      "odd_u15_sh": 1.67,
       "p_over25": 0.5816,
       "p_under25": 0.4184,
       "ou_pick": "Over 2.5",
@@ -91937,7 +91848,7 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.91,
+          "over": 2.0,
           "under": 1.8
         },
         "2.0": {
@@ -92639,10 +92550,10 @@
       "btts_conf": 0.6489,
       "odd_btts_y": 3.4,
       "odd_btts_n": 1.3,
-      "p_1x": 0.7606,
-      "p_x2": 0.5557,
+      "p_1x": 0.7577,
+      "p_x2": 0.5562,
       "dc_pick": "1X",
-      "dc_conf": 0.7606,
+      "dc_conf": 0.7577,
       "odd_1x": 1.17,
       "odd_x2": 1.5,
       "p_o25_btts": 0.2642,
@@ -93091,30 +93002,30 @@
         "description": "",
         "form": "L"
       },
-      "p_over15": 0.6857,
-      "p_under15": 0.3143,
+      "p_over15": 0.6878,
+      "p_under15": 0.3122,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.6857,
-      "odd_o15": 1.26,
-      "odd_u15": 3.7,
-      "p_over15_ht": 0.2916,
-      "p_under15_ht": 0.7084,
+      "ou15_conf": 0.6878,
+      "odd_o15": 1.25,
+      "odd_u15": 3.8,
+      "p_over15_ht": 0.2913,
+      "p_under15_ht": 0.7087,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7084,
+      "ht15_conf": 0.7087,
       "odd_o15_ht": 2.68,
       "odd_u15_ht": 1.45,
-      "p_over15_sh": 0.3734,
-      "p_under15_sh": 0.6266,
+      "p_over15_sh": 0.3731,
+      "p_under15_sh": 0.6269,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6266,
+      "sh15_conf": 0.6269,
       "odd_o15_sh": 2.0,
       "odd_u15_sh": 1.73,
-      "p_over25": 0.388,
-      "p_under25": 0.612,
+      "p_over25": 0.3859,
+      "p_under25": 0.6141,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.612,
-      "odd_o25": 1.85,
-      "odd_u25": 2.0,
+      "ou_conf": 0.6141,
+      "odd_o25": 1.88,
+      "odd_u25": 1.98,
       "p_over35": 0.1986,
       "p_under35": 0.8014,
       "ou35_pick": "Under 3.5",
@@ -93127,11 +93038,11 @@
       "btts_conf": 0.616,
       "odd_btts_y": 3.25,
       "odd_btts_n": 1.33,
-      "p_1x": 0.6691,
-      "p_x2": 0.6441,
+      "p_1x": 0.6656,
+      "p_x2": 0.6476,
       "dc_pick": "1X",
-      "dc_conf": 0.6691,
-      "odd_1x": 1.2,
+      "dc_conf": 0.6656,
+      "odd_1x": 1.22,
       "odd_x2": 1.5,
       "p_o25_btts": 0.3087,
       "p_nogol": 0.6157,
@@ -95927,10 +95838,10 @@
       "btts_conf": 0.506,
       "odd_btts_y": 3.5,
       "odd_btts_n": 1.28,
-      "p_1x": 0.5171,
-      "p_x2": 0.7634,
+      "p_1x": 0.5132,
+      "p_x2": 0.7668,
       "dc_pick": "X2",
-      "dc_conf": 0.7634,
+      "dc_conf": 0.7668,
       "odd_1x": 1.36,
       "odd_x2": 1.33,
       "p_o25_btts": 0.5192,
@@ -95953,8 +95864,8 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.85,
-          "under": 1.95
+          "over": 1.83,
+          "under": 1.83
         },
         "2.0": {
           "over": 1.0,
@@ -96193,12 +96104,12 @@
       },
       "corner_odds": {
         "9.0": {
-          "over": 2.1,
-          "under": 2.1
+          "over": 1.83,
+          "under": 2.38
         },
         "9.5": {
-          "over": 2.1,
-          "under": 1.67
+          "over": 1.83,
+          "under": 1.83
         },
         "1.0": {
           "over": 1.0,
@@ -96213,19 +96124,23 @@
           "under": 41.0
         },
         "4.0": {
-          "over": 1.04,
-          "under": 21.0
+          "over": 1.02,
+          "under": 26.0
         },
         "5.0": {
-          "over": 1.1,
-          "under": 13.0
+          "over": 1.07,
+          "under": 17.0
+        },
+        "7.0": {
+          "over": 1.3,
+          "under": 5.0
         },
         "6.0": {
-          "over": 1.2,
-          "under": 7.0
+          "over": 1.17,
+          "under": 9.0
         },
         "14.0": {
-          "over": 13.0
+          "over": 11.0
         }
       },
       "exp_yellows": null,
@@ -96330,12 +96245,12 @@
       "ht15_conf": 0.6063,
       "odd_o15_ht": 2.6,
       "odd_u15_ht": 1.48,
-      "p_over15_sh": 0.4835,
-      "p_under15_sh": 0.5165,
+      "p_over15_sh": 0.489,
+      "p_under15_sh": 0.511,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.5165,
-      "odd_o15_sh": 2.0,
-      "odd_u15_sh": 1.73,
+      "sh15_conf": 0.511,
+      "odd_o15_sh": 1.91,
+      "odd_u15_sh": 1.8,
       "p_over25": 0.6099,
       "p_under25": 0.3901,
       "ou_pick": "Over 2.5",
@@ -96990,7 +96905,7 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.91,
+          "over": 2.0,
           "under": 1.8
         },
         "2.0": {
@@ -104757,28 +104672,28 @@
       "ou15_conf": 0.9665,
       "odd_o15": null,
       "odd_u15": null,
-      "p_over15_ht": 0.6691,
-      "p_under15_ht": 0.3309,
+      "p_over15_ht": 0.6675,
+      "p_under15_ht": 0.3325,
       "ht15_pick": "Over 1.5 HT",
-      "ht15_conf": 0.6691,
+      "ht15_conf": 0.6675,
       "odd_o15_ht": null,
       "odd_u15_ht": null,
-      "p_over15_sh": 0.7574,
-      "p_under15_sh": 0.2426,
+      "p_over15_sh": 0.7554,
+      "p_under15_sh": 0.2446,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.7574,
+      "sh15_conf": 0.7554,
       "odd_o15_sh": null,
       "odd_u15_sh": null,
-      "p_over25": 0.7112,
-      "p_under25": 0.2888,
+      "p_over25": 0.704,
+      "p_under25": 0.296,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.7112,
-      "odd_o25": 1.53,
-      "odd_u25": 2.38,
-      "p_over35": 0.716,
-      "p_under35": 0.284,
+      "ou_conf": 0.704,
+      "odd_o25": 1.62,
+      "odd_u25": 2.25,
+      "p_over35": 0.7149,
+      "p_under35": 0.2851,
       "ou35_pick": "Over 3.5",
-      "ou35_conf": 0.716,
+      "ou35_conf": 0.7149,
       "odd_o35": null,
       "odd_u35": null,
       "p_btts_yes": 0.6378,
@@ -104902,30 +104817,30 @@
         "description": "",
         "form": ""
       },
-      "p_over15": 0.6826,
-      "p_under15": 0.3174,
+      "p_over15": 0.6792,
+      "p_under15": 0.3208,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.6826,
-      "odd_o15": 1.27,
-      "odd_u15": 3.55,
-      "p_over15_ht": 0.2877,
-      "p_under15_ht": 0.7123,
+      "ou15_conf": 0.6792,
+      "odd_o15": 1.3,
+      "odd_u15": 3.45,
+      "p_over15_ht": 0.2846,
+      "p_under15_ht": 0.7154,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7123,
-      "odd_o15_ht": 2.75,
-      "odd_u15_ht": 1.42,
-      "p_over15_sh": 0.3666,
-      "p_under15_sh": 0.6334,
+      "ht15_conf": 0.7154,
+      "odd_o15_ht": 2.85,
+      "odd_u15_ht": 1.4,
+      "p_over15_sh": 0.3662,
+      "p_under15_sh": 0.6338,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6334,
+      "sh15_conf": 0.6338,
       "odd_o15_sh": 2.1,
       "odd_u15_sh": 1.67,
-      "p_over25": 0.4102,
-      "p_under25": 0.5898,
+      "p_over25": 0.4081,
+      "p_under25": 0.5919,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.5898,
-      "odd_o25": 1.95,
-      "odd_u25": 1.9,
+      "ou_conf": 0.5919,
+      "odd_o25": 1.98,
+      "odd_u25": 1.88,
       "p_over35": 0.1901,
       "p_under35": 0.8099,
       "ou35_pick": "Under 3.5",
@@ -105463,7 +105378,7 @@
       "corner_odds": {
         "9.5": {
           "over": 1.8,
-          "under": 2.0
+          "under": 1.91
         },
         "2.0": {
           "over": 1.0,
@@ -105715,8 +105630,8 @@
       },
       "corner_odds": {
         "11.5": {
-          "over": 1.92,
-          "under": 1.88
+          "over": 1.83,
+          "under": 1.83
         },
         "3.0": {
           "over": 1.0,
@@ -105903,12 +105818,12 @@
       "ou15_conf": 0.8976,
       "odd_o15": null,
       "odd_u15": null,
-      "p_over15_ht": 0.4973,
-      "p_under15_ht": 0.5027,
+      "p_over15_ht": 0.4912,
+      "p_under15_ht": 0.5088,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.5027,
-      "odd_o15_ht": null,
-      "odd_u15_ht": null,
+      "ht15_conf": 0.5088,
+      "odd_o15_ht": 2.0,
+      "odd_u15_ht": 1.8,
       "p_over15_sh": 0.5891,
       "p_under15_sh": 0.4109,
       "sh15_pick": "Over 1.5 2H",
@@ -106517,7 +106432,7 @@
       },
       "corner_odds": {
         "10.5": {
-          "over": 1.91,
+          "over": 2.0,
           "under": 1.8
         },
         "2.0": {
@@ -107835,8 +107750,8 @@
       "home_logo": "https://media.api-sports.io/football/teams/664.png",
       "away_logo": "https://media.api-sports.io/football/teams/4565.png",
       "league_logo": "https://media.api-sports.io/football/leagues/389.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
+      "status_short": "PST",
+      "status_long": "Match Postponed",
       "goals_home": null,
       "goals_away": null,
       "total_corners": null,
@@ -120660,8 +120575,8 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 2.02,
-          "under": 1.78
+          "over": 2.0,
+          "under": 1.73
         },
         "1.0": {
           "over": 1.0,
@@ -123308,10 +123223,10 @@
       "btts_conf": 0.5241,
       "odd_btts_y": 3.4,
       "odd_btts_n": 1.3,
-      "p_1x": 0.753,
-      "p_x2": 0.537,
+      "p_1x": 0.7482,
+      "p_x2": 0.542,
       "dc_pick": "1X",
-      "dc_conf": 0.753,
+      "dc_conf": 0.7482,
       "odd_1x": 1.3,
       "odd_x2": 1.4,
       "p_o25_btts": 0.414,
@@ -125246,28 +125161,28 @@
       "ou15_conf": 0.975,
       "odd_o15": null,
       "odd_u15": null,
-      "p_over15_ht": 0.7604,
-      "p_under15_ht": 0.2396,
+      "p_over15_ht": 0.7577,
+      "p_under15_ht": 0.2423,
       "ht15_pick": "Over 1.5 HT",
-      "ht15_conf": 0.7604,
+      "ht15_conf": 0.7577,
       "odd_o15_ht": null,
       "odd_u15_ht": null,
-      "p_over15_sh": 0.8409,
-      "p_under15_sh": 0.1591,
+      "p_over15_sh": 0.8375,
+      "p_under15_sh": 0.1625,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.8409,
+      "sh15_conf": 0.8375,
       "odd_o15_sh": null,
       "odd_u15_sh": null,
-      "p_over25": 0.7476,
-      "p_under25": 0.2524,
+      "p_over25": 0.7322,
+      "p_under25": 0.2678,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.7476,
-      "odd_o25": 1.33,
-      "odd_u25": 3.25,
-      "p_over35": 0.7423,
-      "p_under35": 0.2577,
+      "ou_conf": 0.7322,
+      "odd_o25": 1.4,
+      "odd_u25": 2.75,
+      "p_over35": 0.7406,
+      "p_under35": 0.2594,
       "ou35_pick": "Over 3.5",
-      "ou35_conf": 0.7423,
+      "ou35_conf": 0.7406,
       "odd_o35": 1.82,
       "odd_u35": 1.98,
       "p_btts_yes": 0.6097,
@@ -125280,8 +125195,8 @@
       "p_x2": 0.2261,
       "dc_pick": "1X",
       "dc_conf": 0.9032,
-      "odd_1x": 1.12,
-      "odd_x2": 1.91,
+      "odd_1x": 1.1,
+      "odd_x2": 2.1,
       "p_o25_btts": 0.5312,
       "p_nogol": 0.367,
       "p_both_score": 0.633,
@@ -125462,7 +125377,7 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.91,
+          "over": 2.0,
           "under": 1.8
         },
         "9.0": {
@@ -125621,6 +125536,10 @@
         "13.5": null
       },
       "corner_odds": {
+        "9.5": {
+          "over": 1.83,
+          "under": 1.83
+        },
         "10.0": {
           "over": 2.38,
           "under": 1.83
@@ -126259,7 +126178,7 @@
       "corner_odds": {
         "9.5": {
           "over": 1.8,
-          "under": 2.0
+          "under": 1.91
         },
         "7.5": {
           "over": 1.8,
@@ -126726,45 +126645,45 @@
       "ou15_conf": 0.661,
       "odd_o15": 1.4,
       "odd_u15": 2.85,
-      "p_over15_ht": 0.2707,
-      "p_under15_ht": 0.7293,
+      "p_over15_ht": 0.2744,
+      "p_under15_ht": 0.7256,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7293,
+      "ht15_conf": 0.7256,
       "odd_o15_ht": 3.3,
       "odd_u15_ht": 1.32,
-      "p_over15_sh": 0.3372,
-      "p_under15_sh": 0.6628,
+      "p_over15_sh": 0.3677,
+      "p_under15_sh": 0.6323,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6628,
-      "odd_o15_sh": null,
-      "odd_u15_sh": null,
-      "p_over25": 0.3865,
-      "p_under25": 0.6135,
+      "sh15_conf": 0.6323,
+      "odd_o15_sh": 2.1,
+      "odd_u15_sh": 1.67,
+      "p_over25": 0.4167,
+      "p_under25": 0.5833,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.6135,
-      "odd_o25": 2.2,
-      "odd_u25": 1.65,
-      "p_over35": 0.1755,
-      "p_under35": 0.8245,
+      "ou_conf": 0.5833,
+      "odd_o25": 1.85,
+      "odd_u25": 1.95,
+      "p_over35": 0.1762,
+      "p_under35": 0.8238,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.8245,
+      "ou35_conf": 0.8238,
       "odd_o35": 4.0,
       "odd_u35": 1.23,
-      "p_btts_yes": 0.3631,
-      "p_btts_no": 0.6369,
+      "p_btts_yes": 0.3789,
+      "p_btts_no": 0.6211,
       "btts_pick": "BTTS NO",
-      "btts_conf": 0.6369,
-      "odd_btts_y": 4.0,
-      "odd_btts_n": 1.22,
+      "btts_conf": 0.6211,
+      "odd_btts_y": 3.4,
+      "odd_btts_n": 1.3,
       "p_1x": 0.6731,
       "p_x2": 0.5987,
       "dc_pick": "1X",
       "dc_conf": 0.6731,
-      "odd_1x": 1.25,
+      "odd_1x": 1.28,
       "odd_x2": 1.4,
       "p_o25_btts": 0.3087,
-      "p_nogol": 0.6363,
-      "p_both_score": 0.3637,
+      "p_nogol": 0.6207,
+      "p_both_score": 0.3793,
       "p_home_blanked": 0.3012,
       "p_away_blanked": 0.3679,
       "nogol_team": "Orijent 1919",
@@ -136846,8 +136765,34 @@
       "league_season": 2026,
       "home_form": "",
       "away_form": "",
-      "home_standing": null,
-      "away_standing": null,
+      "home_standing": {
+        "rank": 5,
+        "points": 0,
+        "played": 0,
+        "won": 0,
+        "draw": 0,
+        "lost": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_diff": 0,
+        "group": "Regular Season",
+        "description": "",
+        "form": ""
+      },
+      "away_standing": {
+        "rank": 6,
+        "points": 0,
+        "played": 0,
+        "won": 0,
+        "draw": 0,
+        "lost": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_diff": 0,
+        "group": "Regular Season",
+        "description": "",
+        "form": ""
+      },
       "p_over15": 0.6527,
       "p_under15": 0.3473,
       "ou15_pick": "Over 1.5",
@@ -136971,8 +136916,34 @@
       "league_season": 2026,
       "home_form": "",
       "away_form": "",
-      "home_standing": null,
-      "away_standing": null,
+      "home_standing": {
+        "rank": 7,
+        "points": 0,
+        "played": 0,
+        "won": 0,
+        "draw": 0,
+        "lost": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_diff": 0,
+        "group": "Regular Season",
+        "description": "",
+        "form": ""
+      },
+      "away_standing": {
+        "rank": 8,
+        "points": 0,
+        "played": 0,
+        "won": 0,
+        "draw": 0,
+        "lost": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_diff": 0,
+        "group": "Regular Season",
+        "description": "",
+        "form": ""
+      },
       "p_over15": 0.6527,
       "p_under15": 0.3473,
       "ou15_pick": "Over 1.5",
@@ -137142,33 +137113,33 @@
       "sh15_conf": 0.5169,
       "odd_o15_sh": 2.0,
       "odd_u15_sh": 1.73,
-      "p_over25": 0.608,
-      "p_under25": 0.392,
+      "p_over25": 0.6086,
+      "p_under25": 0.3914,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.608,
+      "ou_conf": 0.6086,
       "odd_o25": 1.88,
       "odd_u25": 1.92,
-      "p_over35": 0.3319,
-      "p_under35": 0.6681,
+      "p_over35": 0.332,
+      "p_under35": 0.668,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.6681,
+      "ou35_conf": 0.668,
       "odd_o35": 3.1,
       "odd_u35": 1.35,
-      "p_btts_yes": 0.4481,
-      "p_btts_no": 0.5519,
+      "p_btts_yes": 0.4532,
+      "p_btts_no": 0.5468,
       "btts_pick": "BTTS NO",
-      "btts_conf": 0.5519,
-      "odd_btts_y": 3.4,
-      "odd_btts_n": 1.3,
-      "p_1x": 0.8267,
-      "p_x2": 0.4537,
+      "btts_conf": 0.5468,
+      "odd_btts_y": 3.25,
+      "odd_btts_n": 1.33,
+      "p_1x": 0.8231,
+      "p_x2": 0.4577,
       "dc_pick": "1X",
-      "dc_conf": 0.8267,
+      "dc_conf": 0.8231,
       "odd_1x": 1.18,
       "odd_x2": 1.5,
       "p_o25_btts": 0.4463,
-      "p_nogol": 0.5658,
-      "p_both_score": 0.4342,
+      "p_nogol": 0.5608,
+      "p_both_score": 0.4392,
       "p_home_blanked": 0.0541,
       "p_away_blanked": 0.4472,
       "nogol_team": "TSV Hartberg",
@@ -139531,8 +139502,8 @@
       "p_x2": 0.7258,
       "dc_pick": "X2",
       "dc_conf": 0.7258,
-      "odd_1x": 1.44,
-      "odd_x2": 1.25,
+      "odd_1x": 1.5,
+      "odd_x2": 1.2,
       "p_o25_btts": 0.3087,
       "p_nogol": 0.5606,
       "p_both_score": 0.4394,
@@ -139552,13 +139523,13 @@
         "13.5": null
       },
       "corner_odds": {
-        "8.5": {
-          "over": 2.0,
-          "under": 1.73
-        },
         "8.0": {
           "over": 2.0,
           "under": 2.25
+        },
+        "8.5": {
+          "over": 2.0,
+          "under": 1.73
         }
       },
       "exp_yellows": null,
@@ -143982,8 +143953,8 @@
       "p_x2": 0.7058,
       "dc_pick": "X2",
       "dc_conf": 0.7058,
-      "odd_1x": 1.28,
-      "odd_x2": 1.53,
+      "odd_1x": 1.36,
+      "odd_x2": 1.4,
       "p_o25_btts": 0.7335,
       "p_nogol": 0.1946,
       "p_both_score": 0.8054,
@@ -147199,12 +147170,12 @@
       "ou_conf": 0.6426,
       "odd_o25": 1.5,
       "odd_u25": 2.5,
-      "p_over35": 0.4092,
-      "p_under35": 0.5908,
+      "p_over35": 0.4063,
+      "p_under35": 0.5937,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.5908,
-      "odd_o35": 2.2,
-      "odd_u35": 1.65,
+      "ou35_conf": 0.5937,
+      "odd_o35": 2.25,
+      "odd_u35": 1.62,
       "p_btts_yes": 0.5486,
       "p_btts_no": 0.4514,
       "btts_pick": "BTTS YES",
@@ -150604,12 +150575,12 @@
         "description": "",
         "form": "WDWDD"
       },
-      "p_over15": 0.6382,
-      "p_under15": 0.3618,
+      "p_over15": 0.6442,
+      "p_under15": 0.3558,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.6382,
-      "odd_o15": 1.31,
-      "odd_u15": 3.1,
+      "ou15_conf": 0.6442,
+      "odd_o15": 1.28,
+      "odd_u15": 3.35,
       "p_over15_ht": 0.2389,
       "p_under15_ht": 0.7611,
       "ht15_pick": "Under 1.5 HT",
@@ -150622,12 +150593,12 @@
       "sh15_conf": 0.6901,
       "odd_o15_sh": 2.16,
       "odd_u15_sh": 1.62,
-      "p_over25": 0.4325,
-      "p_under25": 0.5675,
+      "p_over25": 0.4321,
+      "p_under25": 0.5679,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.5675,
+      "ou_conf": 0.5679,
       "odd_o25": 1.97,
-      "odd_u25": 1.74,
+      "odd_u25": 1.73,
       "p_over35": 0.1432,
       "p_under35": 0.8568,
       "ou35_pick": "Under 3.5",
@@ -151057,36 +151028,36 @@
         "description": "",
         "form": "LLLWL"
       },
-      "p_over15": 0.8587,
-      "p_under15": 0.1413,
+      "p_over15": 0.8534,
+      "p_under15": 0.1466,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.8587,
-      "odd_o15": 1.15,
-      "odd_u15": 4.55,
-      "p_over15_ht": 0.4721,
-      "p_under15_ht": 0.5279,
+      "ou15_conf": 0.8534,
+      "odd_o15": 1.17,
+      "odd_u15": 4.15,
+      "p_over15_ht": 0.4718,
+      "p_under15_ht": 0.5282,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.5279,
+      "ht15_conf": 0.5282,
       "odd_o15_ht": null,
       "odd_u15_ht": null,
-      "p_over15_sh": 0.5621,
-      "p_under15_sh": 0.4379,
+      "p_over15_sh": 0.5617,
+      "p_under15_sh": 0.4383,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.5621,
+      "sh15_conf": 0.5617,
       "odd_o15_sh": null,
       "odd_u15_sh": null,
-      "p_over25": 0.6686,
-      "p_under25": 0.3314,
+      "p_over25": 0.6672,
+      "p_under25": 0.3328,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.6686,
-      "odd_o25": 1.53,
-      "odd_u25": 2.32,
+      "ou_conf": 0.6672,
+      "odd_o25": 1.55,
+      "odd_u25": 2.3,
       "p_over35": 0.428,
       "p_under35": 0.572,
       "ou35_pick": "Under 3.5",
       "ou35_conf": 0.572,
-      "odd_o35": 2.27,
-      "odd_u35": 1.56,
+      "odd_o35": 2.25,
+      "odd_u35": 1.55,
       "p_btts_yes": 0.668,
       "p_btts_no": 0.332,
       "btts_pick": "BTTS YES",
@@ -151220,16 +151191,16 @@
       "ht15_conf": 0.7375,
       "odd_o15_ht": 2.67,
       "odd_u15_ht": 1.38,
-      "p_over15_sh": 0.3408,
-      "p_under15_sh": 0.6592,
+      "p_over15_sh": 0.3415,
+      "p_under15_sh": 0.6585,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6592,
-      "odd_o15_sh": 2.02,
-      "odd_u15_sh": 1.69,
-      "p_over25": 0.4739,
-      "p_under25": 0.5261,
+      "sh15_conf": 0.6585,
+      "odd_o15_sh": 2.01,
+      "odd_u15_sh": 1.7,
+      "p_over25": 0.4737,
+      "p_under25": 0.5263,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.5261,
+      "ou_conf": 0.5263,
       "odd_o25": 1.85,
       "odd_u25": 1.85,
       "p_over35": 0.1771,
@@ -151238,21 +151209,21 @@
       "ou35_conf": 0.8229,
       "odd_o35": 2.97,
       "odd_u35": 1.3,
-      "p_btts_yes": 0.3627,
-      "p_btts_no": 0.6373,
+      "p_btts_yes": 0.3608,
+      "p_btts_no": 0.6392,
       "btts_pick": "BTTS NO",
-      "btts_conf": 0.6373,
-      "odd_btts_y": 3.5,
-      "odd_btts_n": 1.23,
-      "p_1x": 0.5441,
-      "p_x2": 0.7756,
+      "btts_conf": 0.6392,
+      "odd_btts_y": 3.58,
+      "odd_btts_n": 1.22,
+      "p_1x": 0.5459,
+      "p_x2": 0.7738,
       "dc_pick": "X2",
-      "dc_conf": 0.7756,
+      "dc_conf": 0.7738,
       "odd_1x": 1.33,
-      "odd_x2": 1.27,
+      "odd_x2": 1.28,
       "p_o25_btts": 0.2496,
-      "p_nogol": 0.6637,
-      "p_both_score": 0.3363,
+      "p_nogol": 0.6659,
+      "p_both_score": 0.3341,
       "p_home_blanked": 0.3389,
       "p_away_blanked": 0.4146,
       "nogol_team": "Rodina Moskva II",
@@ -154161,7 +154132,7 @@
       "p_x2": 0.5166,
       "dc_pick": "1X",
       "dc_conf": 0.7803,
-      "odd_1x": 1.14,
+      "odd_1x": 1.12,
       "odd_x2": 1.73,
       "p_o25_btts": 0.3087,
       "p_nogol": 0.6157,
@@ -156009,13 +155980,13 @@
         "13.5": null
       },
       "corner_odds": {
-        "9.5": {
-          "over": 2.0,
-          "under": 1.73
-        },
         "9.0": {
           "over": 2.0,
           "under": 2.25
+        },
+        "9.5": {
+          "over": 2.0,
+          "under": 1.73
         }
       },
       "exp_yellows": null,
@@ -156265,28 +156236,28 @@
       "ou15_conf": 0.6527,
       "odd_o15": null,
       "odd_u15": null,
-      "p_over15_ht": 0.2761,
-      "p_under15_ht": 0.7239,
+      "p_over15_ht": 0.2782,
+      "p_under15_ht": 0.7218,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7239,
+      "ht15_conf": 0.7218,
       "odd_o15_ht": null,
       "odd_u15_ht": null,
-      "p_over15_sh": 0.3469,
-      "p_under15_sh": 0.6531,
+      "p_over15_sh": 0.3496,
+      "p_under15_sh": 0.6504,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6531,
+      "sh15_conf": 0.6504,
       "odd_o15_sh": null,
       "odd_u15_sh": null,
-      "p_over25": 0.4422,
-      "p_under25": 0.5578,
+      "p_over25": 0.4542,
+      "p_under25": 0.5458,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.5578,
-      "odd_o25": 1.67,
-      "odd_u25": 2.15,
-      "p_over35": 0.1614,
-      "p_under35": 0.8386,
+      "ou_conf": 0.5458,
+      "odd_o25": 1.57,
+      "odd_u25": 2.35,
+      "p_over35": 0.1632,
+      "p_under35": 0.8368,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.8386,
+      "ou35_conf": 0.8368,
       "odd_o35": null,
       "odd_u35": null,
       "p_btts_yes": 0.44,
@@ -156561,12 +156532,12 @@
         "description": "",
         "form": "WLLW"
       },
-      "p_over15": 0.8853,
-      "p_under15": 0.1147,
+      "p_over15": 0.8874,
+      "p_under15": 0.1126,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.8853,
-      "odd_o15": 1.21,
-      "odd_u15": 4.25,
+      "ou15_conf": 0.8874,
+      "odd_o15": 1.2,
+      "odd_u15": 4.4,
       "p_over15_ht": 0.5126,
       "p_under15_ht": 0.4874,
       "ht15_pick": "Over 1.5 HT",
@@ -156626,6 +156597,10 @@
           "over": 1.67,
           "under": 2.1
         },
+        "9.0": {
+          "over": 2.2,
+          "under": 2.1
+        },
         "9.5": {
           "over": 1.91,
           "under": 1.8
@@ -156643,27 +156618,72 @@
           "under": 41.0
         },
         "4.0": {
-          "over": 1.02,
+          "over": 1.04,
           "under": 26.0
         },
         "5.0": {
-          "over": 1.07,
-          "under": 17.0
+          "over": 1.1,
+          "under": 13.0
         },
-        "9.0": {
-          "over": 1.91,
-          "under": 2.38
+        "8.0": {
+          "over": 1.67,
+          "under": 2.75
+        },
+        "10.0": {
+          "over": 3.0,
+          "under": 1.62
+        },
+        "11.0": {
+          "over": 4.0,
+          "under": 1.36
         },
         "7.0": {
-          "over": 1.3,
-          "under": 5.0
+          "over": 1.4,
+          "under": 4.33
+        },
+        "12.0": {
+          "over": 6.0,
+          "under": 1.22
         },
         "6.0": {
-          "over": 1.17,
+          "over": 1.2,
           "under": 7.0
         },
+        "13.0": {
+          "over": 9.0,
+          "under": 1.12
+        },
+        "21.0": {
+          "over": 101.0,
+          "under": 1.0
+        },
         "14.0": {
-          "over": 15.0
+          "over": 15.0,
+          "under": 1.07
+        },
+        "19.0": {
+          "over": 51.0,
+          "under": 1.0
+        },
+        "20.0": {
+          "over": 67.0,
+          "under": 1.0
+        },
+        "17.0": {
+          "over": 34.0,
+          "under": 1.01
+        },
+        "18.0": {
+          "over": 41.0,
+          "under": 1.0
+        },
+        "16.0": {
+          "over": 23.0,
+          "under": 1.02
+        },
+        "15.0": {
+          "over": 17.0,
+          "under": 1.03
         }
       },
       "exp_yellows": null,
@@ -157837,12 +157857,12 @@
       "ou_conf": 0.6542,
       "odd_o25": 1.82,
       "odd_u25": 1.98,
-      "p_over35": 0.5118,
-      "p_under35": 0.4882,
+      "p_over35": 0.5152,
+      "p_under35": 0.4848,
       "ou35_pick": "Over 3.5",
-      "ou35_conf": 0.5118,
-      "odd_o35": 3.1,
-      "odd_u35": 1.35,
+      "ou35_conf": 0.5152,
+      "odd_o35": 3.0,
+      "odd_u35": 1.38,
       "p_btts_yes": 0.5939,
       "p_btts_no": 0.4061,
       "btts_pick": "BTTS YES",
@@ -159398,12 +159418,12 @@
       "btts_conf": 0.56,
       "odd_btts_y": null,
       "odd_btts_n": null,
-      "p_1x": 0.6182,
-      "p_x2": 0.7049,
+      "p_1x": 0.5984,
+      "p_x2": 0.7227,
       "dc_pick": "X2",
-      "dc_conf": 0.7049,
-      "odd_1x": 1.3,
-      "odd_x2": 1.25,
+      "dc_conf": 0.7227,
+      "odd_1x": 1.4,
+      "odd_x2": 1.17,
       "p_o25_btts": 0.3087,
       "p_nogol": 0.5606,
       "p_both_score": 0.4394,
@@ -161876,8 +161896,8 @@
           8.0
         ]
       ],
-      "kickoff_at": "2026-08-22T18:00:00+02:00",
-      "kickoff_ts": 1787414400,
+      "kickoff_at": "2026-08-22T17:00:00+02:00",
+      "kickoff_ts": 1787410800,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -164389,8 +164409,8 @@
       "p_x2": 0.5139,
       "dc_pick": "1X",
       "dc_conf": 0.7961,
-      "odd_1x": null,
-      "odd_x2": null,
+      "odd_1x": 1.2,
+      "odd_x2": 1.5,
       "p_o25_btts": 0.2878,
       "p_nogol": 0.5774,
       "p_both_score": 0.4226,
@@ -164535,13 +164555,21 @@
         "13.5": null
       },
       "corner_odds": {
+        "9.5": {
+          "over": 1.83,
+          "under": 1.83
+        },
         "10.0": {
-          "over": 2.0,
-          "under": 2.2
+          "over": 2.2,
+          "under": 2.0
         },
         "10.5": {
           "over": 2.0,
           "under": 1.73
+        },
+        "9.0": {
+          "over": 1.83,
+          "under": 2.38
         }
       },
       "exp_yellows": null,
@@ -165051,7 +165079,7 @@
       "home_form": "",
       "away_form": "",
       "home_standing": {
-        "rank": 2,
+        "rank": 4,
         "points": 0,
         "played": 0,
         "won": 0,
@@ -165065,7 +165093,7 @@
         "form": ""
       },
       "away_standing": {
-        "rank": 7,
+        "rank": 9,
         "points": 0,
         "played": 0,
         "won": 0,
@@ -166857,13 +166885,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/28254.png",
       "away_logo": "https://media.api-sports.io/football/teams/16229.png",
       "league_logo": "https://media.api-sports.io/football/leagues/105.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "FT",
+      "status_long": "Match Finished",
+      "goals_home": 2,
+      "goals_away": 3,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "2-3",
       "home_team_id": 28254,
       "away_team_id": 16229,
       "league_id": 105,
@@ -166966,10 +166994,10 @@
           4.5
         ]
       ],
-      "kickoff_at": "2026-08-22T18:00:00+02:00",
-      "kickoff_ts": 1787414400,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "kickoff_at": "2026-08-21T17:00:00+02:00",
+      "kickoff_ts": 1787324400,
+      "ht_goals_home": 1,
+      "ht_goals_away": 2
     },
     {
       "fixture_id": 1549462,
@@ -167089,8 +167117,8 @@
           "under": 2.1
         },
         "9.0": {
-          "over": 2.1,
-          "under": 2.1
+          "over": 1.83,
+          "under": 2.38
         },
         "1.0": {
           "over": 1.0,
@@ -167105,72 +167133,80 @@
           "under": 41.0
         },
         "4.0": {
-          "over": 1.04,
-          "under": 26.0
+          "over": 1.02,
+          "under": 29.0
         },
         "5.0": {
-          "over": 1.1,
-          "under": 13.0
+          "over": 1.07,
+          "under": 17.0
         },
         "8.0": {
-          "over": 1.67,
-          "under": 2.75
+          "over": 1.53,
+          "under": 3.4
         },
         "10.0": {
-          "over": 2.75,
-          "under": 1.67
+          "over": 2.5,
+          "under": 1.83
         },
         "11.0": {
-          "over": 4.0,
-          "under": 1.4
+          "over": 3.4,
+          "under": 1.5
         },
         "7.0": {
-          "over": 1.4,
-          "under": 4.33
+          "over": 1.3,
+          "under": 5.5
         },
         "12.0": {
-          "over": 6.0,
-          "under": 1.22
+          "over": 4.5,
+          "under": 1.3
         },
         "6.0": {
-          "over": 1.2,
+          "over": 1.14,
           "under": 7.0
         },
         "13.0": {
-          "over": 9.0,
-          "under": 1.12
+          "over": 7.0,
+          "under": 1.18
         },
         "21.0": {
+          "over": 67.0,
+          "under": 1.0
+        },
+        "22.0": {
           "over": 101.0,
           "under": 1.0
         },
         "14.0": {
           "over": 12.0,
-          "under": 1.07
+          "under": 1.1
         },
         "19.0": {
-          "over": 51.0,
+          "over": 41.0,
           "under": 1.0
         },
         "20.0": {
-          "over": 67.0,
+          "over": 51.0,
           "under": 1.0
         },
         "17.0": {
-          "over": 34.0,
+          "over": 26.0,
           "under": 1.01
         },
         "18.0": {
-          "over": 41.0,
+          "over": 34.0,
           "under": 1.01
         },
         "16.0": {
-          "over": 23.0,
-          "under": 1.02
+          "over": 19.0,
+          "under": 1.03
         },
         "15.0": {
-          "over": 17.0,
-          "under": 1.03
+          "over": 13.0,
+          "under": 1.06
+        },
+        "20.5": {
+          "over": 2.0,
+          "under": 1.73
         },
         "17.5": {
           "over": 1.8,
@@ -167609,8 +167645,8 @@
       "p_x2": 0.472,
       "dc_pick": "1X",
       "dc_conf": 0.7861,
-      "odd_1x": 1.28,
-      "odd_x2": 1.53,
+      "odd_1x": 1.4,
+      "odd_x2": 1.4,
       "p_o25_btts": 0.5784,
       "p_nogol": 0.1294,
       "p_both_score": 0.8706,
@@ -167851,28 +167887,28 @@
       "ou15_conf": 0.975,
       "odd_o15": null,
       "odd_u15": null,
-      "p_over15_ht": 0.7048,
-      "p_under15_ht": 0.2952,
+      "p_over15_ht": 0.6831,
+      "p_under15_ht": 0.3169,
       "ht15_pick": "Over 1.5 HT",
-      "ht15_conf": 0.7048,
+      "ht15_conf": 0.6831,
       "odd_o15_ht": null,
       "odd_u15_ht": null,
-      "p_over15_sh": 0.7956,
-      "p_under15_sh": 0.2044,
+      "p_over15_sh": 0.7687,
+      "p_under15_sh": 0.2313,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.7956,
+      "sh15_conf": 0.7687,
       "odd_o15_sh": null,
       "odd_u15_sh": null,
-      "p_over25": 0.7199,
-      "p_under25": 0.2801,
+      "p_over25": 0.6581,
+      "p_under25": 0.3419,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.7199,
-      "odd_o25": null,
-      "odd_u25": null,
-      "p_over35": 0.7423,
-      "p_under35": 0.2577,
+      "ou_conf": 0.6581,
+      "odd_o25": 1.82,
+      "odd_u25": 1.98,
+      "p_over35": 0.7331,
+      "p_under35": 0.2669,
       "ou35_pick": "Over 3.5",
-      "ou35_conf": 0.7423,
+      "ou35_conf": 0.7331,
       "odd_o35": null,
       "odd_u35": null,
       "p_btts_yes": 0.6916,
@@ -167881,12 +167917,12 @@
       "btts_conf": 0.6916,
       "odd_btts_y": null,
       "odd_btts_n": null,
-      "p_1x": 0.2622,
-      "p_x2": 0.9156,
+      "p_1x": 0.3616,
+      "p_x2": 0.8386,
       "dc_pick": "X2",
-      "dc_conf": 0.9156,
-      "odd_1x": null,
-      "odd_x2": null,
+      "dc_conf": 0.8386,
+      "odd_1x": 1.36,
+      "odd_x2": 1.36,
       "p_o25_btts": 0.6238,
       "p_nogol": 0.3066,
       "p_both_score": 0.6934,
@@ -169632,36 +169668,36 @@
         "description": "Nike liga (Relegation Group)",
         "form": "LLLL"
       },
-      "p_over15": 0.8865,
-      "p_under15": 0.1135,
+      "p_over15": 0.892,
+      "p_under15": 0.108,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.8865,
-      "odd_o15": 1.26,
-      "odd_u15": 3.7,
-      "p_over15_ht": 0.5288,
-      "p_under15_ht": 0.4712,
+      "ou15_conf": 0.892,
+      "odd_o15": 1.23,
+      "odd_u15": 4.0,
+      "p_over15_ht": 0.5296,
+      "p_under15_ht": 0.4704,
       "ht15_pick": "Over 1.5 HT",
-      "ht15_conf": 0.5288,
+      "ht15_conf": 0.5296,
       "odd_o15_ht": 2.5,
       "odd_u15_ht": 1.5,
-      "p_over15_sh": 0.6198,
-      "p_under15_sh": 0.3802,
+      "p_over15_sh": 0.6208,
+      "p_under15_sh": 0.3792,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.6198,
+      "sh15_conf": 0.6208,
       "odd_o15_sh": 2.0,
       "odd_u15_sh": 1.73,
-      "p_over25": 0.6661,
-      "p_under25": 0.3339,
+      "p_over25": 0.671,
+      "p_under25": 0.329,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.6661,
-      "odd_o25": 1.82,
-      "odd_u25": 1.98,
-      "p_over35": 0.5165,
-      "p_under35": 0.4835,
+      "ou_conf": 0.671,
+      "odd_o25": 1.75,
+      "odd_u25": 2.05,
+      "p_over35": 0.5244,
+      "p_under35": 0.4756,
       "ou35_pick": "Over 3.5",
-      "ou35_conf": 0.5165,
-      "odd_o35": 3.0,
-      "odd_u35": 1.38,
+      "ou35_conf": 0.5244,
+      "odd_o35": 2.75,
+      "odd_u35": 1.42,
       "p_btts_yes": 0.5966,
       "p_btts_no": 0.4034,
       "btts_pick": "BTTS YES",
@@ -169934,8 +169970,8 @@
       },
       "corner_odds": {
         "10.5": {
-          "over": 1.91,
-          "under": 1.8
+          "over": 1.98,
+          "under": 1.82
         },
         "2.0": {
           "over": 1.0,
@@ -170871,51 +170907,51 @@
         "description": "",
         "form": "LWL"
       },
-      "p_over15": 0.8959,
-      "p_under15": 0.1041,
+      "p_over15": 0.9088,
+      "p_under15": 0.0912,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.8959,
-      "odd_o15": 1.2,
-      "odd_u15": 4.33,
-      "p_over15_ht": 0.5126,
-      "p_under15_ht": 0.4874,
+      "ou15_conf": 0.9088,
+      "odd_o15": 1.15,
+      "odd_u15": 5.5,
+      "p_over15_ht": 0.5238,
+      "p_under15_ht": 0.4762,
       "ht15_pick": "Over 1.5 HT",
-      "ht15_conf": 0.5126,
-      "odd_o15_ht": 2.38,
-      "odd_u15_ht": 1.55,
-      "p_over15_sh": 0.6449,
-      "p_under15_sh": 0.3551,
+      "ht15_conf": 0.5238,
+      "odd_o15_ht": 2.2,
+      "odd_u15_ht": 1.65,
+      "p_over15_sh": 0.6116,
+      "p_under15_sh": 0.3884,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.6449,
-      "odd_o15_sh": null,
-      "odd_u15_sh": null,
-      "p_over25": 0.6543,
-      "p_under25": 0.3457,
+      "sh15_conf": 0.6116,
+      "odd_o15_sh": 1.83,
+      "odd_u15_sh": 1.83,
+      "p_over25": 0.6703,
+      "p_under25": 0.3297,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.6543,
-      "odd_o25": 1.65,
-      "odd_u25": 2.2,
-      "p_over35": 0.5009,
-      "p_under35": 0.4991,
+      "ou_conf": 0.6703,
+      "odd_o25": 1.5,
+      "odd_u25": 2.5,
+      "p_over35": 0.5152,
+      "p_under35": 0.4848,
       "ou35_pick": "Over 3.5",
-      "ou35_conf": 0.5009,
-      "odd_o35": 2.5,
-      "odd_u35": 1.5,
-      "p_btts_yes": 0.5921,
-      "p_btts_no": 0.4079,
+      "ou35_conf": 0.5152,
+      "odd_o35": 2.25,
+      "odd_u35": 1.62,
+      "p_btts_yes": 0.6061,
+      "p_btts_no": 0.3939,
       "btts_pick": "BTTS YES",
-      "btts_conf": 0.5921,
-      "odd_btts_y": 3.0,
-      "odd_btts_n": 1.36,
-      "p_1x": 0.7045,
-      "p_x2": 0.5669,
+      "btts_conf": 0.6061,
+      "odd_btts_y": 2.62,
+      "odd_btts_n": 1.44,
+      "p_1x": 0.7044,
+      "p_x2": 0.5634,
       "dc_pick": "1X",
-      "dc_conf": 0.7045,
-      "odd_1x": 1.28,
+      "dc_conf": 0.7044,
+      "odd_1x": 1.3,
       "odd_x2": 1.5,
       "p_o25_btts": 0.6725,
-      "p_nogol": 0.3017,
-      "p_both_score": 0.6983,
+      "p_nogol": 0.2861,
+      "p_both_score": 0.7139,
       "p_home_blanked": 0.0541,
       "p_away_blanked": 0.0541,
       "nogol_team": "SC Kriens",
@@ -171363,16 +171399,69 @@
           "over": 1.08,
           "under": 15.0
         },
+        "8.0": {
+          "over": 1.62,
+          "under": 3.0
+        },
         "9.0": {
           "over": 2.0,
           "under": 2.2
+        },
+        "10.0": {
+          "over": 2.62,
+          "under": 1.73
+        },
+        "11.0": {
+          "over": 3.75,
+          "under": 1.44
+        },
+        "7.0": {
+          "over": 1.36,
+          "under": 4.5
+        },
+        "12.0": {
+          "over": 5.5,
+          "under": 1.25
         },
         "6.0": {
           "over": 1.18,
           "under": 8.0
         },
+        "13.0": {
+          "over": 8.0,
+          "under": 1.14
+        },
+        "21.0": {
+          "over": 101.0,
+          "under": 1.0
+        },
         "14.0": {
-          "over": 13.0
+          "over": 13.0,
+          "under": 1.08
+        },
+        "19.0": {
+          "over": 51.0,
+          "under": 1.0
+        },
+        "20.0": {
+          "over": 67.0,
+          "under": 1.0
+        },
+        "17.0": {
+          "over": 34.0,
+          "under": 1.01
+        },
+        "18.0": {
+          "over": 41.0,
+          "under": 1.01
+        },
+        "16.0": {
+          "over": 23.0,
+          "under": 1.02
+        },
+        "15.0": {
+          "over": 17.0,
+          "under": 1.04
         }
       },
       "exp_yellows": null,
@@ -171958,8 +172047,8 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.83,
-          "under": 1.83
+          "over": 1.85,
+          "under": 1.95
         },
         "2.0": {
           "over": 1.0,
@@ -172113,7 +172202,7 @@
       "home_form": "WDDLD",
       "away_form": "DDWWL",
       "home_standing": {
-        "rank": 4,
+        "rank": 5,
         "points": 21,
         "played": 14,
         "won": 5,
@@ -174012,8 +174101,8 @@
           "under": 2.1
         },
         "4.5": {
-          "over": 1.91,
-          "under": 1.8
+          "over": 2.2,
+          "under": 1.62
         }
       },
       "lam_home": 1.2,
@@ -174196,7 +174285,7 @@
       "home_form": "",
       "away_form": "",
       "home_standing": {
-        "rank": 8,
+        "rank": 1,
         "points": 0,
         "played": 0,
         "won": 0,
@@ -174206,11 +174295,11 @@
         "goals_against": 0,
         "goal_diff": 0,
         "group": "Serie A",
-        "description": "",
+        "description": "Champions League league stage",
         "form": ""
       },
       "away_standing": {
-        "rank": 13,
+        "rank": 20,
         "points": 0,
         "played": 0,
         "won": 0,
@@ -174220,7 +174309,7 @@
         "goals_against": 0,
         "goal_diff": 0,
         "group": "Serie A",
-        "description": "",
+        "description": "Relegation",
         "form": ""
       },
       "p_over15": 0.7043,
@@ -174445,7 +174534,7 @@
       "home_form": "",
       "away_form": "",
       "home_standing": {
-        "rank": 19,
+        "rank": 10,
         "points": 0,
         "played": 0,
         "won": 0,
@@ -174455,7 +174544,7 @@
         "goals_against": 0,
         "goal_diff": 0,
         "group": "Serie A",
-        "description": "Relegation",
+        "description": "",
         "form": ""
       },
       "away_standing": {
@@ -174534,8 +174623,8 @@
       },
       "corner_odds": {
         "8.5": {
-          "over": 1.95,
-          "under": 1.85
+          "over": 1.83,
+          "under": 1.83
         },
         "1.0": {
           "over": 1.0,
@@ -174635,8 +174724,8 @@
           "under": 2.2
         },
         "4.5": {
-          "over": 1.8,
-          "under": 1.91
+          "over": 2.2,
+          "under": 1.62
         }
       },
       "lam_home": 1.2,
@@ -174694,7 +174783,7 @@
       "home_form": "W",
       "away_form": "L",
       "home_standing": {
-        "rank": 2,
+        "rank": 3,
         "points": 3,
         "played": 1,
         "won": 1,
@@ -174883,30 +174972,30 @@
       "ou15_conf": 0.7245,
       "odd_o15": 1.1,
       "odd_u15": 7.0,
-      "p_over15_ht": 0.3345,
-      "p_under15_ht": 0.6655,
+      "p_over15_ht": 0.3387,
+      "p_under15_ht": 0.6613,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.6655,
-      "odd_o15_ht": 1.95,
-      "odd_u15_ht": 1.85,
-      "p_over15_sh": 0.4208,
-      "p_under15_sh": 0.5792,
+      "ht15_conf": 0.6613,
+      "odd_o15_ht": 1.9,
+      "odd_u15_ht": 1.9,
+      "p_over15_sh": 0.4217,
+      "p_under15_sh": 0.5783,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.5792,
+      "sh15_conf": 0.5783,
       "odd_o15_sh": 1.53,
       "odd_u15_sh": 2.38,
-      "p_over25": 0.4803,
-      "p_under25": 0.5197,
+      "p_over25": 0.486,
+      "p_under25": 0.514,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.5197,
-      "odd_o25": 1.35,
-      "odd_u25": 3.1,
-      "p_over35": 0.2634,
-      "p_under35": 0.7366,
+      "ou_conf": 0.514,
+      "odd_o25": 1.32,
+      "odd_u25": 3.3,
+      "p_over35": 0.2663,
+      "p_under35": 0.7337,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.7366,
-      "odd_o35": 1.85,
-      "odd_u35": 1.95,
+      "ou35_conf": 0.7337,
+      "odd_o35": 1.82,
+      "odd_u35": 1.98,
       "p_btts_yes": 0.4014,
       "p_btts_no": 0.5986,
       "btts_pick": "BTTS NO",
@@ -174939,8 +175028,8 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.88,
-          "under": 1.92
+          "over": 1.83,
+          "under": 1.83
         },
         "2.0": {
           "over": 1.0,
@@ -175267,6 +175356,10 @@
           "under": 1.02
         },
         "12.5": {
+          "over": 1.91,
+          "under": 1.8
+        },
+        "15.5": {
           "over": 1.91,
           "under": 1.8
         }
@@ -175617,30 +175710,30 @@
       "ou15_conf": 0.9431,
       "odd_o15": 1.13,
       "odd_u15": 5.9,
-      "p_over15_ht": 0.6163,
-      "p_under15_ht": 0.3837,
+      "p_over15_ht": 0.6168,
+      "p_under15_ht": 0.3832,
       "ht15_pick": "Over 1.5 HT",
-      "ht15_conf": 0.6163,
+      "ht15_conf": 0.6168,
       "odd_o15_ht": 2.08,
       "odd_u15_ht": 1.72,
-      "p_over15_sh": 0.7101,
-      "p_under15_sh": 0.2899,
+      "p_over15_sh": 0.7106,
+      "p_under15_sh": 0.2894,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.7101,
+      "sh15_conf": 0.7106,
       "odd_o15_sh": 1.67,
       "odd_u15_sh": 2.1,
-      "p_over25": 0.6816,
-      "p_under25": 0.3184,
+      "p_over25": 0.685,
+      "p_under25": 0.315,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.6816,
-      "odd_o25": 1.45,
-      "odd_u25": 2.68,
-      "p_over35": 0.6376,
-      "p_under35": 0.3624,
+      "ou_conf": 0.685,
+      "odd_o25": 1.42,
+      "odd_u25": 2.75,
+      "p_over35": 0.6395,
+      "p_under35": 0.3605,
       "ou35_pick": "Over 3.5",
-      "ou35_conf": 0.6376,
-      "odd_o35": 2.1,
-      "odd_u35": 1.7,
+      "ou35_conf": 0.6395,
+      "odd_o35": 2.08,
+      "odd_u35": 1.72,
       "p_btts_yes": 0.4901,
       "p_btts_no": 0.5099,
       "btts_pick": "BTTS NO",
@@ -175671,7 +175764,12 @@
         "12.5": 0.148,
         "13.5": 0.084
       },
-      "corner_odds": {},
+      "corner_odds": {
+        "10.0": {
+          "over": 1.8,
+          "under": 2.0
+        }
+      },
       "exp_yellows": null,
       "yellow_overs": {
         "1.5": null,
@@ -175824,8 +175922,8 @@
       },
       "corner_odds": {
         "7.5": {
-          "over": 1.73,
-          "under": 2.0
+          "over": 1.78,
+          "under": 2.02
         },
         "1.0": {
           "over": 1.0,
@@ -176242,36 +176340,36 @@
         "description": "Promotion - Premiership (Championship Group)",
         "form": "WL"
       },
-      "p_over15": 0.6507,
-      "p_under15": 0.3493,
+      "p_over15": 0.6547,
+      "p_under15": 0.3453,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.6507,
-      "odd_o15": 1.25,
-      "odd_u15": 3.8,
-      "p_over15_ht": 0.2691,
-      "p_under15_ht": 0.7309,
+      "ou15_conf": 0.6547,
+      "odd_o15": 1.23,
+      "odd_u15": 4.0,
+      "p_over15_ht": 0.2699,
+      "p_under15_ht": 0.7301,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7309,
+      "ht15_conf": 0.7301,
       "odd_o15_ht": 2.6,
       "odd_u15_ht": 1.48,
-      "p_over15_sh": 0.344,
-      "p_under15_sh": 0.656,
+      "p_over15_sh": 0.3451,
+      "p_under15_sh": 0.6549,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.656,
+      "sh15_conf": 0.6549,
       "odd_o15_sh": 2.0,
       "odd_u15_sh": 1.73,
-      "p_over25": 0.4286,
-      "p_under25": 0.5714,
+      "p_over25": 0.4352,
+      "p_under25": 0.5648,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.5714,
-      "odd_o25": 1.85,
-      "odd_u25": 2.0,
-      "p_over35": 0.1753,
-      "p_under35": 0.8247,
+      "ou_conf": 0.5648,
+      "odd_o25": 1.75,
+      "odd_u25": 2.05,
+      "p_over35": 0.1833,
+      "p_under35": 0.8167,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.8247,
-      "odd_o35": 3.0,
-      "odd_u35": 1.38,
+      "ou35_conf": 0.8167,
+      "odd_o35": 2.75,
+      "odd_u35": 1.42,
       "p_btts_yes": 0.403,
       "p_btts_no": 0.597,
       "btts_pick": "BTTS NO",
@@ -178512,51 +178610,51 @@
         "description": "Ligat ha'Al (Relegation Group)",
         "form": ""
       },
-      "p_over15": 0.6812,
-      "p_under15": 0.3188,
+      "p_over15": 0.6826,
+      "p_under15": 0.3174,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.6812,
-      "odd_o15": 1.28,
-      "odd_u15": 3.5,
-      "p_over15_ht": 0.2419,
-      "p_under15_ht": 0.7581,
+      "ou15_conf": 0.6826,
+      "odd_o15": 1.27,
+      "odd_u15": 3.55,
+      "p_over15_ht": 0.288,
+      "p_under15_ht": 0.712,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7581,
-      "odd_o15_ht": 5.75,
-      "odd_u15_ht": 1.1,
-      "p_over15_sh": 0.3059,
-      "p_under15_sh": 0.6941,
+      "ht15_conf": 0.712,
+      "odd_o15_ht": 2.75,
+      "odd_u15_ht": 1.42,
+      "p_over15_sh": 0.3424,
+      "p_under15_sh": 0.6576,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6941,
-      "odd_o15_sh": 4.5,
-      "odd_u15_sh": 1.17,
-      "p_over25": 0.4309,
-      "p_under25": 0.5691,
+      "sh15_conf": 0.6576,
+      "odd_o15_sh": null,
+      "odd_u15_sh": null,
+      "p_over25": 0.4131,
+      "p_under25": 0.5869,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.5691,
-      "odd_o25": 1.83,
+      "ou_conf": 0.5869,
+      "odd_o25": 1.9,
       "odd_u25": 1.9,
-      "p_over35": 0.1965,
-      "p_under35": 0.8035,
+      "p_over35": 0.1955,
+      "p_under35": 0.8045,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.8035,
+      "ou35_conf": 0.8045,
       "odd_o35": 3.1,
-      "odd_u35": 1.33,
-      "p_btts_yes": 0.4815,
-      "p_btts_no": 0.5185,
+      "odd_u35": 1.35,
+      "p_btts_yes": 0.384,
+      "p_btts_no": 0.616,
       "btts_pick": "BTTS NO",
-      "btts_conf": 0.5185,
-      "odd_btts_y": 1.65,
-      "odd_btts_n": 2.05,
-      "p_1x": 0.6152,
-      "p_x2": 0.6945,
+      "btts_conf": 0.616,
+      "odd_btts_y": 3.25,
+      "odd_btts_n": 1.33,
+      "p_1x": 0.6156,
+      "p_x2": 0.6949,
       "dc_pick": "X2",
-      "dc_conf": 0.6945,
-      "odd_1x": 1.5,
-      "odd_x2": 1.45,
+      "dc_conf": 0.6949,
+      "odd_1x": 1.36,
+      "odd_x2": 1.3,
       "p_o25_btts": 0.3087,
-      "p_nogol": 0.5197,
-      "p_both_score": 0.4803,
+      "p_nogol": 0.6157,
+      "p_both_score": 0.3843,
       "p_home_blanked": 0.3012,
       "p_away_blanked": 0.3679,
       "nogol_team": "Hapoel Petah Tikva",
@@ -178572,7 +178670,43 @@
         "12.5": null,
         "13.5": null
       },
-      "corner_odds": {},
+      "corner_odds": {
+        "9.5": {
+          "over": 2.0,
+          "under": 1.73
+        },
+        "1.0": {
+          "over": 1.0,
+          "under": 101.0
+        },
+        "2.0": {
+          "over": 1.0,
+          "under": 67.0
+        },
+        "3.0": {
+          "over": 1.01,
+          "under": 41.0
+        },
+        "4.0": {
+          "over": 1.03,
+          "under": 23.0
+        },
+        "5.0": {
+          "over": 1.08,
+          "under": 15.0
+        },
+        "9.0": {
+          "over": 2.0,
+          "under": 2.25
+        },
+        "6.0": {
+          "over": 1.17,
+          "under": 8.0
+        },
+        "14.0": {
+          "over": 11.0
+        }
+      },
       "exp_yellows": null,
       "yellow_overs": {
         "1.5": null,
@@ -179465,28 +179599,28 @@
       "ou15_conf": 0.8946,
       "odd_o15": null,
       "odd_u15": null,
-      "p_over15_ht": 0.4911,
-      "p_under15_ht": 0.5089,
+      "p_over15_ht": 0.4803,
+      "p_under15_ht": 0.5197,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.5089,
+      "ht15_conf": 0.5197,
       "odd_o15_ht": null,
       "odd_u15_ht": null,
-      "p_over15_sh": 0.5829,
-      "p_under15_sh": 0.4171,
+      "p_over15_sh": 0.5695,
+      "p_under15_sh": 0.4305,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.5829,
+      "sh15_conf": 0.5695,
       "odd_o15_sh": null,
       "odd_u15_sh": null,
-      "p_over25": 0.6983,
-      "p_under25": 0.3017,
+      "p_over25": 0.6474,
+      "p_under25": 0.3526,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.6983,
-      "odd_o25": null,
-      "odd_u25": null,
-      "p_over35": 0.462,
-      "p_under35": 0.538,
+      "ou_conf": 0.6474,
+      "odd_o25": 1.92,
+      "odd_u25": 1.88,
+      "p_over35": 0.4544,
+      "p_under35": 0.5456,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.538,
+      "ou35_conf": 0.5456,
       "odd_o35": null,
       "odd_u35": null,
       "p_btts_yes": 0.6989,
@@ -179495,12 +179629,12 @@
       "btts_conf": 0.6989,
       "odd_btts_y": null,
       "odd_btts_n": null,
-      "p_1x": 0.6392,
-      "p_x2": 0.6401,
+      "p_1x": 0.6226,
+      "p_x2": 0.6559,
       "dc_pick": "X2",
-      "dc_conf": 0.6401,
-      "odd_1x": null,
-      "odd_x2": null,
+      "dc_conf": 0.6559,
+      "odd_1x": 1.4,
+      "odd_x2": 1.28,
       "p_o25_btts": 0.5801,
       "p_nogol": 0.4083,
       "p_both_score": 0.5917,
@@ -180063,18 +180197,18 @@
         "description": "NIFL Premiership (Relegation Group)",
         "form": "LL"
       },
-      "p_over15": 0.7404,
-      "p_under15": 0.2596,
+      "p_over15": 0.7312,
+      "p_under15": 0.2688,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.7404,
-      "odd_o15": 1.23,
-      "odd_u15": 4.0,
-      "p_over15_ht": 0.3319,
-      "p_under15_ht": 0.6681,
+      "ou15_conf": 0.7312,
+      "odd_o15": 1.27,
+      "odd_u15": 3.55,
+      "p_over15_ht": 0.3261,
+      "p_under15_ht": 0.6739,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.6681,
-      "odd_o15_ht": 2.6,
-      "odd_u15_ht": 1.48,
+      "ht15_conf": 0.6739,
+      "odd_o15_ht": 2.75,
+      "odd_u15_ht": 1.42,
       "p_over15_sh": 0.41,
       "p_under15_sh": 0.59,
       "sh15_pick": "Under 1.5 2H",
@@ -180087,12 +180221,12 @@
       "ou_conf": 0.5228,
       "odd_o25": 1.9,
       "odd_u25": 1.9,
-      "p_over35": 0.2546,
-      "p_under35": 0.7454,
+      "p_over35": 0.2438,
+      "p_under35": 0.7562,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.7454,
-      "odd_o35": 2.75,
-      "odd_u35": 1.42,
+      "ou35_conf": 0.7562,
+      "odd_o35": 3.1,
+      "odd_u35": 1.35,
       "p_btts_yes": 0.4082,
       "p_btts_no": 0.5918,
       "btts_pick": "BTTS NO",
@@ -181658,6 +181792,10 @@
         "4.5": {
           "over": 1.73,
           "under": 2.0
+        },
+        "5.5": {
+          "over": 2.0,
+          "under": 1.73
         }
       },
       "lam_home": 1.0,
@@ -181899,12 +182037,12 @@
       "ou15_conf": 0.9193,
       "odd_o15": null,
       "odd_u15": null,
-      "p_over15_ht": 0.5403,
-      "p_under15_ht": 0.4597,
+      "p_over15_ht": 0.5248,
+      "p_under15_ht": 0.4752,
       "ht15_pick": "Over 1.5 HT",
-      "ht15_conf": 0.5403,
-      "odd_o15_ht": null,
-      "odd_u15_ht": null,
+      "ht15_conf": 0.5248,
+      "odd_o15_ht": 1.98,
+      "odd_u15_ht": 1.82,
       "p_over15_sh": 0.6335,
       "p_under15_sh": 0.3665,
       "sh15_pick": "Over 1.5 2H",
@@ -182303,51 +182441,51 @@
         "description": "",
         "form": "DDLD"
       },
-      "p_over15": 0.6889,
-      "p_under15": 0.3111,
+      "p_over15": 0.6906,
+      "p_under15": 0.3094,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.6889,
-      "odd_o15": 1.19,
-      "odd_u15": 4.05,
-      "p_over15_ht": 0.2025,
-      "p_under15_ht": 0.7975,
+      "ou15_conf": 0.6906,
+      "odd_o15": 1.18,
+      "odd_u15": 4.15,
+      "p_over15_ht": 0.2042,
+      "p_under15_ht": 0.7958,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7975,
-      "odd_o15_ht": 9.2,
+      "ht15_conf": 0.7958,
+      "odd_o15_ht": 8.7,
       "odd_u15_ht": 1.03,
-      "p_over15_sh": 0.2633,
-      "p_under15_sh": 0.7367,
+      "p_over15_sh": 0.2658,
+      "p_under15_sh": 0.7342,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.7367,
-      "odd_o15_sh": 6.25,
-      "odd_u15_sh": 1.08,
-      "p_over25": 0.5186,
-      "p_under25": 0.4814,
+      "sh15_conf": 0.7342,
+      "odd_o15_sh": 5.95,
+      "odd_u15_sh": 1.09,
+      "p_over25": 0.5081,
+      "p_under25": 0.4919,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.5186,
-      "odd_o25": 1.74,
-      "odd_u25": 2.1,
-      "p_over35": 0.1909,
-      "p_under35": 0.8091,
+      "ou_conf": 0.5081,
+      "odd_o25": 1.71,
+      "odd_u25": 2.15,
+      "p_over35": 0.1927,
+      "p_under35": 0.8073,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.8091,
-      "odd_o35": 2.73,
-      "odd_u35": 1.38,
-      "p_btts_yes": 0.4283,
-      "p_btts_no": 0.5717,
+      "ou35_conf": 0.8073,
+      "odd_o35": 2.65,
+      "odd_u35": 1.4,
+      "p_btts_yes": 0.3142,
+      "p_btts_no": 0.6858,
       "btts_pick": "BTTS NO",
-      "btts_conf": 0.5717,
-      "odd_btts_y": 11.75,
-      "odd_btts_n": 1.0,
-      "p_1x": 0.8019,
-      "p_x2": 0.5064,
+      "btts_conf": 0.6858,
+      "odd_btts_y": 11.25,
+      "odd_btts_n": 1.01,
+      "p_1x": 0.7991,
+      "p_x2": 0.5088,
       "dc_pick": "1X",
-      "dc_conf": 0.8019,
-      "odd_1x": 1.21,
-      "odd_x2": 1.59,
+      "dc_conf": 0.7991,
+      "odd_1x": 1.22,
+      "odd_x2": 1.58,
       "p_o25_btts": 0.2496,
-      "p_nogol": 0.4629,
-      "p_both_score": 0.5371,
+      "p_nogol": 0.6279,
+      "p_both_score": 0.3721,
       "p_home_blanked": 0.1896,
       "p_away_blanked": 0.3389,
       "nogol_team": "Lokomotiv",
@@ -182517,12 +182655,12 @@
       "ou15_conf": 0.7809,
       "odd_o15": 1.16,
       "odd_u15": 5.25,
-      "p_over15_ht": 0.3539,
-      "p_under15_ht": 0.6461,
+      "p_over15_ht": 0.3514,
+      "p_under15_ht": 0.6486,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.6461,
-      "odd_o15_ht": 2.2,
-      "odd_u15_ht": 1.65,
+      "ht15_conf": 0.6486,
+      "odd_o15_ht": 2.25,
+      "odd_u15_ht": 1.62,
       "p_over15_sh": 0.4405,
       "p_under15_sh": 0.5595,
       "sh15_pick": "Under 1.5 2H",
@@ -182573,27 +182711,27 @@
       },
       "corner_odds": {
         "10.0": {
-          "over": 2.0,
-          "under": 2.2
+          "over": 2.1,
+          "under": 2.1
         },
         "10.5": {
-          "over": 2.0,
-          "under": 1.73
+          "over": 2.1,
+          "under": 1.67
         },
         "2.0": {
           "over": 1.0,
-          "under": 81.0
+          "under": 67.0
         },
         "3.0": {
-          "over": 1.0,
+          "over": 1.01,
           "under": 51.0
         },
         "4.0": {
-          "over": 1.01,
+          "over": 1.02,
           "under": 34.0
         },
         "5.0": {
-          "over": 1.04,
+          "over": 1.05,
           "under": 19.0
         },
         "8.0": {
@@ -182609,16 +182747,16 @@
           "under": 1.73
         },
         "7.0": {
-          "over": 1.2,
-          "under": 7.0
+          "over": 1.22,
+          "under": 6.5
         },
         "12.0": {
           "over": 3.5,
           "under": 1.44
         },
         "6.0": {
-          "over": 1.1,
-          "under": 13.0
+          "over": 1.11,
+          "under": 11.0
         },
         "13.0": {
           "over": 5.0,
@@ -182637,7 +182775,7 @@
           "under": 1.0
         },
         "14.0": {
-          "over": 7.0,
+          "over": 8.0,
           "under": 1.17
         },
         "19.0": {
@@ -182731,8 +182869,34 @@
       "league_season": 2026,
       "home_form": "",
       "away_form": "",
-      "home_standing": null,
-      "away_standing": null,
+      "home_standing": {
+        "rank": 1,
+        "points": 0,
+        "played": 0,
+        "won": 0,
+        "draw": 0,
+        "lost": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_diff": 0,
+        "group": "ACFF",
+        "description": "",
+        "form": ""
+      },
+      "away_standing": {
+        "rank": 2,
+        "points": 0,
+        "played": 0,
+        "won": 0,
+        "draw": 0,
+        "lost": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_diff": 0,
+        "group": "ACFF",
+        "description": "",
+        "form": ""
+      },
       "p_over15": 0.6527,
       "p_under15": 0.3473,
       "ou15_pick": "Over 1.5",
@@ -183009,51 +183173,51 @@
         "description": "Ligat ha'Al (Relegation Group)",
         "form": ""
       },
-      "p_over15": 0.7043,
-      "p_under15": 0.2957,
+      "p_over15": 0.7123,
+      "p_under15": 0.2877,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.7043,
-      "odd_o15": 1.18,
-      "odd_u15": 4.8,
-      "p_over15_ht": 0.3107,
-      "p_under15_ht": 0.6893,
+      "ou15_conf": 0.7123,
+      "odd_o15": 1.15,
+      "odd_u15": 5.5,
+      "p_over15_ht": 0.3194,
+      "p_under15_ht": 0.6806,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.6893,
-      "odd_o15_ht": 2.3,
-      "odd_u15_ht": 1.6,
-      "p_over15_sh": 0.35,
-      "p_under15_sh": 0.65,
+      "ht15_conf": 0.6806,
+      "odd_o15_ht": 2.15,
+      "odd_u15_ht": 1.68,
+      "p_over15_sh": 0.3987,
+      "p_under15_sh": 0.6013,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.65,
-      "odd_o15_sh": null,
-      "odd_u15_sh": null,
-      "p_over25": 0.4478,
-      "p_under25": 0.5522,
+      "sh15_conf": 0.6013,
+      "odd_o15_sh": 1.73,
+      "odd_u15_sh": 2.0,
+      "p_over25": 0.4594,
+      "p_under25": 0.5406,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.5522,
-      "odd_o25": 1.55,
-      "odd_u25": 2.38,
-      "p_over35": 0.2256,
-      "p_under35": 0.7744,
+      "ou_conf": 0.5406,
+      "odd_o25": 1.48,
+      "odd_u25": 2.6,
+      "p_over35": 0.2367,
+      "p_under35": 0.7633,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.7744,
-      "odd_o35": 2.38,
-      "odd_u35": 1.55,
-      "p_btts_yes": 0.384,
-      "p_btts_no": 0.616,
+      "ou35_conf": 0.7633,
+      "odd_o35": 2.2,
+      "odd_u35": 1.65,
+      "p_btts_yes": 0.392,
+      "p_btts_no": 0.608,
       "btts_pick": "BTTS NO",
-      "btts_conf": 0.616,
-      "odd_btts_y": 3.25,
-      "odd_btts_n": 1.33,
+      "btts_conf": 0.608,
+      "odd_btts_y": 3.0,
+      "odd_btts_n": 1.36,
       "p_1x": 0.7244,
       "p_x2": 0.5318,
       "dc_pick": "1X",
       "dc_conf": 0.7244,
-      "odd_1x": 1.11,
-      "odd_x2": 1.8,
+      "odd_1x": 1.1,
+      "odd_x2": 1.91,
       "p_o25_btts": 0.3087,
-      "p_nogol": 0.6157,
-      "p_both_score": 0.3843,
+      "p_nogol": 0.6078,
+      "p_both_score": 0.3922,
       "p_home_blanked": 0.3012,
       "p_away_blanked": 0.4179,
       "nogol_team": "Hapoel Ramat Gan",
@@ -183071,8 +183235,8 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.83,
-          "under": 1.83
+          "over": 1.95,
+          "under": 1.85
         },
         "2.0": {
           "over": 1.0,
@@ -183232,11 +183396,11 @@
       "btts_conf": 0.6309,
       "odd_btts_y": 3.75,
       "odd_btts_n": 1.25,
-      "p_1x": 0.6373,
-      "p_x2": 0.678,
+      "p_1x": 0.632,
+      "p_x2": 0.683,
       "dc_pick": "X2",
-      "dc_conf": 0.678,
-      "odd_1x": 1.25,
+      "dc_conf": 0.683,
+      "odd_1x": 1.28,
       "odd_x2": 1.36,
       "p_o25_btts": 0.3087,
       "p_nogol": 0.6304,
@@ -183882,8 +184046,8 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.83,
-          "under": 1.83
+          "over": 1.9,
+          "under": 1.9
         },
         "9.0": {
           "over": 1.83,
@@ -184252,10 +184416,10 @@
       "btts_conf": 0.6377,
       "odd_btts_y": 4.33,
       "odd_btts_n": 1.2,
-      "p_1x": 0.7269,
-      "p_x2": 0.6027,
+      "p_1x": 0.7116,
+      "p_x2": 0.6201,
       "dc_pick": "1X",
-      "dc_conf": 0.7269,
+      "dc_conf": 0.7116,
       "odd_1x": 1.28,
       "odd_x2": 1.33,
       "p_o25_btts": 0.2636,
@@ -184488,12 +184652,12 @@
       "btts_conf": 0.618,
       "odd_btts_y": 5.0,
       "odd_btts_n": 1.17,
-      "p_1x": 0.6712,
-      "p_x2": 0.63,
+      "p_1x": 0.6802,
+      "p_x2": 0.6236,
       "dc_pick": "1X",
-      "dc_conf": 0.6712,
-      "odd_1x": 1.28,
-      "odd_x2": 1.28,
+      "dc_conf": 0.6802,
+      "odd_1x": 1.25,
+      "odd_x2": 1.3,
       "p_o25_btts": 0.3104,
       "p_nogol": 0.6327,
       "p_both_score": 0.3673,
@@ -184728,10 +184892,10 @@
       "btts_conf": 0.6504,
       "odd_btts_y": 4.33,
       "odd_btts_n": 1.2,
-      "p_1x": 0.5868,
-      "p_x2": 0.7416,
+      "p_1x": 0.5743,
+      "p_x2": 0.7544,
       "dc_pick": "X2",
-      "dc_conf": 0.7416,
+      "dc_conf": 0.7544,
       "odd_1x": 1.4,
       "odd_x2": 1.22,
       "p_o25_btts": 0.2636,
@@ -184960,10 +185124,10 @@
       "btts_conf": 0.7069,
       "odd_btts_y": 5.0,
       "odd_btts_n": 1.17,
-      "p_1x": 0.7569,
-      "p_x2": 0.577,
+      "p_1x": 0.7453,
+      "p_x2": 0.5912,
       "dc_pick": "1X",
-      "dc_conf": 0.7569,
+      "dc_conf": 0.7453,
       "odd_1x": 1.12,
       "odd_x2": 1.53,
       "p_o25_btts": 0.2068,
@@ -187397,8 +187561,34 @@
       "league_season": 2026,
       "home_form": "",
       "away_form": "",
-      "home_standing": null,
-      "away_standing": null,
+      "home_standing": {
+        "rank": 5,
+        "points": 0,
+        "played": 0,
+        "won": 0,
+        "draw": 0,
+        "lost": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_diff": 0,
+        "group": "ACFF",
+        "description": "",
+        "form": ""
+      },
+      "away_standing": {
+        "rank": 6,
+        "points": 0,
+        "played": 0,
+        "won": 0,
+        "draw": 0,
+        "lost": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_diff": 0,
+        "group": "ACFF",
+        "description": "",
+        "form": ""
+      },
       "p_over15": 0.6527,
       "p_under15": 0.3473,
       "ou15_pick": "Over 1.5",
@@ -187522,36 +187712,62 @@
       "league_season": 2026,
       "home_form": "",
       "away_form": "",
-      "home_standing": null,
-      "away_standing": null,
+      "home_standing": {
+        "rank": 3,
+        "points": 0,
+        "played": 0,
+        "won": 0,
+        "draw": 0,
+        "lost": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_diff": 0,
+        "group": "ACFF",
+        "description": "",
+        "form": ""
+      },
+      "away_standing": {
+        "rank": 4,
+        "points": 0,
+        "played": 0,
+        "won": 0,
+        "draw": 0,
+        "lost": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_diff": 0,
+        "group": "ACFF",
+        "description": "",
+        "form": ""
+      },
       "p_over15": 0.6527,
       "p_under15": 0.3473,
       "ou15_pick": "Over 1.5",
       "ou15_conf": 0.6527,
       "odd_o15": null,
       "odd_u15": null,
-      "p_over15_ht": 0.2652,
-      "p_under15_ht": 0.7348,
+      "p_over15_ht": 0.2761,
+      "p_under15_ht": 0.7239,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7348,
+      "ht15_conf": 0.7239,
       "odd_o15_ht": null,
       "odd_u15_ht": null,
-      "p_over15_sh": 0.3334,
-      "p_under15_sh": 0.6666,
+      "p_over15_sh": 0.3469,
+      "p_under15_sh": 0.6531,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6666,
+      "sh15_conf": 0.6531,
       "odd_o15_sh": null,
       "odd_u15_sh": null,
-      "p_over25": 0.3859,
-      "p_under25": 0.6141,
+      "p_over25": 0.4422,
+      "p_under25": 0.5578,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.6141,
-      "odd_o25": null,
-      "odd_u25": null,
-      "p_over35": 0.1566,
-      "p_under35": 0.8434,
+      "ou_conf": 0.5578,
+      "odd_o25": 1.67,
+      "odd_u25": 2.15,
+      "p_over35": 0.1614,
+      "p_under35": 0.8386,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.8434,
+      "ou35_conf": 0.8386,
       "odd_o35": null,
       "odd_u35": null,
       "p_btts_yes": 0.44,
@@ -187560,12 +187776,12 @@
       "btts_conf": 0.56,
       "odd_btts_y": null,
       "odd_btts_n": null,
-      "p_1x": 0.6669,
-      "p_x2": 0.6063,
+      "p_1x": 0.6664,
+      "p_x2": 0.6009,
       "dc_pick": "1X",
-      "dc_conf": 0.6669,
-      "odd_1x": null,
-      "odd_x2": null,
+      "dc_conf": 0.6664,
+      "odd_1x": 1.36,
+      "odd_x2": 1.4,
       "p_o25_btts": 0.3087,
       "p_nogol": 0.5606,
       "p_both_score": 0.4394,
@@ -188465,6 +188681,10 @@
         "13.5": null
       },
       "corner_odds": {
+        "8.5": {
+          "over": 1.73,
+          "under": 2.0
+        },
         "1.0": {
           "over": 1.0,
           "under": 101.0
@@ -188492,6 +188712,9 @@
         "6.0": {
           "over": 1.22,
           "under": 7.0
+        },
+        "14.0": {
+          "over": 13.0
         }
       },
       "exp_yellows": null,
@@ -188564,12 +188787,12 @@
       "ou15_conf": 0.7004,
       "odd_o15": 1.35,
       "odd_u15": 3.1,
-      "p_over15_ht": 0.2786,
-      "p_under15_ht": 0.7214,
+      "p_over15_ht": 0.2861,
+      "p_under15_ht": 0.7139,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7214,
-      "odd_o15_ht": null,
-      "odd_u15_ht": null,
+      "ht15_conf": 0.7139,
+      "odd_o15_ht": 3.0,
+      "odd_u15_ht": 1.38,
       "p_over15_sh": 0.3492,
       "p_under15_sh": 0.6508,
       "sh15_pick": "Under 1.5 2H",
@@ -188598,8 +188821,8 @@
       "p_x2": 0.5028,
       "dc_pick": "1X",
       "dc_conf": 0.7929,
-      "odd_1x": null,
-      "odd_x2": null,
+      "odd_1x": 1.08,
+      "odd_x2": 1.73,
       "p_o25_btts": 0.3192,
       "p_nogol": 0.5921,
       "p_both_score": 0.4079,
@@ -188620,8 +188843,8 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.8,
-          "under": 1.91
+          "over": 1.82,
+          "under": 1.98
         },
         "2.0": {
           "over": 1.0,
@@ -188886,12 +189109,12 @@
       "ou15_conf": 0.7723,
       "odd_o15": 1.38,
       "odd_u15": 3.0,
-      "p_over15_ht": 0.3616,
-      "p_under15_ht": 0.6384,
+      "p_over15_ht": 0.3453,
+      "p_under15_ht": 0.6547,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.6384,
-      "odd_o15_ht": null,
-      "odd_u15_ht": null,
+      "ht15_conf": 0.6547,
+      "odd_o15_ht": 3.1,
+      "odd_u15_ht": 1.35,
       "p_over15_sh": 0.4419,
       "p_under15_sh": 0.5581,
       "sh15_pick": "Under 1.5 2H",
@@ -188920,8 +189143,8 @@
       "p_x2": 0.6019,
       "dc_pick": "1X",
       "dc_conf": 0.6614,
-      "odd_1x": null,
-      "odd_x2": null,
+      "odd_1x": 1.12,
+      "odd_x2": 1.62,
       "p_o25_btts": 0.4343,
       "p_nogol": 0.3234,
       "p_both_score": 0.6766,
@@ -188941,6 +189164,10 @@
         "13.5": null
       },
       "corner_odds": {
+        "9.5": {
+          "over": 2.1,
+          "under": 1.67
+        },
         "1.0": {
           "over": 1.0,
           "under": 101.0
@@ -188968,6 +189195,9 @@
         "6.0": {
           "over": 1.2,
           "under": 7.0
+        },
+        "14.0": {
+          "over": 13.0
         }
       },
       "exp_yellows": null,
@@ -189159,48 +189389,48 @@
       "away_form": "WLWWL",
       "home_standing": null,
       "away_standing": null,
-      "p_over15": 0.8881,
-      "p_under15": 0.1119,
+      "p_over15": 0.8342,
+      "p_under15": 0.1658,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.8881,
-      "odd_o15": null,
-      "odd_u15": null,
-      "p_over15_ht": 0.4911,
-      "p_under15_ht": 0.5089,
+      "ou15_conf": 0.8342,
+      "odd_o15": 1.38,
+      "odd_u15": 3.0,
+      "p_over15_ht": 0.477,
+      "p_under15_ht": 0.523,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.5089,
+      "ht15_conf": 0.523,
       "odd_o15_ht": null,
       "odd_u15_ht": null,
-      "p_over15_sh": 0.5829,
-      "p_under15_sh": 0.4171,
+      "p_over15_sh": 0.5654,
+      "p_under15_sh": 0.4346,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.5829,
+      "sh15_conf": 0.5654,
       "odd_o15_sh": null,
       "odd_u15_sh": null,
-      "p_over25": 0.6766,
-      "p_under25": 0.3234,
+      "p_over25": 0.6164,
+      "p_under25": 0.3836,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.6766,
-      "odd_o25": null,
-      "odd_u25": null,
-      "p_over35": 0.4588,
-      "p_under35": 0.5412,
+      "ou_conf": 0.6164,
+      "odd_o25": 2.15,
+      "odd_u25": 1.68,
+      "p_over35": 0.389,
+      "p_under35": 0.611,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.5412,
-      "odd_o35": null,
-      "odd_u35": null,
+      "ou35_conf": 0.611,
+      "odd_o35": 3.9,
+      "odd_u35": 1.24,
       "p_btts_yes": 0.556,
       "p_btts_no": 0.444,
       "btts_pick": "BTTS YES",
       "btts_conf": 0.556,
       "odd_btts_y": null,
       "odd_btts_n": null,
-      "p_1x": 0.3825,
-      "p_x2": 0.8689,
+      "p_1x": 0.4433,
+      "p_x2": 0.8171,
       "dc_pick": "X2",
-      "dc_conf": 0.8689,
-      "odd_1x": null,
-      "odd_x2": null,
+      "dc_conf": 0.8171,
+      "odd_1x": 1.28,
+      "odd_x2": 1.36,
       "p_o25_btts": 0.502,
       "p_nogol": 0.5323,
       "p_both_score": 0.4677,
@@ -189219,7 +189449,43 @@
         "12.5": null,
         "13.5": null
       },
-      "corner_odds": {},
+      "corner_odds": {
+        "8.5": {
+          "over": 1.73,
+          "under": 2.0
+        },
+        "9.0": {
+          "over": 2.2,
+          "under": 2.0
+        },
+        "1.0": {
+          "over": 1.0,
+          "under": 101.0
+        },
+        "2.0": {
+          "over": 1.0,
+          "under": 67.0
+        },
+        "3.0": {
+          "over": 1.01,
+          "under": 41.0
+        },
+        "4.0": {
+          "over": 1.04,
+          "under": 26.0
+        },
+        "5.0": {
+          "over": 1.1,
+          "under": 13.0
+        },
+        "6.0": {
+          "over": 1.22,
+          "under": 7.0
+        },
+        "14.0": {
+          "over": 13.0
+        }
+      },
       "exp_yellows": null,
       "yellow_overs": {
         "1.5": null,
@@ -189409,12 +189675,12 @@
       "away_form": "DDWDD",
       "home_standing": null,
       "away_standing": null,
-      "p_over15": 0.7045,
-      "p_under15": 0.2955,
+      "p_over15": 0.6942,
+      "p_under15": 0.3058,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.7045,
-      "odd_o15": null,
-      "odd_u15": null,
+      "ou15_conf": 0.6942,
+      "odd_o15": 1.42,
+      "odd_u15": 2.75,
       "p_over15_ht": 0.2763,
       "p_under15_ht": 0.7237,
       "ht15_pick": "Under 1.5 HT",
@@ -189433,24 +189699,24 @@
       "ou_conf": 0.505,
       "odd_o25": 2.3,
       "odd_u25": 1.6,
-      "p_over35": 0.18,
-      "p_under35": 0.82,
+      "p_over35": 0.1885,
+      "p_under35": 0.8115,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.82,
-      "odd_o35": null,
-      "odd_u35": null,
+      "ou35_conf": 0.8115,
+      "odd_o35": 4.25,
+      "odd_u35": 1.21,
       "p_btts_yes": 0.4155,
       "p_btts_no": 0.5845,
       "btts_pick": "BTTS NO",
       "btts_conf": 0.5845,
       "odd_btts_y": null,
       "odd_btts_n": null,
-      "p_1x": 0.6039,
-      "p_x2": 0.6672,
+      "p_1x": 0.6122,
+      "p_x2": 0.6562,
       "dc_pick": "X2",
-      "dc_conf": 0.6672,
-      "odd_1x": null,
-      "odd_x2": null,
+      "dc_conf": 0.6562,
+      "odd_1x": 1.12,
+      "odd_x2": 1.57,
       "p_o25_btts": 0.2912,
       "p_nogol": 0.5359,
       "p_both_score": 0.4641,
@@ -189470,6 +189736,10 @@
         "13.5": null
       },
       "corner_odds": {
+        "8.5": {
+          "over": 1.67,
+          "under": 2.1
+        },
         "1.0": {
           "over": 1.0,
           "under": 101.0
@@ -189497,6 +189767,9 @@
         "6.0": {
           "over": 1.2,
           "under": 7.0
+        },
+        "14.0": {
+          "over": 13.0
         }
       },
       "exp_yellows": null,
@@ -189852,7 +190125,7 @@
         "form": "D"
       },
       "away_standing": {
-        "rank": 8,
+        "rank": 9,
         "points": 0,
         "played": 0,
         "won": 0,
@@ -190110,8 +190383,8 @@
           8.0
         ]
       ],
-      "kickoff_at": "2026-08-22T20:00:00+02:00",
-      "kickoff_ts": 1787421600,
+      "kickoff_at": "2026-08-22T15:00:00+02:00",
+      "kickoff_ts": 1787403600,
       "ht_goals_home": null,
       "ht_goals_away": null
     },
@@ -190154,7 +190427,7 @@
         "form": "W"
       },
       "away_standing": {
-        "rank": 4,
+        "rank": 5,
         "points": 1,
         "played": 1,
         "won": 0,
@@ -190164,7 +190437,7 @@
         "goals_against": 0,
         "goal_diff": 0,
         "group": "Pernambucano U20",
-        "description": "Promotion - Pernambucano U20 (Play Offs: Quarter-finals)",
+        "description": "",
         "form": "D"
       },
       "p_over15": 0.9288,
@@ -192556,12 +192829,12 @@
       "ht15_conf": 0.6995,
       "odd_o15_ht": 2.05,
       "odd_u15_ht": 1.75,
-      "p_over15_sh": 0.3759,
-      "p_under15_sh": 0.6241,
+      "p_over15_sh": 0.3808,
+      "p_under15_sh": 0.6192,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6241,
-      "odd_o15_sh": 1.67,
-      "odd_u15_sh": 2.1,
+      "sh15_conf": 0.6192,
+      "odd_o15_sh": 1.62,
+      "odd_u15_sh": 2.2,
       "p_over25": 0.4721,
       "p_under25": 0.5279,
       "ou_pick": "Under 2.5",
@@ -193154,7 +193427,7 @@
       "league_id": 667,
       "league_season": 2026,
       "home_form": "",
-      "away_form": "LLWWW",
+      "away_form": "LWWWW",
       "home_standing": null,
       "away_standing": null,
       "p_over15": 0.7233,
@@ -193175,16 +193448,16 @@
       "sh15_conf": 0.6034,
       "odd_o15_sh": null,
       "odd_u15_sh": null,
-      "p_over25": 0.4224,
-      "p_under25": 0.5776,
+      "p_over25": 0.4302,
+      "p_under25": 0.5698,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.5776,
+      "ou_conf": 0.5698,
       "odd_o25": null,
       "odd_u25": null,
-      "p_over35": 0.2158,
-      "p_under35": 0.7842,
+      "p_over35": 0.2169,
+      "p_under35": 0.7831,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.7842,
+      "ou35_conf": 0.7831,
       "odd_o35": null,
       "odd_u35": null,
       "p_btts_yes": 0.3354,
@@ -193193,10 +193466,10 @@
       "btts_conf": 0.6646,
       "odd_btts_y": null,
       "odd_btts_n": null,
-      "p_1x": 0.3903,
-      "p_x2": 0.8265,
+      "p_1x": 0.3838,
+      "p_x2": 0.8329,
       "dc_pick": "X2",
-      "dc_conf": 0.8265,
+      "dc_conf": 0.8329,
       "odd_1x": null,
       "odd_x2": null,
       "p_o25_btts": 0.2577,
@@ -194036,51 +194309,51 @@
         "description": "Promotion - Primera B (Promotion - Play Offs)",
         "form": "DDWWL"
       },
-      "p_over15": 0.6711,
-      "p_under15": 0.3289,
+      "p_over15": 0.664,
+      "p_under15": 0.336,
       "ou15_pick": "Over 1.5",
-      "ou15_conf": 0.6711,
-      "odd_o15": 1.55,
-      "odd_u15": 2.38,
-      "p_over15_ht": 0.2591,
-      "p_under15_ht": 0.7409,
+      "ou15_conf": 0.664,
+      "odd_o15": 1.62,
+      "odd_u15": 2.25,
+      "p_over15_ht": 0.2515,
+      "p_under15_ht": 0.7485,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7409,
-      "odd_o15_ht": 3.7,
-      "odd_u15_ht": 1.26,
-      "p_over15_sh": 0.3314,
-      "p_under15_sh": 0.6686,
+      "ht15_conf": 0.7485,
+      "odd_o15_ht": 4.1,
+      "odd_u15_ht": 1.23,
+      "p_over15_sh": 0.3294,
+      "p_under15_sh": 0.6706,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6686,
+      "sh15_conf": 0.6706,
       "odd_o15_sh": 2.75,
       "odd_u15_sh": 1.4,
-      "p_over25": 0.5063,
-      "p_under25": 0.4937,
-      "ou_pick": "Over 2.5",
-      "ou_conf": 0.5063,
-      "odd_o25": 2.68,
-      "odd_u25": 1.45,
-      "p_over35": 0.1702,
-      "p_under35": 0.8298,
+      "p_over25": 0.496,
+      "p_under25": 0.504,
+      "ou_pick": "Under 2.5",
+      "ou_conf": 0.504,
+      "odd_o25": 3.0,
+      "odd_u25": 1.38,
+      "p_over35": 0.1623,
+      "p_under35": 0.8377,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.8298,
-      "odd_o35": 5.25,
-      "odd_u35": 1.16,
-      "p_btts_yes": 0.3908,
-      "p_btts_no": 0.6092,
+      "ou35_conf": 0.8377,
+      "odd_o35": 6.0,
+      "odd_u35": 1.12,
+      "p_btts_yes": 0.3848,
+      "p_btts_no": 0.6152,
       "btts_pick": "BTTS NO",
-      "btts_conf": 0.6092,
-      "odd_btts_y": 4.5,
-      "odd_btts_n": 1.18,
-      "p_1x": 0.664,
-      "p_x2": 0.6639,
+      "btts_conf": 0.6152,
+      "odd_btts_y": 5.0,
+      "odd_btts_n": 1.17,
+      "p_1x": 0.6691,
+      "p_x2": 0.6575,
       "dc_pick": "1X",
-      "dc_conf": 0.664,
-      "odd_1x": 1.22,
+      "dc_conf": 0.6691,
+      "odd_1x": 1.2,
       "odd_x2": 1.36,
       "p_o25_btts": 0.3087,
-      "p_nogol": 0.618,
-      "p_both_score": 0.382,
+      "p_nogol": 0.6246,
+      "p_both_score": 0.3754,
       "p_home_blanked": 0.2605,
       "p_away_blanked": 0.3472,
       "nogol_team": "Real Pilar",
@@ -194099,7 +194372,7 @@
       "corner_odds": {
         "7.5": {
           "over": 1.8,
-          "under": 1.91
+          "under": 2.0
         },
         "1.0": {
           "over": 1.0,
@@ -194328,7 +194601,12 @@
         "12.5": null,
         "13.5": null
       },
-      "corner_odds": {},
+      "corner_odds": {
+        "9.0": {
+          "over": 1.92,
+          "under": 1.88
+        }
+      },
       "exp_yellows": null,
       "yellow_overs": {
         "1.5": null,
@@ -194479,7 +194757,12 @@
         "12.5": null,
         "13.5": null
       },
-      "corner_odds": {},
+      "corner_odds": {
+        "8.5": {
+          "over": 1.98,
+          "under": 1.82
+        }
+      },
       "exp_yellows": null,
       "yellow_overs": {
         "1.5": null,
@@ -194576,12 +194859,12 @@
       "ou15_conf": 0.6646,
       "odd_o15": 1.68,
       "odd_u15": 2.15,
-      "p_over15_ht": 0.255,
-      "p_under15_ht": 0.745,
+      "p_over15_ht": 0.2564,
+      "p_under15_ht": 0.7436,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.745,
-      "odd_o15_ht": 4.25,
-      "odd_u15_ht": 1.21,
+      "ht15_conf": 0.7436,
+      "odd_o15_ht": 4.15,
+      "odd_u15_ht": 1.22,
       "p_over15_sh": 0.3238,
       "p_under15_sh": 0.6762,
       "sh15_pick": "Under 1.5 2H",
@@ -194864,8 +195147,8 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.83,
-          "under": 1.83
+          "over": 1.85,
+          "under": 1.95
         },
         "2.0": {
           "over": 1.0,
@@ -195918,8 +196201,8 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.83,
-          "under": 1.83
+          "over": 1.85,
+          "under": 1.95
         },
         "2.0": {
           "over": 1.0,
@@ -195937,20 +196220,73 @@
           "over": 1.06,
           "under": 19.0
         },
+        "8.0": {
+          "over": 1.5,
+          "under": 3.5
+        },
+        "9.0": {
+          "over": 1.83,
+          "under": 2.5
+        },
         "10.0": {
           "over": 2.38,
           "under": 1.83
+        },
+        "11.0": {
+          "over": 3.25,
+          "under": 1.53
         },
         "7.0": {
           "over": 1.28,
           "under": 5.5
         },
+        "12.0": {
+          "over": 4.33,
+          "under": 1.33
+        },
         "6.0": {
           "over": 1.14,
           "under": 10.0
         },
+        "13.0": {
+          "over": 6.5,
+          "under": 1.2
+        },
+        "21.0": {
+          "over": 67.0,
+          "under": 1.0
+        },
+        "22.0": {
+          "over": 101.0,
+          "under": 1.0
+        },
         "14.0": {
-          "over": 10.0
+          "over": 10.0,
+          "under": 1.11
+        },
+        "19.0": {
+          "over": 41.0,
+          "under": 1.0
+        },
+        "20.0": {
+          "over": 51.0,
+          "under": 1.0
+        },
+        "17.0": {
+          "over": 26.0,
+          "under": 1.02
+        },
+        "18.0": {
+          "over": 34.0,
+          "under": 1.01
+        },
+        "16.0": {
+          "over": 19.0,
+          "under": 1.03
+        },
+        "15.0": {
+          "over": 13.0,
+          "under": 1.06
         }
       },
       "exp_yellows": 3.6,
@@ -195960,7 +196296,12 @@
         "3.5": 0.4805,
         "4.5": 0.2897
       },
-      "yellow_odds": {},
+      "yellow_odds": {
+        "4.5": {
+          "over": 2.2,
+          "under": 1.62
+        }
+      },
       "lam_home": 1.2,
       "lam_away": 1.0,
       "lam_total": 2.2,
@@ -196537,12 +196878,12 @@
       "btts_conf": 0.541,
       "odd_btts_y": 1.85,
       "odd_btts_n": 1.8,
-      "p_1x": 0.6585,
-      "p_x2": 0.6468,
+      "p_1x": 0.662,
+      "p_x2": 0.6497,
       "dc_pick": "1X",
-      "dc_conf": 0.6585,
-      "odd_1x": 1.2,
-      "odd_x2": 2.0,
+      "dc_conf": 0.662,
+      "odd_1x": 1.18,
+      "odd_x2": 1.91,
       "p_o25_btts": 0.3087,
       "p_nogol": 0.5419,
       "p_both_score": 0.4581,
@@ -197464,28 +197805,28 @@
       "ou15_conf": 0.926,
       "odd_o15": 1.27,
       "odd_u15": 3.55,
-      "p_over15_ht": 0.6446,
-      "p_under15_ht": 0.3554,
+      "p_over15_ht": 0.6443,
+      "p_under15_ht": 0.3557,
       "ht15_pick": "Over 1.5 HT",
-      "ht15_conf": 0.6446,
+      "ht15_conf": 0.6443,
       "odd_o15_ht": 2.75,
       "odd_u15_ht": 1.42,
-      "p_over15_sh": 0.7291,
-      "p_under15_sh": 0.2709,
+      "p_over15_sh": 0.7287,
+      "p_under15_sh": 0.2713,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.7291,
+      "sh15_conf": 0.7287,
       "odd_o15_sh": 2.1,
       "odd_u15_sh": 1.67,
-      "p_over25": 0.6864,
-      "p_under25": 0.3136,
+      "p_over25": 0.6838,
+      "p_under25": 0.3162,
       "ou_pick": "Over 2.5",
-      "ou_conf": 0.6864,
-      "odd_o25": 1.92,
-      "odd_u25": 1.88,
-      "p_over35": 0.6677,
-      "p_under35": 0.3323,
+      "ou_conf": 0.6838,
+      "odd_o25": 1.95,
+      "odd_u25": 1.85,
+      "p_over35": 0.6674,
+      "p_under35": 0.3326,
       "ou35_pick": "Over 3.5",
-      "ou35_conf": 0.6677,
+      "ou35_conf": 0.6674,
       "odd_o35": 3.3,
       "odd_u35": 1.32,
       "p_btts_yes": 0.6369,
@@ -197657,12 +197998,12 @@
       "ht15_conf": 0.5083,
       "odd_o15_ht": 2.85,
       "odd_u15_ht": 1.4,
-      "p_over15_sh": 0.6382,
-      "p_under15_sh": 0.3618,
+      "p_over15_sh": 0.5888,
+      "p_under15_sh": 0.4112,
       "sh15_pick": "Over 1.5 2H",
-      "sh15_conf": 0.6382,
-      "odd_o15_sh": null,
-      "odd_u15_sh": null,
+      "sh15_conf": 0.5888,
+      "odd_o15_sh": 2.1,
+      "odd_u15_sh": 1.67,
       "p_over25": 0.604,
       "p_under25": 0.396,
       "ou_pick": "Over 2.5",
@@ -199394,12 +199735,12 @@
       "ht15_conf": 0.7084,
       "odd_o15_ht": 2.68,
       "odd_u15_ht": 1.45,
-      "p_over15_sh": 0.3734,
-      "p_under15_sh": 0.6266,
+      "p_over15_sh": 0.379,
+      "p_under15_sh": 0.621,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6266,
-      "odd_o15_sh": 2.0,
-      "odd_u15_sh": 1.73,
+      "sh15_conf": 0.621,
+      "odd_o15_sh": 1.91,
+      "odd_u15_sh": 1.8,
       "p_over25": 0.4207,
       "p_under25": 0.5793,
       "ou_pick": "Under 2.5",
@@ -199418,10 +199759,10 @@
       "btts_conf": 0.608,
       "odd_btts_y": 3.0,
       "odd_btts_n": 1.36,
-      "p_1x": 0.6584,
-      "p_x2": 0.62,
+      "p_1x": 0.6602,
+      "p_x2": 0.619,
       "dc_pick": "1X",
-      "dc_conf": 0.6584,
+      "dc_conf": 0.6602,
       "odd_1x": 1.36,
       "odd_x2": 1.33,
       "p_o25_btts": 0.3087,
@@ -199604,7 +199945,7 @@
       "home_form": "",
       "away_form": "",
       "home_standing": {
-        "rank": 7,
+        "rank": 16,
         "points": 0,
         "played": 0,
         "won": 0,
@@ -199618,7 +199959,7 @@
         "form": ""
       },
       "away_standing": {
-        "rank": 14,
+        "rank": 2,
         "points": 0,
         "played": 0,
         "won": 0,
@@ -199628,7 +199969,7 @@
         "goals_against": 0,
         "goal_diff": 0,
         "group": "Serie A",
-        "description": "",
+        "description": "Champions League league stage",
         "form": ""
       },
       "p_over15": 0.6573,
@@ -199849,7 +200190,7 @@
       "home_form": "",
       "away_form": "",
       "home_standing": {
-        "rank": 15,
+        "rank": 13,
         "points": 0,
         "played": 0,
         "won": 0,
@@ -199863,7 +200204,7 @@
         "form": ""
       },
       "away_standing": {
-        "rank": 3,
+        "rank": 14,
         "points": 0,
         "played": 0,
         "won": 0,
@@ -199873,7 +200214,7 @@
         "goals_against": 0,
         "goal_diff": 0,
         "group": "Serie A",
-        "description": "Champions League league stage",
+        "description": "",
         "form": ""
       },
       "p_over15": 0.65,
@@ -200671,7 +201012,12 @@
         "12.5": null,
         "13.5": null
       },
-      "corner_odds": {},
+      "corner_odds": {
+        "8.0": {
+          "over": 1.8,
+          "under": 2.0
+        }
+      },
       "exp_yellows": null,
       "yellow_overs": {
         "1.5": null,
@@ -202259,8 +202605,8 @@
       "p_x2": 0.551,
       "dc_pick": "1X",
       "dc_conf": 0.7143,
-      "odd_1x": 1.33,
-      "odd_x2": 1.4,
+      "odd_1x": 1.36,
+      "odd_x2": 1.36,
       "p_o25_btts": 0.4101,
       "p_nogol": 0.4377,
       "p_both_score": 0.5623,
@@ -202441,8 +202787,8 @@
       },
       "corner_odds": {
         "10.5": {
-          "over": 1.83,
-          "under": 1.83
+          "over": 1.88,
+          "under": 1.92
         },
         "11.5": {
           "over": 2.1,
@@ -203315,7 +203661,7 @@
       "home_form": "",
       "away_form": "",
       "home_standing": {
-        "rank": 6,
+        "rank": 8,
         "points": 0,
         "played": 0,
         "won": 0,
@@ -203325,11 +203671,11 @@
         "goals_against": 0,
         "goal_diff": 0,
         "group": "National League",
-        "description": "Promotion - National League (Championship Group)",
+        "description": "National League (Relegation Group)",
         "form": ""
       },
       "away_standing": {
-        "rank": 1,
+        "rank": 3,
         "points": 0,
         "played": 0,
         "won": 0,
@@ -203774,10 +204120,10 @@
       "btts_conf": 0.6211,
       "odd_btts_y": 3.4,
       "odd_btts_n": 1.3,
-      "p_1x": 0.7513,
-      "p_x2": 0.5616,
+      "p_1x": 0.7457,
+      "p_x2": 0.5669,
       "dc_pick": "1X",
-      "dc_conf": 0.7513,
+      "dc_conf": 0.7457,
       "odd_1x": 1.28,
       "odd_x2": 1.36,
       "p_o25_btts": 0.3087,
@@ -204238,22 +204584,22 @@
       "ou15_conf": 0.6538,
       "odd_o15": 1.45,
       "odd_u15": 2.68,
-      "p_over15_ht": 0.2662,
-      "p_under15_ht": 0.7338,
+      "p_over15_ht": 0.2661,
+      "p_under15_ht": 0.7339,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7338,
-      "odd_o15_ht": null,
-      "odd_u15_ht": null,
-      "p_over15_sh": 0.3382,
-      "p_under15_sh": 0.6618,
+      "ht15_conf": 0.7339,
+      "odd_o15_ht": 3.45,
+      "odd_u15_ht": 1.3,
+      "p_over15_sh": 0.3435,
+      "p_under15_sh": 0.6565,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.6618,
-      "odd_o15_sh": 2.62,
-      "odd_u15_sh": 1.44,
-      "p_over25": 0.3744,
-      "p_under25": 0.6256,
+      "sh15_conf": 0.6565,
+      "odd_o15_sh": 2.5,
+      "odd_u15_sh": 1.5,
+      "p_over25": 0.3753,
+      "p_under25": 0.6247,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.6256,
+      "ou_conf": 0.6247,
       "odd_o25": 2.38,
       "odd_u25": 1.55,
       "p_over35": 0.168,
@@ -204262,21 +204608,21 @@
       "ou35_conf": 0.832,
       "odd_o35": 4.5,
       "odd_u35": 1.19,
-      "p_btts_yes": 0.3569,
-      "p_btts_no": 0.6431,
+      "p_btts_yes": 0.3631,
+      "p_btts_no": 0.6369,
       "btts_pick": "BTTS NO",
-      "btts_conf": 0.6431,
-      "odd_btts_y": 4.33,
-      "odd_btts_n": 1.2,
+      "btts_conf": 0.6369,
+      "odd_btts_y": 4.0,
+      "odd_btts_n": 1.22,
       "p_1x": 0.7441,
       "p_x2": 0.575,
       "dc_pick": "1X",
       "dc_conf": 0.7441,
-      "odd_1x": 1.3,
-      "odd_x2": 1.3,
+      "odd_1x": 1.28,
+      "odd_x2": 1.33,
       "p_o25_btts": 0.3087,
-      "p_nogol": 0.6424,
-      "p_both_score": 0.3576,
+      "p_nogol": 0.6363,
+      "p_both_score": 0.3637,
       "p_home_blanked": 0.3012,
       "p_away_blanked": 0.3679,
       "nogol_team": "Albinoleffe",
@@ -205179,10 +205525,10 @@
       "btts_conf": 0.503,
       "odd_btts_y": 2.62,
       "odd_btts_n": 1.44,
-      "p_1x": 0.849,
-      "p_x2": 0.4146,
+      "p_1x": 0.8492,
+      "p_x2": 0.4122,
       "dc_pick": "1X",
-      "dc_conf": 0.849,
+      "dc_conf": 0.8492,
       "odd_1x": 1.17,
       "odd_x2": 1.73,
       "p_o25_btts": 0.4463,
@@ -205866,7 +206212,7 @@
         "form": "LLWWW"
       },
       "away_standing": {
-        "rank": 2,
+        "rank": 3,
         "points": 24,
         "played": 14,
         "won": 7,
@@ -206036,24 +206382,24 @@
       "ou15_conf": 0.5607,
       "odd_o15": null,
       "odd_u15": null,
-      "p_over15_ht": 0.1524,
-      "p_under15_ht": 0.8476,
+      "p_over15_ht": 0.1514,
+      "p_under15_ht": 0.8486,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.8476,
+      "ht15_conf": 0.8486,
       "odd_o15_ht": null,
       "odd_u15_ht": null,
-      "p_over15_sh": 0.2019,
-      "p_under15_sh": 0.7981,
+      "p_over15_sh": 0.2007,
+      "p_under15_sh": 0.7993,
       "sh15_pick": "Under 1.5 2H",
-      "sh15_conf": 0.7981,
+      "sh15_conf": 0.7993,
       "odd_o15_sh": null,
       "odd_u15_sh": null,
-      "p_over25": 0.3432,
-      "p_under25": 0.6568,
+      "p_over25": 0.3376,
+      "p_under25": 0.6624,
       "ou_pick": "Under 2.5",
-      "ou_conf": 0.6568,
-      "odd_o25": 2.08,
-      "odd_u25": 1.73,
+      "ou_conf": 0.6624,
+      "odd_o25": 2.15,
+      "odd_u25": 1.67,
       "p_over35": 0.0499,
       "p_under35": 0.9501,
       "ou35_pick": "Under 3.5",
@@ -206066,12 +206412,12 @@
       "btts_conf": 0.7157,
       "odd_btts_y": null,
       "odd_btts_n": null,
-      "p_1x": 0.5599,
-      "p_x2": 0.7822,
+      "p_1x": 0.5578,
+      "p_x2": 0.7848,
       "dc_pick": "X2",
-      "dc_conf": 0.7822,
-      "odd_1x": null,
-      "odd_x2": null,
+      "dc_conf": 0.7848,
+      "odd_1x": 1.3,
+      "odd_x2": 1.36,
       "p_o25_btts": 0.1372,
       "p_nogol": 0.7613,
       "p_both_score": 0.2387,
@@ -206474,10 +206820,10 @@
       "btts_conf": 0.5194,
       "odd_btts_y": 3.5,
       "odd_btts_n": 1.28,
-      "p_1x": 0.639,
-      "p_x2": 0.5836,
+      "p_1x": 0.6364,
+      "p_x2": 0.5861,
       "dc_pick": "1X",
-      "dc_conf": 0.639,
+      "dc_conf": 0.6364,
       "odd_1x": 1.8,
       "odd_x2": 1.1,
       "p_o25_btts": 0.5382,
@@ -206601,8 +206947,8 @@
       },
       "yellow_odds": {
         "4.5": {
-          "over": 2.1,
-          "under": 1.67
+          "over": 2.0,
+          "under": 1.73
         }
       },
       "lam_home": 3.0,
@@ -207700,10 +208046,10 @@
       "btts_conf": 0.6438,
       "odd_btts_y": 5.0,
       "odd_btts_n": 1.17,
-      "p_1x": 0.6923,
-      "p_x2": 0.629,
+      "p_1x": 0.6918,
+      "p_x2": 0.6301,
       "dc_pick": "1X",
-      "dc_conf": 0.6923,
+      "dc_conf": 0.6918,
       "odd_1x": 1.14,
       "odd_x2": 1.5,
       "p_o25_btts": 0.2688,
@@ -208344,8 +208690,8 @@
       "p_x2": 0.5121,
       "dc_pick": "1X",
       "dc_conf": 0.7792,
-      "odd_1x": 1.33,
-      "odd_x2": 1.4,
+      "odd_1x": 1.2,
+      "odd_x2": 1.57,
       "p_o25_btts": 0.4314,
       "p_nogol": 0.4727,
       "p_both_score": 0.5273,
@@ -208651,10 +208997,10 @@
       "btts_conf": 0.5658,
       "odd_btts_y": null,
       "odd_btts_n": null,
-      "p_1x": 0.5345,
-      "p_x2": 0.7539,
+      "p_1x": 0.5437,
+      "p_x2": 0.7447,
       "dc_pick": "X2",
-      "dc_conf": 0.7539,
+      "dc_conf": 0.7447,
       "odd_1x": 1.36,
       "odd_x2": 1.36,
       "p_o25_btts": 0.4617,
@@ -209104,10 +209450,10 @@
       "btts_conf": 0.5958,
       "odd_btts_y": 4.0,
       "odd_btts_n": 1.22,
-      "p_1x": 0.7045,
-      "p_x2": 0.6092,
+      "p_1x": 0.6956,
+      "p_x2": 0.6177,
       "dc_pick": "1X",
-      "dc_conf": 0.7045,
+      "dc_conf": 0.6956,
       "odd_1x": 1.4,
       "odd_x2": 1.22,
       "p_o25_btts": 0.3427,
@@ -210235,12 +210581,12 @@
       "btts_conf": 0.5269,
       "odd_btts_y": 3.25,
       "odd_btts_n": 1.33,
-      "p_1x": 0.8479,
-      "p_x2": 0.408,
+      "p_1x": 0.8457,
+      "p_x2": 0.4116,
       "dc_pick": "1X",
-      "dc_conf": 0.8479,
-      "odd_1x": 1.12,
-      "odd_x2": 1.8,
+      "dc_conf": 0.8457,
+      "odd_1x": 1.14,
+      "odd_x2": 1.73,
       "p_o25_btts": 0.4545,
       "p_nogol": 0.4782,
       "p_both_score": 0.5218,
@@ -210260,6 +210606,10 @@
         "13.5": null
       },
       "corner_odds": {
+        "9.0": {
+          "over": 2.1,
+          "under": 2.1
+        },
         "9.5": {
           "over": 2.1,
           "under": 1.67
@@ -210284,16 +210634,65 @@
           "over": 1.1,
           "under": 13.0
         },
-        "9.0": {
-          "over": 2.1,
-          "under": 2.1
+        "8.0": {
+          "over": 1.67,
+          "under": 3.0
+        },
+        "10.0": {
+          "over": 2.75,
+          "under": 1.67
+        },
+        "11.0": {
+          "over": 4.0,
+          "under": 1.4
+        },
+        "7.0": {
+          "over": 1.36,
+          "under": 4.33
+        },
+        "12.0": {
+          "over": 5.5,
+          "under": 1.22
         },
         "6.0": {
           "over": 1.2,
           "under": 7.0
         },
+        "13.0": {
+          "over": 9.0,
+          "under": 1.14
+        },
+        "21.0": {
+          "over": 101.0,
+          "under": 1.0
+        },
         "14.0": {
-          "over": 13.0
+          "over": 13.0,
+          "under": 1.07
+        },
+        "19.0": {
+          "over": 51.0,
+          "under": 1.0
+        },
+        "20.0": {
+          "over": 67.0,
+          "under": 1.0
+        },
+        "17.0": {
+          "over": 34.0,
+          "under": 1.01
+        },
+        "18.0": {
+          "over": 41.0,
+          "under": 1.01
+        },
+        "16.0": {
+          "over": 23.0,
+          "under": 1.02
+        },
+        "15.0": {
+          "over": 17.0,
+          "under": 1.04
         }
       },
       "exp_yellows": null,
@@ -210422,10 +210821,10 @@
       "btts_conf": 0.5142,
       "odd_btts_y": 3.5,
       "odd_btts_n": 1.28,
-      "p_1x": 0.5957,
-      "p_x2": 0.7097,
+      "p_1x": 0.589,
+      "p_x2": 0.714,
       "dc_pick": "X2",
-      "dc_conf": 0.7097,
+      "dc_conf": 0.714,
       "odd_1x": 1.4,
       "odd_x2": 1.2,
       "p_o25_btts": 0.4362,
@@ -210943,6 +211342,10 @@
         "13.5": null
       },
       "corner_odds": {
+        "10.0": {
+          "over": 2.1,
+          "under": 2.1
+        },
         "10.5": {
           "over": 2.1,
           "under": 1.67
@@ -210970,10 +211373,6 @@
         "9.0": {
           "over": 1.67,
           "under": 2.75
-        },
-        "10.0": {
-          "over": 2.1,
-          "under": 2.1
         },
         "11.0": {
           "over": 2.62,
@@ -211896,8 +212295,8 @@
       },
       "corner_odds": {
         "9.5": {
-          "over": 1.83,
-          "under": 1.83
+          "over": 1.95,
+          "under": 1.85
         },
         "2.0": {
           "over": 1.0,
@@ -212853,12 +213252,12 @@
       "ou_conf": 0.5367,
       "odd_o25": 2.02,
       "odd_u25": 1.78,
-      "p_over35": 0.2459,
-      "p_under35": 0.7541,
+      "p_over35": 0.2489,
+      "p_under35": 0.7511,
       "ou35_pick": "Under 3.5",
-      "ou35_conf": 0.7541,
-      "odd_o35": 3.55,
-      "odd_u35": 1.27,
+      "ou35_conf": 0.7511,
+      "odd_o35": 3.45,
+      "odd_u35": 1.3,
       "p_btts_yes": 0.4519,
       "p_btts_no": 0.5481,
       "btts_pick": "BTTS NO",
@@ -212869,7 +213268,7 @@
       "p_x2": 0.5255,
       "dc_pick": "1X",
       "dc_conf": 0.7742,
-      "odd_1x": 1.14,
+      "odd_1x": 1.17,
       "odd_x2": 1.53,
       "p_o25_btts": 0.389,
       "p_nogol": 0.5642,
@@ -212891,8 +213290,8 @@
       },
       "corner_odds": {
         "10.5": {
-          "over": 1.67,
-          "under": 2.1
+          "over": 1.8,
+          "under": 1.91
         },
         "11.5": {
           "over": 1.91,
@@ -212904,7 +213303,7 @@
         },
         "3.0": {
           "over": 1.0,
-          "under": 67.0
+          "under": 51.0
         },
         "4.0": {
           "over": 1.01,
@@ -212912,7 +213311,7 @@
         },
         "5.0": {
           "over": 1.02,
-          "under": 26.0
+          "under": 23.0
         },
         "8.0": {
           "over": 1.25,
@@ -212927,20 +213326,20 @@
           "under": 2.75
         },
         "11.0": {
-          "over": 2.1,
-          "under": 2.1
+          "over": 2.25,
+          "under": 1.91
         },
         "7.0": {
-          "over": 1.12,
-          "under": 10.0
+          "over": 1.14,
+          "under": 9.0
         },
         "12.0": {
           "over": 2.62,
           "under": 1.67
         },
         "6.0": {
-          "over": 1.06,
-          "under": 19.0
+          "over": 1.07,
+          "under": 17.0
         },
         "13.0": {
           "over": 3.75,
@@ -212963,7 +213362,7 @@
           "under": 1.0
         },
         "14.0": {
-          "over": 5.0,
+          "over": 6.0,
           "under": 1.25
         },
         "19.0": {
@@ -213008,8 +213407,12 @@
       },
       "yellow_odds": {
         "4.5": {
-          "over": 1.8,
-          "under": 1.91
+          "over": 1.73,
+          "under": 2.0
+        },
+        "5.5": {
+          "over": 2.1,
+          "under": 1.67
         }
       },
       "lam_home": 1.4,
@@ -213570,8 +213973,8 @@
       "p_x2": 0.6012,
       "dc_pick": "1X",
       "dc_conf": 0.6466,
-      "odd_1x": 1.36,
-      "odd_x2": 1.44,
+      "odd_1x": 1.4,
+      "odd_x2": 1.4,
       "p_o25_btts": 0.5976,
       "p_nogol": 0.2996,
       "p_both_score": 0.7004,
@@ -214121,10 +214524,10 @@
       "btts_conf": 0.5229,
       "odd_btts_y": 2.75,
       "odd_btts_n": 1.4,
-      "p_1x": 0.6952,
-      "p_x2": 0.5614,
+      "p_1x": 0.6951,
+      "p_x2": 0.5627,
       "dc_pick": "1X",
-      "dc_conf": 0.6952,
+      "dc_conf": 0.6951,
       "odd_1x": 1.2,
       "odd_x2": 1.57,
       "p_o25_btts": 0.5103,
@@ -214891,12 +215294,12 @@
       "ou15_conf": 0.6209,
       "odd_o15": 1.52,
       "odd_u15": 2.42,
-      "p_over15_ht": 0.2208,
-      "p_under15_ht": 0.7792,
+      "p_over15_ht": 0.2191,
+      "p_under15_ht": 0.7809,
       "ht15_pick": "Under 1.5 HT",
-      "ht15_conf": 0.7792,
-      "odd_o15_ht": 3.7,
-      "odd_u15_ht": 1.26,
+      "ht15_conf": 0.7809,
+      "odd_o15_ht": 3.8,
+      "odd_u15_ht": 1.25,
       "p_over15_sh": 0.2917,
       "p_under15_sh": 0.7083,
       "sh15_pick": "Under 1.5 2H",
@@ -214921,10 +215324,10 @@
       "btts_conf": 0.6709,
       "odd_btts_y": 4.33,
       "odd_btts_n": 1.2,
-      "p_1x": 0.7657,
-      "p_x2": 0.5701,
+      "p_1x": 0.7673,
+      "p_x2": 0.5696,
       "dc_pick": "1X",
-      "dc_conf": 0.7657,
+      "dc_conf": 0.7673,
       "odd_1x": 1.2,
       "odd_x2": 1.36,
       "p_o25_btts": 0.2387,
@@ -214947,8 +215350,8 @@
       },
       "corner_odds": {
         "10.5": {
-          "over": 1.83,
-          "under": 1.83
+          "over": 1.95,
+          "under": 1.85
         },
         "2.0": {
           "over": 1.0,
@@ -215039,8 +215442,8 @@
           "under": 1.12
         },
         "24.5": {
-          "over": 1.83,
-          "under": 1.83
+          "over": 1.91,
+          "under": 1.8
         }
       },
       "exp_yellows": null,
@@ -215051,6 +215454,10 @@
         "4.5": null
       },
       "yellow_odds": {
+        "4.5": {
+          "over": 1.73,
+          "under": 2.0
+        },
         "5.5": {
           "over": 2.1,
           "under": 1.67
@@ -215620,8 +216027,8 @@
       },
       "corner_odds": {
         "8.5": {
-          "over": 1.9,
-          "under": 1.9
+          "over": 1.83,
+          "under": 1.83
         },
         "1.0": {
           "over": 1.0,
@@ -215988,6 +216395,6 @@
     }
   ],
   "timezone": "Europe/Rome",
-  "expires_at": "2026-08-22T23:45:38.053960+00:00",
-  "refreshed_at": "2026-08-21T23:46:09.507777+00:00"
+  "expires_at": "2026-08-23T01:08:20.075700+00:00",
+  "refreshed_at": "2026-08-22T01:08:56.949031+00:00"
 }
