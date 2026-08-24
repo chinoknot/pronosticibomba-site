@@ -7509,13 +7509,13 @@
       "home_logo": "https://media.api-sports.io/football/teams/25114.png",
       "away_logo": "https://media.api-sports.io/football/teams/22561.png",
       "league_logo": "https://media.api-sports.io/football/leagues/709.png",
-      "status_short": "NS",
-      "status_long": "Not Started",
-      "goals_home": null,
-      "goals_away": null,
+      "status_short": "HT",
+      "status_long": "Halftime",
+      "goals_home": 1,
+      "goals_away": 2,
       "total_corners": null,
       "total_yellows": null,
-      "final_score": "",
+      "final_score": "1-2",
       "home_team_id": 25114,
       "away_team_id": 22561,
       "league_id": 709,
@@ -7620,8 +7620,8 @@
       ],
       "kickoff_at": "2026-08-24T14:00:00+02:00",
       "kickoff_ts": 1787572800,
-      "ht_goals_home": null,
-      "ht_goals_away": null
+      "ht_goals_home": 1,
+      "ht_goals_away": 2
     },
     {
       "fixture_id": 1588811,
@@ -28118,5 +28118,5 @@
   ],
   "timezone": "Europe/Rome",
   "expires_at": "2026-08-24T22:35:01.951371+00:00",
-  "refreshed_at": "2026-08-24T11:32:02.576753+00:00"
+  "refreshed_at": "2026-08-24T12:55:46.326282+00:00"
 }
