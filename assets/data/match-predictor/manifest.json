@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-09-10T21:30:45.832109+00:00",
+  "generated_at": "2026-09-11T00:19:33.145081+00:00",
   "timezone": "Europe/Rome",
-  "latest_date": "2026-09-10",
+  "latest_date": "2026-09-11",
   "dates": [
     {
-      "date": "2026-09-10",
-      "file": "2026-09-10.json",
-      "generated_at": "2026-09-09T23:15:23.026321+00:00",
-      "refreshed_at": "2026-09-10T21:30:45.745612+00:00",
-      "expires_at": "2026-09-10T23:15:23.026347+00:00",
-      "matches": 189,
-      "final_matches": 167,
-      "standings_file": "2026-09-10.standings.json",
-      "standings_stamp": "2026-09-10T21:30:45.745612+00:00",
-      "app_file": "2026-09-10.app.json"
+      "date": "2026-09-11",
+      "file": "2026-09-11.json",
+      "generated_at": "2026-09-11T00:19:21.252447+00:00",
+      "refreshed_at": "2026-09-11T00:19:32.867905+00:00",
+      "expires_at": "2026-09-12T00:19:21.252476+00:00",
+      "matches": 418,
+      "final_matches": 4,
+      "standings_file": "2026-09-11.standings.json",
+      "standings_stamp": "2026-09-11T00:19:32.867905+00:00",
+      "app_file": "2026-09-11.app.json"
     }
   ]
 }
