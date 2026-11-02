@@ -1176,6 +1176,7 @@ def slim_standings_index_for_cache(index):
 # ==========================
 def profile(ts_raw, side):
     o = {"played": 0, "played_side": 0, "gf_side": 0.0, "ga_side": 0.0,
+         "gf_side_valid": False, "ga_side_valid": False,
          "gf_total": 0.0, "ga_total": 0.0, "cs_rate": 0.0, "fts_rate": 0.0, "form": 0, "form_code": ""}
     if not isinstance(ts_raw, dict) or not ts_raw: return o
     fx = ts_raw.get("fixtures") or {}
@@ -1186,6 +1187,8 @@ def profile(ts_raw, side):
     g = ts_raw.get("goals") or {}
     gf = (g.get("for") or {}).get("average") or {}
     ga = (g.get("against") or {}).get("average") or {}
+    o["gf_side_valid"] = to_float(gf.get(side)) is not None
+    o["ga_side_valid"] = to_float(ga.get(side)) is not None
     o["gf_side"] = to_float(gf.get(side)) or 0.0
     o["ga_side"] = to_float(ga.get(side)) or 0.0
     o["gf_total"] = to_float(gf.get("total")) or 0.0
@@ -1212,6 +1215,54 @@ def p_over(lam, thr):
     if lam <= 0: return 0.0
     return max(0.0, 1.0 - sum(poi(k, lam) for k in range(thr)))
 
+def calibrated_goal_lambdas(hp, ap):
+    """Shrink small venue samples toward Dec-Jul 2025/26 goal averages."""
+    prior_home, prior_away, prior_games = 1.59, 1.32, 4.0
+    sample = max(0.0, min(float(hp.get("played_side") or 0),
+                          float(ap.get("played_side") or 0)))
+
+    def available_mean(pairs, fallback):
+        values = [value for value, valid in pairs if valid]
+        return sum(values) / len(values) if values else fallback
+
+    home_mean = available_mean([
+        (hp["gf_side"], hp.get("gf_side_valid", False)),
+        (ap["ga_side"], ap.get("ga_side_valid", False)),
+    ], prior_home)
+    away_mean = available_mean([
+        (ap["gf_side"], ap.get("gf_side_valid", False)),
+        (hp["ga_side"], hp.get("ga_side_valid", False)),
+    ], prior_away)
+    return ((home_mean * sample + prior_home * prior_games) / (sample + prior_games),
+            (away_mean * sample + prior_away * prior_games) / (sample + prior_games))
+
+def calibrated_goal_probability(market, poisson_probability, over_odd, under_odd=None):
+    """Dec-Jul market/Poisson blend; checked on Aug-Oct RAW fixtures."""
+    if over_odd is None or over_odd <= 1.0:
+        return poisson_probability
+    implied = 1.0 / over_odd
+    if market == "O25":
+        if under_odd is None or under_odd <= 1.0:
+            return poisson_probability
+        reverse = 1.0 / under_odd
+        market_probability = implied / (implied + reverse)
+        intercept, market_weight, goal_weight = (
+            0.03065081591488597, 1.0159443275124787, 0.09550728933957406
+        )
+    else:
+        market_probability = implied
+        intercept, market_weight, goal_weight = (
+            -0.13778382079122278, 0.9665279738847866, 0.07442231126208732
+        )
+
+    def logit(value):
+        value = max(1e-5, min(1.0 - 1e-5, value))
+        return math.log(value / (1.0 - value))
+
+    linear = (intercept + market_weight * logit(market_probability)
+              + goal_weight * logit(poisson_probability))
+    return 1.0 / (1.0 + math.exp(-linear))
+
 def grid(lh, la, mx=7):
     return {(h, a): poi(h, lh) * poi(a, la) for h in range(mx+1) for a in range(mx+1)}
 
@@ -1237,19 +1288,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     # --- BUILD LAMBDAS ---
     gh = to_float(pred.get("goals_home")) or 0.0
     ga = to_float(pred.get("goals_away")) or 0.0
-
-    vh, va = [], []
-    if gh > 0: vh.append(gh)
-    if ga > 0: va.append(ga)
-    if hp["gf_side"] > 0: vh.append(hp["gf_side"])
-    if ap["ga_side"] > 0: vh.append(ap["ga_side"])
-    if ap["gf_side"] > 0: va.append(ap["gf_side"])
-    if hp["ga_side"] > 0: va.append(hp["ga_side"])
-    if not vh and hp["gf_total"] > 0: vh.append(hp["gf_total"])
-    if not va and ap["gf_total"] > 0: va.append(ap["gf_total"])
-
-    lam_h = sum(vh) / len(vh) if vh else 1.2
-    lam_a = sum(va) / len(va) if va else 1.0
+    lam_h, lam_a = calibrated_goal_lambdas(hp, ap)
     lam_t = lam_h + lam_a
 
     # --- POISSON BASE PROBABILITIES ---
@@ -1438,6 +1477,8 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     tw = sum(w for _, _, w in ou_signals)
     p_over25 = sum(p * w for _, p, w in ou_signals) / tw if tw > 0 else 0.50
     p_over25 = nudge_prob(p_over25, factor=1.05, low=0.05, high=0.955)
+    p_over25_heuristic = p_over25
+    p_over25 = calibrated_goal_probability("O25", p_over25_poi, o_o25, o_u25)
     p_under25 = 1.0 - p_over25
 
     # ============================================================
@@ -1537,6 +1578,8 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
     tw35 = sum(w for _, _, w in over35_signals)
     p_over35 = sum(p * w for _, p, w in over35_signals) / tw35 if tw35 > 0 else p_over(lam_t, 4)
     p_over35 = nudge_prob(p_over35, factor=1.04, low=0.04, high=0.89)
+    p_over35_heuristic = p_over35
+    p_over35 = min(p_over25, calibrated_goal_probability("O35", p_over(lam_t, 4), o_o35))
     p_under35 = 1.0 - p_over35
 
     # ============================================================
@@ -1706,6 +1749,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
 
         # Over/Under 2.5
         "p_over25": round(p_over25, 4),
+        "p_over25_heuristic": round(p_over25_heuristic, 4),
         "p_under25": round(p_under25, 4),
         "ou_pick": "Over 2.5" if p_over25 >= 0.50 else "Under 2.5",
         "ou_conf": round(max(p_over25, p_under25), 4),
@@ -1713,6 +1757,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
 
         # Over/Under 3.5
         "p_over35": round(p_over35, 4),
+        "p_over35_heuristic": round(p_over35_heuristic, 4),
         "p_under35": round(p_under35, 4),
         "ou35_pick": "Over 3.5" if p_over35 >= 0.50 else "Under 3.5",
         "ou35_conf": round(max(p_over35, p_under35), 4),
@@ -1757,6 +1802,7 @@ def predict_all(hp, ap, pred, odds, home_name, away_name, h_sb=None, a_sb=None, 
 
         # Shared
         "lam_home": round(lam_h, 3), "lam_away": round(lam_a, 3), "lam_total": round(lam_t, 3),
+        "goal_model_version": "PB-GOALS-2026-11-02",
         "most_likely_scores": [(f"{h}-{a}", round(p * 100, 1)) for (h, a), p in ml],
     }
 
