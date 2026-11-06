@@ -1085,7 +1085,8 @@
   let availableMonths = [];
 
   async function loadAvailableMonths(){
-    const rows = await sbFetch('picks', '?select=match_date&order=match_date.desc&limit=5000');
+    // Ripartenza ROI: solo da novembre 2026 (dati precedenti restano nel DB).
+    const rows = await sbFetch('picks', '?select=match_date&match_date=gte.2026-11-01&order=match_date.desc&limit=5000');
     const seen = new Set();
     const out = [];
     for (const r of rows || []) {

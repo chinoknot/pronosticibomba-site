@@ -1014,7 +1014,8 @@ function isExcludedCategory(cat) {
       // le date le prendiamo dalle picks (sono le più "complete")
       const rows = await sbFetch(
         "picks",
-        "?select=match_date&order=match_date.desc&limit=200"
+        // Ripartenza storico: solo da 1 novembre 2026 (dati precedenti restano nel DB).
+        "?select=match_date&match_date=gte.2026-11-01&order=match_date.desc&limit=200"
       );
 
       const seen = new Set();
