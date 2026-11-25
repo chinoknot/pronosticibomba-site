@@ -15,8 +15,6 @@ on:
         description: "Cap finale selezioni"
         required: false
         default: "40"
-  schedule:
-    - cron: "10 2 * * *"
 
 jobs:
   dry-run:
